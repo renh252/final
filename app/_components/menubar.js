@@ -36,7 +36,8 @@ export default function Menubar() {
 
   return (
     <>
-      <header className={styles.header_banner}>
+      {/* <header className={styles.header_banner}> */}
+      <header>
         <div className="nav-bg fixed-top">
           <nav
             className="navbar navbar-expand-lg bg-body-tertiary"
@@ -64,10 +65,10 @@ export default function Menubar() {
                 <span className="navbar-toggler-icon"></span>
               </button>
               <div
-                className="collapse navbar-collapse"
+                className="collapse navbar-collapse d-flex justify-content-end me-5"
                 id="navbarSupportedContent"
               >
-                <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                <ul className="navbar-nav mb-2 mb-lg-0">
                   <li
                     className={
                       pathname === '/' ? 'nav-item active' : 'nav-item'
