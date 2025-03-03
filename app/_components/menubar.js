@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import styles from './menubar.module.css'
 import Link from 'next/link'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -14,11 +14,41 @@ export default function Menubar() {
     require('bootstrap/dist/js/bootstrap.bundle.min.js')
   }, [])
 
+  // 監聽滾動事件做隱藏效果
+  const [prevScrollPos, setPrevScrollPos] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  const handleScroll = useCallback(() => {
+    const currentScrollPos = window.scrollY
+    console.log(currentScrollPos)
+    setVisible(
+      (prevScrollPos > currentScrollPos &&
+        prevScrollPos - currentScrollPos > 70) ||
+        currentScrollPos < 10
+    )
+    setPrevScrollPos(currentScrollPos)
+  }, [prevScrollPos])
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [handleScroll])
+
   return (
     <>
-      <header className={styles.header_banner}>
+      {/* <header className={styles.header_banner}> */}
+      <header>
         <div className="nav-bg fixed-top">
-          <nav className="navbar navbar-expand-lg bg-body-tertiary">
+          <nav
+            className="navbar navbar-expand-lg bg-body-tertiary"
+            style={{
+              position: 'fixed',
+              top: 0,
+              width: '100%',
+              transition: 'top 0.3s',
+              top: visible ? '0' : '-80px',
+            }}
+          >
             <div className="container-fluid">
               <Link className="navbar-brand" href="/">
                 毛孩之家
@@ -29,16 +59,16 @@ export default function Menubar() {
                 data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent"
-                aria-expanded="false"
+                aria-expanded="true"
                 aria-label="Toggle navigation"
               >
                 <span className="navbar-toggler-icon"></span>
               </button>
               <div
-                className="collapse navbar-collapse"
+                className="collapse navbar-collapse d-flex justify-content-end me-5"
                 id="navbarSupportedContent"
               >
-                <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                <ul className="navbar-nav mb-2 mb-lg-0">
                   <li
                     className={
                       pathname === '/' ? 'nav-item active' : 'nav-item'

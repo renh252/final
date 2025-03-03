@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-react": "^1.0.6",
     "bootstrap": "^5.3.3",
     "immer": "^10.1.1",
     "next": "^14.2.20",
