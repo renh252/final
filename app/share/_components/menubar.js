@@ -1,14 +1,18 @@
 'use client'
 
+import { useEffect } from 'react'
 import styles from './menubar.module.css'
 import Link from 'next/link'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import { usePathname } from 'next/navigation'
 
 export default function Menubar() {
   const pathname = usePathname()
-  console.log('pathname', pathname)
+  // console.log('pathname', pathname)
+  useEffect(() => {
+    // 確保這段程式碼只會在瀏覽器端執行
+    require('bootstrap/dist/js/bootstrap.bundle.min.js')
+  }, [])
 
   return (
     <>
