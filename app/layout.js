@@ -1,5 +1,5 @@
 import localFont from 'next/font/local'
-import Menubar from './share/_components/menubar'
+import Menubar from './_components/menubar'
 
 const fontIansui = localFont({
   src: '../public/fonts/Iansui-Regular.ttf',
