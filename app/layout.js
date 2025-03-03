@@ -15,7 +15,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="zh-hant-tw">
-      <body className={`${fontIansui.variable}`}>
+      <body className={`${fontIansui.variable}`} style={{ fontFamily: 'var(--font-iansui)' }}>
         <Menubar />
         {children}
       </body>
