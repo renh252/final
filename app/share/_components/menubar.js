@@ -17,7 +17,7 @@ export default function Menubar() {
   return (
     <>
       <header className={styles.header_banner}>
-        <div className="nav-bg">
+        <div className="nav-bg fixed-top">
           <nav className="navbar navbar-expand-lg bg-body-tertiary">
             <div className="container-fluid">
               <Link className="navbar-brand" href="/">
