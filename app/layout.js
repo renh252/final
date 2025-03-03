@@ -1,4 +1,5 @@
 import localFont from 'next/font/local'
+import Menubar from './share/_components/menubar'
 
 const fontIansui = localFont({
   src: '../public/fonts/Iansui-Regular.ttf',
@@ -15,6 +16,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="zh-hant-tw">
       <body className={`${fontIansui.variable}`} style={{ fontFamily: 'var(--font-iansui)' }}>
+        <Menubar />
         {children}
       </body>
     </html>
