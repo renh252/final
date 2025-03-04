@@ -1,0 +1,128 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6rem 1rem 2rem;
+}
+
+.backButton {
+  position: fixed;
+  top: 4rem;
+  left: 5%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.backButton:hover {
+  color: #333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.imageContainer {
+  position: relative;
+  width: 100%;
+  height: 500px;
+}
+
+.image {
+  object-fit: cover;
+}
+
+.details {
+  padding: 2rem;
+}
+
+.name {
+  font-size: 2.5rem;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.breed {
+  font-size: 1.25rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.info {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+}
+
+.description {
+  margin-bottom: 2rem;
+}
+
+.description h2 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.description p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.adoptButton {
+  width: 100%;
+  padding: 1rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.adoptButton:hover {
+  background: #357abd;
+}
+
+@media (max-width: 768px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .imageContainer {
+    height: 300px;
+  }
+
+  .details {
+    padding: 1.5rem;
+  }
+
+  .name {
+    font-size: 2rem;
+  }
+}
