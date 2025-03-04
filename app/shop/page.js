@@ -7,9 +7,10 @@ import styles from './shop.module.css'
 // import globalStyles from '../page.module.css'
 import Card from './_components/card'
 import Products from './_components/data.json'
-import { FaAngleLeft } from "react-icons/fa6";
-import { FaAngleRight } from "react-icons/fa6";
+import { FaAngleLeft,FaAngleRight } from "react-icons/fa6";
 import IconLine from './_components/icon_line'
+import Link from 'next/link'
+
 
 
 export default function PetsPage() {
@@ -58,7 +59,7 @@ export default function PetsPage() {
                     <FaAngleRight/>
                   </div>
                 </div>
-              </div>
+            </div>
           </div>
 
           {/* contain */}
@@ -124,7 +125,6 @@ export default function PetsPage() {
           </div>
         </div>
       </main>
-<IconLine key={'title'} title={'title'}/>
     </>
   )
 }
