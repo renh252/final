@@ -1,0 +1,228 @@
+.banner {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+}
+
+.banner_title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.main {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.filters {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.searchBox {
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.categories {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.categoryBtn {
+  padding: 0.5rem 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.categoryBtn:hover {
+  background: #f5f5f5;
+}
+
+.categoryBtn.active {
+  background: #4a90e2;
+  color: white;
+  border-color: #4a90e2;
+}
+
+.contains {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.contain {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.contain_title {
+  margin-bottom: 1.5rem;
+}
+
+.contain_title h2 {
+  font-size: 1.5rem;
+  color: #333;
+  margin: 0;
+}
+
+.group {
+  margin-bottom: 2rem;
+}
+
+.groupTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.groupBody {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cardGroup {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+  overflow-x: auto;
+  padding: 1rem 0;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  flex-wrap: nowrap; /* 防止卡片換行 */
+}
+
+.cardGroup > * {
+  flex: 0 0 280px; /* 設定每個卡片固定寬度，不會縮放 */
+  max-width: 280px; /* 確保卡片不會超過最大寬度 */
+}
+
+.cardGroup::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.angle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  border: none;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.angle:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.angle:first-child {
+  left: -20px;
+}
+
+.angle:last-child {
+  right: -20px;
+}
+
+@media (max-width: 768px) {
+  .banner {
+    height: 200px;
+  }
+
+  .banner_title {
+    font-size: 2rem;
+  }
+
+  .main {
+    padding: 1rem;
+  }
+
+  .angle {
+    width: 35px;
+    height: 35px;
+  }
+
+  .angle:first-child {
+    left: -15px;
+  }
+
+  .angle:last-child {
+    right: -15px;
+  }
+
+  .cardGroup {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .filters {
+    margin-bottom: 1rem;
+  }
+
+  .categories {
+    gap: 0.5rem;
+  }
+
+  .categoryBtn {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+  }
+}
