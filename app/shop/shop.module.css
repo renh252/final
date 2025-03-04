@@ -1,0 +1,162 @@
+/* banner */
+.banner{
+  position: relative;
+  
+}
+.banner_title{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 120px;
+  color: aliceblue;
+  text-shadow: #000 1px 0px;
+  text-shadow: 10px 10px 20px #000;
+}
+
+/* main */
+.main{
+  margin: 50px auto;
+  padding: 0;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+}
+
+/* contains */
+.contains{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+}
+.contain{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 20px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.contain_title{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  color: #fff;
+  
+
+}
+.group{
+  margin: 50px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  .groupTitle{
+    padding: 0 10px ;
+    border-left: #000 1px solid;
+    p{
+      font-size: 30px;
+      text-shadow: #000 1px 0px;
+    }
+  }
+  .groupBody{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 50px;
+  };
+}
+.cardGroup{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+}
+.angle{
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  color:#fff;
+  background-color: rgba(199, 150, 80, 1);
+}
+
+
+  /* line */
+  .line{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    p{
+      padding: 0;
+      margin: 0;
+      padding: 0;
+      margin: 0;
+    }
+  }
+
+
+
+@media screen and (min-width: 1081px) {
+  .contain{
+    background-color: #fff;
+  }
+  .contain_title{
+    background-color: rgba(89, 62, 47, 1);
+  }
+  .line{
+    p{
+      font-size: 30px;
+      color: #fff;
+      text-shadow: #fff 1px 0px;
+    }
+    img{
+      display: none;
+    }
+  }
+}
+
+@media screen and (max-width: 1080px) {
+  .contain{
+    background-color: none;
+    .contain_title{
+      background-color: none;
+      }
+  };
+  .cardGroup{
+    flex-wrap: wrap;
+    
+  }
+  .angle{
+    display: none;
+  }
+  .line{
+    display: flex; 
+    p{
+      color: #000;
+      text-shadow: #000 1px 0px;
+      font-size: 36px;
+    }
+    img{
+      transform: rotate(20deg);
+      width: 8%;
+      aspect-ratio: 1/1;
+      object-fit: contain;
+    }
+  }
+  
+}
