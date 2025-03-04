@@ -1,0 +1,137 @@
+/* cards.js */
+
+.card {
+  border-radius: 62px;
+  padding: 10px;
+  width: 280px;
+  height: 410px;
+  box-shadow: 10px 10px 15px rgba(0, 0 ,0, 0.1);
+  background-color: rgba(199, 150, 80, 1);
+  text-decoration: none;
+
+  .image {
+    width: 100%;
+    object-fit: cover;
+    aspect-ratio: 1/1 ;
+    border-radius: 62px 62px 0px 0px;
+  }
+  .body {
+    width: 100%;
+    margin: 10px 0px;
+    position: relative
+  }
+  .title {
+    color:#fff;
+    font-size: 30px;
+  }
+  .price {
+    color:#fff;
+    font-size: 18px;
+    padding:0px;
+    margin:20px 0px 25px 0px
+  }
+  .del {
+    font-size: 18px;
+    padding:10px;
+  }
+  .button {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    bottom: 0px;
+    right: 10px;    
+    background-color: #fff;
+    color: red;
+    border: none;
+    border-radius: 50%;
+    }
+}
+
+/* 全域 */
+/* icon_line.js */
+.line{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  p{
+    padding: 0;
+    margin: 0;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+/* productMenu.js */
+.productMenu{
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 20px;
+  a{
+    width: 200px;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: #000;
+    border-radius: 16px;
+    font-size: 24px;
+
+  }
+  .title p{
+    text-shadow: #000 1px 0px 1px;
+    padding: 0;
+    margin: 0;
+    font-size: 24px;
+  }
+  a:hover{
+    background-color: rgba(199, 150, 80, 1);
+    color: #fff;
+    p{
+      text-shadow: #fff 1px 0px 1px;
+    }
+  }
+}
+
+/* computer */
+@media screen and (min-width: 1081px) {
+
+/* icon_line.js */
+.line{
+  justify-content: center;
+  p{
+    font-size: 30px;
+    color: #fff;
+    text-shadow: #fff 1px 0px;
+  }
+  img{
+    display: none;
+  }
+}
+
+}
+  
+
+
+/* mobile */
+@media screen and (max-width: 1080px) {
+  /* icon_line.js */ 
+  .line{
+    display: flex; 
+    justify-content: space-between;
+    p{
+      color: #000;
+      text-shadow: #000 1px 0px;
+      font-size: 36px;
+    }
+    img{
+      transform: rotate(20deg);
+      width: 8%;
+      aspect-ratio: 1/1;
+      object-fit: contain;
+    }
+  }
+  /* cards.js */
+  
+}
