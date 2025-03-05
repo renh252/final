@@ -1,0 +1,143 @@
+.card {
+  background: rgba(199, 150, 80, 1);
+  border-radius: 62px;
+  overflow: hidden;
+  box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.imageContainer {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 62px 62px 0px 0px;
+}
+
+.image {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.content {
+  padding: 10px 0;
+  margin: 10px 0;
+  position: relative;
+}
+
+.name {
+  font-size: 30px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.breed {
+  color: #fff;
+  margin-bottom: 0.5rem;
+  font-size: 18px;
+}
+
+.details {
+  display: flex;
+  justify-content: space-between;
+  color: #fff;
+  font-size: 18px;
+  margin: 20px 0px 25px 0px;
+}
+
+.age,
+.location {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.likeButton {
+  position: absolute;
+  bottom: 0;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+  color: #ff4d4d;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.likeButton:hover {
+  transform: scale(1.1);
+  background-color: #fff;
+}
+
+.likeButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 768px) {
+  .card {
+    width: 240px;
+    border-radius: 40px;
+  }
+
+  .imageContainer {
+    height: 160px;
+    border-radius: 40px 40px 0px 0px;
+  }
+
+  .name {
+    font-size: 24px;
+  }
+
+  .breed {
+    font-size: 16px;
+  }
+
+  .details {
+    font-size: 16px;
+    margin: 15px 0px 20px 0px;
+  }
+}
+
+.petCard {
+  width: 280px;
+  margin: 0 15px;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: #10b981;
+  color: white;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
