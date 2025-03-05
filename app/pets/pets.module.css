@@ -1,3 +1,21 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.breadcrumbContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cardSections {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
 .banner {
   position: relative;
   width: 100%;
@@ -17,9 +35,7 @@
 }
 
 .main {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  margin-top: 2rem;
 }
 
 .filters {
@@ -84,103 +100,130 @@
   border-color: #4a90e2;
 }
 
-.contains {
+.contain {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-}
-
-.contain {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  justify-content: center;
+  align-items: center;
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 .contain_title {
-  margin-bottom: 1.5rem;
-}
-
-.contain_title h2 {
-  font-size: 1.5rem;
-  color: #333;
-  margin: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  color: #fff;
 }
 
 .group {
-  margin-bottom: 2rem;
+  margin: 50px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .groupTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #333;
+  padding: 0 10px;
+  border-left: #000 1px solid;
+}
+
+.groupTitle p {
+  font-size: 30px;
+  text-shadow: #000 1px 0px;
 }
 
 .groupBody {
-  position: relative;
   display: flex;
+  flex-direction: row;
   align-items: center;
+  gap: 50px;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
 }
 
 .cardGroup {
   display: flex;
-  gap: 1.5rem;
-  width: 100%;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 30px;
+  width: calc(100% - 120px);
   overflow-x: auto;
-  padding: 1rem 0;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-  flex-wrap: nowrap; /* 防止卡片換行 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0 20px;
+  flex-wrap: nowrap;
 }
 
 .cardGroup > * {
-  flex: 0 0 280px; /* 設定每個卡片固定寬度，不會縮放 */
-  max-width: 280px; /* 確保卡片不會超過最大寬度 */
+  flex: 0 0 280px;
+  max-width: 280px;
 }
 
 .cardGroup::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
-
-.cardLink {
-  text-decoration: none;
-  color: inherit;
+  display: none;
 }
 
 .angle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  color: #fff;
+  background-color: rgba(199, 150, 80, 1);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1;
-  border: none;
-  padding: 0;
-  transition: all 0.2s ease;
 }
 
 .angle:hover {
-  background: rgba(255, 255, 255, 1);
   transform: translateY(-50%) scale(1.1);
 }
 
 .angle:first-child {
-  left: -20px;
+  left: 10px;
 }
 
 .angle:last-child {
-  right: -20px;
+  right: 10px;
+}
+
+@media screen and (min-width: 1081px) {
+  .contain {
+    background-color: #fff;
+  }
+  .contain_title {
+    background-color: rgba(89, 62, 47, 1);
+  }
+}
+
+@media screen and (max-width: 1080px) {
+  .contain {
+    background-color: none;
+  }
+  .contain_title {
+    background-color: none;
+  }
+  .cardGroup {
+    flex-wrap: wrap;
+  }
+  .angle {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {

@@ -1,11 +1,12 @@
 .card {
-  background: white;
-  border-radius: 8px;
+  background: rgba(199, 150, 80, 1);
+  border-radius: 62px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease-in-out;
   width: 100%;
   height: 100%;
+  padding: 10px;
 }
 
 .card:hover {
@@ -17,6 +18,7 @@
   width: 100%;
   height: 200px;
   overflow: hidden;
+  border-radius: 62px 62px 0px 0px;
 }
 
 .image {
@@ -26,26 +28,30 @@
 }
 
 .content {
-  padding: 1rem;
+  padding: 10px 0;
+  margin: 10px 0;
+  position: relative;
 }
 
 .name {
-  font-size: 1.25rem;
+  font-size: 30px;
   font-weight: 600;
-  color: #333;
+  color: #fff;
   margin-bottom: 0.5rem;
 }
 
 .breed {
-  color: #666;
+  color: #fff;
   margin-bottom: 0.5rem;
+  font-size: 18px;
 }
 
 .details {
   display: flex;
   justify-content: space-between;
-  color: #888;
-  font-size: 0.9rem;
+  color: #fff;
+  font-size: 18px;
+  margin: 20px 0px 25px 0px;
 }
 
 .age,
@@ -55,12 +61,56 @@
   gap: 0.25rem;
 }
 
+.likeButton {
+  position: absolute;
+  bottom: 0;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+  color: #ff4d4d;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.likeButton:hover {
+  transform: scale(1.1);
+  background-color: #fff;
+}
+
+.likeButton svg {
+  width: 16px;
+  height: 16px;
+}
+
 @media (max-width: 768px) {
   .card {
-    width: 240px; /* 在手機上顯示更小的卡片 */
+    width: 240px;
+    border-radius: 40px;
   }
 
   .imageContainer {
     height: 160px;
+    border-radius: 40px 40px 0px 0px;
+  }
+
+  .name {
+    font-size: 24px;
+  }
+
+  .breed {
+    font-size: 16px;
+  }
+
+  .details {
+    font-size: 16px;
+    margin: 15px 0px 20px 0px;
   }
 }
