@@ -26,5 +26,6 @@
   },
   "emmet.syntaxProfiles": {
     "javascript": "jsx"
-  }
+  },
+  "cSpell.words": ["sweetalert"]
 }
