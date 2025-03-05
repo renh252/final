@@ -1,40 +1,20 @@
-import Image from 'next/image'
+import React from 'react'
+import CardSwitchButton from '@/app/_components/ui/Card'
 import styles from './pet-card.module.css'
-import { useState } from 'react'
-import { FaRegHeart, FaHeart } from 'react-icons/fa'
 
-export default function PetCard({ image, name, breed, age, location }) {
-  const [liked, setLiked] = useState(false)
-
+const PetCard = ({ image, name, breed, age, location }) => {
   return (
-    <div className={styles.card}>
-      <div className={styles.imageContainer}>
-        <Image
-          src={image}
-          alt={name}
-          width={300}
-          height={200}
-          className={styles.image}
-        />
-        <button
-          onClick={(e) => {
-            e.preventDefault()
-            setLiked(!liked)
-          }}
-          className={styles.likeButton}
-          aria-label="收藏"
-        >
-          {liked ? <FaHeart /> : <FaRegHeart />}
-        </button>
+    <CardSwitchButton image={image} title={name} className={styles.petCard}>
+      <div className={styles.info}>
+        <p>品種：{breed}</p>
+        <p>年齡：{age}歲</p>
+        <p>地點：{location}</p>
       </div>
-      <div className={styles.content}>
-        <h3 className={styles.name}>{name}</h3>
-        <p className={styles.breed}>{breed}</p>
-        <div className={styles.details}>
-          <span className={styles.age}>{age}歲</span>
-          <span className={styles.location}>{location}</span>
-        </div>
+      <div className={styles.footer}>
+        <span className={styles.status}>待領養</span>
       </div>
-    </div>
+    </CardSwitchButton>
   )
 }
+
+export default PetCard

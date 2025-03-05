@@ -5,15 +5,13 @@
 }
 
 .breadcrumbContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .cardSections {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 3rem;
 }
 
 .banner {
@@ -102,104 +100,68 @@
 
 .contain {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  border-radius: 20px;
-  overflow: hidden;
 }
 
 .contain_title {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 20px 0;
-  color: #fff;
+  margin-bottom: 1.5rem;
+}
+
+.contain_title h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .group {
-  margin: 50px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.groupTitle {
-  padding: 0 10px;
-  border-left: #000 1px solid;
-}
-
-.groupTitle p {
-  font-size: 30px;
-  text-shadow: #000 1px 0px;
+  position: relative;
+  width: 100%;
 }
 
 .groupBody {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 50px;
-  position: relative;
-  width: 100%;
-  overflow: hidden;
+  gap: 1rem;
+}
+
+.scrollButton {
+  position: absolute;
+  z-index: 10;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scrollButton:first-child {
+  left: -20px;
+}
+
+.scrollButton:last-child {
+  right: -20px;
 }
 
 .cardGroup {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
   gap: 30px;
-  width: calc(100% - 120px);
   overflow-x: auto;
   scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+  padding: 1rem 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: 0 20px;
-  flex-wrap: nowrap;
-}
-
-.cardGroup > * {
-  flex: 0 0 280px;
-  max-width: 280px;
 }
 
 .cardGroup::-webkit-scrollbar {
   display: none;
 }
 
-.angle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  color: #fff;
-  background-color: rgba(199, 150, 80, 1);
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1;
-}
-
-.angle:hover {
-  transform: translateY(-50%) scale(1.1);
-}
-
-.angle:first-child {
-  left: 10px;
-}
-
-.angle:last-child {
-  right: 10px;
+.cardLink {
+  text-decoration: none;
+  color: inherit;
 }
 
 @media screen and (min-width: 1081px) {
@@ -221,7 +183,7 @@
   .cardGroup {
     flex-wrap: wrap;
   }
-  .angle {
+  .scrollButton {
     display: none;
   }
 }
@@ -239,16 +201,16 @@
     padding: 1rem;
   }
 
-  .angle {
+  .scrollButton {
     width: 35px;
     height: 35px;
   }
 
-  .angle:first-child {
+  .scrollButton:first-child {
     left: -15px;
   }
 
-  .angle:last-child {
+  .scrollButton:last-child {
     right: -15px;
   }
 

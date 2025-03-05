@@ -1,13 +1,14 @@
 'use client'
 
 import Image from 'next/image'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useRef } from 'react'
 import styles from './pets.module.css'
 import PetCard from './_components/pet-card'
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 import petsData from './_components/data.json'
 import Link from 'next/link'
 import { Breadcrumbs } from '../_components/breadcrumbs'
+import Button from '@/app/_components/ui/Button'
 
 export default function PetsPage() {
   const latestRef = useRef(null)
@@ -64,13 +65,15 @@ export default function PetsPage() {
               </div>
               <div className={styles.group}>
                 <div className={styles.groupBody}>
-                  <button
-                    className={styles.angle}
+                  <Button
+                    variant="outline"
+                    size="small"
+                    className={styles.scrollButton}
                     onClick={() => scroll(-1, latestRef)}
                     aria-label="向左滑動"
                   >
                     <FaAngleLeft />
-                  </button>
+                  </Button>
                   <div className={styles.cardGroup} ref={latestRef}>
                     {petsData.pets.map((pet) => (
                       <Link
@@ -88,13 +91,15 @@ export default function PetsPage() {
                       </Link>
                     ))}
                   </div>
-                  <button
-                    className={styles.angle}
+                  <Button
+                    variant="outline"
+                    size="small"
+                    className={styles.scrollButton}
                     onClick={() => scroll(1, latestRef)}
                     aria-label="向右滑動"
                   >
                     <FaAngleRight />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -106,13 +111,15 @@ export default function PetsPage() {
               </div>
               <div className={styles.group}>
                 <div className={styles.groupBody}>
-                  <button
-                    className={styles.angle}
+                  <Button
+                    variant="outline"
+                    size="small"
+                    className={styles.scrollButton}
                     onClick={() => scroll(-1, popularRef)}
                     aria-label="向左滑動"
                   >
                     <FaAngleLeft />
-                  </button>
+                  </Button>
                   <div className={styles.cardGroup} ref={popularRef}>
                     {petsData.pets.map((pet) => (
                       <Link
@@ -130,13 +137,15 @@ export default function PetsPage() {
                       </Link>
                     ))}
                   </div>
-                  <button
-                    className={styles.angle}
+                  <Button
+                    variant="outline"
+                    size="small"
+                    className={styles.scrollButton}
                     onClick={() => scroll(1, popularRef)}
                     aria-label="向右滑動"
                   >
                     <FaAngleRight />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
