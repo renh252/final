@@ -7,10 +7,18 @@ import PetCard from './_components/pet-card'
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 import petsData from './_components/data.json'
 import Link from 'next/link'
+import { Breadcrumbs } from '../_components/breadcrumbs'
 
 export default function PetsPage() {
   const latestRef = useRef(null)
   const popularRef = useRef(null)
+
+  const breadcrumbItems = [
+    {
+      label: '寵物領養',
+      href: '/pets',
+    },
+  ]
 
   const scroll = (direction, ref) => {
     const container = ref.current
@@ -37,6 +45,8 @@ export default function PetsPage() {
         />
         <div className={styles.banner_title}>寵物領養</div>
       </div>
+
+      <Breadcrumbs title="寵物領養" items={breadcrumbItems} />
 
       <main className={styles.main}>
         <div className={styles.contains}>
