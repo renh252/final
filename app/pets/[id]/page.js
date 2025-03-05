@@ -7,6 +7,7 @@ import { useParams } from 'next/navigation'
 import styles from './pet-detail.module.css'
 import petsData from '../_components/data.json'
 import { FaArrowLeft, FaMapMarkerAlt, FaBirthdayCake } from 'react-icons/fa'
+import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 
 export default function PetDetailPage() {
   const { id } = useParams()
@@ -15,19 +16,33 @@ export default function PetDetailPage() {
   if (!pet) {
     return (
       <div className={styles.container}>
-        <h1>找不到此寵物</h1>
-        <Link href="/pets" className={styles.backButton}>
-          <FaArrowLeft /> 返回列表
-        </Link>
+        <div className="flex flex-col gap-4">
+          <Breadcrumbs
+            title="找不到此寵物"
+            items={[{ label: '寵物列表', href: '/pets' }]}
+          />
+          <Link href="/pets" className={styles.backButton}>
+            <FaArrowLeft /> 返回列表
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
     <div className={styles.container}>
-      <Link href="/pets" className={styles.backButton}>
-        <FaArrowLeft /> 返回列表
-      </Link>
+      <div className="flex flex-col gap-4">
+        <Breadcrumbs
+          title={pet.name}
+          items={[
+            { label: '寵物列表', href: '/pets' },
+            { label: pet.breed, href: `/pets?breed=${pet.breed}` },
+          ]}
+        />
+        <Link href="/pets" className={styles.backButton}>
+          <FaArrowLeft /> 返回列表
+        </Link>
+      </div>
 
       <div className={styles.content}>
         <div className={styles.imageContainer}>
