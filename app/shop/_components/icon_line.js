@@ -1,5 +1,5 @@
 import favicon from '../../favicon.ico'
-import styles from '../shop.module.css'
+import styles from './component.module.css'
 import Image from 'next/image'
 
 
