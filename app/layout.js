@@ -23,10 +23,12 @@ export default function RootLayout({ children }) {
           'background-color': 'rgba(240, 236, 214, 1)',
           display: 'flex',
           'flex-direction': 'column',
+          minHeight: '100vh', // 確保 body 佔滿整個視窗
         }}
       >
         <Menubar />
-        {children}
+        {/* 設置 children 為 flex: 1 以讓它填滿剩餘的空間 */}
+        <div style={{ flex: 1 }}>{children}</div>
         <Footer />
       </body>
     </html>
