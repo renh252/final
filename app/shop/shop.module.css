@@ -71,6 +71,7 @@
   border-radius: 20px;
   border-radius: 20px;
   overflow: hidden;
+
 }
 .contain_title{
   width: 100%;
@@ -81,7 +82,12 @@
   
 
 }
+.contain_body{
+  max-width: 100%;
+  padding: 20px;
+}
 .group{
+  width: 100%;
   margin: 50px 0;
   display: flex;
   flex-direction: column;
@@ -93,33 +99,43 @@
       font-size: 30px;
       text-shadow: #000 1px 0px;
     }
+
   }
   .groupBody{
+    max-width: 100%;
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: start;
     gap: 50px;
   };
 }
 .cardGroup{
+  max-width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   gap: 30px;
+  overflow: hidden;
+  padding: 20px 0;
 }
 .angle{
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 24px;
+  font-size: 25px;
+  line-height: 25px;
+  padding: 10px;
+  border-radius: 50%;
+  border: none;
   color:#fff;
   background-color: rgba(199, 150, 80, 1);
 }
-
+.angle:hover{
+  /* background-color: rgba(199, 150, 80, 0.8); */
+  box-shadow: 0 1px 20px rgb(199, 149, 80);
+}
 
 
 
