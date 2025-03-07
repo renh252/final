@@ -1,40 +1,38 @@
 'use client'
 import '@wangeditor/editor/dist/css/style.css' // 引入 css
-
 import React, { useState, useEffect } from 'react'
 import { Editor, Toolbar } from '@wangeditor/editor-for-react'
 import { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
 
 
 function MyEditor() {
-  // editor 实例
-  const [editor, setEditor] = useState<IDomEditor | null>(null) // TS 语法
-  // const [editor, setEditor] = useState(null)                   // JS 语法
+  // editor 實例
+  const [editor, setEditor] = useState<IDomEditor | null>(null) // TS 語法
 
-  // 编辑器内容
+  // 編輯器內容
   const [html, setHtml] = useState('<p>hello</p>')
 
-  // 模拟 ajax 请求，异步设置 html
+  // 模擬 ajax 請求，非同步載入 html
   useEffect(() => {
     setTimeout(() => {
       setHtml('<p>hello world</p>')
     }, 1500)
   }, [])
 
-  // 工具栏配置
+  // 工具列設定
   const toolbarConfig: Partial<IToolbarConfig> = {
     toolbarKeys: [],
-  }// TS 语法
-  // const toolbarConfig = { }                        // JS 语法
+  }// TS 語法
+  // const toolbarConfig = 
 
-  // 编辑器配置
+  // 編輯器設定
   const editorConfig: Partial<IEditorConfig> = {
-    // TS 语法
-    // const editorConfig = {                         // JS 语法
-    placeholder: '请输入内容...',
+    // TS 語法
+    // const editorConfig = 
+    placeholder: '請輸入內容...',
   }
 
-  // 及时销毁 editor ，重要！
+  // 及時銷毀 editor，重要！
   useEffect(() => {
     return () => {
       if (editor == null) return
