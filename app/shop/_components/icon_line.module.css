@@ -1,0 +1,52 @@
+/* 全域 */
+/* icon_line.js */
+.line{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  p{
+    padding: 0;
+    margin: 0;
+    padding: 0;
+    margin: 0;
+  }
+}/* computer */
+@media screen and (min-width: 1081px) {
+
+  /* icon_line.js */
+  .line{
+    justify-content: center;
+    p{
+      font-size: 30px;
+      color: #fff;
+      text-shadow: #fff 1px 0px;
+    }
+    img{
+      display: none;
+    }
+  }
+  
+  }
+
+  
+/* mobile */
+@media screen and (max-width: 1080px) {
+  /* icon_line.js */ 
+  .line{
+    display: flex; 
+    justify-content: space-between;
+    p{
+      color: #000;
+      text-shadow: #000 1px 0px;
+      font-size: 36px;
+    }
+    img{
+      width: 8%;
+      aspect-ratio: 1/1;
+      object-fit: contain;
+    }
+  }
+  /* cards.js */
+  
+}
