@@ -27,5 +27,6 @@
   "emmet.syntaxProfiles": {
     "javascript": "jsx"
   },
-  "cSpell.words": ["sweetalert"]
+  "cSpell.words": ["sweetalert"],
+  "marscode.chatLanguage": "cn"
 }
