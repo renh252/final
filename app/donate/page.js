@@ -58,7 +58,13 @@ export default function DonatePage(props) {
               <h5 style={{ 'margin-right': '5px' }}>選擇捐款種類</h5>
               <Dropdown />
             </li>
-            <li></li>
+            <li style={{ display: 'flex', 'justify-content': 'end' }}>
+              <button
+                style={{ width: '120px', height: '50px', 'font-size': '28px' }}
+              >
+                捐款
+              </button>
+            </li>
           </ul>
         </div>
       </div>
