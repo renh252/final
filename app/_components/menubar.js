@@ -21,7 +21,7 @@ export default function Menubar() {
 
   const handleScroll = useCallback(() => {
     const currentScrollPos = window.scrollY
-    console.log(currentScrollPos)
+    // console.log(currentScrollPos)
     setVisible(
       (prevScrollPos > currentScrollPos &&
         prevScrollPos - currentScrollPos > 70) ||

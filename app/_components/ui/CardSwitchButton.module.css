@@ -1,0 +1,33 @@
+.angle {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  color: #fff;
+  background-color: rgba(199, 150, 80, 1);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.angle:hover {
+  background-color: rgba(179, 130, 60, 1);
+}
+
+.left {
+  margin-right: auto;
+}
+
+.right {
+  margin-left: auto;
+}
+
+@media screen and (max-width: 1080px) {
+  .angle {
+    display: none;
+  }
+}
