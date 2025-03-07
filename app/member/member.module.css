@@ -88,16 +88,14 @@
     gap: 50px;
   };
 }
-.cardContainer{
-  width: 100%;
-  display: flex;
-  overflow: hidden;
-
-}
 .cardGroup{
+  max-width: 100%;
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   gap: 30px;
+  overflow: hidden;
   padding: 20px 0;
 }
 .angle{
@@ -115,33 +113,4 @@
 .angle:hover{
   /* background-color: rgba(199, 150, 80, 0.8); */
   box-shadow: 0 1px 20px rgb(199, 149, 80);
-}
-
-
-
-
-@media screen and (min-width: 1081px) {
-  .contain{
-    background-color: #fff;
-  }
-  .contain_title{
-    background-color: rgba(89, 62, 47, 1);
-  }
-}
-
-/* mobile */
-@media screen and (max-width: 1080px) {
-  .contain{
-    background-color: none;
-    .contain_title{
-      background-color: none;
-      }
-  };
-  .cardGroup{
-    flex-wrap: wrap;
-  }
-  .angle{
-    display: none;
-  }
-  
 }

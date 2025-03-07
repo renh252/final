@@ -16,6 +16,10 @@ import { FaAngleLeft,FaAngleRight } from "react-icons/fa6";
 import { FaRegHeart,FaHeart } from "react-icons/fa";
 
 
+// 
+import FirstPageNav from './_components/firstPageNav'
+
+import Try from './_components/try'
 
 
 export default function PetsPage() {
@@ -47,7 +51,8 @@ export default function PetsPage() {
 
   return (
     <>
-      <div className={styles.banner}>
+    <Try/>
+      {/* <div className={styles.banner}>
         <Image
           src="/images/Banner.jpg"
           alt="圖片描述"
@@ -57,8 +62,9 @@ export default function PetsPage() {
           priority
         />
         <div className={styles.banner_title}>商城</div>
-      </div>
+      </div> */}
       {/* main */}
+      <FirstPageNav/>
       <main className={styles.main}>
         <div className={styles.contains}>
           {/* contain */}

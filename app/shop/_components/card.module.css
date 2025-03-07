@@ -63,8 +63,10 @@
       }
     };
 
-    .button {
-      padding: 10px ;    
+    .btn {
+      width: 30px;
+      aspect-ratio: 1/1;
+      padding: 1px ;    
       position: absolute;
       bottom: 0px;
       right: 10px;    
