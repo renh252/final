@@ -261,7 +261,24 @@
   border-radius: 8px;
   height: 300px;
   overflow: hidden;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.mapContainer:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--primary-color),
+    var(--primary-light)
+  );
+  z-index: 1001;
 }
 
 .mapPlaceholder {
@@ -271,7 +288,7 @@
   align-items: center;
   justify-content: center;
   background-color: #e9ecef;
-  color: #4a5568;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -538,4 +555,73 @@
   font-size: 12px;
   color: var(--text-muted);
   margin-top: 5px;
+}
+
+/* 選定位置樣式 */
+.selectedLocation {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: var(--light-bg);
+  border-radius: var(--border-radius-sm);
+  border-left: 3px solid var(--primary-color);
+}
+
+.selectedLocation p {
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.selectedLocation p:first-child {
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+/* 地圖標記樣式 */
+:global(.leaflet-popup-content-wrapper) {
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  color: #000000;
+}
+
+:global(.leaflet-popup-content) {
+  margin: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+:global(.leaflet-popup-tip) {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+}
+
+:global(.leaflet-container a.leaflet-popup-close-button) {
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+:global(.leaflet-container a.leaflet-popup-close-button:hover) {
+  color: var(--danger-color);
+}
+
+/* OpenStreetMap 文字顏色設定 */
+:global(.leaflet-container) {
+  font-family: inherit;
+  color: #000000 !important;
+}
+
+:global(.leaflet-control-attribution) {
+  color: #000000 !important;
+}
+
+:global(.leaflet-control-attribution a) {
+  color: #000000 !important;
+  text-decoration: underline;
+}
+
+:global(.leaflet-control-zoom a) {
+  color: #000000 !important;
+}
+
+:global(.leaflet-control-layers) {
+  color: #000000 !important;
 }

@@ -7,9 +7,24 @@ import Link from 'next/link'
 import { Breadcrumbs } from '../_components/breadcrumbs'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import useSWR from 'swr'
-import { Form, Row, Col, InputGroup, FormControl } from 'react-bootstrap'
+import {
+  Form,
+  Row,
+  Col,
+  InputGroup,
+  FormControl,
+  Button,
+} from 'react-bootstrap'
+import dynamic from 'next/dynamic'
+import locationData from './_components/locationData'
 
 const fetcher = (url) => fetch(url).then((res) => res.json())
+
+// 動態導入 MapComponent，避免 SSR 問題
+const MapComponent = dynamic(
+  () => import('@/app/pets/_components/MapComponent'),
+  { ssr: false }
+)
 
 // 可搜尋的下拉選單組件
 const SearchableSelect = ({
@@ -185,6 +200,11 @@ export default function PetsPage() {
   // 狀態管理
   const [selectedSpecies, setSelectedSpecies] = useState('')
   const [selectedBreed, setSelectedBreed] = useState('')
+  const [selectedLocation, setSelectedLocation] = useState(null)
+  const [selectedRegion, setSelectedRegion] = useState('台北市') // 預設為台北市
+  const [mapMarkers, setMapMarkers] = useState([])
+  const [mapCenter, setMapCenter] = useState([25.033, 121.5654]) // 預設為台北市中心
+  const [mapZoom, setMapZoom] = useState(13)
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data: petsData, error: petsError } = useSWR(
@@ -253,6 +273,38 @@ export default function PetsPage() {
     }
   }, [selectedSpecies, mutateBreeds, mutateVarieties])
 
+  // 處理地區選擇
+  const handleRegionChange = (e) => {
+    const region = e.target.value
+    setSelectedRegion(region)
+
+    if (region && locationData[region]) {
+      const { lat, lng, zoom } = locationData[region]
+      setMapCenter([lat, lng])
+      setMapZoom(zoom)
+      // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
+      setMapMarkers([
+        { lat, lng, name: region, isRegion: true, id: Date.now() },
+      ])
+      // 清除手動選擇的位置
+      setSelectedLocation(null)
+    } else {
+      // 如果選擇了「請選擇地區」，清除標記
+      setMapMarkers([])
+    }
+  }
+
+  // 處理地圖位置選擇
+  const handleLocationSelect = (location) => {
+    setSelectedLocation(location)
+    // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
+    setMapMarkers([
+      { ...location, name: '已選擇的位置', isSelected: true, id: Date.now() },
+    ])
+    // 當手動選擇位置時，清除地區選擇
+    setSelectedRegion('')
+  }
+
   // 滾動功能
   const scroll = (direction, ref) => {
     const container = ref.current
@@ -268,6 +320,17 @@ export default function PetsPage() {
       behavior: 'smooth',
     })
   }
+
+  // 初始化地圖標記 - 預設為台北市
+  useEffect(() => {
+    if (selectedRegion && locationData[selectedRegion]) {
+      const { lat, lng } = locationData[selectedRegion]
+      // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
+      setMapMarkers([
+        { lat, lng, name: selectedRegion, isRegion: true, id: Date.now() },
+      ])
+    }
+  }, [])
 
   if (!petsData) return <div>載入中...</div>
   if (petsError) return <div>發生錯誤</div>
@@ -330,8 +393,11 @@ export default function PetsPage() {
 
                 <Form.Group className="mb-3">
                   <Form.Label>地區</Form.Label>
-                  <Form.Select>
-                    <option>請選擇地區</option>
+                  <Form.Select
+                    value={selectedRegion}
+                    onChange={handleRegionChange}
+                  >
+                    <option value="">請選擇地區</option>
                     <option>台北市</option>
                     <option>新北市</option>
                     <option>桃園市</option>
@@ -350,13 +416,51 @@ export default function PetsPage() {
                 <Form.Group className="mb-3">
                   <Form.Check type="checkbox" label="已收藏" />
                 </Form.Group>
+
+                {selectedLocation && (
+                  <div className={styles.selectedLocation}>
+                    <p>已選擇位置：</p>
+                    <p>緯度: {selectedLocation.lat.toFixed(4)}</p>
+                    <p>經度: {selectedLocation.lng.toFixed(4)}</p>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedLocation(null)
+                        // 如果有選擇地區，恢復地區標記
+                        if (selectedRegion && locationData[selectedRegion]) {
+                          const { lat, lng } = locationData[selectedRegion]
+                          // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
+                          setMapMarkers([
+                            {
+                              lat,
+                              lng,
+                              name: selectedRegion,
+                              isRegion: true,
+                              id: Date.now(),
+                            },
+                          ])
+                        } else {
+                          setMapMarkers([])
+                        }
+                      }}
+                    >
+                      清除位置
+                    </Button>
+                  </div>
+                )}
               </Form>
             </div>
           </Col>
           <Col md={6}>
             <div className={styles.mapContainer}>
-              {/* 這裡將放置 OpenStreetMap 組件 */}
-              <div className={styles.mapPlaceholder}>地圖載入中...</div>
+              <MapComponent
+                center={mapCenter}
+                zoom={mapZoom}
+                markers={mapMarkers}
+                onLocationSelect={handleLocationSelect}
+                regionName={selectedRegion}
+              />
             </div>
           </Col>
         </Row>
