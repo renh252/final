@@ -1,18 +1,32 @@
 'use client'
 
 import Image from 'next/image'
-import React, { useRef } from 'react'
+import React, { useRef, useEffect } from 'react'
 import styles from './pets.module.css'
-import PetCard from './_components/pet-card'
-import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
-import petsData from './_components/data.json'
+import Card from '@/app/_components/ui/Card'
 import Link from 'next/link'
 import { Breadcrumbs } from '../_components/breadcrumbs'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
+import useSWR from 'swr'
+
+const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function PetsPage() {
   const latestRef = useRef(null)
   const popularRef = useRef(null)
+
+  // 使用 SWR 獲取資料
+  const { data, error } = useSWR('/api/pets', fetcher)
+
+  // 當資料更新時輸出到 console
+  useEffect(() => {
+    if (data) {
+      console.log('從資料庫獲取的寵物資料：', data.pets)
+    }
+    if (error) {
+      console.error('獲取資料時發生錯誤：', error)
+    }
+  }, [data, error])
 
   const scroll = (direction, ref) => {
     const container = ref.current
@@ -28,6 +42,9 @@ export default function PetsPage() {
       behavior: 'smooth',
     })
   }
+
+  if (!data) return <div>載入中...</div>
+  if (error) return <div>發生錯誤</div>
 
   return (
     <>
@@ -71,19 +88,27 @@ export default function PetsPage() {
                     aria-label="向左滑動"
                   />
                   <div className={styles.cardGroup} ref={latestRef}>
-                    {petsData.pets.map((pet) => (
+                    {data.pets.map((pet) => (
                       <Link
                         href={`/pets/${pet.id}`}
                         key={pet.id}
                         className={styles.cardLink}
                       >
-                        <PetCard
-                          image={pet.image}
-                          name={pet.name}
-                          breed={pet.breed}
-                          age={pet.age}
-                          location={pet.location}
-                        />
+                        <Card
+                          image="/images/default_no_pet.jpg"
+                          title={pet.name}
+                          className={styles.petCard}
+                        >
+                          <div>
+                            <p>品種：{pet.variety}</p>
+                            <p>
+                              <span>年齡：{pet.age}</span>
+                              <span className={styles.separator}>・</span>
+                              <span>{pet.gender}</span>
+                            </p>
+                            <p>地點：{pet.location}</p>
+                          </div>
+                        </Card>
                       </Link>
                     ))}
                   </div>
@@ -109,19 +134,27 @@ export default function PetsPage() {
                     aria-label="向左滑動"
                   />
                   <div className={styles.cardGroup} ref={popularRef}>
-                    {petsData.pets.map((pet) => (
+                    {data.pets.map((pet) => (
                       <Link
                         href={`/pets/${pet.id}`}
                         key={pet.id}
                         className={styles.cardLink}
                       >
-                        <PetCard
-                          image={pet.image}
-                          name={pet.name}
-                          breed={pet.breed}
-                          age={pet.age}
-                          location={pet.location}
-                        />
+                        <Card
+                          image="/images/default_no_pet.jpg"
+                          title={pet.name}
+                          className={styles.petCard}
+                        >
+                          <div>
+                            <p>品種：{pet.variety}</p>
+                            <p>
+                              <span>年齡：{pet.age}</span>
+                              <span className={styles.separator}>・</span>
+                              <span>{pet.gender}</span>
+                            </p>
+                            <p>地點：{pet.location}</p>
+                          </div>
+                        </Card>
                       </Link>
                     ))}
                   </div>
