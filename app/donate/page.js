@@ -67,6 +67,7 @@ export default function DonatePage(props) {
             </li>
             <li style={{ display: 'flex', 'justify-content': 'end' }}>
               <button
+                class="button"
                 style={{ width: '120px', height: '50px', 'font-size': '28px' }}
               >
                 <Link href="/donate/flow">捐款</Link>
@@ -78,12 +79,17 @@ export default function DonatePage(props) {
       <div>
         <ul className={styles.ul2}>
           <li>
-            <button type="button" onClick={() => handleButtonClick('method')}>
+            <button
+              class="button"
+              type="button"
+              onClick={() => handleButtonClick('method')}
+            >
               捐款方式
             </button>
           </li>
           <li>
             <button
+              class="button"
               type="button"
               onClick={() => handleButtonClick('instructions')}
             >
@@ -98,16 +104,24 @@ export default function DonatePage(props) {
           <div>
             <ul className={styles.ul2}>
               <li>
-                <button type="button">信用卡</button>
+                <button class="button" type="button">
+                  信用卡
+                </button>
               </li>
               <li>
-                <button type="button">銀行ATM</button>
+                <button class="button" type="button">
+                  銀行ATM
+                </button>
               </li>
               <li>
-                <button type="button">郵局</button>
+                <button class="button" type="button">
+                  郵局
+                </button>
               </li>
               <li>
-                <button type="button">FAQ</button>
+                <button class="button" type="button">
+                  FAQ
+                </button>
               </li>
             </ul>
           </div>
@@ -117,13 +131,19 @@ export default function DonatePage(props) {
           <div>
             <ul className={styles.ul2}>
               <li>
-                <button type="button">救援醫療</button>
+                <button class="button" type="button">
+                  救援醫療
+                </button>
               </li>
               <li>
-                <button type="button">線上認養</button>
+                <button class="button" type="button">
+                  線上認養
+                </button>
               </li>
               <li>
-                <button type="button">支出一覽</button>
+                <button class="button" type="button">
+                  支出一覽
+                </button>
               </li>
             </ul>
           </div>

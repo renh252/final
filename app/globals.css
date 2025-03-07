@@ -36,7 +36,7 @@ a {
   text-decoration: none;
 }
 
-Button {
+.button {
   width: 150px;
   background-color: #003459;
   color: white;
@@ -52,10 +52,10 @@ Button {
   text-align: center;
 }
 
-Button:hover {
+.button:hover {
   background-color: #cda274;
 }
-Button:focus {
+.button:focus {
   background-color: #cda274;
 }
 
