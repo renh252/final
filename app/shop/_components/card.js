@@ -1,5 +1,6 @@
 import {useState} from "react";
-import styles from "./component.module.css"
+// import styles from "./component.module.css"
+import styles from "./card.module.css"
 import Link from 'next/link'
 import Image from "next/image";
 
@@ -29,6 +30,7 @@ import Image from "next/image";
     btn_text={}
     btn_color={}
     btn_onclick={()=>{}}
+    link={}
   />
 */
 
@@ -41,21 +43,34 @@ const Card = ({
   text1, text1_comment,text1_del,
   text2, text2_comment,text2_del, 
   text3, text3_comment,text3_del,
-  btn_text, btn_color, btn_onclick}) => {
+  btn_text, btn_color, btn_onclick,
+  link}) => {
 
 
   return (
     <>
       <div className={styles.card}>
-          <Link href={'/shop/pages/productList'}>
-            <Image 
-            src={image} 
-            alt={title} 
-            className={styles.image} 
-            width={260} 
-            height={260}
-            />
-          </Link>
+            <div className={styles.imgContainer}>
+              {link ? (
+                <Link href={link}>
+                  <Image 
+                    src={image} 
+                    alt={title} 
+                    className={styles.image} 
+                    width={260} 
+                    height={260}
+                  />
+                </Link>
+              ) : (
+                <Image 
+                  src={image} 
+                  alt={title} 
+                  className={styles.image} 
+                  width={260} 
+                  height={260}
+                />
+              )}
+            </div>
           <div className={styles.body}>
           {title && <h2 className={styles.title}>{title}</h2> }
             <div className={styles.textGroup}>

@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import "@wangeditor/editor/dist/css/style.css";
+//import I18nSetup from "../_components/i18n";
+//I18nSetup();
 
 
 const Editor = dynamic(
@@ -29,24 +31,7 @@ export default function Page() {
     };
   }, [editor]);
 
-  const toolbarConfig = {excludeKeys: [], // 不排除任何工具栏项
-    i18n: {
-      'zh-CN': {
-        // 修改字号、字体、行高的文字
-        fontSize: {
-          title: '字號',
-          default: '字號'
-        },
-        fontFamily: {
-          title: '字體',
-          default: '字體'
-        },
-        lineHeight: {
-          title: '行高',
-          default: '行高'
-        }
-      }
-    }};
+  const toolbarConfig = {};
   const editorConfig = {
     placeholder: '請輸入內容...',
   };
