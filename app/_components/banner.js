@@ -36,10 +36,13 @@ export default function Banner() {
       <Image
         src={config.image}
         alt={config.title}
-        layout="responsive"
         width={1920}
         height={600}
         priority
+        style={{
+          width: '100%',
+          height: 'auto',
+        }}
       />
       <div className={styles.banner_title}>{config.title}</div>
     </div>
