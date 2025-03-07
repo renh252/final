@@ -1,8 +1,8 @@
 import React from 'react'
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
-import styles from './Button.module.css'
+import styles from './CardSwitchButton.module.css'
 
-const Button = ({
+const CardSwitchButton = ({
   direction = 'left', // left, right
   onClick,
   className = '',
@@ -19,4 +19,4 @@ const Button = ({
   )
 }
 
-export default Button
+export default CardSwitchButton

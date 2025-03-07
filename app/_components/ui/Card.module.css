@@ -1,26 +1,34 @@
 .card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: rgba(199, 150, 80, 1);
+  border-radius: 62px;
+  box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease-in-out;
+  width: 280px;
+  aspect-ratio: 3/4;
+  padding: 10px;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .imageContainer {
   position: relative;
   width: 100%;
-  padding-top: 75%; /* 4:3 比例 */
+  aspect-ratio: 1/1;
   overflow: hidden;
+  border-radius: 62px 62px 0px 0px;
 }
 
 .image {
   object-fit: cover;
+  width: 100%;
+  height: 100%;
   transition: transform 0.3s ease;
 }
 
@@ -29,27 +37,131 @@
 }
 
 .content {
-  padding: 1rem;
+  padding: 8px 0;
+  margin: 5px 0;
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .title {
-  margin: 0 0 0.5rem;
-  font-size: 1.25rem;
+  font-size: 24px;
   font-weight: 600;
-  color: #1f2937;
+  color: #fff;
+  margin-bottom: 0.25rem;
 }
 
 .body {
-  color: #6b7280;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  color: #fff;
+  font-size: 16px;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.body p {
+  margin: 0.25rem 0;
 }
 
 .footer {
-  margin-top: 1rem;
+  margin-top: auto;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.details {
+  display: flex;
+  justify-content: space-between;
+  color: #fff;
+  font-size: 18px;
+  margin: 20px 0px 25px 0px;
+}
+
+.age,
+.location {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.likeButton {
+  position: absolute;
+  bottom: 0;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+  color: #ff4d4d;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.likeButton:hover {
+  transform: scale(1.1);
+  background-color: #fff;
+}
+
+.likeButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.petCard {
+  margin: 0 15px;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info p {
+  margin: 0;
+  color: #fff;
+  font-size: 0.875rem;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: #10b981;
+  color: white;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .card {
+    width: 240px;
+    border-radius: 40px;
+  }
+
+  .imageContainer {
+    border-radius: 40px 40px 0px 0px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .body {
+    font-size: 16px;
+  }
+
+  .details {
+    font-size: 16px;
+    margin: 15px 0px 20px 0px;
+  }
 }
