@@ -1,0 +1,30 @@
+.productMenu{
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 20px;
+  a{
+    width: 200px;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: #000;
+    border-radius: 16px;
+    font-size: 24px;
+
+  }
+  .title p{
+    text-shadow: #000 1px 0px 1px;
+    padding: 0;
+    margin: 0;
+    font-size: 24px;
+  }
+  a:hover{
+    background-color: rgba(199, 150, 80, 1);
+    color: #fff;
+    p{
+      text-shadow: #fff 1px 0px 1px;
+    }
+  }
+}
