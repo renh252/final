@@ -1,5 +1,5 @@
 import favicon from '../../favicon.ico'
-import styles from './component.module.css'
+import styles from './icon_line.module.css'
 import Image from 'next/image'
 
 

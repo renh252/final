@@ -17,6 +17,11 @@ const bannerConfig = {
     image: '/images/banner-pets.png',
     title: '寵物領養',
   },
+  '/shop': {
+    show: true,
+    image: '/images/banner-pets.png',
+    title: '商城',
+  },
 }
 
 export default function Banner() {
