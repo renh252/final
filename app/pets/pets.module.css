@@ -86,12 +86,18 @@
 
 .contain_title {
   margin-bottom: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  background-color: #593e2f;
 }
 
 .contain_title h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.05em;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .group {
@@ -138,9 +144,6 @@
   .contain {
     background-color: #fff;
   }
-  .contain_title {
-    background-color: rgba(89, 62, 47, 1);
-  }
 }
 
 @media screen and (max-width: 1080px) {
@@ -148,7 +151,7 @@
     background-color: transparent;
   }
   .contain_title {
-    background-color: transparent;
+    background-color: #593e2f;
   }
   .cardGroup {
     flex-wrap: wrap;
@@ -178,6 +181,81 @@
 
   .categoryBtn {
     padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* 篩選區域樣式 */
+.filterSection {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filterForm {
+  padding-right: 2rem;
+}
+
+.filterForm :global(label) {
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.filterForm :global(select) {
+  color: #4a5568;
+  font-size: 0.95rem;
+  border-color: #e2e8f0;
+}
+
+.filterForm :global(select:focus) {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+}
+
+.filterForm :global(.form-check-label) {
+  color: #4a5568;
+  font-weight: normal;
+}
+
+.mapContainer {
+  background-color: #fff;
+  border-radius: 8px;
+  height: 300px;
+  overflow: hidden;
+  border: 1px solid #dee2e6;
+}
+
+.mapPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e9ecef;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+  .filterForm {
+    padding-right: 0;
+    margin-bottom: 2rem;
+  }
+
+  .mapContainer {
+    height: 250px;
+  }
+
+  .filterSection {
+    padding: 1.5rem;
+  }
+
+  .filterForm :global(label) {
     font-size: 0.9rem;
   }
 }
