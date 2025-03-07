@@ -99,7 +99,7 @@ const Card = ({
             {btn_text && 
             <>
             <button style={{color:btn_color}} onClick={btn_onclick}
-            className={styles.button}>
+            className={styles.btn}>
               {btn_text}
             </button>
             </>}
