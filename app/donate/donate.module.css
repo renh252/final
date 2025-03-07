@@ -1,0 +1,35 @@
+.image {
+  object-fit: cover;
+  width: 360px;
+  height: 360px;
+  border-radius: 8px;
+}
+.donate_container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 30px auto;
+  padding: 55px;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+.donate_item {
+  display: flex;
+  width: 50%;
+}
+
+.ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.li_image {
+  margin-right: 5px;
+  border: 1px solid rgba(126, 122, 102, 0.473);
+  border-radius: 3px;
+}
+
+.ul li {
+  margin-bottom: 10px; /* 這裡可以根據需要調整間距 */
+}
