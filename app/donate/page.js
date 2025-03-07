@@ -149,41 +149,111 @@ export default function DonatePage(props) {
           </div>
         )}
         {activeSection === 'method' && (
-          <div>
-            <div className={styles.method_item}>
-              <div className={styles.icon}>
-                <Image
-                  src="images/donate/icon/card1.png"
-                  alt="visa.png"
-                  width={150}
-                  height={150}
-                ></Image>
+          <>
+            <div>
+              <div className={styles.method_item}>
+                <div className={styles.icon}>
+                  <Image
+                    src="images/donate/icon/card1.png"
+                    alt="card1.png"
+                    width={150}
+                    height={150}
+                  ></Image>
+                </div>
+                <div className={styles.content}>
+                  <h5>支援信用卡付款</h5>
+                  <p>
+                    支援VISA/MASTER/JCB等發卡組織，方便您快速進行付款。
+                    每筆手續費為捐款金額的2.75%，由本會負擔。
+                  </p>
+                </div>
               </div>
-              <div className={styles.content}>
-                <h5>支援信用卡付款</h5>
-                <p>
-                  支援VISA/MASTER/JCB等發卡組織，方便您快速進行付款。
-                  每筆手續費為捐款金額的2.75%，由本會負擔。
-                </p>
+              <div className={styles.method_item}>
+                <div className={styles.icon}>
+                  <Image
+                    src="images/donate/icon/card2.png"
+                    alt="card2.png"
+                    width={150}
+                    height={150}
+                  ></Image>
+                </div>
+                <div className={styles.content}>
+                  <h5>定期定額交易</h5>
+                  <p>
+                    可設定按照日/月/年自動定期支付固定金額，方便您輕鬆一次結帳。
+                  </p>
+                </div>
               </div>
             </div>
-            <div className={styles.method_item}>
-              <div className={styles.icon}>
-                <Image
-                  src="images/donate/icon/card1.png"
-                  alt="visa.png"
-                  width={150}
-                  height={150}
-                ></Image>
+            <div>
+              <div className={styles.method_item}>
+                <div className={styles.icon}>
+                  <Image
+                    src="images/donate/icon/atm1.png"
+                    alt="atm1.png"
+                    width={150}
+                    height={150}
+                  ></Image>
+                </div>
+                <div className={styles.content} style={{ gap: '0px' }}>
+                  <p>戶名：社團法人新北市流浪貓狗再生保護協會</p>
+                  <p>捐款帳號：中國信託/ 新店分行</p>
+                  <p>銀行代號：822</p>
+                  <p>銀行帳號：3145-4046-2742</p>
+                </div>
               </div>
-              <div className={styles.content}>
-                <h5>定期定額交易</h5>
-                <p>
-                  可設定按照日/月/年自動定期支付固定金額，方便您輕鬆一次結帳。
-                </p>
+              <div className={styles.method_item}>
+                <div className={styles.icon}>
+                  <Image
+                    src="images/donate/icon/atm2.png"
+                    alt="atm2.png"
+                    width={150}
+                    height={150}
+                  ></Image>
+                </div>
+                <div className={styles.content}>
+                  <h5>捐款資料</h5>
+                  <p>
+                    捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額
+                    、後五碼， 如要報稅者需再提供ID或統一編號、收據收件地址
+                    、收件人。 感謝您！
+                  </p>
+                </div>
+              </div>
+              <div className={styles.method_item}>
+                <div className={styles.icon}>
+                  <Image
+                    src="images/donate/icon/atm1.png"
+                    alt="atm1.png"
+                    width={150}
+                    height={150}
+                  ></Image>
+                </div>
+                <div className={styles.content} style={{ gap: '0px' }}>
+                  <p>戶名：社團法人新北市流浪貓狗再生保護協會</p>
+                  <p>郵政劃撥：5029-8902</p>
+                </div>
+              </div>
+              <div className={styles.method_item}>
+                <div className={styles.icon}>
+                  <Image
+                    src="images/donate/icon/atm2.png"
+                    alt="atm2.png"
+                    width={150}
+                    height={150}
+                  ></Image>
+                </div>
+                <div className={styles.content}>
+                  <h5>定期定額交易</h5>
+                  <p>
+                    捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額
+                    、後五碼， 如要報稅者需再提供ID或統一編號、收據收件地址
+                    、收件人。 感謝您！
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </>
