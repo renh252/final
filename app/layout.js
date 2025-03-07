@@ -1,7 +1,7 @@
 import localFont from 'next/font/local'
 import Menubar from './_components/menubar'
 import Footer from './_components/footer'
-import BannerWrapper from './_components/banner-wrapper'
+import Banner from './_components/banner'
 import { Container } from 'react-bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './globals.css'
@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
         }}
       >
         <Menubar />
-        <BannerWrapper />
+        <Banner />
         <Container fluid="lg" className="flex-grow-1 px-3 py-4">
           {children}
         </Container>
