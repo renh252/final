@@ -37,16 +37,19 @@ a {
 }
 
 Button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+  width: 150px;
   background-color: #003459;
   color: white;
   padding: 8px 28px;
   border-radius: 25px;
   border: 0;
   font-size: 20px;
+  margin: 0 5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 Button:hover {
