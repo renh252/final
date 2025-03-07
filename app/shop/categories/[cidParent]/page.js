@@ -12,6 +12,7 @@ import { FaAngleLeft,FaAngleRight } from "react-icons/fa6";
 import { FaRegHeart,FaHeart } from "react-icons/fa";
 // breadcrumb
 // import Breadcrumb from '../../../'
+import Banner from '@/app/_components/banner'
 // data
 import Products from '../../_data/data.json'
 import Category from '../../_data/category.json'
@@ -43,7 +44,7 @@ export default function PagesProductTitle({title}) {
   return (
     
     <>
-      <div className={styles.header_space}></div>
+      {/* <div className={styles.header_space}></div> */}
       <div className={categories_styles.main}>
         <div className={styles.pageTitle}>
             <p className={styles.title}>商品類別</p>

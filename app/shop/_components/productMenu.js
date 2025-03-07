@@ -4,15 +4,12 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 // style
-import styles from './component.module.css'
+import styles from './productMenu.module.css'
 // data
 import Category from '../_data/category.json'
 
 export default function ProductMenu(props) {
   
-  // 從網址上得到動態路由參數
-  // const params = useParams()
-  // const cid = params?.cid
   return (
     <>
       <div className={styles.productMenu}>
