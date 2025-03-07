@@ -78,14 +78,7 @@ export default function MapComponent({
           border: none;
         }
         
-        /* 確保所有地圖文字為黑色 */
-        .leaflet-container,
-        .leaflet-control,
-        .leaflet-control a,
-        .leaflet-popup-content-wrapper,
-        .leaflet-popup-content {
-          color: #000000 !important;
-        }
+        /* 移除強制黑色文字顏色，使用 Bootstrap 的自適應顏色 */
       `
       document.head.appendChild(style)
 
@@ -110,7 +103,7 @@ export default function MapComponent({
         <ChangeView center={center} zoom={zoom} />
         <MapClickHandler onLocationSelect={onLocationSelect} />
         <TileLayer
-          attribution='<span style="color: #000000">&copy; <a style="color: #000000" href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</span>'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
@@ -133,7 +126,7 @@ export default function MapComponent({
               icon={markerIcon}
             >
               <Popup>
-                <div style={{ color: '#000000' }}>
+                <div>
                   {marker.name || (regionName ? regionName : '選定位置')}
                   <br />
                   {marker.description ||
@@ -157,7 +150,6 @@ export default function MapComponent({
           fontSize: '12px',
           boxShadow: '0 0 5px rgba(0,0,0,0.2)',
           zIndex: 1000,
-          color: '#000000',
         }}
       >
         <div
@@ -172,7 +164,7 @@ export default function MapComponent({
           >
             <path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
           </svg>
-          <span style={{ marginLeft: '5px', color: '#000000' }}>地區位置</span>
+          <span style={{ marginLeft: '5px' }}>地區位置</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <svg
@@ -184,7 +176,7 @@ export default function MapComponent({
           >
             <path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
           </svg>
-          <span style={{ marginLeft: '5px', color: '#000000' }}>選定位置</span>
+          <span style={{ marginLeft: '5px' }}>選定位置</span>
         </div>
       </div>
 
@@ -200,7 +192,6 @@ export default function MapComponent({
           fontSize: '12px',
           boxShadow: '0 0 5px rgba(0,0,0,0.2)',
           zIndex: 1000,
-          color: '#000000',
         }}
       >
         {regionName ? `目前顯示: ${regionName}` : '點擊地圖選擇位置'}
