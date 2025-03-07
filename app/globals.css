@@ -36,6 +36,22 @@ a {
   text-decoration: none;
 }
 
+Button {
+  background-color: #003459;
+  color: white;
+  padding: 8px 28px;
+  border-radius: 25px;
+  border: 0;
+  font-size: 20px;
+}
+
+Button:hover {
+  background-color: #cda274;
+}
+Button:focus {
+  background-color: #cda274;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
