@@ -8,8 +8,6 @@
   --secondary-color: #6c757d;
   --light-bg: #f8f9fa;
   --border-color: #dee2e6;
-  --text-color: #212529;
-  --text-muted: #495057;
   --danger-color: #dc3545;
   --danger-light: #f8d7da;
   --danger-dark: #842029;
@@ -68,7 +66,6 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #666;
 }
 
 .searchInput {
@@ -78,7 +75,6 @@
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s;
-  color: var(--text-color);
   border-color: #86b7fe;
   box-shadow: 0 0 0 var(--spacing-sm) var(--primary-focus);
   animation: searchBarFadeIn var(--transition-slow);
@@ -111,7 +107,6 @@
 
 .categoryBtn.active {
   background: #4a90e2;
-  color: white;
   border-color: #4a90e2;
 }
 
@@ -129,7 +124,6 @@
 .contain_title h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #ffffff;
   margin: 0;
   letter-spacing: 0.05em;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
@@ -234,14 +228,12 @@
 }
 
 .filterForm :global(label) {
-  color: #2d3748;
   font-weight: 600;
   font-size: 0.95rem;
   margin-bottom: 0.5rem;
 }
 
 .filterForm :global(select) {
-  color: #4a5568;
   font-size: 0.95rem;
   border-color: #e2e8f0;
 }
@@ -252,7 +244,6 @@
 }
 
 .filterForm :global(.form-check-label) {
-  color: #4a5568;
   font-weight: normal;
 }
 
@@ -288,7 +279,6 @@
   align-items: center;
   justify-content: center;
   background-color: #e9ecef;
-  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -355,7 +345,7 @@
   position: absolute;
   top: 100%;
   left: 0;
-  z-index: 1000;
+  z-index: 1500;
   width: 100%;
   padding: var(--spacing-md);
   margin-top: var(--spacing-xs);
@@ -404,7 +394,6 @@
   padding: var(--spacing-lg) var(--spacing-xl);
   cursor: pointer;
   border-radius: var(--border-radius-sm);
-  color: var(--text-color);
   font-weight: normal;
   transition: all var(--transition-fast);
   position: relative;
@@ -425,7 +414,6 @@
 
 .option:hover {
   background-color: #e9ecef;
-  color: #000;
   transform: translateX(3px);
 }
 
@@ -437,7 +425,6 @@
 .selected {
   background-color: var(--primary-light);
   font-weight: normal;
-  color: var(--primary-color);
   position: relative;
 }
 
@@ -454,7 +441,6 @@
 
 /* 清除選擇選項樣式 */
 .clearOption {
-  color: var(--danger-color);
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 8px;
   font-weight: normal;
@@ -478,14 +464,12 @@
 
 .clearOption:hover {
   background-color: var(--danger-light);
-  color: var(--danger-dark);
-  transform: translateX(0); /* 覆蓋一般選項的 transform */
+  transform: translateX(0);
 }
 
 /* 無結果提示樣式 */
 .noResults {
   padding: var(--spacing-lg) var(--spacing-xl);
-  color: var(--text-muted);
   font-style: italic;
   font-weight: normal;
   text-align: center;
@@ -553,7 +537,6 @@
 /* 品種信息顯示 */
 .varietyInfo {
   font-size: 12px;
-  color: var(--text-muted);
   margin-top: 5px;
 }
 
@@ -573,14 +556,12 @@
 
 .selectedLocation p:first-child {
   font-weight: bold;
-  color: var(--primary-color);
 }
 
 /* 地圖標記樣式 */
 :global(.leaflet-popup-content-wrapper) {
   border-radius: var(--border-radius-sm);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  color: #000000;
 }
 
 :global(.leaflet-popup-content) {
@@ -595,33 +576,26 @@
 }
 
 :global(.leaflet-container a.leaflet-popup-close-button) {
-  color: var(--text-muted);
   transition: color var(--transition-fast);
 }
 
 :global(.leaflet-container a.leaflet-popup-close-button:hover) {
-  color: var(--danger-color);
 }
 
 /* OpenStreetMap 文字顏色設定 */
 :global(.leaflet-container) {
   font-family: inherit;
-  color: #000000 !important;
 }
 
 :global(.leaflet-control-attribution) {
-  color: #000000 !important;
 }
 
 :global(.leaflet-control-attribution a) {
-  color: #000000 !important;
   text-decoration: underline;
 }
 
 :global(.leaflet-control-zoom a) {
-  color: #000000 !important;
 }
 
 :global(.leaflet-control-layers) {
-  color: #000000 !important;
 }
