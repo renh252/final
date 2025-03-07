@@ -42,7 +42,7 @@ export default function Menubar() {
           <Navbar.Brand href="/">毛孩之家</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="me-auto">
+            <Nav className="ms-auto">
               <Nav.Link href="/">首頁</Nav.Link>
               <Nav.Link href="/shop">商城</Nav.Link>
               <Nav.Link href="/pets">寵物列表</Nav.Link>

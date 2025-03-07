@@ -1,40 +1,98 @@
 import {useState} from "react";
 import styles from "./component.module.css"
-import { FaRegHeart,FaHeart } from "react-icons/fa";
 import Link from 'next/link'
-// import Image from 'next/image'
+import Image from "next/image";
 
-/* 使用方法
-<div class={{ display: 'flex', gap: '20px' }}>
-  {products.map((product) => (
-    <Card
-      key={product.id}
-      image={product.image}
-      title={product.title}
-      description={product.description}
-      price={product.price}
-    />
-  ))}
-</div>    
+
+// 使用方法
+// key (必填)
+// image (必填)
+// text_comment為註解: 以()呈現
+// text_del為刪除線
+// btn_text為按鈕文字
+// btn_color為按鈕字體顏色
+
+/* 範例
+  <Card
+    key={}
+    image={}
+    title={}
+    text1={}
+    text1_del={}
+    text1_comment={}
+    text2={}
+    text2_del={}
+    text2_comment={}
+    text3={}
+    text3_del={}
+    text3_comment={}
+    btn_text={}
+    btn_color={}
+    btn_onclick={()=>{}}
+  />
 */
 
+
+
+
 const Card = ({  
-  image, title, price }) => {
-    const [liked, setLiked] = useState(false);
+  image, 
+  title, 
+  text1, text1_comment,text1_del,
+  text2, text2_comment,text2_del, 
+  text3, text3_comment,text3_del,
+  btn_text, btn_color, btn_onclick}) => {
+
+
   return (
-    <Link href={'/shop/pages/productList'} class={styles.card}>
-        <img src={image} alt={title} class={styles.image} />
-        <div class={styles.body}>
-          <h2 class={styles.title}>{title}</h2> 
-          <p class={styles.price}>${price} <del class={styles.del}>${price}</del></p>
-          <button onClick={() => setLiked(!liked)}
-          class={styles.button}>
-            {liked ? <FaHeart/> : <FaRegHeart/>}
-          </button>
-        </div>
-    </Link>
-  );
-};
+    <>
+      <div className={styles.card}>
+          <Link href={'/shop/pages/productList'}>
+            <Image 
+            src={image} 
+            alt={title} 
+            className={styles.image} 
+            width={260} 
+            height={260}
+            />
+          </Link>
+          <div className={styles.body}>
+          {title && <h2 className={styles.title}>{title}</h2> }
+            <div className={styles.textGroup}>
+              {(text1 || text1_del || text1_comment) && (  
+                <p>
+                  {text1 && <>{text1} </>}
+                  {text1_del && <del className={styles.del}>{text1_del}</del>}
+                  {text1_comment && <span className={styles.comment}>&#40;{text1_comment}&#41;</span>}
+                </p>
+              )}
+              {(text2 || text2_del || text2_comment) && (  
+                <p>
+                  {text2 && <>{text2} </>}
+                  {text2_del && <del className={styles.del}>{text2_del}</del>}
+                  {text2_comment && <span className={styles.comment}>&#40;{text2_comment}&#41;</span>}
+                </p>
+              )}
+              {(text3 || text3_del || text3_comment) && (  
+                <p>
+                  {text3 && <>{text3} </>}
+                  {text3_del && <del className={styles.del}>{text3_del}</del>}
+                  {text3_comment && <span className={styles.comment}>&#40;{text3_comment}&#41;</span>}
+                </p>
+              )}
+            </div>
+            {btn_text && 
+            <>
+            <button style={{color:btn_color}} onClick={btn_onclick}
+            className={styles.button}>
+              {btn_text}
+            </button>
+            </>}
+          </div>
+      </div>
+    </>
+  )
+}
 
 
 export default Card;
