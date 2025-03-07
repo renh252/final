@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import styles from './menubar.module.css'
 import Link from 'next/link'
-import 'bootstrap/dist/css/bootstrap.min.css'
 import { Navbar, Nav, NavDropdown, Button, Container } from 'react-bootstrap'
 import { usePathname } from 'next/navigation'
 
@@ -21,7 +20,7 @@ export default function Menubar() {
 
   const handleScroll = useCallback(() => {
     const currentScrollPos = window.scrollY
-    console.log(currentScrollPos)
+    // console.log(currentScrollPos)
     setVisible(
       (prevScrollPos > currentScrollPos &&
         prevScrollPos - currentScrollPos > 70) ||
