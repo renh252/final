@@ -64,6 +64,45 @@ export async function GET(request) {
       responseData.breeds = breeds
     }
 
+    // 獲取所有不重複的品種（variety）
+    if (type === 'varieties') {
+      let query = ''
+      let params = []
+
+      if (speciesId === '1') {
+        // 狗的品種
+        query = `
+          SELECT DISTINCT variety
+          FROM pets
+          WHERE species = '狗'
+          ORDER BY variety
+        `
+      } else if (speciesId === '2') {
+        // 貓的品種
+        query = `
+          SELECT DISTINCT variety
+          FROM pets
+          WHERE species = '貓'
+          ORDER BY variety
+        `
+      } else {
+        // 所有品種
+        query = `
+          SELECT DISTINCT variety
+          FROM pets
+          ORDER BY variety
+        `
+      }
+
+      console.log('品種查詢SQL:', query)
+      console.log('品種查詢參數:', params)
+
+      const [results] = await connection.execute(query, params)
+      console.log('品種查詢結果:', results)
+
+      responseData.varieties = results.map((item) => item.variety)
+    }
+
     // 獲取寵物資料
     if (type === 'all' || type === 'pets') {
       // 獲取所有寵物資料
