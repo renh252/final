@@ -7,9 +7,176 @@ import Link from 'next/link'
 import { Breadcrumbs } from '../_components/breadcrumbs'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import useSWR from 'swr'
-import { Form, Row, Col } from 'react-bootstrap'
+import { Form, Row, Col, InputGroup, FormControl } from 'react-bootstrap'
 
 const fetcher = (url) => fetch(url).then((res) => res.json())
+
+// 可搜尋的下拉選單組件
+const SearchableSelect = ({
+  options,
+  value,
+  onChange,
+  placeholder,
+  disabled,
+}) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const dropdownRef = useRef(null)
+  const selectRef = useRef(null)
+
+  // 過濾選項
+  const filteredOptions =
+    options?.filter((option) =>
+      option.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || []
+
+  // 點擊外部關閉下拉選單
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  // 選擇選項
+  const handleSelect = (option) => {
+    onChange(option)
+    setIsOpen(false)
+    setSearchTerm('')
+  }
+
+  // 鍵盤事件處理 - keyDown
+  const handleKeyDown = (e) => {
+    // 阻止所有可能觸發下拉選單的按鍵
+    if (
+      e.key === 'ArrowDown' ||
+      e.key === 'ArrowUp' ||
+      e.key === ' ' ||
+      e.key === 'Enter'
+    ) {
+      e.preventDefault()
+    }
+  }
+
+  // 鍵盤事件處理 - keyUp
+  const handleKeyUp = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      if (!disabled) {
+        setIsOpen(!isOpen)
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false)
+    }
+  }
+
+  // 選項的鍵盤事件處理
+  const handleOptionKeyDown = (e, option = '') => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleSelect(option)
+    } else if (e.key === 'Escape') {
+      setIsOpen(false)
+    }
+  }
+
+  // 防止預設下拉選單行為
+  const handleSelectClick = (e) => {
+    e.preventDefault()
+    if (!disabled) {
+      setIsOpen(!isOpen)
+
+      // 阻止原生下拉選單打開
+      if (selectRef.current) {
+        selectRef.current.blur()
+      }
+    }
+  }
+
+  // 防止預設下拉選單行為 - 焦點事件
+  const handleFocus = () => {
+    // 立即取消焦點，防止預設選單顯示
+    if (selectRef.current) {
+      setTimeout(() => {
+        selectRef.current.blur()
+      }, 0)
+    }
+  }
+
+  return (
+    <div className={styles.searchableSelect} ref={dropdownRef}>
+      <div className={styles.customSelect}>
+        <Form.Select
+          ref={selectRef}
+          value={value || ''}
+          onChange={() => {}} // 實際選擇由下拉選單處理
+          onClick={handleSelectClick}
+          onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
+          onFocus={handleFocus}
+          disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+        >
+          <option value="">{value || placeholder}</option>
+        </Form.Select>
+      </div>
+
+      {isOpen && !disabled && (
+        <div className={styles.bootstrapDropdown} role="listbox">
+          <InputGroup className="mb-2">
+            <FormControl
+              placeholder="搜尋品種..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              ref={(input) => input && setTimeout(() => input.focus(), 100)}
+              className={styles.searchInput}
+            />
+          </InputGroup>
+
+          <div className={styles.optionsList}>
+            {value && (
+              <div
+                className={`${styles.option} ${styles.clearOption}`}
+                onClick={() => handleSelect('')}
+                onKeyDown={(e) => handleOptionKeyDown(e, '')}
+                role="option"
+                aria-selected={value === ''}
+                tabIndex={0}
+              >
+                清除選擇
+              </div>
+            )}
+            {filteredOptions.map((option, index) => (
+              <div
+                key={index}
+                className={`${styles.option} ${
+                  value === option ? styles.selected : ''
+                }`}
+                onClick={() => handleSelect(option)}
+                onKeyDown={(e) => handleOptionKeyDown(e, option)}
+                role="option"
+                aria-selected={value === option}
+                tabIndex={0}
+              >
+                {option}
+              </div>
+            ))}
+            {filteredOptions.length === 0 && (
+              <div className={styles.noResults}>沒有符合的結果</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function PetsPage() {
   const latestRef = useRef(null)
@@ -31,13 +198,32 @@ export default function PetsPage() {
       : null,
     fetcher
   )
+  // 獲取所有不重複的品種資料
+  const { data: varietiesData, mutate: mutateVarieties } = useSWR(
+    selectedSpecies
+      ? `/api/pet-data?type=varieties&species_id=${selectedSpecies}`
+      : '/api/pet-data?type=varieties',
+    fetcher
+  )
 
   // 輸出獲取到的資料，用於除錯
   useEffect(() => {
     if (petsData?.pets?.length > 0) {
       console.log('前端獲取到的第一筆寵物資料:', petsData.pets[0])
     }
-  }, [petsData])
+
+    // 調試 varietiesData
+    if (varietiesData) {
+      console.log('獲取到的品種資料:', varietiesData)
+    }
+  }, [petsData, varietiesData])
+
+  // 確保在頁面載入時就獲取所有品種資料
+  useEffect(() => {
+    if (!varietiesData) {
+      mutateVarieties()
+    }
+  }, [varietiesData, mutateVarieties])
 
   // 處理最新上架和熱門領養的寵物資料
   const latestPets = useMemo(() => {
@@ -63,8 +249,9 @@ export default function PetsPage() {
     setSelectedBreed('')
     if (selectedSpecies) {
       mutateBreeds()
+      mutateVarieties()
     }
-  }, [selectedSpecies, mutateBreeds])
+  }, [selectedSpecies, mutateBreeds, mutateVarieties])
 
   // 滾動功能
   const scroll = (direction, ref) => {
@@ -122,18 +309,23 @@ export default function PetsPage() {
 
                 <Form.Group className="mb-3">
                   <Form.Label>品種</Form.Label>
-                  <Form.Select
+                  {/* 使用自定義的可搜尋下拉選單 */}
+                  <SearchableSelect
+                    options={varietiesData?.varieties || []}
                     value={selectedBreed}
-                    onChange={(e) => setSelectedBreed(e.target.value)}
-                    disabled={!selectedSpecies || !breedsData}
-                  >
-                    <option value="">請選擇品種</option>
-                    {breedsData?.breeds?.map((breed) => (
-                      <option key={breed.id} value={breed.id}>
-                        {breed.name}
-                      </option>
-                    ))}
-                  </Form.Select>
+                    onChange={setSelectedBreed}
+                    placeholder="請選擇品種"
+                    disabled={
+                      !varietiesData ||
+                      !varietiesData.varieties ||
+                      varietiesData.varieties.length === 0
+                    }
+                  />
+                  <div className={styles.varietyInfo}>
+                    {varietiesData
+                      ? `已找到 ${varietiesData.varieties?.length || 0} 個品種`
+                      : '正在載入品種資料...'}
+                  </div>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
