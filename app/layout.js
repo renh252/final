@@ -1,7 +1,7 @@
 import localFont from 'next/font/local'
 import Menubar from './_components/menubar'
 import Footer from './_components/footer'
-
+import './globals.css'
 const fontIansui = localFont({
   src: '../public/fonts/Iansui-Regular.ttf',
   variable: '--font-iansui',
@@ -19,8 +19,6 @@ export default function RootLayout({ children }) {
       <body
         className={`${fontIansui.variable}`}
         style={{
-          fontFamily: 'var(--font-iansui)',
-          'background-color': 'rgba(240, 236, 214, 1)',
           display: 'flex',
           'flex-direction': 'column',
           minHeight: '100vh', // 確保 body 佔滿整個視窗
