@@ -14,6 +14,8 @@ import Category from './_data/category.json'
 import Card from './_components/card'
 import { FaAngleLeft,FaAngleRight } from "react-icons/fa6";
 import { FaRegHeart,FaHeart } from "react-icons/fa";
+
+
 // 
 import FirstPageNav from './_components/firstPageNav'
 
