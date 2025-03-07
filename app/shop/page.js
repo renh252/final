@@ -3,14 +3,18 @@
 
 import Image from 'next/image'
 import React, { useState } from 'react'
-import styles from './shop.module.css'
-import Card from './_components/card'
-import Products from './_data/data.json'
-import Category from './_data/category.json'
-import { FaAngleLeft,FaAngleRight } from "react-icons/fa6";
 import IconLine from './_components/icon_line'
 // import Link from 'next/link'
+// style
+import styles from './shop.module.css'
+// data
+import Products from './_data/data.json'
+import Category from './_data/category.json'
+// card
+import Card from './_components/card'
+import { FaAngleLeft,FaAngleRight } from "react-icons/fa6";
 import { FaRegHeart,FaHeart } from "react-icons/fa";
+
 
 
 

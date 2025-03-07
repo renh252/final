@@ -1,0 +1,38 @@
+.main{
+  max-width: 100%;
+  padding: 20px;
+  .pageTitle {
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+    p{
+      padding: 0px;
+      margin: 0px;
+    }
+    .title{
+      font-size: 36px;
+      text-shadow: #000 1px 0px 1px;
+    }
+  }
+  .container{
+    width: 100%;
+    padding: 0px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    /* flex-wrap: wrap; */
+    gap: 50px;
+
+    .contain_body{
+      width: 100%;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-radius: 20px;
+      overflow: hidden;
+      background-color: #fff;
+    }
+  }
+}
