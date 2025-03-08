@@ -28,7 +28,6 @@
     "sweetalert2": "^11.17.2",
     "sweetalert2-react-content": "^5.1.0",
     "swr": "^2.3.3",
-    "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
     "@types/node": "22.13.8",
