@@ -11,9 +11,9 @@ import {
   Truck,
   Package,
 } from 'lucide-react'
-import { useToast } from '../../../../components/Toast'
-import { useConfirm } from '../../../../components/ConfirmDialog'
-import { useTheme } from '../../../../ThemeContext'
+import { useToast } from '@/app/admin/components/Toast'
+import { useConfirm } from '@/app/admin/components/ConfirmDialog'
+import { useTheme } from '@/app/admin/ThemeContext'
 import Link from 'next/link'
 
 // 模擬訂單數據

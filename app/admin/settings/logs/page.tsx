@@ -11,81 +11,99 @@ import {
   Badge,
   Pagination,
 } from 'react-bootstrap'
-import { Search, Download, Filter, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  Search,
+  Download,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
+  Info,
+  AlertCircle,
+  CheckCircle,
+} from 'lucide-react'
 import { useTheme } from '@/app/admin/ThemeContext'
-import Link from 'next/link'
 
-// 模擬交易數據
-const MOCK_TRANSACTIONS = Array.from({ length: 50 }, (_, i) => ({
+// 模擬日誌數據
+const MOCK_LOGS = Array.from({ length: 50 }, (_, i) => ({
   id: i + 1,
-  date: new Date(2024, 2, 15 - i).toISOString().split('T')[0],
-  type: ['商品銷售', '寵物認養', '捐款', '其他收入'][
-    Math.floor(Math.random() * 4)
+  timestamp: new Date(
+    2024,
+    2,
+    15 - Math.floor(i / 24),
+    23 - (i % 24)
+  ).toISOString(),
+  level: ['info', 'warning', 'error', 'success'][Math.floor(Math.random() * 4)],
+  module: ['system', 'user', 'pet', 'adoption', 'order', 'finance'][
+    Math.floor(Math.random() * 6)
   ],
-  description: [
-    '寵物食品訂單 #12345',
-    '認養費用 - 黃金獵犬小白',
-    '每月定期捐款 - 張小明',
-    '寵物美容服務',
-  ][Math.floor(Math.random() * 4)],
-  amount: Math.floor(Math.random() * 10000) + 500,
-  status: ['completed', 'pending', 'failed'][Math.floor(Math.random() * 3)],
-  payment_method: ['信用卡', 'LINE Pay', '銀行轉帳'][
-    Math.floor(Math.random() * 3)
+  action: ['create', 'update', 'delete', 'login', 'logout', 'error'][
+    Math.floor(Math.random() * 6)
   ],
-  customer: ['張小明', '李小花', '王大明', '陳小華'][
-    Math.floor(Math.random() * 4)
-  ],
+  message: [
+    '使用者登入成功',
+    '新增寵物資料',
+    '更新系統設定',
+    '刪除訂單記錄',
+    '資料庫備份完成',
+    '系統發生錯誤',
+  ][Math.floor(Math.random() * 6)],
+  user: ['admin', 'manager', 'staff'][Math.floor(Math.random() * 3)],
+  ip_address: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(
+    Math.random() * 255
+  )}`,
+  details: {
+    browser: 'Chrome',
+    os: 'Windows 10',
+    url: '/admin/dashboard',
+  },
 }))
 
-const TRANSACTION_TYPES = [
-  { value: 'all', label: '全部類型' },
-  { value: '商品銷售', label: '商品銷售' },
-  { value: '寵物認養', label: '寵物認養' },
-  { value: '捐款', label: '捐款' },
-  { value: '其他收入', label: '其他收入' },
+const LOG_LEVELS = [
+  { value: 'all', label: '全部等級' },
+  { value: 'info', label: '資訊' },
+  { value: 'warning', label: '警告' },
+  { value: 'error', label: '錯誤' },
+  { value: 'success', label: '成功' },
 ]
 
-const PAYMENT_METHODS = [
-  { value: 'all', label: '全部方式' },
-  { value: '信用卡', label: '信用卡' },
-  { value: 'LINE Pay', label: 'LINE Pay' },
-  { value: '銀行轉帳', label: '銀行轉帳' },
+const LOG_MODULES = [
+  { value: 'all', label: '全部模組' },
+  { value: 'system', label: '系統' },
+  { value: 'user', label: '用戶' },
+  { value: 'pet', label: '寵物' },
+  { value: 'adoption', label: '認養' },
+  { value: 'order', label: '訂單' },
+  { value: 'finance', label: '財務' },
 ]
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: '全部狀態' },
-  { value: 'completed', label: '已完成' },
-  { value: 'pending', label: '處理中' },
-  { value: 'failed', label: '失敗' },
+const LOG_ACTIONS = [
+  { value: 'all', label: '全部操作' },
+  { value: 'create', label: '新增' },
+  { value: 'update', label: '更新' },
+  { value: 'delete', label: '刪除' },
+  { value: 'login', label: '登入' },
+  { value: 'logout', label: '登出' },
+  { value: 'error', label: '錯誤' },
 ]
 
-export default function TransactionsPage() {
-  const [transactions, setTransactions] = useState(MOCK_TRANSACTIONS)
+export default function LogsPage() {
+  const [logs, setLogs] = useState(MOCK_LOGS)
   const [filters, setFilters] = useState({
-    type: 'all',
-    status: 'all',
-    paymentMethod: 'all',
+    level: 'all',
+    module: 'all',
+    action: 'all',
     dateFrom: '',
     dateTo: '',
     search: '',
   })
   const [sortConfig, setSortConfig] = useState({
-    key: 'date',
+    key: 'timestamp',
     direction: 'desc',
   })
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
   const { isDarkMode } = useTheme()
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('zh-TW', {
-      style: 'currency',
-      currency: 'TWD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value)
-  }
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -108,37 +126,35 @@ export default function TransactionsPage() {
     })
   }
 
-  const filteredTransactions = transactions.filter((transaction) => {
+  const filteredLogs = logs.filter((log) => {
     return (
-      (filters.type === 'all' || transaction.type === filters.type) &&
-      (filters.status === 'all' || transaction.status === filters.status) &&
-      (filters.paymentMethod === 'all' ||
-        transaction.payment_method === filters.paymentMethod) &&
-      (!filters.dateFrom || transaction.date >= filters.dateFrom) &&
-      (!filters.dateTo || transaction.date <= filters.dateTo) &&
+      (filters.level === 'all' || log.level === filters.level) &&
+      (filters.module === 'all' || log.module === filters.module) &&
+      (filters.action === 'all' || log.action === filters.action) &&
+      (!filters.dateFrom ||
+        new Date(log.timestamp) >= new Date(filters.dateFrom)) &&
+      (!filters.dateTo ||
+        new Date(log.timestamp) <= new Date(filters.dateTo)) &&
       (filters.search === '' ||
-        transaction.description
-          .toLowerCase()
-          .includes(filters.search.toLowerCase()) ||
-        transaction.customer
-          .toLowerCase()
-          .includes(filters.search.toLowerCase()))
+        log.message.toLowerCase().includes(filters.search.toLowerCase()) ||
+        log.user.toLowerCase().includes(filters.search.toLowerCase()) ||
+        log.ip_address.includes(filters.search))
     )
   })
 
-  const sortedTransactions = [...filteredTransactions].sort((a, b) => {
-    if (sortConfig.key === 'amount') {
+  const sortedLogs = [...filteredLogs].sort((a, b) => {
+    const aValue = a[sortConfig.key as keyof typeof a]
+    const bValue = b[sortConfig.key as keyof typeof b]
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
       return sortConfig.direction === 'asc'
-        ? a.amount - b.amount
-        : b.amount - a.amount
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue)
     }
-    return sortConfig.direction === 'asc'
-      ? a[sortConfig.key].localeCompare(b[sortConfig.key])
-      : b[sortConfig.key].localeCompare(a[sortConfig.key])
+    return 0
   })
 
-  const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage)
-  const currentTransactions = sortedTransactions.slice(
+  const totalPages = Math.ceil(sortedLogs.length / itemsPerPage)
+  const currentLogs = sortedLogs.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
@@ -149,29 +165,62 @@ export default function TransactionsPage() {
 
   const handleExport = () => {
     // 實作匯出功能
-    console.log('Exporting transactions...')
+    console.log('Exporting logs...')
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge bg="success">已完成</Badge>
-      case 'pending':
-        return <Badge bg="warning">處理中</Badge>
-      case 'failed':
-        return <Badge bg="danger">失敗</Badge>
+  const getLevelBadge = (level: string) => {
+    switch (level) {
+      case 'info':
+        return (
+          <Badge bg="info" className="d-flex align-items-center gap-1">
+            <Info size={14} />
+            資訊
+          </Badge>
+        )
+      case 'warning':
+        return (
+          <Badge bg="warning" className="d-flex align-items-center gap-1">
+            <AlertTriangle size={14} />
+            警告
+          </Badge>
+        )
+      case 'error':
+        return (
+          <Badge bg="danger" className="d-flex align-items-center gap-1">
+            <AlertCircle size={14} />
+            錯誤
+          </Badge>
+        )
+      case 'success':
+        return (
+          <Badge bg="success" className="d-flex align-items-center gap-1">
+            <CheckCircle size={14} />
+            成功
+          </Badge>
+        )
       default:
         return null
     }
   }
 
+  const formatDateTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString('zh-TW', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+  }
+
   return (
-    <div className="transactions-page">
+    <div className="logs-page">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>交易記錄</h2>
+        <h2>系統日誌</h2>
         <Button variant="outline-primary" onClick={handleExport}>
           <Download size={18} className="me-2" />
-          匯出記錄
+          匯出日誌
         </Button>
       </div>
 
@@ -182,7 +231,7 @@ export default function TransactionsPage() {
               <Form.Group>
                 <Form.Control
                   type="text"
-                  placeholder="搜尋交易..."
+                  placeholder="搜尋日誌..."
                   name="search"
                   value={filters.search}
                   onChange={handleFilterChange}
@@ -191,39 +240,39 @@ export default function TransactionsPage() {
             </Col>
             <Col md={2}>
               <Form.Select
-                name="type"
-                value={filters.type}
+                name="level"
+                value={filters.level}
                 onChange={handleFilterChange}
               >
-                {TRANSACTION_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
+                {LOG_LEVELS.map((level) => (
+                  <option key={level.value} value={level.value}>
+                    {level.label}
                   </option>
                 ))}
               </Form.Select>
             </Col>
             <Col md={2}>
               <Form.Select
-                name="status"
-                value={filters.status}
+                name="module"
+                value={filters.module}
                 onChange={handleFilterChange}
               >
-                {STATUS_OPTIONS.map((status) => (
-                  <option key={status.value} value={status.value}>
-                    {status.label}
+                {LOG_MODULES.map((module) => (
+                  <option key={module.value} value={module.value}>
+                    {module.label}
                   </option>
                 ))}
               </Form.Select>
             </Col>
             <Col md={2}>
               <Form.Select
-                name="paymentMethod"
-                value={filters.paymentMethod}
+                name="action"
+                value={filters.action}
                 onChange={handleFilterChange}
               >
-                {PAYMENT_METHODS.map((method) => (
-                  <option key={method.value} value={method.value}>
-                    {method.label}
+                {LOG_ACTIONS.map((action) => (
+                  <option key={action.value} value={action.value}>
+                    {action.label}
                   </option>
                 ))}
               </Form.Select>
@@ -255,10 +304,10 @@ export default function TransactionsPage() {
               <tr>
                 <th
                   className="cursor-pointer"
-                  onClick={() => handleSort('date')}
+                  onClick={() => handleSort('timestamp')}
                 >
-                  日期
-                  {sortConfig.key === 'date' && (
+                  時間
+                  {sortConfig.key === 'timestamp' && (
                     <span className="ms-1">
                       {sortConfig.direction === 'asc' ? (
                         <ChevronUp size={16} />
@@ -268,12 +317,13 @@ export default function TransactionsPage() {
                     </span>
                   )}
                 </th>
+                <th>等級</th>
                 <th
                   className="cursor-pointer"
-                  onClick={() => handleSort('type')}
+                  onClick={() => handleSort('module')}
                 >
-                  類型
-                  {sortConfig.key === 'type' && (
+                  模組
+                  {sortConfig.key === 'module' && (
                     <span className="ms-1">
                       {sortConfig.direction === 'asc' ? (
                         <ChevronUp size={16} />
@@ -283,46 +333,22 @@ export default function TransactionsPage() {
                     </span>
                   )}
                 </th>
-                <th>描述</th>
-                <th
-                  className="cursor-pointer"
-                  onClick={() => handleSort('amount')}
-                >
-                  金額
-                  {sortConfig.key === 'amount' && (
-                    <span className="ms-1">
-                      {sortConfig.direction === 'asc' ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </span>
-                  )}
-                </th>
-                <th>付款方式</th>
-                <th>客戶</th>
-                <th>狀態</th>
                 <th>操作</th>
+                <th>訊息</th>
+                <th>使用者</th>
+                <th>IP位址</th>
               </tr>
             </thead>
             <tbody>
-              {currentTransactions.map((transaction) => (
-                <tr key={transaction.id}>
-                  <td>{transaction.date}</td>
-                  <td>{transaction.type}</td>
-                  <td>{transaction.description}</td>
-                  <td>{formatCurrency(transaction.amount)}</td>
-                  <td>{transaction.payment_method}</td>
-                  <td>{transaction.customer}</td>
-                  <td>{getStatusBadge(transaction.status)}</td>
-                  <td>
-                    <Link
-                      href={`/admin/finance/transactions/${transaction.id}`}
-                      className="btn btn-sm btn-outline-primary"
-                    >
-                      查看
-                    </Link>
-                  </td>
+              {currentLogs.map((log) => (
+                <tr key={log.id}>
+                  <td>{formatDateTime(log.timestamp)}</td>
+                  <td>{getLevelBadge(log.level)}</td>
+                  <td>{log.module}</td>
+                  <td>{log.action}</td>
+                  <td>{log.message}</td>
+                  <td>{log.user}</td>
+                  <td>{log.ip_address}</td>
                 </tr>
               ))}
             </tbody>
@@ -331,11 +357,8 @@ export default function TransactionsPage() {
           <div className="d-flex justify-content-between align-items-center mt-4">
             <div>
               顯示 {(currentPage - 1) * itemsPerPage + 1} 至{' '}
-              {Math.min(
-                currentPage * itemsPerPage,
-                filteredTransactions.length
-              )}{' '}
-              筆，共 {filteredTransactions.length} 筆
+              {Math.min(currentPage * itemsPerPage, filteredLogs.length)} 筆，共{' '}
+              {filteredLogs.length} 筆
             </div>
             <Pagination>
               <Pagination.First

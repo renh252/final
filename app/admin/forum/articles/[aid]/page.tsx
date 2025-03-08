@@ -20,9 +20,9 @@ import {
   XCircle,
   Star,
 } from 'lucide-react'
-import { useToast } from '../../../../components/Toast'
-import { useConfirm } from '../../../../components/ConfirmDialog'
-import { useTheme } from '../../../../ThemeContext'
+import { useToast } from '@/app/admin/components/Toast'
+import { useConfirm } from '@/app/admin/components/ConfirmDialog'
+import { useTheme } from '@/app/admin/ThemeContext'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'

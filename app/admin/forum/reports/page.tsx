@@ -18,11 +18,11 @@ import {
   XCircle,
   AlertTriangle,
 } from 'lucide-react'
-import { useToast } from '../../../components/Toast'
-import { useConfirm } from '../../../components/ConfirmDialog'
-import { useTheme } from '../../../ThemeContext'
+import { useToast } from '@/app/admin/components/Toast'
+import { useConfirm } from '@/app/admin/components/ConfirmDialog'
+import { useTheme } from '@/app/admin/ThemeContext'
 import Link from 'next/link'
-import DataTable from '../../../components/DataTable'
+import DataTable from '@/app/admin/components/DataTable'
 
 // 模擬舉報數據
 const MOCK_REPORTS = [
