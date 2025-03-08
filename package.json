@@ -27,7 +27,7 @@
     "react-toastify": "^11.0.5",
     "sweetalert2": "^11.17.2",
     "sweetalert2-react-content": "^5.1.0",
-    "swr": "^2.3.3",
+    "swr": "^2.3.3"
   },
   "devDependencies": {
     "@types/node": "22.13.8",
