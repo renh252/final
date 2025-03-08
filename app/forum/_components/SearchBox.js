@@ -1,33 +1,28 @@
-"use client"
+import React, { useState } from 'react';
+import { Form, Button, InputGroup } from 'react-bootstrap';
 
-import { useState } from "react"
-import { Search } from "react-bootstrap-icons"
+export default function SearchBox() {
+  const [searchTerm, setSearchTerm] = useState('');
 
-export default function SearchBox({ onSearch }) {
-  const [query, setQuery] = useState("")
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (query.trim()) {
-      onSearch(query)
-    }
-  }
+  const handleSearch = (e) => {
+    e.preventDefault();
+    // 这里应该实现搜索逻辑
+    console.log('搜索:', searchTerm);
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="d-flex justify-content-end">
-      <div className="input-group">
-        <input
+    <Form onSubmit={handleSearch} className="mb-4">
+      <InputGroup>
+        <Form.Control
           type="text"
-          className="form-control"
-          placeholder="搜尋"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          placeholder="搜索文章..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button type="submit" className="btn btn-secondary">
-          <Search size={18} />
-        </button>
-      </div>
-    </form>
-  )
+        <Button variant="primary" type="submit">
+          搜索
+        </Button>
+      </InputGroup>
+    </Form>
+  );
 }
-

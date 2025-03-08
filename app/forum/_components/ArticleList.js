@@ -1,69 +1,69 @@
-import Link from "next/link"
-import Image from "next/image"
-import { Heart, Chat, EmojiSmile } from "react-bootstrap-icons"
+import React, { useState, useEffect } from 'react';
+import { Card, Row, Col, Pagination } from 'react-bootstrap';
+import Link from 'next/link';
+import styles from '../forum.module.css';
 
-export default function ArticleList({ articles = [] }) {
-  if (articles.length === 0) {
-    return <div className="alert alert-info">No articles found.</div>
-  }
+export default function ArticleList() {
+  const [articles, setArticles] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    fetchArticles(currentPage);
+  }, [currentPage]);
+
+  const fetchArticles = async (page) => {
+    try {
+      const response = await fetch(`/api/articles?page=${page}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch articles');
+      }
+      const data = await response.json();
+      setArticles(data.articles);
+      setTotalPages(data.totalPages);
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+    }
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   return (
-    <div className="mb-4">
-      {articles.map((article) => (
-        <div key={article.id} className="card mb-3 border-0 shadow-sm">
-          <div className="card-body">
-            <div className="row">
-              <div className={`col-${article.image ? "9" : "12"}`}>
-                <h5 className="card-title mb-2">
-                  <Link href={`/forum/${article.id}`} className="text-decoration-none text-dark">
-                    {article.title}
-                  </Link>
-                </h5>
-
-                <div className="d-flex align-items-center mb-2">
-                  <Image
-                    src={article.author.avatar || "/placeholder.svg?height=32&width=32"}
-                    alt={article.author.name}
-                    width={32}
-                    height={32}
-                    className="rounded-circle me-2"
-                  />
-                  <span className="me-2">{article.author.name}</span>
-                  <small className="text-muted">{article.publishedAt}</small>
-                </div>
-
-                <p className="card-text text-muted">{article.summary}</p>
-
-                <div className="d-flex align-items-center">
-                  <button className="btn btn-sm btn-outline-danger me-2 border-0">
-                    <Heart /> <span>{article.likes}</span>
-                  </button>
-                  <button className="btn btn-sm btn-outline-primary me-2 border-0">
-                    <Chat /> <span>{article.comments}</span>
-                  </button>
-                  <button className="btn btn-sm btn-outline-warning border-0">
-                    <EmojiSmile /> <span>{article.reactions}</span>
-                  </button>
-                </div>
-              </div>
-
-              {article.image && (
-                <div className="col-3">
-                  <div className="position-relative h-100 min-height-100">
-                    <Image
-                      src={article.image || "/placeholder.svg"}
-                      alt={article.title}
-                      fill
-                      className="object-fit-cover rounded"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ))}
+    <div>
+      <Row>
+        {articles.map((article) => (
+          <Col key={article.id} md={6} className="mb-3">
+            <Card className={styles.articleCard}>
+              <Card.Body>
+                <Card.Title>
+                  <Link href={`/forum/article/${article.id}`}>{article.title}</Link>
+                </Card.Title>
+                <Card.Text>{article.description}</Card.Text>
+                <Card.Text>
+                  <small className="text-muted">
+                    作者: {article.author} | 发布时间: {new Date(article.createdAt).toLocaleDateString()}
+                    <br />
+                    👍 {article.likes} 💬 {article.comments}
+                  </small>
+                </Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+      <Pagination className="justify-content-center mt-4">
+        {[...Array(totalPages).keys()].map((number) => (
+          <Pagination.Item
+            key={number + 1}
+            active={number + 1 === currentPage}
+            onClick={() => handlePageChange(number + 1)}
+          >
+            {number + 1}
+          </Pagination.Item>
+        ))}
+      </Pagination>
     </div>
-  )
+  );
 }
-
