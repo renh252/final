@@ -12,9 +12,9 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react'
-import { useTheme } from '../../../../ThemeContext'
-import { useToast } from '../../../../components/Toast'
-import { useConfirm } from '../../../../components/ConfirmDialog'
+import { useTheme } from '@/app/admin/ThemeContext'
+import { useToast } from '@/app/admin/components/Toast'
+import { useConfirm } from '@/app/admin/components/ConfirmDialog'
 import Link from 'next/link'
 
 // 模擬交易數據

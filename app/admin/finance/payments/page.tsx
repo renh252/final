@@ -21,9 +21,9 @@ import {
   Save,
   X,
 } from 'lucide-react'
-import { useTheme } from '../../../ThemeContext'
-import { useToast } from '../../../components/Toast'
-import { useConfirm } from '../../../components/ConfirmDialog'
+import { useTheme } from '@/app/admin/ThemeContext'
+import { useToast } from '@/app/admin/components/Toast'
+import { useConfirm } from '@/app/admin/components/ConfirmDialog'
 
 // 模擬支付方式數據
 const MOCK_PAYMENT_METHODS = [
