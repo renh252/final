@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
         className={`${fontIansui.variable}`}
         style={{
           display: 'flex',
-          'flex-direction': 'column',
+          flexDirection: 'column',
           minHeight: '100vh',
         }}
         suppressHydrationWarning
