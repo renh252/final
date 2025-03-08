@@ -1,0 +1,54 @@
+.admin-sidebar-wrapper {
+  height: 100vh;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+}
+
+/* 自定義捲軸樣式 */
+.admin-sidebar-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-sidebar-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-sidebar-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* Accordion 樣式覆蓋 */
+:global(.admin-sidebar-accordion-header) {
+  padding: 0 !important;
+}
+
+:global(.admin-sidebar-accordion-header button) {
+  padding: 0.5rem 1rem;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  width: 100%;
+}
+
+:global(.admin-sidebar-accordion-header button:hover) {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+:global(.admin-sidebar-accordion-header button:focus) {
+  box-shadow: none !important;
+}
+
+:global(.admin-sidebar-nav .accordion-item) {
+  background: transparent !important;
+}
+
+:global(.admin-sidebar-nav .nav-link:hover) {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* 活動項目樣式 */
+:global(.admin-sidebar-nav .nav-link.active) {
+  background-color: var(--bs-primary) !important;
+  color: white !important;
+}

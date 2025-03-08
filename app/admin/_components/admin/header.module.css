@@ -1,0 +1,78 @@
+.adminHeader {
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+
+.adminAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.notificationMenu {
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notificationItem {
+  padding: 0.75rem 1rem;
+}
+
+.notificationItem:hover {
+  background-color: #f8f9fa;
+}
+
+.unread {
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.adminMenu {
+  min-width: 200px;
+}
+
+/* 自定義捲軸樣式 */
+.notificationMenu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notificationMenu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.notificationMenu::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+/* 下拉選單樣式覆蓋 */
+:global(.dropdown-toggle::after) {
+  display: none !important;
+}
+
+:global(.dropdown-item) {
+  padding: 0.5rem 1rem;
+}
+
+:global(.dropdown-item:active) {
+  background-color: var(--bs-primary);
+} 
