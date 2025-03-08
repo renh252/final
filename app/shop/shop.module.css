@@ -3,7 +3,7 @@
   height: 3.5rem;
 }
 /* banner */
-.banner{
+/* .banner{
   position: relative;
   
 }
@@ -16,7 +16,7 @@
   color: aliceblue;
   text-shadow: #000 1px 0px;
   text-shadow: 10px 10px 20px #000;
-}
+} */
 
 /* main */
 .main{
@@ -63,6 +63,7 @@
 .contain_body{
   max-width: 100%;
   padding: 20px;
+  background-color: #fff;
 }
 .group{
   width: 100%;
@@ -80,27 +81,42 @@
 
   }
   .groupBody{
-    max-width: 100%;
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: start;
-    gap: 50px;
-  };
-}
-.cardContainer{
-  width: 100%;
-  display: flex;
-  overflow: hidden;
-
+    gap: 1rem;
+    position: relative;
+    padding: 0 1rem;
+    };
 }
 .cardGroup{
   display: flex;
-  flex-direction: row;
   gap: 30px;
-  padding: 20px 0;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 1rem 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex: 1;
+  min-height: 320px;
 }
-.angle{
+.cardGroup::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+.likeButton{
+  width: 30px;
+  aspect-ratio: 1/1;
+  padding: 1px ;    
+  position: absolute;
+  bottom: 0px;
+  right: 10px;    
+  font-size: 18px;
+  line-height: 18px;
+  color: red;
+  background-color: #fff;
+  border: none;
+  border-radius: 50%;
+}
+/* .angle{
   display: flex;
   justify-content: center;
   align-items: center;
@@ -108,14 +124,13 @@
   line-height: 25px;
   padding: 10px;
   border-radius: 50%;
+  color: #fff;
   border: none;
-  color:#fff;
   background-color: rgba(199, 150, 80, 1);
 }
 .angle:hover{
-  /* background-color: rgba(199, 150, 80, 0.8); */
   box-shadow: 0 1px 20px rgb(199, 149, 80);
-}
+} */
 
 
 
