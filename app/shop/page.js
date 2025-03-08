@@ -2,7 +2,7 @@
 'use client'
 
 import Image from 'next/image'
-import React, {  useRef, useState, useMemo  } from 'react'
+import React, {  useRef, useState, useCallback   } from 'react'
 import IconLine from './_components/icon_line'
 import Link from 'next/link'
 // style
@@ -35,14 +35,9 @@ import dynamic from 'next/dynamic'
 
 
 export default function PetsPage() {
-  
-    const promotionRef = useRef(null)
-    //  subTitleRefs ()=>{}
-    const subTitleRef = useRef(null)
+  const promotionRef = useRef(null)
+  const categoryRefs = useRef({})
 
- 
-    
-  // 滾動功能
   const scroll = (direction, ref) => {
     const container = ref.current
     const cardWidth = 280 // 卡片寬度
@@ -57,6 +52,7 @@ export default function PetsPage() {
       behavior: 'smooth',
     })
   }
+
 
 
 
@@ -160,10 +156,10 @@ export default function PetsPage() {
                   <div className={styles.groupBody}>
                     <CardSwitchButton
                       direction="left"
-                      onClick={() => scroll(-1, subTitleRef)}
+                      onClick={() => scroll(-1, categoryRefs.current[category.id])}
                       aria-label="向左滑動"
                     />
-                    <div className={styles.cardGroup} ref={subTitleRef}>
+                    <div className={styles.cardGroup} ref={(el) => (categoryRefs.current[category.id] = { current: el })}>
                       {products.filter((product) => product.category_id == category.id).map((product) => {
                         return(
                             <>
@@ -192,7 +188,7 @@ export default function PetsPage() {
                     
                     <CardSwitchButton
                       direction="right"
-                      onClick={() => scroll(1, subTitleRef)}
+                      onClick={() => scroll(1, categoryRefs.current[category.id])}
                       aria-label="向左滑動"
                     />
                   </div>
