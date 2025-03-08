@@ -1,29 +1,16 @@
-"use client"
+import React from 'react';
+import { Button, ButtonGroup } from 'react-bootstrap';
 
-export default function CategoryButtons({ selectedCategory, onCategoryChange }) {
-  const categories = [
-    { id: "all", name: "所有分類" },
-    { id: "health", name: "貓咪健康" },
-    { id: "food", name: "貓下肚子" },
-    { id: "lifestyle", name: "居住分享" },
-    { id: "pet-stores", name: "店家推薦" },
-  ]
+export default function CategoryButtons() {
+  const categories = ['全部', '科技', '娱乐', '体育', '生活'];
 
   return (
-    <div className="d-flex justify-content-center mt-3 mb-4">
-      <div className="btn-group">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            type="button"
-            className={`btn ${selectedCategory === category.id ? "btn-warning" : "btn-outline-warning"}`}
-            onClick={() => onCategoryChange(category.id)}
-          >
-            {category.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
+    <ButtonGroup className="mb-4 d-flex">
+      {categories.map((category, index) => (
+        <Button key={index} variant="outline-primary">
+          {category}
+        </Button>
+      ))}
+    </ButtonGroup>
+  );
 }
-
