@@ -12,13 +12,11 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  FileText,
-  AlertCircle,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useTheme } from '@/app/admin/ThemeContext'
 
-// 提供一個簡單的結構，保持與實際組件相同的 DOM 結構
+// 側邊欄骨架，用於首次渲染前顯示
 const SidebarSkeleton = () => (
   <div className="p-3">
     <div className="sidebar-header mb-4"></div>
@@ -28,7 +26,106 @@ const SidebarSkeleton = () => (
   </div>
 )
 
-export default function Sidebar({ collapsed = false }) {
+// 簡化的子選單項組件
+const SubMenuItem = ({
+  path,
+  label,
+  isActive,
+}: {
+  path: string
+  label: string
+  isActive: boolean
+}) => (
+  <Link
+    href={path}
+    className={`sidebar-nav-link py-1 ${isActive ? 'active' : ''}`}
+    prefetch={true}
+    scroll={false}
+  >
+    <span>{label}</span>
+  </Link>
+)
+
+// 菜單數據定義，提取為常量
+const getMenuItems = (iconColor: string) => [
+  {
+    key: 'dashboard',
+    icon: <Home size={20} color={iconColor} />,
+    label: '儀表板',
+    path: '/admin',
+  },
+  {
+    key: 'members',
+    icon: <Users size={20} color={iconColor} />,
+    label: '會員管理',
+    path: '/admin/members',
+  },
+  {
+    key: 'shop',
+    icon: <ShoppingBag size={20} color={iconColor} />,
+    label: '商城管理',
+    path: '/admin/shop',
+    subItems: [
+      { key: 'products', label: '商品列表', path: '/admin/shop/products' },
+      { key: 'orders', label: '訂單管理', path: '/admin/shop/orders' },
+    ],
+  },
+  {
+    key: 'pets',
+    icon: <PawPrint size={20} color={iconColor} />,
+    label: '寵物管理',
+    path: '/admin/pets',
+  },
+  {
+    key: 'forum',
+    icon: <MessageSquare size={20} color={iconColor} />,
+    label: '論壇管理',
+    path: '/admin/forum',
+    subItems: [
+      { key: 'overview', label: '論壇概覽', path: '/admin/forum' },
+      { key: 'articles', label: '文章管理', path: '/admin/forum/articles' },
+      { key: 'reports', label: '檢舉管理', path: '/admin/forum/reports' },
+    ],
+  },
+  {
+    key: 'finance',
+    icon: <DollarSign size={20} color={iconColor} />,
+    label: '金流管理',
+    path: '/admin/finance',
+    subItems: [
+      { key: 'dashboard', label: '財務概覽', path: '/admin/finance/dashboard' },
+      {
+        key: 'transactions',
+        label: '交易記錄',
+        path: '/admin/finance/transactions',
+      },
+      {
+        key: 'donations',
+        label: '捐款記錄',
+        path: '/admin/finance/transactions/donations',
+      },
+      { key: 'payments', label: '支付管理', path: '/admin/finance/payments' },
+    ],
+  },
+  {
+    key: 'settings',
+    icon: <Settings size={20} color={iconColor} />,
+    label: '系統設定',
+    path: '/admin/settings',
+    subItems: [
+      { key: 'general', label: '一般設定', path: '/admin/settings' },
+      { key: 'roles', label: '角色管理', path: '/admin/settings/roles' },
+      { key: 'logs', label: '系統日誌', path: '/admin/settings/logs' },
+    ],
+  },
+]
+
+interface SidebarProps {
+  collapsed: boolean
+}
+
+// 簡化的側邊欄組件
+export default function Sidebar({ collapsed = false }: SidebarProps) {
   const [mounted, setMounted] = useState(false)
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
     {}
@@ -36,11 +133,11 @@ export default function Sidebar({ collapsed = false }) {
   const pathname = usePathname()
   const { isDarkMode } = useTheme()
 
-  // 確保只在客戶端渲染
+  // 確保只在客戶端渲染並初始展開對應選單
   useEffect(() => {
     setMounted(true)
 
-    // 展開當前路徑的菜單
+    // 初始展開當前所在的菜單
     const segments = pathname.split('/').filter(Boolean)
     if (segments.length > 1) {
       setExpandedMenus((prev) => ({
@@ -48,86 +145,37 @@ export default function Sidebar({ collapsed = false }) {
         [segments[1]]: true,
       }))
     }
-  }, [pathname])
+  }, [])
 
-  // 獲取圖標顏色
-  const getIconColor = () =>
-    isDarkMode ? 'rgba(255, 255, 255, 0.8)' : '#212529'
+  // 檢查路徑是否活動
+  const isActive = useCallback(
+    (path: string) => {
+      if (path === '/admin' && pathname === '/admin') return true
+      if (path !== '/admin' && pathname.startsWith(path)) return true
+      return false
+    },
+    [pathname]
+  )
 
   // 切換子菜單展開狀態
-  const toggleSubmenu = (key: string) => {
+  const toggleSubmenu = useCallback((key: string) => {
     setExpandedMenus((prev) => ({
       ...prev,
       [key]: !prev[key],
     }))
-  }
+  }, [])
 
-  // 如果不是客戶端，返回有相同結構的骨架
+  // 如果未掛載完成，返回骨架
   if (!mounted) {
     return <SidebarSkeleton />
   }
 
-  // 菜單項定義
-  const menuItems = [
-    {
-      icon: <Home size={20} color={getIconColor()} />,
-      label: '儀表板',
-      path: '/admin',
-    },
-    {
-      icon: <Users size={20} color={getIconColor()} />,
-      label: '會員管理',
-      path: '/admin/members',
-    },
-    {
-      icon: <ShoppingBag size={20} color={getIconColor()} />,
-      label: '商城管理',
-      path: '/admin/shop',
-    },
-    {
-      icon: <PawPrint size={20} color={getIconColor()} />,
-      label: '寵物管理',
-      path: '/admin/pets',
-    },
-    {
-      icon: <MessageSquare size={20} color={getIconColor()} />,
-      label: '論壇管理',
-      path: '/admin/forum',
-      subItems: [
-        { label: '論壇概覽', path: '/admin/forum' },
-        { label: '文章管理', path: '/admin/forum/articles' },
-        { label: '檢舉管理', path: '/admin/forum/reports' },
-      ],
-    },
-    {
-      icon: <DollarSign size={20} color={getIconColor()} />,
-      label: '金流管理',
-      path: '/admin/finance',
-      subItems: [
-        { label: '財務概覽', path: '/admin/finance/dashboard' },
-        { label: '交易記錄', path: '/admin/finance/transactions' },
-        { label: '捐款記錄', path: '/admin/finance/transactions/donations' },
-        { label: '支付管理', path: '/admin/finance/payments' },
-      ],
-    },
-    {
-      icon: <Settings size={20} color={getIconColor()} />,
-      label: '系統設定',
-      path: '/admin/settings',
-      subItems: [
-        { label: '一般設定', path: '/admin/settings' },
-        { label: '角色管理', path: '/admin/settings/roles' },
-        { label: '系統日誌', path: '/admin/settings/logs' },
-      ],
-    },
-  ]
+  // 獲取圖標顏色
+  const iconColor = isDarkMode ? 'rgba(255, 255, 255, 0.8)' : '#212529'
 
-  // 檢查路徑是否活動
-  const isActive = (path: string) => {
-    return pathname === path || pathname.startsWith(`${path}/`)
-  }
+  // 取得菜單項
+  const menuItems = getMenuItems(iconColor)
 
-  // 渲染側邊欄內容
   return (
     <div className="p-3">
       <div className="sidebar-header mb-4">
@@ -145,63 +193,66 @@ export default function Sidebar({ collapsed = false }) {
 
       <nav>
         <ul className="nav flex-column gap-1 list-unstyled">
-          {menuItems.map((item) => (
-            <li key={item.path} className="mb-1">
-              {item.subItems ? (
-                <>
-                  <button
-                    className={`sidebar-nav-link w-100 text-start border-0 ${
-                      isActive(item.path) ? 'active' : ''
-                    }`}
-                    onClick={() => toggleSubmenu(item.label)}
+          {menuItems.map((item) => {
+            const active = isActive(item.path)
+            const expanded = expandedMenus[item.key]
+
+            return (
+              <li key={item.key} className="mb-1">
+                {item.subItems ? (
+                  <>
+                    <button
+                      className={`sidebar-nav-link w-100 text-start border-0 ${
+                        active ? 'active' : ''
+                      }`}
+                      onClick={() => toggleSubmenu(item.key)}
+                    >
+                      <span className={collapsed ? 'mx-auto' : 'me-3'}>
+                        {item.icon}
+                      </span>
+                      {!collapsed && (
+                        <>
+                          <span className="flex-grow-1">{item.label}</span>
+                          {expanded ? (
+                            <ChevronDown size={16} />
+                          ) : (
+                            <ChevronRight size={16} />
+                          )}
+                        </>
+                      )}
+                    </button>
+
+                    {item.subItems && !collapsed && expanded && (
+                      <ul className="nav flex-column list-unstyled ps-4 mt-1">
+                        {item.subItems.map((subItem) => (
+                          <li key={subItem.key}>
+                            <SubMenuItem
+                              path={subItem.path}
+                              label={subItem.label}
+                              isActive={isActive(subItem.path)}
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    href={item.path}
+                    className={`sidebar-nav-link ${active ? 'active' : ''}`}
+                    title={collapsed ? item.label : ''}
+                    prefetch={true}
+                    scroll={false}
                   >
                     <span className={collapsed ? 'mx-auto' : 'me-3'}>
                       {item.icon}
                     </span>
-                    {!collapsed && (
-                      <>
-                        <span className="flex-grow-1">{item.label}</span>
-                        {expandedMenus[item.label] ? (
-                          <ChevronDown size={16} color={getIconColor()} />
-                        ) : (
-                          <ChevronRight size={16} color={getIconColor()} />
-                        )}
-                      </>
-                    )}
-                  </button>
-                  {!collapsed && expandedMenus[item.label] && (
-                    <ul className="nav flex-column list-unstyled ps-4 mt-1">
-                      {item.subItems.map((subItem) => (
-                        <li key={subItem.path}>
-                          <Link
-                            href={subItem.path}
-                            className={`sidebar-nav-link py-1 ${
-                              isActive(subItem.path) ? 'active' : ''
-                            }`}
-                          >
-                            <span>{subItem.label}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </>
-              ) : (
-                <Link
-                  href={item.path}
-                  className={`sidebar-nav-link ${
-                    isActive(item.path) ? 'active' : ''
-                  }`}
-                  title={collapsed ? item.label : ''}
-                >
-                  <span className={collapsed ? 'mx-auto' : 'me-3'}>
-                    {item.icon}
-                  </span>
-                  {!collapsed && <span>{item.label}</span>}
-                </Link>
-              )}
-            </li>
-          ))}
+                    {!collapsed && <span>{item.label}</span>}
+                  </Link>
+                )}
+              </li>
+            )
+          })}
         </ul>
       </nav>
     </div>
