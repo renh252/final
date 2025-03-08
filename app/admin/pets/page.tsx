@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, Button, Row, Col, Badge, Image } from 'react-bootstrap'
 import { Plus, Edit, Trash, Eye, Heart, PawPrint } from 'lucide-react'
 import DataTable from '../components/DataTable'
@@ -9,84 +9,132 @@ import { useToast } from '../components/Toast'
 import { useConfirm } from '../components/ConfirmDialog'
 import { useTheme } from '../ThemeContext'
 
-// 模擬寵物數據
+// 模擬寵物數據 - 基於資料庫結構
 const MOCK_PETS = [
   {
     id: 1,
-    name: '小花',
-    type: 'cat',
-    breed: '米克斯',
-    age: 2,
-    gender: 'female',
-    status: 'available',
-    image: 'https://via.placeholder.com/50',
-    createdAt: '2023-01-15',
+    name: 'Pet1',
+    gender: '母',
+    species: '狗',
+    variety: '貴賓',
+    birthday: '2024-01-31',
+    weight: 31.84,
+    chip_number: '8958766700',
+    fixed: 1,
+    story: 'This is the story of Pet1. It is a very lovely pet.',
+    store_id: 1,
+    created_at: '2025-01-14',
+    is_adopted: 0,
+    main_photo: 'https://via.placeholder.com/50',
+    store_name: 'Pet Store 1',
   },
   {
     id: 2,
-    name: '大黑',
-    type: 'dog',
-    breed: '拉布拉多',
-    age: 3,
-    gender: 'male',
-    status: 'available',
-    image: 'https://via.placeholder.com/50',
-    createdAt: '2023-02-10',
+    name: 'Pet2',
+    gender: '母',
+    species: '貓',
+    variety: '波斯貓',
+    birthday: '2020-05-05',
+    weight: 49.46,
+    chip_number: '5354310530',
+    fixed: 1,
+    story: 'This is the story of Pet2. It is a very lovely pet.',
+    store_id: 6,
+    created_at: '2025-01-14',
+    is_adopted: 1,
+    main_photo: 'https://via.placeholder.com/50',
+    store_name: 'Pet Store 6',
   },
   {
     id: 3,
-    name: '小白',
-    type: 'cat',
-    breed: '波斯貓',
-    age: 1,
-    gender: 'male',
-    status: 'adopted',
-    image: 'https://via.placeholder.com/50',
-    createdAt: '2023-01-20',
+    name: 'Pet3',
+    gender: '公',
+    species: '貓',
+    variety: '暹羅貓',
+    birthday: '2022-05-23',
+    weight: 13.76,
+    chip_number: '5803740308',
+    fixed: 0,
+    story: 'This is the story of Pet3. It is a very lovely pet.',
+    store_id: 10,
+    created_at: '2025-01-14',
+    is_adopted: 1,
+    main_photo: 'https://via.placeholder.com/50',
+    store_name: 'Pet Store 10',
   },
   {
     id: 4,
-    name: '豆豆',
-    type: 'dog',
-    breed: '柴犬',
-    age: 2,
-    gender: 'female',
-    status: 'available',
-    image: 'https://via.placeholder.com/50',
-    createdAt: '2023-03-05',
+    name: 'Pet4',
+    gender: '母',
+    species: '狗',
+    variety: '馬爾濟斯',
+    birthday: '2018-09-07',
+    weight: 7.61,
+    chip_number: '8524556371',
+    fixed: 1,
+    story: 'This is the story of Pet4. It is a very lovely pet.',
+    store_id: 10,
+    created_at: '2025-01-14',
+    is_adopted: 0,
+    main_photo: 'https://via.placeholder.com/50',
+    store_name: 'Pet Store 10',
   },
   {
     id: 5,
-    name: '奇奇',
-    type: 'other',
-    breed: '兔子',
-    age: 1,
-    gender: 'male',
-    status: 'pending',
-    image: 'https://via.placeholder.com/50',
-    createdAt: '2023-02-25',
+    name: 'Pet5',
+    gender: '公',
+    species: '貓',
+    variety: '米克斯',
+    birthday: '2024-01-31',
+    weight: 31.24,
+    chip_number: '8362333427',
+    fixed: 0,
+    story: 'This is the story of Pet5. It is a very lovely pet.',
+    store_id: 3,
+    created_at: '2025-01-14',
+    is_adopted: 0,
+    main_photo: 'https://via.placeholder.com/50',
+    store_name: 'Pet Store 3',
   },
 ]
 
+// 寵物店鋪選項
+const STORE_OPTIONS = [
+  { value: 1, label: 'Pet Store 1' },
+  { value: 2, label: 'Pet Store 2' },
+  { value: 3, label: 'Pet Store 3' },
+  { value: 4, label: 'Pet Store 4' },
+  { value: 5, label: 'Pet Store 5' },
+  { value: 6, label: 'Pet Store 6' },
+  { value: 7, label: 'Pet Store 7' },
+  { value: 8, label: 'Pet Store 8' },
+  { value: 9, label: 'Pet Store 9' },
+  { value: 10, label: 'Pet Store 10' },
+]
+
 // 寵物類型選項
-const TYPE_OPTIONS = [
-  { value: 'dog', label: '狗' },
-  { value: 'cat', label: '貓' },
-  { value: 'other', label: '其他' },
+const SPECIES_OPTIONS = [
+  { value: '狗', label: '狗' },
+  { value: '貓', label: '貓' },
+  { value: '其他', label: '其他' },
 ]
 
 // 性別選項
 const GENDER_OPTIONS = [
-  { value: 'male', label: '公' },
-  { value: 'female', label: '母' },
+  { value: '公', label: '公' },
+  { value: '母', label: '母' },
 ]
 
-// 狀態選項
-const STATUS_OPTIONS = [
-  { value: 'available', label: '可領養' },
-  { value: 'pending', label: '審核中' },
-  { value: 'adopted', label: '已領養' },
-  { value: 'unavailable', label: '不可領養' },
+// 是否絕育選項
+const FIXED_OPTIONS = [
+  { value: 1, label: '是' },
+  { value: 0, label: '否' },
+]
+
+// 是否已領養選項
+const ADOPTED_OPTIONS = [
+  { value: 0, label: '可領養' },
+  { value: 1, label: '已領養' },
 ]
 
 export default function PetsPage() {
@@ -101,68 +149,51 @@ export default function PetsPage() {
   // 表格列定義
   const columns = [
     {
-      key: 'image',
+      key: 'main_photo',
       label: '圖片',
       render: (value: string) => (
-        <Image src={value} alt="寵物圖片" width={40} height={40} rounded />
+        <Image
+          src={value || 'https://via.placeholder.com/50'}
+          alt="寵物圖片"
+          width={40}
+          height={40}
+          rounded
+        />
       ),
     },
+    { key: 'id', label: 'ID', sortable: true },
     { key: 'name', label: '名稱', sortable: true },
     {
-      key: 'type',
+      key: 'species',
       label: '類型',
       sortable: true,
       render: (value: string) => {
-        const type = TYPE_OPTIONS.find((t) => t.value === value)
-        return <Badge bg="info">{type?.label || value}</Badge>
+        return <Badge bg="info">{value}</Badge>
       },
     },
-    { key: 'breed', label: '品種', sortable: true },
-    { key: 'age', label: '年齡', sortable: true },
+    { key: 'variety', label: '品種', sortable: true },
+    { key: 'gender', label: '性別', sortable: true },
     {
-      key: 'gender',
-      label: '性別',
-      sortable: true,
-      render: (value: string) => {
-        const gender = GENDER_OPTIONS.find((g) => g.value === value)
-        return gender?.label || value
-      },
-    },
-    {
-      key: 'status',
+      key: 'is_adopted',
       label: '狀態',
       sortable: true,
-      render: (value: string) => {
-        let badgeClass = ''
-        let statusText = ''
-
-        switch (value) {
-          case 'available':
-            badgeClass = 'bg-success'
-            statusText = '可領養'
-            break
-          case 'pending':
-            badgeClass = 'bg-warning'
-            statusText = '審核中'
-            break
-          case 'adopted':
-            badgeClass = 'bg-primary'
-            statusText = '已領養'
-            break
-          case 'unavailable':
-            badgeClass = 'bg-secondary'
-            statusText = '不可領養'
-            break
-          default:
-            badgeClass = 'bg-secondary'
-            statusText = '未知'
-        }
-
-        return <span className={`badge ${badgeClass}`}>{statusText}</span>
+      render: (value: number) => {
+        return (
+          <span
+            className={`badge ${value === 0 ? 'bg-success' : 'bg-primary'}`}
+          >
+            {value === 0 ? '可領養' : '已領養'}
+          </span>
+        )
       },
     },
     {
-      key: 'createdAt',
+      key: 'store_name',
+      label: '所屬店鋪',
+      sortable: true,
+    },
+    {
+      key: 'created_at',
       label: '建立日期',
       sortable: true,
       render: (value: string) => new Date(value).toLocaleDateString('zh-TW'),
@@ -179,28 +210,18 @@ export default function PetsPage() {
       placeholder: '請輸入寵物名稱',
     },
     {
-      name: 'type',
+      name: 'species',
       label: '類型',
       type: 'select' as const,
       required: true,
-      options: TYPE_OPTIONS,
+      options: SPECIES_OPTIONS,
     },
     {
-      name: 'breed',
+      name: 'variety',
       label: '品種',
       type: 'text' as const,
       required: true,
       placeholder: '請輸入品種',
-    },
-    {
-      name: 'age',
-      label: '年齡',
-      type: 'number' as const,
-      required: true,
-      placeholder: '請輸入年齡',
-      validation: (value: number) => {
-        return value > 0 ? null : '年齡必須大於0'
-      },
     },
     {
       name: 'gender',
@@ -210,24 +231,60 @@ export default function PetsPage() {
       options: GENDER_OPTIONS,
     },
     {
-      name: 'status',
-      label: '狀態',
-      type: 'select' as const,
+      name: 'birthday',
+      label: '出生日期',
+      type: 'date' as const,
       required: true,
-      options: STATUS_OPTIONS,
     },
     {
-      name: 'image',
-      label: '圖片URL',
+      name: 'weight',
+      label: '體重(kg)',
+      type: 'number' as const,
+      required: true,
+      placeholder: '請輸入體重',
+      validation: (value: number) => {
+        return value > 0 ? null : '體重必須大於0'
+      },
+    },
+    {
+      name: 'chip_number',
+      label: '晶片號碼',
       type: 'text' as const,
       required: true,
+      placeholder: '請輸入晶片號碼',
+    },
+    {
+      name: 'fixed',
+      label: '是否絕育',
+      type: 'select' as const,
+      required: true,
+      options: FIXED_OPTIONS,
+    },
+    {
+      name: 'is_adopted',
+      label: '是否已領養',
+      type: 'select' as const,
+      required: true,
+      options: ADOPTED_OPTIONS,
+    },
+    {
+      name: 'store_id',
+      label: '所屬店鋪',
+      type: 'select' as const,
+      required: true,
+      options: STORE_OPTIONS,
+    },
+    {
+      name: 'main_photo',
+      label: '圖片URL',
+      type: 'text' as const,
       placeholder: '請輸入圖片URL',
     },
     {
-      name: 'description',
-      label: '描述',
+      name: 'story',
+      label: '寵物故事',
       type: 'textarea' as const,
-      placeholder: '請輸入寵物描述',
+      placeholder: '請輸入寵物故事',
     },
   ]
 
@@ -271,19 +328,34 @@ export default function PetsPage() {
     // 模擬API請求延遲
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
+    // 找到對應的店鋪名稱
+    const store = STORE_OPTIONS.find(
+      (s) => s.value === Number(formData.store_id)
+    )
+    const storeName = store ? store.label : ''
+
     if (modalMode === 'add') {
       // 模擬新增寵物
       const newPet = {
         id: Math.max(...pets.map((p) => p.id)) + 1,
         ...formData,
-        createdAt: new Date().toISOString().split('T')[0],
+        store_name: storeName,
+        created_at: new Date().toISOString().split('T')[0],
       }
       setPets((prev) => [...prev, newPet])
       showToast('success', '新增成功', `寵物 ${formData.name} 已成功新增`)
     } else {
       // 模擬更新寵物
       setPets((prev) =>
-        prev.map((p) => (p.id === currentPet.id ? { ...p, ...formData } : p))
+        prev.map((p) =>
+          p.id === currentPet.id
+            ? {
+                ...p,
+                ...formData,
+                store_name: storeName,
+              }
+            : p
+        )
       )
       showToast('success', '更新成功', `寵物 ${formData.name} 資料已成功更新`)
     }
@@ -352,7 +424,7 @@ export default function PetsPage() {
                   <div>
                     <h6 className="mb-0">可領養</h6>
                     <h3 className="mb-0">
-                      {pets.filter((p) => p.status === 'available').length}
+                      {pets.filter((p) => p.is_adopted === 0).length}
                     </h3>
                   </div>
                 </Card.Body>
@@ -377,7 +449,7 @@ export default function PetsPage() {
                 columns={columns}
                 data={pets}
                 searchable={true}
-                searchKeys={['name', 'breed']}
+                searchKeys={['name', 'variety', 'species']}
                 actions={renderActions}
                 onRowClick={handleViewPet}
               />
