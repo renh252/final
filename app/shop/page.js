@@ -1,8 +1,7 @@
 
 'use client'
 
-import Image from 'next/image'
-import React, {  useRef, useState, useCallback   } from 'react'
+import React, {  useRef, useState} from 'react'
 import IconLine from './_components/icon_line'
 import Link from 'next/link'
 // style
@@ -22,8 +21,8 @@ import FirstPageNav from './_components/firstPageNav'
 
 // 連接資料庫
 import useSWR from 'swr'
+const fetcher = (url) => fetch(url).then((res) => res.json())
 
-import dynamic from 'next/dynamic'
 
 
 
@@ -35,6 +34,15 @@ import dynamic from 'next/dynamic'
 
 
 export default function PetsPage() {
+
+  // 使用 SWR 獲取資料 - 使用整合的 API 路由
+  const { data: petsData, error: petsError } = useSWR(
+    '/api/shop-data?type=products',
+    fetcher
+  )
+
+
+  // 卡片滑動-------------------------------
   const promotionRef = useRef(null)
   const categoryRefs = useRef({})
 
