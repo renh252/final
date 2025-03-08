@@ -1,0 +1,16 @@
+.footer {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  padding: 0;
+  width: 100%;
+}
+
+.footer a {
+  color: #6c757d;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer a:hover {
+  color: #495057;
+}
