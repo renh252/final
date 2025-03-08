@@ -17,7 +17,7 @@ import {
   Pie,
   Cell,
 } from 'recharts'
-import { useTheme } from '../../../ThemeContext'
+import { useTheme } from '@/app/admin/ThemeContext'
 
 // 模擬數據
 const MOCK_MONTHLY_REVENUE = [
