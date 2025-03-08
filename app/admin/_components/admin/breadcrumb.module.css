@@ -1,0 +1,35 @@
+.breadcrumbWrapper {
+  padding: 1rem 1.5rem;
+  background-color: white;
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* 覆蓋 Bootstrap 的麵包屑樣式 */
+:global(.breadcrumb) {
+  --bs-breadcrumb-divider: none;
+}
+
+:global(.breadcrumb-item) {
+  display: flex;
+  align-items: center;
+}
+
+:global(.breadcrumb-item a) {
+  color: var(--bs-secondary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+:global(.breadcrumb-item a:hover) {
+  color: var(--bs-primary);
+}
+
+:global(.breadcrumb-item.active) {
+  color: var(--bs-dark);
+}
+
+/* 移除最後一個項目後的分隔符 */
+:global(.breadcrumb-item:last-child .chevron) {
+  display: none;
+} 
