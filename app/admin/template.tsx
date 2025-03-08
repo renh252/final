@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Script from 'next/script'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import { ThemeProvider } from './ThemeContext'
+import { ToastProvider } from './components/Toast'
+import { ConfirmProvider } from './components/ConfirmDialog'
 
 export default function AdminTemplate({
   children,
@@ -53,64 +55,68 @@ export default function AdminTemplate({
 
   return (
     <ThemeProvider>
-      {/* 全局載入狀態 */}
-      {isLoading && (
-        <div className="loading-placeholder">
-          <div className="loading-spinner"></div>
-        </div>
-      )}
+      <ToastProvider>
+        <ConfirmProvider>
+          {/* 全局載入狀態 */}
+          {isLoading && (
+            <div className="loading-placeholder">
+              <div className="loading-spinner"></div>
+            </div>
+          )}
 
-      {/* Bootstrap JS */}
-      <Script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-        strategy="afterInteractive"
-      />
+          {/* Bootstrap JS */}
+          <Script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            strategy="afterInteractive"
+          />
 
-      <div className="admin-wrapper">
-        {/* 頭部 */}
-        <div className="admin-header-wrapper">
-          <Header toggleSidebar={toggleSidebar} />
-        </div>
+          <div className="admin-wrapper">
+            {/* 頭部 */}
+            <div className="admin-header-wrapper">
+              <Header toggleSidebar={toggleSidebar} />
+            </div>
 
-        <div className="admin-container">
-          {/* 側邊欄 */}
-          <div
-            className={`admin-sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${
-              isMobile && !sidebarCollapsed ? 'open' : ''
-            }`}
-          >
-            <Sidebar collapsed={sidebarCollapsed} />
-          </div>
-
-          {/* 主內容 */}
-          <div className="admin-content">
-            {/* 移動設備上的遮罩層 */}
-            {isMobile && !sidebarCollapsed && (
+            <div className="admin-container">
+              {/* 側邊欄 */}
               <div
-                className="mobile-overlay"
-                onClick={() => setSidebarCollapsed(true)}
-                style={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: 'rgba(0,0,0,0.5)',
-                  zIndex: 1040,
-                }}
-              />
-            )}
+                className={`admin-sidebar ${
+                  sidebarCollapsed ? 'collapsed' : ''
+                } ${isMobile && !sidebarCollapsed ? 'open' : ''}`}
+              >
+                <Sidebar collapsed={sidebarCollapsed} />
+              </div>
 
-            {/* 主要內容 */}
-            {children}
+              {/* 主內容 */}
+              <div className="admin-content">
+                {/* 移動設備上的遮罩層 */}
+                {isMobile && !sidebarCollapsed && (
+                  <div
+                    className="mobile-overlay"
+                    onClick={() => setSidebarCollapsed(true)}
+                    style={{
+                      position: 'fixed',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: 'rgba(0,0,0,0.5)',
+                      zIndex: 1040,
+                    }}
+                  />
+                )}
+
+                {/* 主要內容 */}
+                {children}
+              </div>
+            </div>
+
+            {/* 頁腳 */}
+            <div className="admin-footer-wrapper">
+              <Footer />
+            </div>
           </div>
-        </div>
-
-        {/* 頁腳 */}
-        <div className="admin-footer-wrapper">
-          <Footer />
-        </div>
-      </div>
+        </ConfirmProvider>
+      </ToastProvider>
     </ThemeProvider>
   )
 }
