@@ -11,7 +11,7 @@ export default function LayoutWrapper({ children }) {
   const pathname = usePathname()
   const isAdminRoute = pathname?.startsWith('/admin')
 
-  // 使用useEffect來動態調整body樣式
+  // 使用useEffect來動態調整body樣式，只在前台路由才執行
   useEffect(() => {
     if (isAdminRoute) {
       // 後台路由 - 移除前台樣式影響
@@ -30,7 +30,7 @@ export default function LayoutWrapper({ children }) {
     }
   }, [isAdminRoute])
 
-  // 如果是後台路由，只渲染子元素
+  // 如果是後台路由，直接返回
   if (isAdminRoute) {
     return <>{children}</>
   }
