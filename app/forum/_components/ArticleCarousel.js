@@ -1,44 +1,38 @@
-"use client"
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Carousel } from 'react-bootstrap';
+import styles from '../forum.module.css';
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Carousel } from "react-bootstrap"
+export default function ArticleCarousel() {
+  const [carouselItems, setCarouselItems] = useState([]);
 
-export default function ArticleCarousel({ articles = [] }) {
-  const [index, setIndex] = useState(0)
-
-  const handleSelect = (selectedIndex) => {
-    setIndex(selectedIndex)
-  }
-
-  if (articles.length === 0) {
-    return null
-  }
+  useEffect(() => {
+    // 这里应该从API获取轮播图数据
+    // 暂时使用模拟数据
+    const mockData = [
+      { id: 1, title: '文章1', image: '/images/article1.jpg' },
+      { id: 2, title: '文章2', image: '/images/article2.jpg' },
+      { id: 3, title: '文章3', image: '/images/article3.jpg' },
+    ];
+    setCarouselItems(mockData);
+  }, []);
 
   return (
-    <div className="mb-4">
-      <Carousel activeIndex={index} onSelect={handleSelect} className="carousel-dark">
-        {articles.map((article) => (
-          <Carousel.Item key={article.id}>
-            <div className="position-relative" style={{ height: "300px" }}>
-              <Image
-                src={article.image || "/placeholder.svg?height=300&width=800"}
-                alt={article.title}
-                fill
-                className="object-fit-cover"
-                priority
-              />
-              <Carousel.Caption>
-                <Link href={`/forum/${article.id}`} className="text-decoration-none">
-                  <h3 className="bg-white bg-opacity-75 text-dark p-2 rounded">{article.title}</h3>
-                </Link>
-              </Carousel.Caption>
-            </div>
-          </Carousel.Item>
-        ))}
-      </Carousel>
-    </div>
-  )
+    <Carousel className="mb-4">
+      {carouselItems.map((item) => (
+        <Carousel.Item key={item.id}>
+          <Link href={`/forum/${item.id}`}>
+            <img
+              className="d-block w-100"
+              src={item.image}
+              alt={item.title}
+            />
+          </Link>
+          <Carousel.Caption>
+            <h3 className={styles.carouselTitle}>{item.title}</h3>
+          </Carousel.Caption>
+        </Carousel.Item>
+      ))}
+    </Carousel>
+  );
 }
-
