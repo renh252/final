@@ -1,0 +1,79 @@
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-sidebar {
+  transition: width 0.3s ease, transform 0.3s ease;
+  overflow: hidden;
+  min-height: 100%;
+  position: sticky;
+  top: 0;
+}
+
+.admin-sidebar.open {
+  width: 240px;
+}
+
+.admin-sidebar.closed {
+  width: 60px;
+}
+
+.admin-main {
+  padding: 0;
+  overflow: auto;
+}
+
+.admin-content-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: calc(100vh - 120px); /* 減去頭部和頁腳的高度 */
+}
+
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: white;
+}
+
+.admin-footer {
+  padding: 1rem 0;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.admin-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 隱藏所有除了後台以外的內容 */
+body.admin-body > :not(.admin-page-wrapper) {
+  display: none !important;
+}
+
+/* 媒體查詢 */
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    position: fixed;
+    z-index: 1030;
+    height: 100%;
+  }
+
+  .admin-sidebar.closed {
+    width: 0;
+  }
+}
+
+/* 增加一些美化效果 */
+.header-shadow {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.transition-all {
+  transition: all 0.3s ease;
+}
