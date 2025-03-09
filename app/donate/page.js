@@ -9,6 +9,8 @@ import styles from './donate.module.css'
 import Dropdown from './_components/options'
 import MethodItem from './_components/methodItem'
 
+import Contents from './_data/Contents'
+
 export default function DonatePage() {
   const [activeSection, setActiveSection] = useState('method') // 控制主選單（捐款方式/種類說明）
   const [selectedMethod, setSelectedMethod] = useState('credit_card') // 控制捐款方式內的按鈕
@@ -21,108 +23,11 @@ export default function DonatePage() {
     { id: 'post_office', label: '郵局' },
     { id: 'faq', label: 'FAQ' },
   ]
-
-  const methodContent = {
-    credit_card: (
-      <>
-        <MethodItem
-          imgSrc="/images/donate/icon/card1.png"
-          alt="card1"
-          title="支援信用卡付款"
-          description={
-            <>
-              <p>
-                支援VISA/MASTER/JCB等發卡組織，方便您快速進行付款。
-                每筆手續費為捐款金額的2.75%，由本會負擔。
-              </p>
-            </>
-          }
-        />
-        <MethodItem
-          imgSrc="/images/donate/icon/card2.png"
-          alt="card2"
-          title="定期定額交易"
-          description={
-            <>
-              <p>
-                可設定按照日/月/年自動定期支付固定金額，方便您輕鬆一次結帳。
-              </p>
-            </>
-          }
-        />
-      </>
-    ),
-    bank_atm: (
-      <>
-        <MethodItem
-          imgSrc="/images/donate/icon/atm1.png"
-          alt="atm1"
-          description={
-            <>
-              <p>戶名：社團法人新北市流浪貓狗再生保護協會</p>
-              <p>捐款帳號：中國信託/ 新店分行</p>
-              <p>銀行代號：822</p>
-              <p>銀行帳號：3145-4046-2742</p>
-            </>
-          }
-        />
-        <MethodItem
-          imgSrc="/images/donate/icon/atm2.png"
-          alt="atm2"
-          title="捐款資料"
-          description={
-            <>
-              <p>
-                捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額 、後五碼，
-                如要報稅者需再提供ID或統一編號、收據收件地址 、收件人。 感謝您！
-              </p>
-            </>
-          }
-        />
-      </>
-    ),
-    post_office: (
-      <>
-        <MethodItem
-          imgSrc="/images/donate/icon/atm1.png"
-          alt="atm1"
-          description={
-            <>
-              <p>戶名：新北市流浪貓狗再生保護協會</p>
-              <p>銀行代號：822</p>
-              <p>帳號：3145-4046-2742</p>
-            </>
-          }
-        />
-        <MethodItem
-          imgSrc="/images/donate/icon/atm2.png"
-          alt="atm2"
-          title="捐款資料"
-          description={
-            <>
-              <p>
-                捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額 、後五碼，
-                如要報稅者需再提供ID或統一編號、收據收件地址 、收件人。 感謝您！
-              </p>
-            </>
-          }
-        />
-      </>
-    ),
-    faq: (
-      <MethodItem
-        title="常見問題"
-        description={
-          <>
-            <p>
-              捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額 、後五碼，
-              如要報稅者需再提供ID或統一編號、收據收件地址 、收件人。 感謝您！
-            </p>
-          </>
-        }
-      />
-    ),
-  }
+  const sections2 = [
+    { id: 'rescue', label: '醫療救援' },
+    { id: 'pets', label: '線上認養' },
+    { id: 'expenditure', label: '平台支出' },
+  ]
 
   return (
     <>
@@ -191,6 +96,8 @@ export default function DonatePage() {
                 style={{
                   backgroundColor:
                     activeButton === section ? '#cda274' : '#003459', // 點擊後的顏色變化
+                  width: '160px',
+                  fontSize: '24px',
                 }}
               >
                 {section === 'method' ? '捐款方式' : '種類說明'}
@@ -200,7 +107,7 @@ export default function DonatePage() {
         </ul>
       </div>
 
-      {/* 捐款方式 & 種類說明內容 */}
+      {/* 捐款方式內容 */}
       {activeSection === 'method' ? (
         <>
           {/* 捐款方式按鈕 */}
@@ -217,15 +124,63 @@ export default function DonatePage() {
                 </li>
               ))}
             </ul>
-            {methodContent[selectedMethod]}
+            {Contents[selectedMethod]?.map((item, index) => (
+              <MethodItem
+                key={index}
+                imgSrc={item.imgSrc}
+                alt={item.alt}
+                title={item.title}
+                description={item.description}
+              />
+            ))}
           </div>
         </>
       ) : (
         <>
+          {/* 種類說明內容 */}
           <div className={styles.donate_container2}>
+            <ul className={styles.ul2}>
+              {sections2.map(({ id, label }) => (
+                <li key={id}>
+                  <button
+                    className="button"
+                    onClick={() => setSelectedMethod(id)}
+                  >
+                    {label}
+                  </button>
+                </li>
+              ))}
+            </ul>
             <div>
-              <h5>捐款種類說明</h5>
-              <p>詳細說明各種捐款類型的使用方式與影響。</p>
+              <div className={styles.instructions_item}>
+                <div className={styles.instructions_content}>
+                  <h2>救援行動流程</h2>
+                  <h5>請您加入捐款支持我們，讓我們能持續這份神聖使命。</h5>
+                </div>
+                <Image
+                  src="/images/donate/RescueFollowups.jpg"
+                  alt="donate.jpg"
+                  width={1100}
+                  height={400}
+                />
+              </div>
+              <div className={styles.instructions_item}>
+                <div className={styles.instructions_content}>
+                  <h2>救援個案</h2>
+                  <h5>
+                    目前許多流浪動物因為生病、受傷或營養不良，需要緊急醫療救助。
+                  </h5>
+                  <h5>
+                    您的捐款將用於疫苗接種、疾病治療、手術費用及基本健康檢查，幫助牠們恢復健康，迎接新生活。
+                  </h5>
+                </div>
+                <Image
+                  src="/images/donate/RescueFollowups.jpg"
+                  alt="donate.jpg"
+                  width={1100}
+                  height={400}
+                />
+              </div>
             </div>
           </div>
         </>
