@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import adminPool, { executeQuery } from '../../_lib/database'
-import { generateToken, verifyPassword } from '../../_lib/jwt'
+import adminPool, { executeQuery } from '@/app/admin/api/_lib/database'
+import { generateToken, verifyPassword } from '@/app/admin/api/_lib/jwt'
 
 export async function POST(request: NextRequest) {
   try {

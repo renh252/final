@@ -17,6 +17,9 @@ import { usePathname } from 'next/navigation'
 // 不需要權限檢查的路徑列表
 const PUBLIC_PATHS = ['/admin/login']
 
+// 特別的路徑，不需要統一布局處理（例如：登入頁、404頁等）
+const EXCLUDE_LAYOUT_PATHS = ['/admin/login']
+
 // 後台布局
 export default function AdminLayout({
   children,
@@ -30,6 +33,9 @@ export default function AdminLayout({
 
   // 檢查當前是否為公開頁面
   const isPublicPath = PUBLIC_PATHS.some((path) => pathname === path)
+
+  // 檢查是否需要特殊處理的頁面（不包含標準布局）
+  const isExcludedPath = EXCLUDE_LAYOUT_PATHS.some((path) => pathname === path)
 
   // 處理載入狀態和客戶端初始化
   useEffect(() => {
@@ -66,6 +72,14 @@ export default function AdminLayout({
   // 切換側邊欄
   const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed)
 
+  // 使用特定行業頁面設置，如果論壇管理未使用AdminPageLayout就自動添加
+  // 例如，對於論壇管理等頁面，我們要確保它們的容器邊界保持緊湊
+  const wrappedContent = isExcludedPath ? (
+    children
+  ) : (
+    <div className="admin-layout-container">{children}</div>
+  )
+
   return (
     <AdminProvider>
       <ThemeProvider>
@@ -94,6 +108,7 @@ export default function AdminLayout({
                   <Header toggleSidebar={toggleSidebar} />
                 </div>
 
+                {/* 主容器 - 使用 100% 高度 */}
                 <div className="admin-container">
                   {/* 側邊欄 */}
                   <div
@@ -124,13 +139,15 @@ export default function AdminLayout({
                     )}
 
                     {/* 主要內容 */}
-                    {children}
-                  </div>
-                </div>
+                    <div className="content-area flex-grow-1">
+                      {wrappedContent}
+                    </div>
 
-                {/* 頁腳 */}
-                <div className="admin-footer-wrapper">
-                  <Footer />
+                    {/* 頁腳 - 移到內容區域內，讓它跟隨內容 */}
+                    <div className="admin-footer-wrapper">
+                      <Footer />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
