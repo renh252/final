@@ -11,6 +11,11 @@ import Sidebar from '@/app/admin/_components/Sidebar'
 import Header from '@/app/admin/_components/Header'
 import Footer from '@/app/admin/_components/Footer'
 import { useState, useEffect } from 'react'
+import { AdminProvider } from './AdminContext'
+import { usePathname } from 'next/navigation'
+
+// 不需要權限檢查的路徑列表
+const PUBLIC_PATHS = ['/admin/login']
 
 // 後台布局
 export default function AdminLayout({
@@ -21,6 +26,10 @@ export default function AdminLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const pathname = usePathname()
+
+  // 檢查當前是否為公開頁面
+  const isPublicPath = PUBLIC_PATHS.some((path) => pathname === path)
 
   // 處理載入狀態和客戶端初始化
   useEffect(() => {
@@ -58,69 +67,76 @@ export default function AdminLayout({
   const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed)
 
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <ConfirmProvider>
-          {/* 全局載入狀態 */}
-          {isLoading && (
-            <div className="loading-placeholder">
-              <div className="loading-spinner"></div>
-            </div>
-          )}
-
-          {/* Bootstrap JS */}
-          <Script
-            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            strategy="afterInteractive"
-          />
-
-          <div className="admin-wrapper">
-            {/* 頭部 */}
-            <div className="admin-header-wrapper">
-              <Header toggleSidebar={toggleSidebar} />
-            </div>
-
-            <div className="admin-container">
-              {/* 側邊欄 */}
-              <div
-                className={`admin-sidebar ${
-                  sidebarCollapsed ? 'collapsed' : ''
-                } ${isMobile && !sidebarCollapsed ? 'open' : ''}`}
-              >
-                <Sidebar collapsed={sidebarCollapsed} />
+    <AdminProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <ConfirmProvider>
+            {/* 全局載入狀態 */}
+            {isLoading && (
+              <div className="loading-placeholder">
+                <div className="loading-spinner"></div>
               </div>
+            )}
 
-              {/* 主內容 */}
-              <div className="admin-content">
-                {/* 移動設備上的遮罩層 */}
-                {isMobile && !sidebarCollapsed && (
+            {/* Bootstrap JS */}
+            <Script
+              src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+              strategy="afterInteractive"
+            />
+
+            {/* 如果是登入頁面，直接顯示內容，不顯示後台界面 */}
+            {isPublicPath ? (
+              <div className="public-admin-page">{children}</div>
+            ) : (
+              <div className="admin-wrapper">
+                {/* 頭部 */}
+                <div className="admin-header-wrapper">
+                  <Header toggleSidebar={toggleSidebar} />
+                </div>
+
+                <div className="admin-container">
+                  {/* 側邊欄 */}
                   <div
-                    className="mobile-overlay"
-                    onClick={() => setSidebarCollapsed(true)}
-                    style={{
-                      position: 'fixed',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: 'rgba(0,0,0,0.5)',
-                      zIndex: 1040,
-                    }}
-                  />
-                )}
+                    className={`admin-sidebar ${
+                      sidebarCollapsed ? 'collapsed' : ''
+                    } ${isMobile && !sidebarCollapsed ? 'open' : ''}`}
+                  >
+                    <Sidebar collapsed={sidebarCollapsed} />
+                  </div>
 
-                {/* 主要內容 */}
-                {children}
+                  {/* 主內容 */}
+                  <div className="admin-content">
+                    {/* 移動設備上的遮罩層 */}
+                    {isMobile && !sidebarCollapsed && (
+                      <div
+                        className="mobile-overlay"
+                        onClick={() => setSidebarCollapsed(true)}
+                        style={{
+                          position: 'fixed',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: 'rgba(0,0,0,0.5)',
+                          zIndex: 1040,
+                        }}
+                      />
+                    )}
+
+                    {/* 主要內容 */}
+                    {children}
+                  </div>
+                </div>
+
+                {/* 頁腳 */}
+                <div className="admin-footer-wrapper">
+                  <Footer />
+                </div>
               </div>
-            </div>
-
-            {/* 頁腳 */}
-            <div className="admin-footer-wrapper">
-              <Footer />
-            </div>
-          </div>
-        </ConfirmProvider>
-      </ToastProvider>
-    </ThemeProvider>
+            )}
+          </ConfirmProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </AdminProvider>
   )
 }
