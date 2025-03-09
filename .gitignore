@@ -24,8 +24,6 @@ yarn-error.log*
 # local env files
 .env*.local
 
-# vercel
-.vercel
 
 # typescript
 *.tsbuildinfo
@@ -54,4 +52,3 @@ package-lock.json
 yarn.lock
 /.temp
 /.html
-.vercel
