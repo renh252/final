@@ -1,7 +1,7 @@
 'use client'
 
 import { Sun, Moon, Monitor } from 'lucide-react'
-import { useTheme } from '../ThemeContext'
+import { useTheme } from '@/app/admin/ThemeContext'
 import { Dropdown } from 'react-bootstrap'
 
 export default function ThemeToggle() {
