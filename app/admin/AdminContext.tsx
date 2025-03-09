@@ -6,6 +6,8 @@ import {
   useState,
   useEffect,
   ReactNode,
+  useRef,
+  useCallback,
 } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Cookies from 'js-cookie'
@@ -30,10 +32,24 @@ interface AdminContextType {
 // 創建上下文
 const AdminContext = createContext<AdminContextType | undefined>(undefined)
 
+// 節流函數 - 限制函數在特定時間內只能執行一次
+const throttle = (func: Function, limit: number) => {
+  let inThrottle: boolean = false
+  return function (...args: any[]) {
+    if (!inThrottle) {
+      func.apply(this, args)
+      inThrottle = true
+      setTimeout(() => (inThrottle = false), limit)
+    }
+  }
+}
+
 // 上下文提供者組件
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState<Admin | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [lastVerified, setLastVerified] = useState<number>(0)
+  const verifyInProgress = useRef(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -87,6 +103,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
     // 更新狀態
     setAdmin(adminData)
+    setLastVerified(Date.now())
   }
 
   // 登出
@@ -109,6 +126,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
       // 更新狀態
       setAdmin(null)
+      setLastVerified(0)
 
       // 重定向到登入頁面
       router.push('/admin/login')
@@ -119,9 +137,20 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // 檢查認證狀態
-  const checkAuth = async (): Promise<boolean> => {
+  // 檢查認證狀態 - 使用 useCallback 和防止重複調用的機制
+  const checkAuth = useCallback(async (): Promise<boolean> => {
+    // 如果正在進行驗證，則跳過
+    if (verifyInProgress.current) {
+      return !!admin
+    }
+
+    // 如果上次驗證時間距離現在小於 30 秒，則跳過驗證
+    if (Date.now() - lastVerified < 30000 && admin) {
+      return true
+    }
+
     try {
+      verifyInProgress.current = true
       setIsLoading(true)
 
       // 獲取 token
@@ -157,6 +186,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       // 更新管理員資訊（以防後端有更新）
       setAdmin(data.data.admin)
       localStorage.setItem('admin', JSON.stringify(data.data.admin))
+      setLastVerified(Date.now())
 
       return true
     } catch (error) {
@@ -168,8 +198,30 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       return false
     } finally {
       setIsLoading(false)
+      verifyInProgress.current = false
     }
-  }
+  }, [admin, lastVerified, pathname, router])
+
+  // 節流版本的 checkAuth - 每 10 秒最多執行一次
+  const throttledCheckAuth = useCallback(
+    throttle(() => {
+      if (!verifyInProgress.current) {
+        checkAuth()
+      }
+    }, 10000),
+    [checkAuth]
+  )
+
+  // 設置定期驗證 - 每 5 分鐘檢查一次
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (admin && !verifyInProgress.current) {
+        checkAuth()
+      }
+    }, 300000)
+
+    return () => clearInterval(interval)
+  }, [admin, checkAuth])
 
   return (
     <AdminContext.Provider

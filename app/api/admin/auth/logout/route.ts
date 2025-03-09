@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { executeQuery } from '../../_lib/database'
-import { isAuthenticated } from '../../_lib/auth'
+import { executeQuery } from '@/app/admin/api/_lib/database'
+import { isAuthenticated } from '@/app/admin/api/_lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
