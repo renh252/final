@@ -12,11 +12,10 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  FileText,
-  AlertCircle,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTheme } from '@/app/admin/ThemeContext'
+import { useAdmin } from '@/app/admin/AdminContext'
 
 // 提供一個簡單的結構，保持與實際組件相同的 DOM 結構
 const SidebarSkeleton = () => (
@@ -28,6 +27,18 @@ const SidebarSkeleton = () => (
   </div>
 )
 
+interface MenuItem {
+  icon: React.ReactNode
+  label: string
+  path: string
+  requiredPrivilege?: string | string[]
+  subItems?: {
+    label: string
+    path: string
+    requiredPrivilege?: string | string[]
+  }[]
+}
+
 export default function Sidebar({ collapsed = false }) {
   const [mounted, setMounted] = useState(false)
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
@@ -35,13 +46,14 @@ export default function Sidebar({ collapsed = false }) {
   )
   const pathname = usePathname()
   const { isDarkMode } = useTheme()
+  const { admin, hasPermission } = useAdmin()
 
   // 獲取圖標顏色
   const getIconColor = () =>
     isDarkMode ? 'rgba(255, 255, 255, 0.8)' : '#212529'
 
-  // 菜單項定義 - 移到useEffect之前
-  const menuItems = [
+  // 菜單項定義
+  const menuItems: MenuItem[] = [
     {
       icon: <Home size={20} color={getIconColor()} />,
       label: '儀表板',
@@ -51,21 +63,25 @@ export default function Sidebar({ collapsed = false }) {
       icon: <Users size={20} color={getIconColor()} />,
       label: '會員管理',
       path: '/admin/members',
+      requiredPrivilege: 'member',
     },
     {
       icon: <ShoppingBag size={20} color={getIconColor()} />,
       label: '商城管理',
       path: '/admin/shop',
+      requiredPrivilege: 'shop',
     },
     {
       icon: <PawPrint size={20} color={getIconColor()} />,
       label: '寵物管理',
       path: '/admin/pets',
+      requiredPrivilege: 'pet',
     },
     {
       icon: <MessageSquare size={20} color={getIconColor()} />,
       label: '論壇管理',
       path: '/admin/forum',
+      requiredPrivilege: 'post',
       subItems: [
         { label: '論壇概覽', path: '/admin/forum' },
         { label: '文章管理', path: '/admin/forum/articles' },
@@ -76,6 +92,7 @@ export default function Sidebar({ collapsed = false }) {
       icon: <DollarSign size={20} color={getIconColor()} />,
       label: '金流管理',
       path: '/admin/finance',
+      requiredPrivilege: 'donation',
       subItems: [
         { label: '財務概覽', path: '/admin/finance/dashboard' },
         { label: '交易記錄', path: '/admin/finance/transactions' },
@@ -87,6 +104,7 @@ export default function Sidebar({ collapsed = false }) {
       icon: <Settings size={20} color={getIconColor()} />,
       label: '系統設定',
       path: '/admin/settings',
+      requiredPrivilege: '111', // 只有超級管理員可以訪問
       subItems: [
         { label: '一般設定', path: '/admin/settings' },
         { label: '角色管理', path: '/admin/settings/roles' },
@@ -94,6 +112,12 @@ export default function Sidebar({ collapsed = false }) {
       ],
     },
   ]
+
+  // 根據權限過濾菜單項
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (!item.requiredPrivilege) return true // 沒有權限要求，所有人可見
+    return hasPermission(item.requiredPrivilege)
+  })
 
   // 切換子菜單展開狀態
   const toggleSubmenu = (key: string) => {
@@ -156,11 +180,9 @@ export default function Sidebar({ collapsed = false }) {
   // 渲染側邊欄內容
   return (
     <div className="p-3">
-
-
       <nav>
         <ul className="nav flex-column gap-1 list-unstyled">
-          {menuItems.map((item) => (
+          {filteredMenuItems.map((item) => (
             <li key={item.path} className="mb-1">
               {item.subItems ? (
                 <>
@@ -202,18 +224,23 @@ export default function Sidebar({ collapsed = false }) {
                   </button>
                   {!collapsed && expandedMenus[item.label] && (
                     <ul className="nav flex-column list-unstyled ps-4 mt-1 sidebar-submenu">
-                      {item.subItems.map((subItem) => (
-                        <li key={subItem.path}>
-                          <Link
-                            href={subItem.path}
-                            className={`sidebar-nav-link py-1 ${
-                              pathname === subItem.path ? 'active' : ''
-                            }`}
-                          >
-                            <span>{subItem.label}</span>
-                          </Link>
-                        </li>
-                      ))}
+                      {item.subItems
+                        .filter((subItem) => {
+                          if (!subItem.requiredPrivilege) return true
+                          return hasPermission(subItem.requiredPrivilege)
+                        })
+                        .map((subItem) => (
+                          <li key={subItem.path}>
+                            <Link
+                              href={subItem.path}
+                              className={`sidebar-nav-link py-1 ${
+                                pathname === subItem.path ? 'active' : ''
+                              }`}
+                            >
+                              <span>{subItem.label}</span>
+                            </Link>
+                          </li>
+                        ))}
                     </ul>
                   )}
                 </>
