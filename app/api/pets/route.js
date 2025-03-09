@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import pool from '@/app/lib/db'
+import { pool } from '@/app/lib/db'
 
 export async function GET(request) {
   try {
@@ -94,12 +94,7 @@ export async function GET(request) {
         `
       }
 
-      console.log('品種查詢SQL:', query)
-      console.log('品種查詢參數:', params)
-
       const [results] = await connection.execute(query, params)
-      console.log('品種查詢結果:', results)
-
       responseData.varieties = results.map((item) => item.variety)
     }
 
