@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Table, Form, Button, Pagination } from 'react-bootstrap'
 import { ChevronUp, ChevronDown, Search, Filter } from 'lucide-react'
-import { useTheme } from '../ThemeContext'
 
 interface Column {
   key: string
@@ -36,7 +35,6 @@ export default function DataTable({
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [filteredData, setFilteredData] = useState(data)
-  const { isDarkMode } = useTheme()
 
   // 處理排序
   const handleSort = (key: string) => {
@@ -130,10 +128,11 @@ export default function DataTable({
                 placeholder="搜尋..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
               />
               <Search
                 size={18}
-                className="position-absolute"
+                className="search-icon position-absolute"
                 style={{
                   right: '10px',
                   top: '50%',
@@ -143,8 +142,8 @@ export default function DataTable({
             </div>
           </Form.Group>
           <Button
-            variant={isDarkMode ? 'dark' : 'light'}
-            className="d-flex align-items-center"
+            variant="outline-secondary"
+            className="d-flex align-items-center filter-button"
           >
             <Filter size={18} className="me-1" /> 篩選
           </Button>
@@ -152,7 +151,7 @@ export default function DataTable({
       )}
 
       <div className="table-responsive">
-        <Table hover>
+        <Table hover striped className="data-table">
           <thead>
             <tr>
               {columns.map((column) => (
