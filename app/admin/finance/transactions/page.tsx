@@ -14,6 +14,10 @@ import {
 import { Search, Download, Filter, ChevronDown, ChevronUp } from 'lucide-react'
 import { useTheme } from '@/app/admin/ThemeContext'
 import Link from 'next/link'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '@/app/admin/_components/AdminPageLayout'
 
 // 模擬交易數據
 const MOCK_TRANSACTIONS = Array.from({ length: 50 }, (_, i) => ({
@@ -166,219 +170,338 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="transactions-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>交易記錄</h2>
+    <AdminPageLayout
+      title="交易記錄"
+      actions={
         <Button variant="outline-primary" onClick={handleExport}>
           <Download size={18} className="me-2" />
           匯出記錄
         </Button>
-      </div>
+      }
+    >
+      <div className="admin-layout-container">
+        <AdminSection>
+          <Row className="mb-4">
+            <Col lg={12}>
+              <Card
+                className={`admin-card ${
+                  isDarkMode ? 'bg-dark text-light' : ''
+                }`}
+              >
+                <Card.Body>
+                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+                    <div className="d-flex flex-column flex-md-row gap-2 mb-3 mb-md-0">
+                      <div className="position-relative search-container">
+                        <Form.Control
+                          type="text"
+                          placeholder="搜尋交易..."
+                          value={filters.search}
+                          onChange={handleFilterChange}
+                          className="search-input"
+                          name="search"
+                        />
+                        <Search size={18} className="search-icon" />
+                      </div>
+                      <Form.Select
+                        value={filters.type}
+                        onChange={handleFilterChange}
+                        name="type"
+                        className="ms-md-2"
+                        style={{ width: 'auto' }}
+                      >
+                        {TRANSACTION_TYPES.map((type) => (
+                          <option key={type.value} value={type.value}>
+                            {type.label}
+                          </option>
+                        ))}
+                      </Form.Select>
+                      <Form.Select
+                        value={filters.status}
+                        onChange={handleFilterChange}
+                        name="status"
+                        className="ms-md-2"
+                        style={{ width: 'auto' }}
+                      >
+                        {STATUS_OPTIONS.map((status) => (
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </div>
+                    <div className="d-flex gap-2">
+                      <Button
+                        variant="outline-secondary"
+                        className="filter-button"
+                        onClick={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            showFilters: !prev.showFilters,
+                          }))
+                        }
+                      >
+                        <Filter size={18} className="me-1" />
+                        進階篩選
+                        {filters.showFilters ? (
+                          <ChevronUp size={16} className="ms-1" />
+                        ) : (
+                          <ChevronDown size={16} className="ms-1" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
 
-      <Card className={`mb-4 ${isDarkMode ? 'bg-dark text-light' : ''}`}>
-        <Card.Body>
-          <Row className="g-3">
-            <Col md={3}>
-              <Form.Group>
-                <Form.Control
-                  type="text"
-                  placeholder="搜尋交易..."
-                  name="search"
-                  value={filters.search}
-                  onChange={handleFilterChange}
-                />
-              </Form.Group>
-            </Col>
-            <Col md={2}>
-              <Form.Select
-                name="type"
-                value={filters.type}
-                onChange={handleFilterChange}
-              >
-                {TRANSACTION_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={2}>
-              <Form.Select
-                name="status"
-                value={filters.status}
-                onChange={handleFilterChange}
-              >
-                {STATUS_OPTIONS.map((status) => (
-                  <option key={status.value} value={status.value}>
-                    {status.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={2}>
-              <Form.Select
-                name="paymentMethod"
-                value={filters.paymentMethod}
-                onChange={handleFilterChange}
-              >
-                {PAYMENT_METHODS.map((method) => (
-                  <option key={method.value} value={method.value}>
-                    {method.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={3}>
-              <div className="d-flex gap-2">
-                <Form.Control
-                  type="date"
-                  name="dateFrom"
-                  value={filters.dateFrom}
-                  onChange={handleFilterChange}
-                />
-                <Form.Control
-                  type="date"
-                  name="dateTo"
-                  value={filters.dateTo}
-                  onChange={handleFilterChange}
-                />
-              </div>
+                  {filters.showFilters && (
+                    <Card className="mb-4 filter-card">
+                      <Card.Body>
+                        <Row>
+                          <Col md={6} lg={3} className="mb-3">
+                            <Form.Group>
+                              <Form.Label>日期範圍</Form.Label>
+                              <div className="d-flex gap-2 align-items-center">
+                                <Form.Control
+                                  type="date"
+                                  value={filters.dateFrom}
+                                  onChange={handleFilterChange}
+                                  name="dateFrom"
+                                />
+                                <span>至</span>
+                                <Form.Control
+                                  type="date"
+                                  value={filters.dateTo}
+                                  onChange={handleFilterChange}
+                                  name="dateTo"
+                                />
+                              </div>
+                            </Form.Group>
+                          </Col>
+                          <Col md={6} lg={3} className="mb-3">
+                            <Form.Group>
+                              <Form.Label>金額範圍</Form.Label>
+                              <div className="d-flex gap-2 align-items-center">
+                                <Form.Control
+                                  type="number"
+                                  placeholder="最小"
+                                  value={filters.amountRange?.min}
+                                  onChange={(e) =>
+                                    setFilters((prev) => ({
+                                      ...prev,
+                                      amountRange: {
+                                        ...prev.amountRange,
+                                        min: Number(e.target.value),
+                                      },
+                                    }))
+                                  }
+                                />
+                                <span>至</span>
+                                <Form.Control
+                                  type="number"
+                                  placeholder="最大"
+                                  value={filters.amountRange?.max}
+                                  onChange={(e) =>
+                                    setFilters((prev) => ({
+                                      ...prev,
+                                      amountRange: {
+                                        ...prev.amountRange,
+                                        max: Number(e.target.value),
+                                      },
+                                    }))
+                                  }
+                                />
+                              </div>
+                            </Form.Group>
+                          </Col>
+                          <Col md={6} lg={3} className="mb-3">
+                            <Form.Group>
+                              <Form.Label>付款方式</Form.Label>
+                              <Form.Select
+                                value={filters.paymentMethod}
+                                onChange={handleFilterChange}
+                                name="paymentMethod"
+                              >
+                                {PAYMENT_METHODS.map((method) => (
+                                  <option
+                                    key={method.value}
+                                    value={method.value}
+                                  >
+                                    {method.label}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                            </Form.Group>
+                          </Col>
+                          <Col md={6} lg={3} className="mb-3">
+                            <Form.Group>
+                              <Form.Label>顧客資料</Form.Label>
+                              <Form.Control
+                                type="text"
+                                placeholder="姓名/電子郵件/電話"
+                                value={filters.customer}
+                                onChange={handleFilterChange}
+                                name="customer"
+                              />
+                            </Form.Group>
+                          </Col>
+                        </Row>
+                        <div className="d-flex justify-content-end gap-2 mt-2">
+                          <Button
+                            variant="outline-secondary"
+                            onClick={() =>
+                              setFilters((prev) => ({
+                                ...prev,
+                                showFilters: false,
+                                amountRange: undefined,
+                                customer: '',
+                                paymentMethod: 'all',
+                                dateFrom: '',
+                                dateTo: '',
+                              }))
+                            }
+                          >
+                            重置篩選
+                          </Button>
+                          <Button
+                            variant="primary"
+                            onClick={() => {
+                              // 實作套用篩選的邏輯
+                              console.log('Applying filters:', filters)
+                            }}
+                          >
+                            套用篩選
+                          </Button>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  )}
+
+                  <Table responsive className={isDarkMode ? 'table-dark' : ''}>
+                    <thead>
+                      <tr>
+                        <th
+                          onClick={() => handleSort('id')}
+                          style={{ width: '70px' }}
+                        >
+                          ID{' '}
+                          {sortConfig.key === 'id' &&
+                            (sortConfig.direction === 'asc' ? (
+                              <ChevronUp size={16} />
+                            ) : (
+                              <ChevronDown size={16} />
+                            ))}
+                        </th>
+                        <th onClick={() => handleSort('date')}>
+                          日期{' '}
+                          {sortConfig.key === 'date' &&
+                            (sortConfig.direction === 'asc' ? (
+                              <ChevronUp size={16} />
+                            ) : (
+                              <ChevronDown size={16} />
+                            ))}
+                        </th>
+                        <th onClick={() => handleSort('type')}>
+                          類型{' '}
+                          {sortConfig.key === 'type' &&
+                            (sortConfig.direction === 'asc' ? (
+                              <ChevronUp size={16} />
+                            ) : (
+                              <ChevronDown size={16} />
+                            ))}
+                        </th>
+                        <th>描述</th>
+                        <th onClick={() => handleSort('amount')}>
+                          金額{' '}
+                          {sortConfig.key === 'amount' &&
+                            (sortConfig.direction === 'asc' ? (
+                              <ChevronUp size={16} />
+                            ) : (
+                              <ChevronDown size={16} />
+                            ))}
+                        </th>
+                        <th>付款方式</th>
+                        <th>狀態</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentTransactions.map((transaction) => (
+                        <tr key={transaction.id}>
+                          <td>{transaction.id}</td>
+                          <td>{transaction.date}</td>
+                          <td>{transaction.type}</td>
+                          <td>{transaction.description}</td>
+                          <td>{formatCurrency(transaction.amount)}</td>
+                          <td>{transaction.payment_method}</td>
+                          <td>{getStatusBadge(transaction.status)}</td>
+                          <td>
+                            <Link
+                              href={`/admin/finance/transactions/${transaction.id}`}
+                              className="btn btn-sm btn-outline-primary"
+                            >
+                              查看
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+
+                  <div className="d-flex justify-content-between align-items-center mt-4">
+                    <div className="text-muted">
+                      顯示 {currentPage * itemsPerPage - itemsPerPage + 1} 至{' '}
+                      {Math.min(
+                        currentPage * itemsPerPage,
+                        filteredTransactions.length
+                      )}{' '}
+                      筆，共 {filteredTransactions.length} 筆
+                    </div>
+                    <Pagination className={isDarkMode ? 'pagination-dark' : ''}>
+                      <Pagination.First
+                        onClick={() => handlePageChange(1)}
+                        disabled={currentPage === 1}
+                      />
+                      <Pagination.Prev
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      />
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(
+                          (page) =>
+                            page === 1 ||
+                            page === totalPages ||
+                            Math.abs(page - currentPage) <= 2
+                        )
+                        .map((page, index, array) => {
+                          if (index > 0 && array[index - 1] !== page - 1) {
+                            return (
+                              <Pagination.Ellipsis key={`ellipsis-${page}`} />
+                            )
+                          }
+                          return (
+                            <Pagination.Item
+                              key={page}
+                              active={page === currentPage}
+                              onClick={() => handlePageChange(page)}
+                            >
+                              {page}
+                            </Pagination.Item>
+                          )
+                        })}
+                      <Pagination.Next
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      />
+                      <Pagination.Last
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={currentPage === totalPages}
+                      />
+                    </Pagination>
+                  </div>
+                </Card.Body>
+              </Card>
             </Col>
           </Row>
-        </Card.Body>
-      </Card>
-
-      <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-        <Card.Body>
-          <Table responsive className={isDarkMode ? 'table-dark' : ''}>
-            <thead>
-              <tr>
-                <th
-                  className="cursor-pointer"
-                  onClick={() => handleSort('date')}
-                >
-                  日期
-                  {sortConfig.key === 'date' && (
-                    <span className="ms-1">
-                      {sortConfig.direction === 'asc' ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </span>
-                  )}
-                </th>
-                <th
-                  className="cursor-pointer"
-                  onClick={() => handleSort('type')}
-                >
-                  類型
-                  {sortConfig.key === 'type' && (
-                    <span className="ms-1">
-                      {sortConfig.direction === 'asc' ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </span>
-                  )}
-                </th>
-                <th>描述</th>
-                <th
-                  className="cursor-pointer"
-                  onClick={() => handleSort('amount')}
-                >
-                  金額
-                  {sortConfig.key === 'amount' && (
-                    <span className="ms-1">
-                      {sortConfig.direction === 'asc' ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </span>
-                  )}
-                </th>
-                <th>付款方式</th>
-                <th>客戶</th>
-                <th>狀態</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentTransactions.map((transaction) => (
-                <tr key={transaction.id}>
-                  <td>{transaction.date}</td>
-                  <td>{transaction.type}</td>
-                  <td>{transaction.description}</td>
-                  <td>{formatCurrency(transaction.amount)}</td>
-                  <td>{transaction.payment_method}</td>
-                  <td>{transaction.customer}</td>
-                  <td>{getStatusBadge(transaction.status)}</td>
-                  <td>
-                    <Link
-                      href={`/admin/finance/transactions/${transaction.id}`}
-                      className="btn btn-sm btn-outline-primary"
-                    >
-                      查看
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-
-          <div className="d-flex justify-content-between align-items-center mt-4">
-            <div>
-              顯示 {(currentPage - 1) * itemsPerPage + 1} 至{' '}
-              {Math.min(
-                currentPage * itemsPerPage,
-                filteredTransactions.length
-              )}{' '}
-              筆，共 {filteredTransactions.length} 筆
-            </div>
-            <Pagination>
-              <Pagination.First
-                onClick={() => handlePageChange(1)}
-                disabled={currentPage === 1}
-              />
-              <Pagination.Prev
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              />
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(
-                  (page) =>
-                    page === 1 ||
-                    page === totalPages ||
-                    Math.abs(page - currentPage) <= 2
-                )
-                .map((page, index, array) => {
-                  if (index > 0 && array[index - 1] !== page - 1) {
-                    return <Pagination.Ellipsis key={`ellipsis-${page}`} />
-                  }
-                  return (
-                    <Pagination.Item
-                      key={page}
-                      active={page === currentPage}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </Pagination.Item>
-                  )
-                })}
-              <Pagination.Next
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              />
-              <Pagination.Last
-                onClick={() => handlePageChange(totalPages)}
-                disabled={currentPage === totalPages}
-              />
-            </Pagination>
-          </div>
-        </Card.Body>
-      </Card>
-    </div>
+        </AdminSection>
+      </div>
+    </AdminPageLayout>
   )
 }

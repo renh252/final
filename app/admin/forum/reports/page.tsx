@@ -23,6 +23,10 @@ import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
 import Link from 'next/link'
 import DataTable from '@/app/admin/_components/DataTable'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '@/app/admin/_components/AdminPageLayout'
 
 // 模擬舉報數據
 const MOCK_REPORTS = [
@@ -167,6 +171,14 @@ export default function ReportsPage() {
   const { showToast } = useToast()
   const { confirm } = useConfirm()
   const { isDarkMode } = useTheme()
+  const [showFilters, setShowFilters] = useState(false)
+
+  // 處理刷新資料
+  const handleRefresh = () => {
+    // 這裡在實際應用中會調用API重新獲取數據
+    // 由於這是模擬數據，我們僅顯示一個刷新成功的通知
+    showToast('success', '資料已更新', '舉報列表已重新載入')
+  }
 
   // 處理搜尋
   const handleSearch = () => {
@@ -505,105 +517,148 @@ export default function ReportsPage() {
   )
 
   return (
-    <div className="reports-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">舉報管理</h2>
+    <AdminPageLayout
+      title="舉報管理"
+      actions={
+        <div className="d-flex gap-2">
+          <Button
+            variant="outline-primary"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter size={18} className="me-2" />
+            進階篩選
+          </Button>
+          <Button variant="primary" onClick={handleRefresh}>
+            重新整理
+          </Button>
+        </div>
+      }
+    >
+      <div className="admin-layout-container">
+        <AdminSection>
+          <Card
+            className={`admin-card mb-4 ${
+              isDarkMode ? 'bg-dark text-light' : ''
+            }`}
+          >
+            <Card.Body>
+              <Row>
+                <Col md={4} className="mb-3">
+                  <InputGroup>
+                    <Form.Control
+                      placeholder="搜尋舉報內容、用戶或描述"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <Button variant="primary" onClick={handleSearch}>
+                      <Search size={18} />
+                    </Button>
+                  </InputGroup>
+                </Col>
+                {showFilters && (
+                  <>
+                    <Col md={2} className="mb-3">
+                      <Form.Select
+                        value={contentTypeFilter}
+                        onChange={(e) => setContentTypeFilter(e.target.value)}
+                      >
+                        {CONTENT_TYPE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Col>
+                    <Col md={2} className="mb-3">
+                      <Form.Select
+                        value={reasonFilter}
+                        onChange={(e) => setReasonFilter(e.target.value)}
+                      >
+                        {REASON_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Col>
+                    <Col md={2} className="mb-3">
+                      <Form.Select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                      >
+                        {STATUS_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Col>
+                    <Col md={2} className="mb-3 d-flex">
+                      <Button
+                        variant="primary"
+                        className="me-2 flex-grow-1"
+                        onClick={handleSearch}
+                      >
+                        <Filter size={18} className="me-1" /> 篩選
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        onClick={handleResetFilters}
+                      >
+                        重置
+                      </Button>
+                    </Col>
+                  </>
+                )}
+                {!showFilters && (
+                  <Col className="d-flex justify-content-end">
+                    <Button
+                      variant="primary"
+                      className="me-2"
+                      onClick={handleSearch}
+                    >
+                      <Search size={18} className="me-1" /> 搜尋
+                    </Button>
+                  </Col>
+                )}
+              </Row>
+            </Card.Body>
+          </Card>
+        </AdminSection>
+
+        <AdminSection>
+          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+            <Card.Body>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h5 className="mb-0">舉報列表</h5>
+                <div>
+                  <span className="me-3">
+                    共 {filteredReports.length} 筆舉報
+                  </span>
+                  <span className="me-3">
+                    待處理:{' '}
+                    {reports.filter((r) => r.status === 'pending').length}
+                  </span>
+                  <span>
+                    調查中:{' '}
+                    {reports.filter((r) => r.status === 'investigating').length}
+                  </span>
+                </div>
+              </div>
+
+              <DataTable
+                columns={columns}
+                data={filteredReports}
+                searchable={false}
+                actions={renderActions}
+                onRowClick={(report) =>
+                  (window.location.href = `/admin/forum/reports/${report.id}`)
+                }
+              />
+            </Card.Body>
+          </Card>
+        </AdminSection>
       </div>
-
-      <Card className={`mb-4 ${isDarkMode ? 'bg-dark text-light' : ''}`}>
-        <Card.Body>
-          <Row>
-            <Col md={4} className="mb-3">
-              <InputGroup>
-                <Form.Control
-                  placeholder="搜尋舉報內容、用戶或描述"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Button variant="primary" onClick={handleSearch}>
-                  <Search size={18} />
-                </Button>
-              </InputGroup>
-            </Col>
-            <Col md={2} className="mb-3">
-              <Form.Select
-                value={contentTypeFilter}
-                onChange={(e) => setContentTypeFilter(e.target.value)}
-              >
-                {CONTENT_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={2} className="mb-3">
-              <Form.Select
-                value={reasonFilter}
-                onChange={(e) => setReasonFilter(e.target.value)}
-              >
-                {REASON_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={2} className="mb-3">
-              <Form.Select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={2} className="mb-3 d-flex">
-              <Button
-                variant="primary"
-                className="me-2 flex-grow-1"
-                onClick={handleSearch}
-              >
-                <Filter size={18} className="me-1" /> 篩選
-              </Button>
-              <Button variant="outline-secondary" onClick={handleResetFilters}>
-                重置
-              </Button>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
-
-      <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-        <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="mb-0">舉報列表</h5>
-            <div>
-              <span className="me-3">共 {filteredReports.length} 筆舉報</span>
-              <span className="me-3">
-                待處理: {reports.filter((r) => r.status === 'pending').length}
-              </span>
-              <span>
-                調查中:{' '}
-                {reports.filter((r) => r.status === 'investigating').length}
-              </span>
-            </div>
-          </div>
-
-          <DataTable
-            columns={columns}
-            data={filteredReports}
-            searchable={false}
-            actions={renderActions}
-            onRowClick={(report) =>
-              (window.location.href = `/admin/forum/reports/${report.id}`)
-            }
-          />
-        </Card.Body>
-      </Card>
-    </div>
+    </AdminPageLayout>
   )
 }

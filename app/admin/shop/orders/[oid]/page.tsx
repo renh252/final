@@ -15,6 +15,10 @@ import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
 import Link from 'next/link'
+import AdminPageLayout, {
+  AdminSection,
+} from '@/app/admin/_components/AdminPageLayout'
+import Image from 'next/image'
 
 // 模擬訂單數據
 const MOCK_ORDER = {
@@ -249,15 +253,18 @@ export default function OrderDetailPage({
   }
 
   return (
-    <div className="order-detail-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="d-flex align-items-center">
-          <Link href="/admin/shop/orders" className="btn btn-link p-0 me-3">
-            <ArrowLeft size={24} />
+    <AdminPageLayout
+      title={`訂單詳情 #${order.order_number}`}
+      actions={
+        <div className="d-flex">
+          <Link href="/admin/shop/orders" passHref>
+            <Button
+              variant="outline-secondary"
+              className="me-2 d-flex align-items-center"
+            >
+              <ArrowLeft size={18} className="me-2" /> 返回訂單列表
+            </Button>
           </Link>
-          <h2 className="mb-0">訂單詳情</h2>
-        </div>
-        <div>
           <Button
             variant="outline-secondary"
             className="me-2 d-flex align-items-center"
@@ -272,8 +279,8 @@ export default function OrderDetailPage({
             <Send size={18} className="me-2" /> 發送通知
           </Button>
         </div>
-      </div>
-
+      }
+    >
       <Row className="mb-4">
         <Col md={8}>
           <Card className={`mb-4 ${isDarkMode ? 'bg-dark text-light' : ''}`}>
@@ -310,141 +317,160 @@ export default function OrderDetailPage({
                   </p>
                 </Col>
                 <Col md={6} className="mb-3">
-                  {isEditing ? (
-                    <Form>
-                      <Form.Group className="mb-3">
-                        <Form.Label>訂單狀態</Form.Label>
-                        <Form.Select
-                          name="status"
-                          value={formData.status}
-                          onChange={handleChange}
-                        >
-                          {ORDER_STATUS_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </Form.Select>
-                      </Form.Group>
-                      <Form.Group className="mb-3">
-                        <Form.Label>付款狀態</Form.Label>
-                        <Form.Select
-                          name="payment_status"
-                          value={formData.payment_status}
-                          onChange={handleChange}
-                        >
-                          {PAYMENT_STATUS_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </Form.Select>
-                      </Form.Group>
-                      <Form.Group className="mb-3">
-                        <Form.Label>出貨狀態</Form.Label>
-                        <Form.Select
-                          name="shipping_status"
-                          value={formData.shipping_status}
-                          onChange={handleChange}
-                        >
-                          {SHIPPING_STATUS_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </Form.Select>
-                      </Form.Group>
-                    </Form>
-                  ) : (
-                    <>
-                      <p>
-                        <strong>訂單狀態：</strong>{' '}
-                        {getStatusBadge(order.status, ORDER_STATUS_OPTIONS)}
-                      </p>
-                      <p>
-                        <strong>付款狀態：</strong>{' '}
-                        {getStatusBadge(
-                          order.payment_status,
-                          PAYMENT_STATUS_OPTIONS
-                        )}
-                      </p>
-                      <p>
-                        <strong>出貨狀態：</strong>{' '}
-                        {getStatusBadge(
-                          order.shipping_status,
-                          SHIPPING_STATUS_OPTIONS
-                        )}
-                      </p>
-                    </>
-                  )}
+                  <div className="mb-2">
+                    <strong>訂單狀態：</strong>{' '}
+                    {isEditing ? (
+                      <Form.Select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleChange}
+                        size="sm"
+                        className="mt-1"
+                      >
+                        {ORDER_STATUS_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    ) : (
+                      <Badge
+                        bg={
+                          ORDER_STATUS_OPTIONS.find(
+                            (o) => o.value === order.status
+                          )?.badge
+                        }
+                      >
+                        {
+                          ORDER_STATUS_OPTIONS.find(
+                            (o) => o.value === order.status
+                          )?.label
+                        }
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="mb-2">
+                    <strong>付款狀態：</strong>{' '}
+                    {isEditing ? (
+                      <Form.Select
+                        name="payment_status"
+                        value={formData.payment_status}
+                        onChange={handleChange}
+                        size="sm"
+                        className="mt-1"
+                      >
+                        {PAYMENT_STATUS_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    ) : (
+                      <Badge
+                        bg={
+                          PAYMENT_STATUS_OPTIONS.find(
+                            (o) => o.value === order.payment_status
+                          )?.badge
+                        }
+                      >
+                        {
+                          PAYMENT_STATUS_OPTIONS.find(
+                            (o) => o.value === order.payment_status
+                          )?.label
+                        }
+                      </Badge>
+                    )}
+                  </div>
+                  <div>
+                    <strong>出貨狀態：</strong>{' '}
+                    {isEditing ? (
+                      <Form.Select
+                        name="shipping_status"
+                        value={formData.shipping_status}
+                        onChange={handleChange}
+                        size="sm"
+                        className="mt-1"
+                      >
+                        {SHIPPING_STATUS_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    ) : (
+                      <Badge
+                        bg={
+                          SHIPPING_STATUS_OPTIONS.find(
+                            (o) => o.value === order.shipping_status
+                          )?.badge
+                        }
+                      >
+                        {
+                          SHIPPING_STATUS_OPTIONS.find(
+                            (o) => o.value === order.shipping_status
+                          )?.label
+                        }
+                      </Badge>
+                    )}
+                  </div>
                 </Col>
               </Row>
-            </Card.Body>
-            <Card.Footer>
-              <div className="d-flex gap-2">
-                {order.status !== 'cancelled' &&
-                  order.status !== 'refunded' && (
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={handleCancelOrder}
-                      className="d-flex align-items-center"
-                    >
-                      <XCircle size={16} className="me-1" /> 取消訂單
-                    </Button>
-                  )}
-                {(order.status === 'processing' ||
-                  order.status === 'pending') && (
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    onClick={handleMarkAsShipped}
-                    className="d-flex align-items-center"
-                  >
-                    <Truck size={16} className="me-1" /> 標記為已出貨
-                  </Button>
-                )}
-                {order.status === 'shipped' && (
-                  <Button
-                    variant="outline-success"
-                    size="sm"
-                    onClick={handleMarkAsDelivered}
-                    className="d-flex align-items-center"
-                  >
-                    <CheckCircle size={16} className="me-1" /> 標記為已送達
-                  </Button>
-                )}
-              </div>
-            </Card.Footer>
-          </Card>
 
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Header>
-              <h5 className="mb-0">訂單項目</h5>
-            </Card.Header>
-            <Card.Body>
-              <Table responsive>
+              <h5 className="mt-4 mb-3">訂單項目</h5>
+              <Table
+                striped
+                bordered
+                hover
+                responsive
+                className={isDarkMode ? 'table-dark' : ''}
+              >
                 <thead>
                   <tr>
+                    <th style={{ width: '50px' }}>#</th>
                     <th>商品</th>
-                    <th>規格</th>
                     <th>單價</th>
                     <th>數量</th>
                     <th className="text-end">小計</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {order.items.map((item) => (
+                  {order.items.map((item, index) => (
                     <tr key={item.id}>
+                      <td>{index + 1}</td>
                       <td>
-                        <Link href={`/admin/shop/products/${item.product_id}`}>
-                          {item.product_name}
-                        </Link>
+                        <div className="d-flex align-items-center">
+                          <div
+                            style={{
+                              width: '40px',
+                              height: '40px',
+                              marginRight: '10px',
+                            }}
+                          >
+                            <Image
+                              src={
+                                item.image || 'https://via.placeholder.com/40'
+                              }
+                              alt={item.product_name}
+                              width={40}
+                              height={40}
+                              className="img-thumbnail"
+                            />
+                          </div>
+                          <div>
+                            <div>{item.product_name}</div>
+                            {item.variant && (
+                              <small className="text-muted">
+                                規格: {item.variant}
+                              </small>
+                            )}
+                          </div>
+                        </div>
                       </td>
-                      <td>{item.variant}</td>
-                      <td>${item.price}</td>
+                      <td>NT${item.price}</td>
                       <td>{item.quantity}</td>
-                      <td className="text-end">${item.subtotal}</td>
+                      <td className="text-end">
+                        NT${item.price * item.quantity}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -453,22 +479,20 @@ export default function OrderDetailPage({
                     <td colSpan={4} className="text-end">
                       <strong>小計</strong>
                     </td>
-                    <td className="text-end">
-                      ${order.total - order.shipping_fee + order.discount}
-                    </td>
+                    <td className="text-end">NT${order.subtotal}</td>
                   </tr>
                   <tr>
                     <td colSpan={4} className="text-end">
                       <strong>運費</strong>
                     </td>
-                    <td className="text-end">${order.shipping_fee}</td>
+                    <td className="text-end">NT${order.shipping_fee}</td>
                   </tr>
                   {order.discount > 0 && (
                     <tr>
                       <td colSpan={4} className="text-end">
                         <strong>折扣</strong>
                       </td>
-                      <td className="text-end">-${order.discount}</td>
+                      <td className="text-end">-NT${order.discount}</td>
                     </tr>
                   )}
                   <tr>
@@ -476,11 +500,37 @@ export default function OrderDetailPage({
                       <strong>總計</strong>
                     </td>
                     <td className="text-end">
-                      <strong>${order.total}</strong>
+                      <strong>NT${order.total}</strong>
                     </td>
                   </tr>
                 </tfoot>
               </Table>
+
+              <div className="mt-4 d-flex justify-content-end">
+                <Button
+                  variant="danger"
+                  className="me-2 d-flex align-items-center"
+                  onClick={handleCancelOrder}
+                >
+                  <XCircle size={18} className="me-2" /> 取消訂單
+                </Button>
+                <Button
+                  variant="success"
+                  className="d-flex align-items-center"
+                  onClick={handleCompleteOrder}
+                >
+                  <CheckCircle size={18} className="me-2" /> 完成訂單
+                </Button>
+              </div>
+            </Card.Body>
+          </Card>
+
+          <Card className={`mb-4 ${isDarkMode ? 'bg-dark text-light' : ''}`}>
+            <Card.Header>
+              <h5 className="mb-0">訂單備註</h5>
+            </Card.Header>
+            <Card.Body>
+              <p>{order.notes || '無備註'}</p>
             </Card.Body>
           </Card>
         </Col>
@@ -552,6 +602,6 @@ export default function OrderDetailPage({
           </Card>
         </Col>
       </Row>
-    </div>
+    </AdminPageLayout>
   )
 }

@@ -138,14 +138,15 @@ export default function AdminLayout({
                       />
                     )}
 
-                    {/* 主要內容 */}
-                    <div className="content-area flex-grow-1">
-                      {wrappedContent}
-                    </div>
+                    {/* 內容包裝器 - 確保適當的滾動行為 */}
+                    <div className="content-wrapper">
+                      {/* 主要內容 */}
+                      <div className="content-area">{wrappedContent}</div>
 
-                    {/* 頁腳 - 移到內容區域內，讓它跟隨內容 */}
-                    <div className="admin-footer-wrapper">
-                      <Footer />
+                      {/* 頁腳 - 總是顯示在內容後面 */}
+                      <div className="admin-footer-wrapper">
+                        <Footer />
+                      </div>
                     </div>
                   </div>
                 </div>

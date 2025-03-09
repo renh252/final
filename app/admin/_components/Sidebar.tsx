@@ -148,14 +148,15 @@ export default function Sidebar({ collapsed = false }) {
 
   // 檢查路徑是否活動
   const isActive = (path: string) => {
+    // 首頁路由特殊處理
+    if (path === '/admin') {
+      // 精確匹配 /admin 路徑或者是 /admin/ 路徑
+      return pathname === '/admin' || pathname === '/admin/'
+    }
+
     // 精確匹配優先
     if (pathname === path) {
       return true
-    }
-
-    // 儀表板只在精確匹配時高亮
-    if (path === '/admin' && pathname !== '/admin') {
-      return false
     }
 
     // 對於子頁面，只有當前路徑是直接子頁面時才高亮
@@ -191,41 +192,50 @@ export default function Sidebar({ collapsed = false }) {
                     <button
                       className={`sidebar-nav-link w-100 text-start border-0 ${
                         isActive(item.path) ? 'active' : ''
-                      }`}
+                      } ${item.label === '金流管理' ? 'finance-btn' : ''}`}
                       onClick={() => toggleSubmenu(item.label)}
+                      title={item.label}
+                      data-menu-item={item.label}
                     >
-                      <span className={collapsed ? 'mx-auto' : 'me-3'}>
+                      <div className="icon-container sidebar-icon">
                         {item.icon}
+                      </div>
+                      <span
+                        className={`flex-grow-1 ${collapsed ? 'd-none' : ''}`}
+                      >
+                        {item.label}
                       </span>
                       {!collapsed && (
-                        <>
-                          <span className="flex-grow-1">{item.label}</span>
-                          <span
-                            className={`sidebar-chevron ${
-                              expandedMenus[item.label] ? 'expanded' : ''
-                            }`}
-                          >
-                            {expandedMenus[item.label] ? (
-                              <ChevronDown
-                                size={16}
-                                color={
-                                  isActive(item.path) ? 'white' : getIconColor()
-                                }
-                              />
-                            ) : (
-                              <ChevronRight
-                                size={16}
-                                color={
-                                  isActive(item.path) ? 'white' : getIconColor()
-                                }
-                              />
-                            )}
-                          </span>
-                        </>
+                        <span
+                          className={`sidebar-chevron ${
+                            expandedMenus[item.label] ? 'expanded' : ''
+                          }`}
+                        >
+                          {expandedMenus[item.label] ? (
+                            <ChevronDown
+                              size={16}
+                              color={
+                                isActive(item.path) ? 'white' : getIconColor()
+                              }
+                            />
+                          ) : (
+                            <ChevronRight
+                              size={16}
+                              color={
+                                isActive(item.path) ? 'white' : getIconColor()
+                              }
+                            />
+                          )}
+                        </span>
                       )}
                     </button>
-                    {!collapsed && expandedMenus[item.label] && (
-                      <ul className="nav flex-column list-unstyled ps-4 mt-1 sidebar-submenu">
+                    {!collapsed && (
+                      <ul
+                        className={`nav flex-column list-unstyled ps-2 mt-1 sidebar-submenu ${
+                          expandedMenus[item.label] ? 'expanded' : ''
+                        }`}
+                        data-parent={item.label}
+                      >
                         {item.subItems
                           .filter((subItem) => {
                             if (!subItem.requiredPrivilege) return true
@@ -254,10 +264,12 @@ export default function Sidebar({ collapsed = false }) {
                     }`}
                     title={collapsed ? item.label : ''}
                   >
-                    <span className={collapsed ? 'mx-auto' : 'me-3'}>
+                    <div className="icon-container sidebar-icon">
                       {item.icon}
+                    </div>
+                    <span className={collapsed ? 'd-none' : ''}>
+                      {item.label}
                     </span>
-                    {!collapsed && <span>{item.label}</span>}
                   </Link>
                 )}
               </li>

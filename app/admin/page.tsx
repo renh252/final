@@ -9,29 +9,47 @@ import {
   PawPrint,
   MessageSquare,
   TrendingUp,
+  X,
 } from 'lucide-react'
 import { useAdmin } from './AdminContext'
 import { useRouter } from 'next/navigation'
 import { LineChart, PieChart } from './_components/Charts'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from './_components/AdminPageLayout'
 
 export default function AdminPage() {
   const { admin, checkAuth, isLoading } = useAdmin()
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(true)
 
   // 驗證管理員是否已登入
   useEffect(() => {
     const verifyAuth = async () => {
-      const isAuthenticated = await checkAuth()
+      if (!admin) {
+        const isAuthenticated = await checkAuth()
 
-      if (!isAuthenticated) {
-        router.push('/admin/login')
+        if (!isAuthenticated) {
+          router.push('/admin/login')
+        }
       }
     }
 
     verifyAuth()
     setIsClient(true)
-  }, [checkAuth, router])
+
+    // 檢查 localStorage 中是否已關閉歡迎信息
+    const welcomeClosed = localStorage.getItem('welcomeClosed') === 'true'
+    setShowWelcome(!welcomeClosed)
+  }, [checkAuth, router, admin])
+
+  // 處理關閉歡迎信息
+  const handleCloseWelcome = () => {
+    setShowWelcome(false)
+    localStorage.setItem('welcomeClosed', 'true')
+  }
 
   // 如果還在載入或不在客戶端，顯示載入中
   if (isLoading || !isClient) {
@@ -90,63 +108,59 @@ export default function AdminPage() {
     },
   ]
 
-  return (
-    <div className="admin-home p-4">
-      <h2 className="mb-4">管理後台</h2>
-
-      {admin && (
-        <div className="alert alert-info mb-4">
-          <p className="mb-0">
-            歡迎，{admin.account}！您的權限：{admin.privileges}
-          </p>
+  // 格式化統計數據以符合 AdminPageLayout 的需求
+  const dashboardStats = stats.map((stat) => ({
+    title: stat.title,
+    count: (
+      <div className="dashboard-stat-wrapper">
+        <div className="dashboard-stat-value">{stat.count}</div>
+        <div
+          className={`dashboard-stat-badge ${
+            stat.increase.startsWith('+') ? 'text-bg-success' : 'text-bg-danger'
+          }`}
+        >
+          {stat.increase}
         </div>
-      )}
+      </div>
+    ),
+    color: stat.color,
+    icon: stat.icon,
+  }))
 
-      <Row className="g-4 mb-4">
-        {stats.map((stat, index) => (
-          <Col key={index} md={6} lg={4}>
-            <Card className="h-100 dashboard-card">
-              <Card.Body>
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 className="text-muted mb-1">{stat.title}</h5>
-                    <h3 className="mb-0">{stat.count}</h3>
-                    <span
-                      className={`badge text-bg-${
-                        stat.increase.startsWith('+') ? 'success' : 'danger'
-                      } mt-2`}
-                    >
-                      {stat.increase}
-                    </span>
-                  </div>
-                  <div className={`dashboard-icon bg-${stat.color}`}>
-                    {stat.icon}
-                  </div>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+  return (
+    <AdminPageLayout title="管理後台" stats={dashboardStats}>
+      <div className="admin-page-wrapper">
+        {showWelcome && admin && (
+          <div className="alert alert-info mb-4">
+            <p className="mb-0">
+              歡迎，{admin.account}！您的權限：{admin.privileges}
+            </p>
+            <button
+              type="button"
+              className="btn-close"
+              aria-label="關閉"
+              onClick={handleCloseWelcome}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
 
-      <Row className="g-4">
-        <Col md={8}>
-          <Card className="h-100">
-            <Card.Header>本週訪問統計</Card.Header>
-            <Card.Body>
-              <LineChart />
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="h-100">
-            <Card.Header>訪問來源</Card.Header>
-            <Card.Body>
-              <PieChart />
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </div>
+        <AdminSection title="數據分析">
+          <Row className="g-4">
+            <Col md={8}>
+              <AdminCard title="本週訪問統計">
+                <LineChart />
+              </AdminCard>
+            </Col>
+            <Col md={4}>
+              <AdminCard title="訪問來源">
+                <PieChart />
+              </AdminCard>
+            </Col>
+          </Row>
+        </AdminSection>
+      </div>
+    </AdminPageLayout>
   )
 }

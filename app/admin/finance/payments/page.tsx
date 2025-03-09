@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   Card,
   Row,
@@ -24,6 +24,9 @@ import {
 import { useTheme } from '@/app/admin/ThemeContext'
 import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
+import AdminPageLayout, {
+  AdminSection,
+} from '@/app/admin/_components/AdminPageLayout'
 
 // 模擬支付方式數據
 const MOCK_PAYMENT_METHODS = [
@@ -128,6 +131,8 @@ export default function PaymentsPage() {
   )
   const [showModal, setShowModal] = useState(false)
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [formData, setFormData] = useState<PaymentMethod>({
     id: 0,
     name: '',
@@ -152,6 +157,23 @@ export default function PaymentsPage() {
   const { isDarkMode } = useTheme()
   const { showToast } = useToast()
   const { confirm } = useConfirm()
+
+  // 使用過濾條件過濾支付方式
+  const filteredPaymentMethods = useMemo(() => {
+    return paymentMethods.filter((method) => {
+      // 根據搜索詞過濾
+      const matchesSearch =
+        searchTerm === '' ||
+        method.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        method.provider.toLowerCase().includes(searchTerm.toLowerCase())
+
+      // 根據狀態過濾
+      const matchesStatus =
+        statusFilter === 'all' || method.status === statusFilter
+
+      return matchesSearch && matchesStatus
+    })
+  }, [paymentMethods, searchTerm, statusFilter])
 
   const handleShowModal = (method?: PaymentMethod) => {
     if (method) {
@@ -302,6 +324,12 @@ export default function PaymentsPage() {
     }, 500)
   }
 
+  // 重置過濾條件
+  const handleResetFilters = () => {
+    setSearchTerm('')
+    setStatusFilter('all')
+  }
+
   const getPaymentTypeIcon = (type: string) => {
     switch (type) {
       case 'credit_card':
@@ -428,19 +456,58 @@ export default function PaymentsPage() {
   }
 
   return (
-    <div className="payments-page p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>支付管理</h2>
+    <AdminPageLayout
+      title="支付管理"
+      actions={
         <Button variant="primary" onClick={() => handleShowModal()}>
           <Plus size={18} className="me-2" />
           新增支付方式
         </Button>
-      </div>
-
-      <Row>
-        <Col md={12}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+      }
+    >
+      <div className="admin-layout-container">
+        <AdminSection>
+          <Card
+            className={`admin-card ${isDarkMode ? 'bg-dark text-light' : ''}`}
+          >
             <Card.Body>
+              <div className="mb-4 d-flex justify-content-between align-items-center">
+                <Form className="d-flex align-items-center gap-2">
+                  <Form.Control
+                    type="text"
+                    placeholder="搜尋支付方式..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ width: '200px' }}
+                  />
+                  <Form.Select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{ width: '150px' }}
+                  >
+                    <option value="all">所有狀態</option>
+                    <option value="active">啟用</option>
+                    <option value="inactive">停用</option>
+                  </Form.Select>
+                  {(searchTerm || statusFilter !== 'all') && (
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      onClick={handleResetFilters}
+                    >
+                      <X size={14} className="me-1" />
+                      清除
+                    </Button>
+                  )}
+                </Form>
+
+                <div className="d-none d-md-block">
+                  <div className="text-muted">
+                    共 {filteredPaymentMethods.length} 種支付方式
+                  </div>
+                </div>
+              </div>
+
               <Table responsive className={isDarkMode ? 'table-dark' : ''}>
                 <thead>
                   <tr>
@@ -453,7 +520,7 @@ export default function PaymentsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paymentMethods.map((method) => (
+                  {filteredPaymentMethods.map((method) => (
                     <tr key={method.id}>
                       <td>
                         <div className="d-flex align-items-center">
@@ -508,8 +575,8 @@ export default function PaymentsPage() {
               </Table>
             </Card.Body>
           </Card>
-        </Col>
-      </Row>
+        </AdminSection>
+      </div>
 
       <Modal
         show={showModal}
@@ -654,6 +721,6 @@ export default function PaymentsPage() {
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </AdminPageLayout>
   )
 }

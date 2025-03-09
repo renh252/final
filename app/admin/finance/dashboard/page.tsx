@@ -1,10 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, Row, Col, Table, Form } from 'react-bootstrap'
+import { useState } from 'react'
+import { Row, Col, Table, Form } from 'react-bootstrap'
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -18,6 +16,16 @@ import {
   Cell,
 } from 'recharts'
 import { useTheme } from '@/app/admin/ThemeContext'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '@/app/admin/_components/AdminPageLayout'
+import {
+  DollarSign,
+  TrendingDown,
+  Heart,
+  PieChart as PieChartIcon,
+} from 'lucide-react'
 
 // 模擬數據
 const MOCK_MONTHLY_REVENUE = [
@@ -78,10 +86,67 @@ export default function FinanceDashboardPage() {
     }).format(value)
   }
 
+  // 統計卡片資料
+  const financeStats = [
+    {
+      title: '總收入',
+      count: (
+        <div className="dashboard-stat-wrapper">
+          <div className="dashboard-stat-value">{formatCurrency(1200000)}</div>
+          <div className="dashboard-stat-badge text-bg-success">
+            ↑ 12.5% 較上月
+          </div>
+        </div>
+      ),
+      color: 'primary',
+      icon: <DollarSign size={24} />,
+    },
+    {
+      title: '總支出',
+      count: (
+        <div className="dashboard-stat-wrapper">
+          <div className="dashboard-stat-value">{formatCurrency(668000)}</div>
+          <div className="dashboard-stat-badge text-bg-danger">
+            ↑ 8.2% 較上月
+          </div>
+        </div>
+      ),
+      color: 'danger',
+      icon: <TrendingDown size={24} />,
+    },
+    {
+      title: '捐款收入',
+      count: (
+        <div className="dashboard-stat-wrapper">
+          <div className="dashboard-stat-value">{formatCurrency(320000)}</div>
+          <div className="dashboard-stat-badge text-bg-success">
+            ↑ 15.3% 較上月
+          </div>
+        </div>
+      ),
+      color: 'success',
+      icon: <Heart size={24} />,
+    },
+    {
+      title: '淨收入',
+      count: (
+        <div className="dashboard-stat-wrapper">
+          <div className="dashboard-stat-value">{formatCurrency(532000)}</div>
+          <div className="dashboard-stat-badge text-bg-success">
+            ↑ 18.7% 較上月
+          </div>
+        </div>
+      ),
+      color: 'warning',
+      icon: <PieChartIcon size={24} />,
+    },
+  ]
+
   return (
-    <div className="finance-dashboard">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>財務儀表板</h2>
+    <AdminPageLayout
+      title="財務儀表板"
+      stats={financeStats}
+      actions={
         <Form.Select
           style={{ width: 'auto' }}
           value={timeRange}
@@ -92,197 +157,147 @@ export default function FinanceDashboardPage() {
           <option value="quarter">本季</option>
           <option value="year">本年</option>
         </Form.Select>
-      </div>
+      }
+    >
+      <div className="admin-layout-container">
+        <AdminSection title="收支趨勢分析">
+          <Row className="mb-4">
+            <Col md={8}>
+              <AdminCard title="收入支出趨勢">
+                <div style={{ height: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={MOCK_MONTHLY_REVENUE}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="revenue"
+                        name="收入"
+                        stroke="#0088FE"
+                        strokeWidth={2}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="expenses"
+                        name="支出"
+                        stroke="#FF8042"
+                        strokeWidth={2}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="donations"
+                        name="捐款"
+                        stroke="#00C49F"
+                        strokeWidth={2}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </AdminCard>
+            </Col>
+            <Col md={4}>
+              <AdminCard title="收入來源分布">
+                <div style={{ height: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={MOCK_REVENUE_SOURCES}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({
+                          cx,
+                          cy,
+                          midAngle,
+                          innerRadius,
+                          outerRadius,
+                          percent,
+                          name,
+                        }) => {
+                          const radius =
+                            innerRadius + (outerRadius - innerRadius) * 0.5
+                          const x =
+                            cx + radius * Math.cos(-midAngle * (Math.PI / 180))
+                          const y =
+                            cy + radius * Math.sin(-midAngle * (Math.PI / 180))
+                          return (
+                            <text
+                              x={x}
+                              y={y}
+                              fill={isDarkMode ? 'white' : 'black'}
+                              textAnchor={x > cx ? 'start' : 'end'}
+                              dominantBaseline="central"
+                            >
+                              {`${name} ${(percent * 100).toFixed(0)}%`}
+                            </text>
+                          )
+                        }}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {MOCK_REVENUE_SOURCES.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </AdminCard>
+            </Col>
+          </Row>
+        </AdminSection>
 
-      <Row className="mb-4">
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <h6 className="text-muted mb-1">總收入</h6>
-              <h3 className="mb-2">{formatCurrency(1200000)}</h3>
-              <p className="mb-0 text-success">
-                <small>↑ 12.5% 較上月</small>
-              </p>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <h6 className="text-muted mb-1">總支出</h6>
-              <h3 className="mb-2">{formatCurrency(668000)}</h3>
-              <p className="mb-0 text-danger">
-                <small>↑ 8.2% 較上月</small>
-              </p>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <h6 className="text-muted mb-1">捐款收入</h6>
-              <h3 className="mb-2">{formatCurrency(320000)}</h3>
-              <p className="mb-0 text-success">
-                <small>↑ 15.3% 較上月</small>
-              </p>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <h6 className="text-muted mb-1">淨收入</h6>
-              <h3 className="mb-2">{formatCurrency(532000)}</h3>
-              <p className="mb-0 text-success">
-                <small>↑ 18.7% 較上月</small>
-              </p>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      <Row className="mb-4">
-        <Col md={8}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <h5 className="mb-4">收入支出趨勢</h5>
-              <div style={{ height: '300px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={MOCK_MONTHLY_REVENUE}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="revenue"
-                      name="收入"
-                      stroke="#0088FE"
-                      strokeWidth={2}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="expenses"
-                      name="支出"
-                      stroke="#FF8042"
-                      strokeWidth={2}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="donations"
-                      name="捐款"
-                      stroke="#00C49F"
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <h5 className="mb-4">收入來源分布</h5>
-              <div style={{ height: '300px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={MOCK_REVENUE_SOURCES}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({
-                        cx,
-                        cy,
-                        midAngle,
-                        innerRadius,
-                        outerRadius,
-                        percent,
-                        name,
-                      }) => {
-                        const radius =
-                          innerRadius + (outerRadius - innerRadius) * 0.5
-                        const x =
-                          cx + radius * Math.cos(-midAngle * (Math.PI / 180))
-                        const y =
-                          cy + radius * Math.sin(-midAngle * (Math.PI / 180))
-                        return (
-                          <text
-                            x={x}
-                            y={y}
-                            fill="white"
-                            textAnchor={x > cx ? 'start' : 'end'}
-                            dominantBaseline="central"
-                          >
-                            {`${name} ${(percent * 100).toFixed(0)}%`}
-                          </text>
-                        )
-                      }}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {MOCK_REVENUE_SOURCES.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      <Row>
-        <Col md={12}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <h5 className="mb-4">最近交易記錄</h5>
-              <Table responsive className={isDarkMode ? 'table-dark' : ''}>
-                <thead>
-                  <tr>
-                    <th>日期</th>
-                    <th>類型</th>
-                    <th>描述</th>
-                    <th>金額</th>
-                    <th>狀態</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {MOCK_RECENT_TRANSACTIONS.map((transaction) => (
-                    <tr key={transaction.id}>
-                      <td>{transaction.date}</td>
-                      <td>{transaction.type}</td>
-                      <td>{transaction.description}</td>
-                      <td>{formatCurrency(transaction.amount)}</td>
-                      <td>
-                        <span
-                          className={`badge bg-${
-                            transaction.status === 'completed'
-                              ? 'success'
-                              : 'warning'
-                          }`}
-                        >
-                          {transaction.status === 'completed'
-                            ? '已完成'
-                            : '處理中'}
-                        </span>
-                      </td>
+        <AdminSection title="最近交易">
+          <Row>
+            <Col md={12}>
+              <AdminCard>
+                <Table responsive className={isDarkMode ? 'table-dark' : ''}>
+                  <thead>
+                    <tr>
+                      <th>日期</th>
+                      <th>類型</th>
+                      <th>描述</th>
+                      <th>金額</th>
+                      <th>狀態</th>
                     </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </div>
+                  </thead>
+                  <tbody>
+                    {MOCK_RECENT_TRANSACTIONS.map((transaction) => (
+                      <tr key={transaction.id}>
+                        <td>{transaction.date}</td>
+                        <td>{transaction.type}</td>
+                        <td>{transaction.description}</td>
+                        <td>{formatCurrency(transaction.amount)}</td>
+                        <td>
+                          <span
+                            className={`badge bg-${
+                              transaction.status === 'completed'
+                                ? 'success'
+                                : 'warning'
+                            }`}
+                          >
+                            {transaction.status === 'completed'
+                              ? '已完成'
+                              : '處理中'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </AdminCard>
+            </Col>
+          </Row>
+        </AdminSection>
+      </div>
+    </AdminPageLayout>
   )
 }
