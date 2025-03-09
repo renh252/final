@@ -1,8 +1,7 @@
 
 'use client'
 
-import Image from 'next/image'
-import React, {  useRef, useState, useMemo  } from 'react'
+import React, {  useRef, useState} from 'react'
 import IconLine from './_components/icon_line'
 import Link from 'next/link'
 // style
@@ -22,8 +21,8 @@ import FirstPageNav from './_components/firstPageNav'
 
 // 連接資料庫
 import useSWR from 'swr'
+const fetcher = (url) => fetch(url).then((res) => res.json())
 
-import dynamic from 'next/dynamic'
 
 
 
@@ -35,14 +34,18 @@ import dynamic from 'next/dynamic'
 
 
 export default function PetsPage() {
-  
-    const promotionRef = useRef(null)
-    //  subTitleRefs ()=>{}
-    const subTitleRef = useRef(null)
 
- 
-    
-  // 滾動功能
+  // 使用 SWR 獲取資料 - 使用整合的 API 路由
+  const { data: petsData, error: petsError } = useSWR(
+    '/api/shop-data?type=products',
+    fetcher
+  )
+
+
+  // 卡片滑動-------------------------------
+  const promotionRef = useRef(null)
+  const categoryRefs = useRef({})
+
   const scroll = (direction, ref) => {
     const container = ref.current
     const cardWidth = 280 // 卡片寬度
@@ -57,6 +60,7 @@ export default function PetsPage() {
       behavior: 'smooth',
     })
   }
+
 
 
 
@@ -160,10 +164,10 @@ export default function PetsPage() {
                   <div className={styles.groupBody}>
                     <CardSwitchButton
                       direction="left"
-                      onClick={() => scroll(-1, subTitleRef)}
+                      onClick={() => scroll(-1, categoryRefs.current[category.id])}
                       aria-label="向左滑動"
                     />
-                    <div className={styles.cardGroup} ref={subTitleRef}>
+                    <div className={styles.cardGroup} ref={(el) => (categoryRefs.current[category.id] = { current: el })}>
                       {products.filter((product) => product.category_id == category.id).map((product) => {
                         return(
                             <>
@@ -192,7 +196,7 @@ export default function PetsPage() {
                     
                     <CardSwitchButton
                       direction="right"
-                      onClick={() => scroll(1, subTitleRef)}
+                      onClick={() => scroll(1, categoryRefs.current[category.id])}
                       aria-label="向左滑動"
                     />
                   </div>
