@@ -25,6 +25,10 @@ import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
 import Link from 'next/link'
 import DataTable from '@/app/admin/_components/DataTable'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '@/app/admin/_components/AdminPageLayout'
 
 // 模擬文章數據
 const MOCK_ARTICLES = [
@@ -384,99 +388,115 @@ export default function ArticlesPage() {
   )
 
   return (
-    <div className="articles-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">文章管理</h2>
+    <AdminPageLayout
+      title="文章管理"
+      actions={
         <Link
           href="/admin/forum/articles/new"
           className="btn btn-primary d-flex align-items-center"
         >
           <Plus size={18} className="me-2" /> 新增文章
         </Link>
+      }
+    >
+      <div className="admin-layout-container">
+        <AdminSection>
+          <Card
+            className={`admin-card mb-4 ${
+              isDarkMode ? 'bg-dark text-light' : ''
+            }`}
+          >
+            <Card.Body>
+              <Row>
+                <Col md={4} className="mb-3">
+                  <InputGroup>
+                    <Form.Control
+                      placeholder="搜尋文章標題或作者"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <Button variant="primary" onClick={handleSearch}>
+                      <Search size={18} />
+                    </Button>
+                  </InputGroup>
+                </Col>
+                <Col md={3} className="mb-3">
+                  <Form.Select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                  >
+                    {CATEGORY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Col>
+                <Col md={3} className="mb-3">
+                  <Form.Select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    {STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Col>
+                <Col md={2} className="mb-3 d-flex">
+                  <Button
+                    variant="primary"
+                    className="me-2 flex-grow-1"
+                    onClick={handleSearch}
+                  >
+                    <Filter size={18} className="me-1" /> 篩選
+                  </Button>
+                  <Button
+                    variant="outline-secondary"
+                    onClick={handleResetFilters}
+                  >
+                    重置
+                  </Button>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
+        </AdminSection>
+
+        <AdminSection>
+          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+            <Card.Body>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h5 className="mb-0">文章列表</h5>
+                <div>
+                  <span className="me-3">
+                    共 {filteredArticles.length} 篇文章
+                  </span>
+                  <span className="me-3">
+                    待審核:{' '}
+                    {articles.filter((a) => a.status === 'pending').length}
+                  </span>
+                  <span>
+                    已發布:{' '}
+                    {articles.filter((a) => a.status === 'published').length}
+                  </span>
+                </div>
+              </div>
+
+              <DataTable
+                columns={columns}
+                data={filteredArticles}
+                searchable={false}
+                actions={renderActions}
+                onRowClick={(article) =>
+                  (window.location.href = `/admin/forum/articles/${article.id}`)
+                }
+              />
+            </Card.Body>
+          </Card>
+        </AdminSection>
       </div>
-
-      <Card className={`mb-4 ${isDarkMode ? 'bg-dark text-light' : ''}`}>
-        <Card.Body>
-          <Row>
-            <Col md={4} className="mb-3">
-              <InputGroup>
-                <Form.Control
-                  placeholder="搜尋文章標題或作者"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Button variant="primary" onClick={handleSearch}>
-                  <Search size={18} />
-                </Button>
-              </InputGroup>
-            </Col>
-            <Col md={3} className="mb-3">
-              <Form.Select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-              >
-                {CATEGORY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={3} className="mb-3">
-              <Form.Select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={2} className="mb-3 d-flex">
-              <Button
-                variant="primary"
-                className="me-2 flex-grow-1"
-                onClick={handleSearch}
-              >
-                <Filter size={18} className="me-1" /> 篩選
-              </Button>
-              <Button variant="outline-secondary" onClick={handleResetFilters}>
-                重置
-              </Button>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
-
-      <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-        <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="mb-0">文章列表</h5>
-            <div>
-              <span className="me-3">共 {filteredArticles.length} 篇文章</span>
-              <span className="me-3">
-                待審核: {articles.filter((a) => a.status === 'pending').length}
-              </span>
-              <span>
-                已發布:{' '}
-                {articles.filter((a) => a.status === 'published').length}
-              </span>
-            </div>
-          </div>
-
-          <DataTable
-            columns={columns}
-            data={filteredArticles}
-            searchable={false}
-            actions={renderActions}
-            onRowClick={(article) =>
-              (window.location.href = `/admin/forum/articles/${article.id}`)
-            }
-          />
-        </Card.Body>
-      </Card>
-    </div>
+    </AdminPageLayout>
   )
 }

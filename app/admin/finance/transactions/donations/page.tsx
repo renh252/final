@@ -24,6 +24,10 @@ import {
 } from 'lucide-react'
 import { useTheme } from '@/app/admin/ThemeContext'
 import Link from 'next/link'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '@/app/admin/_components/AdminPageLayout'
 
 // 模擬捐款數據
 const MOCK_DONATIONS = Array.from({ length: 50 }, (_, i) => ({
@@ -193,287 +197,287 @@ export default function DonationsPage() {
   }
 
   return (
-    <div className="donations-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>捐款記錄</h2>
+    <AdminPageLayout
+      title="捐款記錄"
+      actions={
         <Button variant="outline-primary" onClick={handleExport}>
           <Download size={18} className="me-2" />
           匯出記錄
         </Button>
-      </div>
-
-      <Row className="mb-4">
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <div className="d-flex align-items-center">
-                <div className="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                  <Heart size={24} className="text-primary" />
-                </div>
-                <div>
-                  <h6 className="text-muted mb-1">總捐款金額</h6>
-                  <h3 className="mb-0">
-                    {formatCurrency(statistics.totalAmount)}
-                  </h3>
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <div className="d-flex align-items-center">
-                <div className="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                  <Users size={24} className="text-success" />
-                </div>
-                <div>
-                  <h6 className="text-muted mb-1">捐款人數</h6>
-                  <h3 className="mb-0">{statistics.totalDonors}</h3>
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <div className="d-flex align-items-center">
-                <div className="rounded-circle bg-info bg-opacity-10 p-3 me-3">
-                  <Calendar size={24} className="text-info" />
-                </div>
-                <div>
-                  <h6 className="text-muted mb-1">定期捐款人數</h6>
-                  <h3 className="mb-0">{statistics.monthlyDonors}</h3>
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <div className="d-flex align-items-center">
-                <div className="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
-                  <TrendingUp size={24} className="text-warning" />
-                </div>
-                <div>
-                  <h6 className="text-muted mb-1">平均捐款金額</h6>
-                  <h3 className="mb-0">
-                    {formatCurrency(statistics.averageAmount)}
-                  </h3>
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      <Card className={`mb-4 ${isDarkMode ? 'bg-dark text-light' : ''}`}>
-        <Card.Body>
-          <Row className="g-3">
+      }
+    >
+      <div className="admin-layout-container">
+        <AdminSection>
+          <Row className="mb-4">
             <Col md={3}>
-              <Form.Group>
-                <Form.Control
-                  type="text"
-                  placeholder="搜尋捐款人..."
-                  name="search"
-                  value={filters.search}
-                  onChange={handleFilterChange}
-                />
-              </Form.Group>
-            </Col>
-            <Col md={2}>
-              <Form.Select
-                name="type"
-                value={filters.type}
-                onChange={handleFilterChange}
+              <Card
+                className={`admin-card h-100 ${
+                  isDarkMode ? 'bg-dark text-light' : ''
+                }`}
               >
-                {DONATION_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={2}>
-              <Form.Select
-                name="purpose"
-                value={filters.purpose}
-                onChange={handleFilterChange}
-              >
-                {DONATION_PURPOSES.map((purpose) => (
-                  <option key={purpose.value} value={purpose.value}>
-                    {purpose.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={2}>
-              <Form.Select
-                name="paymentMethod"
-                value={filters.paymentMethod}
-                onChange={handleFilterChange}
-              >
-                {PAYMENT_METHODS.map((method) => (
-                  <option key={method.value} value={method.value}>
-                    {method.label}
-                  </option>
-                ))}
-              </Form.Select>
+                <Card.Body>
+                  <div className="d-flex align-items-center">
+                    <div className="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                      <Heart size={24} className="text-primary" />
+                    </div>
+                    <div className="text-content">
+                      <h6 className="text-muted mb-1">總捐款金額</h6>
+                      <h3 className="mb-0">
+                        {formatCurrency(statistics.totalAmount)}
+                      </h3>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
             </Col>
             <Col md={3}>
-              <div className="d-flex gap-2">
-                <Form.Control
-                  type="date"
-                  name="dateFrom"
-                  value={filters.dateFrom}
-                  onChange={handleFilterChange}
-                />
-                <Form.Control
-                  type="date"
-                  name="dateTo"
-                  value={filters.dateTo}
-                  onChange={handleFilterChange}
-                />
-              </div>
+              <Card
+                className={`admin-card h-100 ${
+                  isDarkMode ? 'bg-dark text-light' : ''
+                }`}
+              >
+                <Card.Body>
+                  <div className="d-flex align-items-center">
+                    <div className="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                      <Users size={24} className="text-success" />
+                    </div>
+                    <div className="text-content">
+                      <h6 className="text-muted mb-1">捐款人數</h6>
+                      <h3 className="mb-0">{statistics.totalDonors}</h3>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={3}>
+              <Card
+                className={`admin-card h-100 ${
+                  isDarkMode ? 'bg-dark text-light' : ''
+                }`}
+              >
+                <Card.Body>
+                  <div className="d-flex align-items-center">
+                    <div className="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                      <Calendar size={24} className="text-info" />
+                    </div>
+                    <div className="text-content">
+                      <h6 className="text-muted mb-1">定期捐款人數</h6>
+                      <h3 className="mb-0">{statistics.monthlyDonors}</h3>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={3}>
+              <Card
+                className={`admin-card h-100 ${
+                  isDarkMode ? 'bg-dark text-light' : ''
+                }`}
+              >
+                <Card.Body>
+                  <div className="d-flex align-items-center">
+                    <div className="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                      <TrendingUp size={24} className="text-warning" />
+                    </div>
+                    <div className="text-content">
+                      <h6 className="text-muted mb-1">平均捐款金額</h6>
+                      <h3 className="mb-0">
+                        {formatCurrency(statistics.averageAmount)}
+                      </h3>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
             </Col>
           </Row>
-        </Card.Body>
-      </Card>
+        </AdminSection>
 
-      <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-        <Card.Body>
-          <Table responsive className={isDarkMode ? 'table-dark' : ''}>
-            <thead>
-              <tr>
-                <th
-                  className="cursor-pointer"
-                  onClick={() => handleSort('date')}
-                >
-                  日期
-                  {sortConfig.key === 'date' && (
-                    <span className="ms-1">
-                      {sortConfig.direction === 'asc' ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </span>
-                  )}
-                </th>
-                <th
-                  className="cursor-pointer"
-                  onClick={() => handleSort('donor_name')}
-                >
-                  捐款人
-                  {sortConfig.key === 'donor_name' && (
-                    <span className="ms-1">
-                      {sortConfig.direction === 'asc' ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </span>
-                  )}
-                </th>
-                <th>捐款類型</th>
-                <th>用途</th>
-                <th
-                  className="cursor-pointer"
-                  onClick={() => handleSort('amount')}
-                >
-                  金額
-                  {sortConfig.key === 'amount' && (
-                    <span className="ms-1">
-                      {sortConfig.direction === 'asc' ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </span>
-                  )}
-                </th>
-                <th>付款方式</th>
-                <th>狀態</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentDonations.map((donation) => (
-                <tr key={donation.id}>
-                  <td>{donation.date}</td>
-                  <td>
-                    <Link href={`/admin/members/${donation.donor_id}`}>
-                      {donation.donor_name}
-                    </Link>
-                  </td>
-                  <td>{getDonationTypeBadge(donation.type)}</td>
-                  <td>{donation.purpose}</td>
-                  <td>{formatCurrency(donation.amount)}</td>
-                  <td>{donation.payment_method}</td>
-                  <td>{getStatusBadge(donation.status)}</td>
-                  <td>
-                    <Link
-                      href={`/admin/finance/transactions/${donation.id}`}
-                      className="btn btn-sm btn-outline-primary"
-                    >
-                      查看
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+        <AdminSection title="捐款查詢">
+          <Card
+            className={`admin-card ${isDarkMode ? 'bg-dark text-light' : ''}`}
+          >
+            <Card.Body>
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+                <div className="d-flex flex-column flex-md-row gap-2 mb-3 mb-md-0">
+                  <div className="position-relative search-container">
+                    <Form.Control
+                      type="text"
+                      placeholder="搜尋捐款..."
+                      value={filters.search}
+                      onChange={handleFilterChange}
+                      className="search-input"
+                    />
+                    <Search size={18} className="search-icon" />
+                  </div>
+                  <Form.Select
+                    value={filters.type}
+                    onChange={handleFilterChange}
+                    className="ms-md-2"
+                    style={{ width: 'auto' }}
+                  >
+                    {DONATION_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </Form.Select>
+                  <Form.Select
+                    value={filters.purpose}
+                    onChange={handleFilterChange}
+                    className="ms-md-2"
+                    style={{ width: 'auto' }}
+                  >
+                    {DONATION_PURPOSES.map((purpose) => (
+                      <option key={purpose.value} value={purpose.value}>
+                        {purpose.label}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </div>
+                <div className="d-flex gap-2">
+                  <Form.Control
+                    type="date"
+                    name="dateFrom"
+                    value={filters.dateFrom}
+                    onChange={handleFilterChange}
+                  />
+                  <Form.Control
+                    type="date"
+                    name="dateTo"
+                    value={filters.dateTo}
+                    onChange={handleFilterChange}
+                  />
+                </div>
+              </div>
 
-          <div className="d-flex justify-content-between align-items-center mt-4">
-            <div>
-              顯示 {(currentPage - 1) * itemsPerPage + 1} 至{' '}
-              {Math.min(currentPage * itemsPerPage, filteredDonations.length)}{' '}
-              筆，共 {filteredDonations.length} 筆
-            </div>
-            <Pagination>
-              <Pagination.First
-                onClick={() => handlePageChange(1)}
-                disabled={currentPage === 1}
-              />
-              <Pagination.Prev
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              />
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(
-                  (page) =>
-                    page === 1 ||
-                    page === totalPages ||
-                    Math.abs(page - currentPage) <= 2
-                )
-                .map((page, index, array) => {
-                  if (index > 0 && array[index - 1] !== page - 1) {
-                    return <Pagination.Ellipsis key={`ellipsis-${page}`} />
-                  }
-                  return (
-                    <Pagination.Item
-                      key={page}
-                      active={page === currentPage}
-                      onClick={() => handlePageChange(page)}
+              <Table responsive className={isDarkMode ? 'table-dark' : ''}>
+                <thead>
+                  <tr>
+                    <th
+                      onClick={() => handleSort('id')}
+                      style={{ width: '70px' }}
                     >
-                      {page}
-                    </Pagination.Item>
-                  )
-                })}
-              <Pagination.Next
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              />
-              <Pagination.Last
-                onClick={() => handlePageChange(totalPages)}
-                disabled={currentPage === totalPages}
-              />
-            </Pagination>
-          </div>
-        </Card.Body>
-      </Card>
-    </div>
+                      ID{' '}
+                      {sortConfig.key === 'id' &&
+                        (sortConfig.direction === 'asc' ? (
+                          <ChevronUp size={16} />
+                        ) : (
+                          <ChevronDown size={16} />
+                        ))}
+                    </th>
+                    <th onClick={() => handleSort('date')}>
+                      日期{' '}
+                      {sortConfig.key === 'date' &&
+                        (sortConfig.direction === 'asc' ? (
+                          <ChevronUp size={16} />
+                        ) : (
+                          <ChevronDown size={16} />
+                        ))}
+                    </th>
+                    <th onClick={() => handleSort('donor_name')}>
+                      捐款人{' '}
+                      {sortConfig.key === 'donor_name' &&
+                        (sortConfig.direction === 'asc' ? (
+                          <ChevronUp size={16} />
+                        ) : (
+                          <ChevronDown size={16} />
+                        ))}
+                    </th>
+                    <th onClick={() => handleSort('amount')}>
+                      金額{' '}
+                      {sortConfig.key === 'amount' &&
+                        (sortConfig.direction === 'asc' ? (
+                          <ChevronUp size={16} />
+                        ) : (
+                          <ChevronDown size={16} />
+                        ))}
+                    </th>
+                    <th>捐款類型</th>
+                    <th>用途</th>
+                    <th>狀態</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentDonations.map((donation) => (
+                    <tr key={donation.id}>
+                      <td>{donation.id}</td>
+                      <td>{donation.date}</td>
+                      <td>
+                        <Link href={`/admin/members/${donation.donor_id}`}>
+                          {donation.donor_name}
+                        </Link>
+                      </td>
+                      <td>{formatCurrency(donation.amount)}</td>
+                      <td>{getDonationTypeBadge(donation.type)}</td>
+                      <td>{donation.purpose}</td>
+                      <td>{getStatusBadge(donation.status)}</td>
+                      <td>
+                        <Link
+                          href={`/admin/finance/transactions/donations/${donation.id}`}
+                          className="btn btn-sm btn-outline-primary"
+                        >
+                          查看
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+
+              <div className="d-flex justify-content-between align-items-center mt-4">
+                <div className="text-muted">
+                  顯示 {currentPage * itemsPerPage - itemsPerPage + 1} 至{' '}
+                  {Math.min(
+                    currentPage * itemsPerPage,
+                    filteredDonations.length
+                  )}{' '}
+                  筆，共 {filteredDonations.length} 筆
+                </div>
+                <Pagination className={isDarkMode ? 'pagination-dark' : ''}>
+                  <Pagination.First
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
+                  />
+                  <Pagination.Prev
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  />
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(
+                      (page) =>
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 2
+                    )
+                    .map((page, index, array) => {
+                      if (index > 0 && array[index - 1] !== page - 1) {
+                        return <Pagination.Ellipsis key={`ellipsis-${page}`} />
+                      }
+                      return (
+                        <Pagination.Item
+                          key={page}
+                          active={page === currentPage}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </Pagination.Item>
+                      )
+                    })}
+                  <Pagination.Next
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  />
+                  <Pagination.Last
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
+              </div>
+            </Card.Body>
+          </Card>
+        </AdminSection>
+      </div>
+    </AdminPageLayout>
   )
 }
