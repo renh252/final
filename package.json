@@ -11,6 +11,7 @@
   "dependencies": {
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-react": "^1.0.6",
+    "bcrypt": "^5.1.1",
     "bootstrap": "^5.3.3",
     "clsx": "^2.1.1",
     "immer": "^10.1.1",
@@ -31,6 +32,7 @@
     "swr": "^2.3.3"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "22.13.8",
     "@types/react": "19.0.10",
     "eslint": "^8.57.1",
