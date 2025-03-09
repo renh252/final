@@ -1,0 +1,60 @@
+{
+  "credit_card": [
+    {
+      "imgSrc": "/images/donate/icon/card1.png",
+      "alt": "card1",
+      "title": "支援信用卡付款",
+      "description": "支援VISA/MASTER/JCB等發卡組織，方便您快速進行付款。每筆手續費為捐款金額的2.75%，由本會負擔。"
+    },
+    {
+      "imgSrc": "/images/donate/icon/card2.png",
+      "alt": "card2",
+      "title": "定期定額交易",
+      "description": "可設定按照日/月/年自動定期支付固定金額，方便您輕鬆一次結帳。"
+    }
+  ],
+  "bank_atm": [
+    {
+      "imgSrc": "/images/donate/icon/atm1.png",
+      "alt": "atm1",
+      "description": [
+        "戶名：社團法人新北市流浪貓狗再生保護協會",
+        "捐款帳號：中國信託/ 新店分行",
+        "銀行代號：822",
+        "銀行帳號：3145-4046-2742"
+      ]
+    },
+    {
+      "imgSrc": "/images/donate/icon/atm2.png",
+      "alt": "atm2",
+      "title": "捐款資料",
+      "description": "捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額 、後五碼， 如要報稅者需再提供ID或統一編號、收據收件地址 、收件人。"
+    }
+  ],
+  "post_office": [
+    {
+      "imgSrc": "/images/donate/icon/atm1.png",
+      "alt": "atm1",
+      "description": [
+        "戶名：社團法人新北市流浪貓狗再生保護協會",
+        "郵政劃撥：5029-8902"
+      ]
+    },
+    {
+      "imgSrc": "/images/donate/icon/atm2.png",
+      "alt": "atm2",
+      "title": "捐款資料",
+      "description": "捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額 、後五碼， 如要報稅者需再提供ID或統一編號、收據收件地址 、收件人。"
+    }
+  ],
+  "faq": [
+    {
+      "title": "Q：我可以指定項目捐款嗎？",
+      "description": "可以的！本會的捐款項目分為救援醫療、線上認養等， 您可依據需求指定項目捐款，若無特別指定可以選擇＂捐給我們＂。"
+    },
+    {
+      "title": "Q：我要如何查詢捐款紀錄？",
+      "description": "若您是使用〈信用卡線上捐款／銀行／ATM轉帳／郵政劃撥〉等方式捐款，可於捐款後，至會員中心確認您的捐款紀錄。"
+    }
+  ]
+}
