@@ -13,8 +13,8 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useTheme } from '@/app/admin/ThemeContext'
-import { useToast } from '@/app/admin/components/Toast'
-import { useConfirm } from '@/app/admin/components/ConfirmDialog'
+import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import Link from 'next/link'
 
 // 模擬交易數據

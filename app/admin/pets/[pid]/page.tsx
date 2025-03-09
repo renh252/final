@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Card, Row, Col, Button, Tab, Nav, Form, Badge } from 'react-bootstrap'
 import { ArrowLeft, Save, Trash, Heart } from 'lucide-react'
-import { useToast } from '../../components/Toast'
-import { useConfirm } from '../../components/ConfirmDialog'
+import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '../../ThemeContext'
 import Link from 'next/link'
 

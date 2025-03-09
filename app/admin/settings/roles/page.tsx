@@ -28,8 +28,8 @@ import {
   Database,
 } from 'lucide-react'
 import { useTheme } from '@/app/admin/ThemeContext'
-import { useToast } from '@/app/admin/components/Toast'
-import { useConfirm } from '@/app/admin/components/ConfirmDialog'
+import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 
 // 模擬角色數據
 const MOCK_ROLES = [
