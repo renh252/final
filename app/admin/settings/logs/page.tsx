@@ -216,192 +216,200 @@ export default function LogsPage() {
 
   return (
     <div className="logs-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>系統日誌</h2>
-        <Button variant="outline-primary" onClick={handleExport}>
-          <Download size={18} className="me-2" />
-          匯出日誌
-        </Button>
+      <div className="admin-page-header">
+        <h2 className="admin-page-title">系統日誌</h2>
+        <div className="page-actions">
+          <Button variant="outline-primary" onClick={handleExport}>
+            <Download size={18} className="me-2" />
+            匯出日誌
+          </Button>
+        </div>
       </div>
 
-      <Card className={`mb-4 ${isDarkMode ? 'bg-dark text-light' : ''}`}>
-        <Card.Body>
-          <Row className="g-3">
-            <Col md={3}>
-              <Form.Group>
-                <Form.Control
-                  type="text"
-                  placeholder="搜尋日誌..."
-                  name="search"
-                  value={filters.search}
+      <div className="admin-section">
+        <Card
+          className={`admin-card mb-4 ${
+            isDarkMode ? 'bg-dark text-light' : ''
+          }`}
+        >
+          <Card.Body>
+            <Row className="g-3">
+              <Col md={3}>
+                <Form.Group>
+                  <Form.Control
+                    type="text"
+                    placeholder="搜尋日誌..."
+                    name="search"
+                    value={filters.search}
+                    onChange={handleFilterChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={2}>
+                <Form.Select
+                  name="level"
+                  value={filters.level}
                   onChange={handleFilterChange}
-                />
-              </Form.Group>
-            </Col>
-            <Col md={2}>
-              <Form.Select
-                name="level"
-                value={filters.level}
-                onChange={handleFilterChange}
-              >
-                {LOG_LEVELS.map((level) => (
-                  <option key={level.value} value={level.value}>
-                    {level.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={2}>
-              <Form.Select
-                name="module"
-                value={filters.module}
-                onChange={handleFilterChange}
-              >
-                {LOG_MODULES.map((module) => (
-                  <option key={module.value} value={module.value}>
-                    {module.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={2}>
-              <Form.Select
-                name="action"
-                value={filters.action}
-                onChange={handleFilterChange}
-              >
-                {LOG_ACTIONS.map((action) => (
-                  <option key={action.value} value={action.value}>
-                    {action.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={3}>
-              <div className="d-flex gap-2">
-                <Form.Control
-                  type="date"
-                  name="dateFrom"
-                  value={filters.dateFrom}
+                >
+                  {LOG_LEVELS.map((level) => (
+                    <option key={level.value} value={level.value}>
+                      {level.label}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Col>
+              <Col md={2}>
+                <Form.Select
+                  name="module"
+                  value={filters.module}
                   onChange={handleFilterChange}
-                />
-                <Form.Control
-                  type="date"
-                  name="dateTo"
-                  value={filters.dateTo}
+                >
+                  {LOG_MODULES.map((module) => (
+                    <option key={module.value} value={module.value}>
+                      {module.label}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Col>
+              <Col md={2}>
+                <Form.Select
+                  name="action"
+                  value={filters.action}
                   onChange={handleFilterChange}
-                />
-              </div>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
+                >
+                  {LOG_ACTIONS.map((action) => (
+                    <option key={action.value} value={action.value}>
+                      {action.label}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Col>
+              <Col md={3}>
+                <div className="d-flex gap-2">
+                  <Form.Control
+                    type="date"
+                    name="dateFrom"
+                    value={filters.dateFrom}
+                    onChange={handleFilterChange}
+                  />
+                  <Form.Control
+                    type="date"
+                    name="dateTo"
+                    value={filters.dateTo}
+                    onChange={handleFilterChange}
+                  />
+                </div>
+              </Col>
+            </Row>
+          </Card.Body>
+        </Card>
 
-      <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-        <Card.Body>
-          <Table responsive className={isDarkMode ? 'table-dark' : ''}>
-            <thead>
-              <tr>
-                <th
-                  className="cursor-pointer"
-                  onClick={() => handleSort('timestamp')}
-                >
-                  時間
-                  {sortConfig.key === 'timestamp' && (
-                    <span className="ms-1">
-                      {sortConfig.direction === 'asc' ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </span>
-                  )}
-                </th>
-                <th>等級</th>
-                <th
-                  className="cursor-pointer"
-                  onClick={() => handleSort('module')}
-                >
-                  模組
-                  {sortConfig.key === 'module' && (
-                    <span className="ms-1">
-                      {sortConfig.direction === 'asc' ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </span>
-                  )}
-                </th>
-                <th>操作</th>
-                <th>訊息</th>
-                <th>使用者</th>
-                <th>IP位址</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentLogs.map((log) => (
-                <tr key={log.id}>
-                  <td>{formatDateTime(log.timestamp)}</td>
-                  <td>{getLevelBadge(log.level)}</td>
-                  <td>{log.module}</td>
-                  <td>{log.action}</td>
-                  <td>{log.message}</td>
-                  <td>{log.user}</td>
-                  <td>{log.ip_address}</td>
+        <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+          <Card.Body>
+            <Table responsive className={isDarkMode ? 'table-dark' : ''}>
+              <thead>
+                <tr>
+                  <th
+                    className="cursor-pointer"
+                    onClick={() => handleSort('timestamp')}
+                  >
+                    時間
+                    {sortConfig.key === 'timestamp' && (
+                      <span className="ms-1">
+                        {sortConfig.direction === 'asc' ? (
+                          <ChevronUp size={16} />
+                        ) : (
+                          <ChevronDown size={16} />
+                        )}
+                      </span>
+                    )}
+                  </th>
+                  <th>等級</th>
+                  <th
+                    className="cursor-pointer"
+                    onClick={() => handleSort('module')}
+                  >
+                    模組
+                    {sortConfig.key === 'module' && (
+                      <span className="ms-1">
+                        {sortConfig.direction === 'asc' ? (
+                          <ChevronUp size={16} />
+                        ) : (
+                          <ChevronDown size={16} />
+                        )}
+                      </span>
+                    )}
+                  </th>
+                  <th>操作</th>
+                  <th>訊息</th>
+                  <th>使用者</th>
+                  <th>IP位址</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {currentLogs.map((log) => (
+                  <tr key={log.id}>
+                    <td>{formatDateTime(log.timestamp)}</td>
+                    <td>{getLevelBadge(log.level)}</td>
+                    <td>{log.module}</td>
+                    <td>{log.action}</td>
+                    <td>{log.message}</td>
+                    <td>{log.user}</td>
+                    <td>{log.ip_address}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
 
-          <div className="d-flex justify-content-between align-items-center mt-4">
-            <div>
-              顯示 {(currentPage - 1) * itemsPerPage + 1} 至{' '}
-              {Math.min(currentPage * itemsPerPage, filteredLogs.length)} 筆，共{' '}
-              {filteredLogs.length} 筆
-            </div>
-            <Pagination>
-              <Pagination.First
-                onClick={() => handlePageChange(1)}
-                disabled={currentPage === 1}
-              />
-              <Pagination.Prev
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              />
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(
-                  (page) =>
-                    page === 1 ||
-                    page === totalPages ||
-                    Math.abs(page - currentPage) <= 2
-                )
-                .map((page, index, array) => {
-                  if (index > 0 && array[index - 1] !== page - 1) {
-                    return <Pagination.Ellipsis key={`ellipsis-${page}`} />
-                  }
-                  return (
-                    <Pagination.Item
-                      key={page}
-                      active={page === currentPage}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </Pagination.Item>
+            <div className="d-flex justify-content-between align-items-center mt-4">
+              <div>
+                顯示 {(currentPage - 1) * itemsPerPage + 1} 至{' '}
+                {Math.min(currentPage * itemsPerPage, filteredLogs.length)}{' '}
+                筆，共 {filteredLogs.length} 筆
+              </div>
+              <Pagination>
+                <Pagination.First
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                />
+                <Pagination.Prev
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                />
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(
+                    (page) =>
+                      page === 1 ||
+                      page === totalPages ||
+                      Math.abs(page - currentPage) <= 2
                   )
-                })}
-              <Pagination.Next
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              />
-              <Pagination.Last
-                onClick={() => handlePageChange(totalPages)}
-                disabled={currentPage === totalPages}
-              />
-            </Pagination>
-          </div>
-        </Card.Body>
-      </Card>
+                  .map((page, index, array) => {
+                    if (index > 0 && array[index - 1] !== page - 1) {
+                      return <Pagination.Ellipsis key={`ellipsis-${page}`} />
+                    }
+                    return (
+                      <Pagination.Item
+                        key={page}
+                        active={page === currentPage}
+                        onClick={() => handlePageChange(page)}
+                      >
+                        {page}
+                      </Pagination.Item>
+                    )
+                  })}
+                <Pagination.Next
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                />
+                <Pagination.Last
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={currentPage === totalPages}
+                />
+              </Pagination>
+            </div>
+          </Card.Body>
+        </Card>
+      </div>
     </div>
   )
 }

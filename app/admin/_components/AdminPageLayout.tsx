@@ -33,7 +33,7 @@ export default function AdminPageLayout({
       {/* 頁面標題 */}
       <div className="admin-page-header">
         <h2 className="admin-page-title">{title}</h2>
-        {actions && <div className="page-actions">{actions}</div>}
+        <div className="page-actions">{actions}</div>
       </div>
 
       {/* 統計卡片區域 */}
@@ -55,7 +55,9 @@ export default function AdminPageLayout({
                     >
                       {stat.title}
                     </h5>
-                    <h3 className="mb-0">{stat.count}</h3>
+                    <div className="dashboard-stat-wrapper">
+                      <div className="dashboard-stat-value">{stat.count}</div>
+                    </div>
                   </div>
                   <div className={`dashboard-icon bg-${stat.color}`}>
                     {stat.icon}
@@ -68,7 +70,7 @@ export default function AdminPageLayout({
       )}
 
       {/* 頁面內容 */}
-      <div className="admin-content-area">{children}</div>
+      <div className="admin-layout-content">{children}</div>
     </>
   )
 }

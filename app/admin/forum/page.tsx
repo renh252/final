@@ -15,6 +15,10 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useTheme } from '@/app/admin/ThemeContext'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '@/app/admin/_components/AdminPageLayout'
 
 // 模擬論壇統計數據
 const MOCK_STATS = {
@@ -180,12 +184,12 @@ export default function ForumDashboardPage() {
   }
 
   return (
-    <div className="forum-dashboard-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>論壇管理</h2>
-        <div>
+    <AdminPageLayout
+      title="論壇管理"
+      actions={
+        <div className="d-flex gap-2">
           <Link href="/admin/forum/articles">
-            <Button variant="outline-primary" className="me-2">
+            <Button variant="outline-primary">
               <FileText size={18} className="me-2" />
               文章管理
             </Button>
@@ -197,243 +201,245 @@ export default function ForumDashboardPage() {
             </Button>
           </Link>
         </div>
+      }
+    >
+      <div className="admin-layout-container">
+        <AdminSection>
+          <Row className="mb-4 g-3">
+            <Col md={3}>
+              <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+                <Card.Body>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 className="mb-0">總文章數</h6>
+                      <h2 className="mt-2 mb-0">{MOCK_STATS.total_articles}</h2>
+                    </div>
+                    <div className="bg-primary bg-opacity-10 p-3 rounded">
+                      <FileText size={24} className="text-primary" />
+                    </div>
+                  </div>
+                  <div className="mt-3 small text-muted">
+                    待審核文章：{MOCK_STATS.pending_articles}
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={3}>
+              <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+                <Card.Body>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 className="mb-0">總檢舉數</h6>
+                      <h2 className="mt-2 mb-0">{MOCK_STATS.total_reports}</h2>
+                    </div>
+                    <div className="bg-danger bg-opacity-10 p-3 rounded">
+                      <AlertCircle size={24} className="text-danger" />
+                    </div>
+                  </div>
+                  <div className="mt-3 small text-muted">
+                    未處理檢舉：{MOCK_STATS.open_reports}
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={3}>
+              <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+                <Card.Body>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 className="mb-0">總評論數</h6>
+                      <h2 className="mt-2 mb-0">{MOCK_STATS.total_comments}</h2>
+                    </div>
+                    <div className="bg-info bg-opacity-10 p-3 rounded">
+                      <MessageSquare size={24} className="text-info" />
+                    </div>
+                  </div>
+                  <div className="mt-3 small text-muted">
+                    本月新增：{Math.floor(MOCK_STATS.total_comments * 0.12)}
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={3}>
+              <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+                <Card.Body>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 className="mb-0">活躍用戶</h6>
+                      <h2 className="mt-2 mb-0">{MOCK_STATS.active_users}</h2>
+                    </div>
+                    <div className="bg-success bg-opacity-10 p-3 rounded">
+                      <Users size={24} className="text-success" />
+                    </div>
+                  </div>
+                  <div className="mt-3 small text-muted">
+                    總用戶數：{MOCK_STATS.total_users}
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </AdminSection>
+
+        <AdminSection title="文章分析">
+          <Row className="mb-4 g-3">
+            <Col md={6}>
+              <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+                <Card.Header className="d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">熱門文章</h5>
+                  <Link href="/admin/forum/articles">
+                    <Button variant="link" className="p-0">
+                      查看全部
+                    </Button>
+                  </Link>
+                </Card.Header>
+                <Card.Body>
+                  <div className="table-responsive">
+                    <Table className={isDarkMode ? 'table-dark' : ''}>
+                      <thead>
+                        <tr>
+                          <th>標題</th>
+                          <th>作者</th>
+                          <th className="text-center">
+                            <Eye size={16} />
+                          </th>
+                          <th className="text-center">
+                            <ThumbsUp size={16} />
+                          </th>
+                          <th className="text-center">
+                            <MessageSquare size={16} />
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {MOCK_POPULAR_ARTICLES.map((article) => (
+                          <tr key={article.id}>
+                            <td>
+                              <Link
+                                href={`/admin/forum/articles/${article.id}`}
+                                className={`text-decoration-none ${
+                                  isDarkMode ? 'text-light' : 'text-dark'
+                                }`}
+                              >
+                                {article.title}
+                              </Link>
+                            </td>
+                            <td>{article.author}</td>
+                            <td className="text-center">{article.views}</td>
+                            <td className="text-center">{article.likes}</td>
+                            <td className="text-center">{article.comments}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={6}>
+              <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+                <Card.Header className="d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">最新檢舉</h5>
+                  <Link href="/admin/forum/reports">
+                    <Button variant="link" className="p-0">
+                      查看全部
+                    </Button>
+                  </Link>
+                </Card.Header>
+                <Card.Body>
+                  <div className="table-responsive">
+                    <Table className={isDarkMode ? 'table-dark' : ''}>
+                      <thead>
+                        <tr>
+                          <th>檢舉內容</th>
+                          <th>類型</th>
+                          <th>原因</th>
+                          <th>狀態</th>
+                          <th>日期</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {MOCK_RECENT_REPORTS.map((report) => (
+                          <tr key={report.id}>
+                            <td>
+                              <Link
+                                href={`/admin/forum/reports/${report.id}`}
+                                className={`text-decoration-none ${
+                                  isDarkMode ? 'text-light' : 'text-dark'
+                                }`}
+                              >
+                                {report.reported_content_title}
+                              </Link>
+                            </td>
+                            <td>
+                              {report.reported_content_type === 'article'
+                                ? '文章'
+                                : report.reported_content_type === 'comment'
+                                ? '評論'
+                                : '用戶'}
+                            </td>
+                            <td>{getReportReasonDisplay(report.reason)}</td>
+                            <td>{getStatusBadge(report.status)}</td>
+                            <td>{formatDate(report.created_at)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </AdminSection>
+
+        <AdminSection title="類別分佈">
+          <Row className="mb-4 g-3">
+            <Col md={12}>
+              <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+                <Card.Body>
+                  <div className="table-responsive">
+                    <Table className={isDarkMode ? 'table-dark' : ''}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: '50%' }}>類別</th>
+                          <th>文章數</th>
+                          <th>百分比</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {MOCK_CATEGORIES_DATA.map((category) => (
+                          <tr key={category.name}>
+                            <td>
+                              <div className="d-flex align-items-center">
+                                <div className="me-2">{category.name}</div>
+                                <div
+                                  className="progress flex-grow-1"
+                                  style={{ height: '10px' }}
+                                >
+                                  <div
+                                    className="progress-bar"
+                                    role="progressbar"
+                                    style={{ width: `${category.percentage}%` }}
+                                    aria-valuenow={category.percentage}
+                                    aria-valuemin={0}
+                                    aria-valuemax={100}
+                                  ></div>
+                                </div>
+                              </div>
+                            </td>
+                            <td>{category.articles}</td>
+                            <td>{category.percentage}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </AdminSection>
       </div>
-
-      {/* 統計卡片 */}
-      <Row className="mb-4 g-3">
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 className="mb-0">總文章數</h6>
-                  <h2 className="mt-2 mb-0">{MOCK_STATS.total_articles}</h2>
-                </div>
-                <div className="bg-primary bg-opacity-10 p-3 rounded">
-                  <FileText size={24} className="text-primary" />
-                </div>
-              </div>
-              <div className="mt-3 small text-muted">
-                待審核文章：{MOCK_STATS.pending_articles}
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 className="mb-0">總檢舉數</h6>
-                  <h2 className="mt-2 mb-0">{MOCK_STATS.total_reports}</h2>
-                </div>
-                <div className="bg-danger bg-opacity-10 p-3 rounded">
-                  <AlertCircle size={24} className="text-danger" />
-                </div>
-              </div>
-              <div className="mt-3 small text-muted">
-                未處理檢舉：{MOCK_STATS.open_reports}
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 className="mb-0">總評論數</h6>
-                  <h2 className="mt-2 mb-0">{MOCK_STATS.total_comments}</h2>
-                </div>
-                <div className="bg-info bg-opacity-10 p-3 rounded">
-                  <MessageSquare size={24} className="text-info" />
-                </div>
-              </div>
-              <div className="mt-3 small text-muted">
-                本月新增：{Math.floor(MOCK_STATS.total_comments * 0.12)}
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 className="mb-0">活躍用戶</h6>
-                  <h2 className="mt-2 mb-0">{MOCK_STATS.active_users}</h2>
-                </div>
-                <div className="bg-success bg-opacity-10 p-3 rounded">
-                  <Users size={24} className="text-success" />
-                </div>
-              </div>
-              <div className="mt-3 small text-muted">
-                總用戶數：{MOCK_STATS.total_users}
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 熱門文章與最新檢舉 */}
-      <Row className="mb-4 g-3">
-        <Col md={6}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Header className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">熱門文章</h5>
-              <Link href="/admin/forum/articles">
-                <Button variant="link" className="p-0">
-                  查看全部
-                </Button>
-              </Link>
-            </Card.Header>
-            <Card.Body>
-              <div className="table-responsive">
-                <Table className={isDarkMode ? 'table-dark' : ''}>
-                  <thead>
-                    <tr>
-                      <th>標題</th>
-                      <th>作者</th>
-                      <th className="text-center">
-                        <Eye size={16} />
-                      </th>
-                      <th className="text-center">
-                        <ThumbsUp size={16} />
-                      </th>
-                      <th className="text-center">
-                        <MessageSquare size={16} />
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {MOCK_POPULAR_ARTICLES.map((article) => (
-                      <tr key={article.id}>
-                        <td>
-                          <Link
-                            href={`/admin/forum/articles/${article.id}`}
-                            className={`text-decoration-none ${
-                              isDarkMode ? 'text-light' : 'text-dark'
-                            }`}
-                          >
-                            {article.title}
-                          </Link>
-                        </td>
-                        <td>{article.author}</td>
-                        <td className="text-center">{article.views}</td>
-                        <td className="text-center">{article.likes}</td>
-                        <td className="text-center">{article.comments}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={6}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Header className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">最新檢舉</h5>
-              <Link href="/admin/forum/reports">
-                <Button variant="link" className="p-0">
-                  查看全部
-                </Button>
-              </Link>
-            </Card.Header>
-            <Card.Body>
-              <div className="table-responsive">
-                <Table className={isDarkMode ? 'table-dark' : ''}>
-                  <thead>
-                    <tr>
-                      <th>檢舉內容</th>
-                      <th>類型</th>
-                      <th>原因</th>
-                      <th>狀態</th>
-                      <th>日期</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {MOCK_RECENT_REPORTS.map((report) => (
-                      <tr key={report.id}>
-                        <td>
-                          <Link
-                            href={`/admin/forum/reports/${report.id}`}
-                            className={`text-decoration-none ${
-                              isDarkMode ? 'text-light' : 'text-dark'
-                            }`}
-                          >
-                            {report.reported_content_title}
-                          </Link>
-                        </td>
-                        <td>
-                          {report.reported_content_type === 'article'
-                            ? '文章'
-                            : report.reported_content_type === 'comment'
-                            ? '評論'
-                            : '用戶'}
-                        </td>
-                        <td>{getReportReasonDisplay(report.reason)}</td>
-                        <td>{getStatusBadge(report.status)}</td>
-                        <td>{formatDate(report.created_at)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 類別分佈 */}
-      <Row className="mb-4 g-3">
-        <Col md={12}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Header>
-              <h5 className="mb-0">文章類別分佈</h5>
-            </Card.Header>
-            <Card.Body>
-              <div className="table-responsive">
-                <Table className={isDarkMode ? 'table-dark' : ''}>
-                  <thead>
-                    <tr>
-                      <th style={{ width: '50%' }}>類別</th>
-                      <th>文章數</th>
-                      <th>百分比</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {MOCK_CATEGORIES_DATA.map((category) => (
-                      <tr key={category.name}>
-                        <td>
-                          <div className="d-flex align-items-center">
-                            <div className="me-2">{category.name}</div>
-                            <div
-                              className="progress flex-grow-1"
-                              style={{ height: '10px' }}
-                            >
-                              <div
-                                className="progress-bar"
-                                role="progressbar"
-                                style={{ width: `${category.percentage}%` }}
-                                aria-valuenow={category.percentage}
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                              ></div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>{category.articles}</td>
-                        <td>{category.percentage}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </div>
+    </AdminPageLayout>
   )
 }
