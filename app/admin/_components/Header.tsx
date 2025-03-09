@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import ThemeToggle from './ThemeToggle'
 import { useTheme } from '../ThemeContext'
+import { useAdmin } from '../AdminContext'
+import { Spinner } from 'react-bootstrap'
 
 // 提供一個簡單的結構，保持與實際組件相同的 DOM 結構
 const HeaderSkeleton = () => (
@@ -24,11 +26,18 @@ export default function Header({
 }) {
   const [mounted, setMounted] = useState(false)
   const { isDarkMode } = useTheme()
+  const { admin, logout, isLoading } = useAdmin()
 
   // 確保只在客戶端渲染
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // 處理登出
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    await logout()
+  }
 
   // 如果不是客戶端，返回有相同結構的骨架
   if (!mounted) {
@@ -110,9 +119,16 @@ export default function Header({
             type="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"
+            disabled={isLoading}
           >
-            <User size={20} className="me-2" />
-            <span className="d-none d-md-inline">管理員</span>
+            {isLoading ? (
+              <Spinner animation="border" size="sm" className="me-2" />
+            ) : (
+              <User size={20} className="me-2" />
+            )}
+            <span className="d-none d-md-inline">
+              {admin ? admin.account : '管理員'}
+            </span>
           </button>
           <ul className="dropdown-menu dropdown-menu-end">
             <li>
@@ -129,9 +145,13 @@ export default function Header({
               <hr className="dropdown-divider" />
             </li>
             <li>
-              <Link className="dropdown-item text-danger" href="/admin/logout">
+              <a
+                className="dropdown-item text-danger"
+                href="#"
+                onClick={handleLogout}
+              >
                 登出
-              </Link>
+              </a>
             </li>
           </ul>
         </div>
