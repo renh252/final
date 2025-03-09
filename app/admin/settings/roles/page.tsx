@@ -30,6 +30,10 @@ import {
 import { useTheme } from '@/app/admin/ThemeContext'
 import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '@/app/admin/_components/AdminPageLayout'
 
 // 模擬角色數據
 const MOCK_ROLES = [
@@ -256,67 +260,75 @@ export default function RolesPage() {
   }
 
   return (
-    <div className="roles-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>角色管理</h2>
+    <AdminPageLayout
+      title="角色管理"
+      actions={
         <Button variant="primary" onClick={() => handleShowModal()}>
           <Plus size={18} className="me-2" />
           新增角色
         </Button>
+      }
+    >
+      <div className="admin-layout-container">
+        <AdminSection>
+          <Card
+            className={`admin-card ${isDarkMode ? 'bg-dark text-light' : ''}`}
+          >
+            <Card.Body>
+              <Table responsive className={isDarkMode ? 'table-dark' : ''}>
+                <thead>
+                  <tr>
+                    <th>角色名稱</th>
+                    <th>描述</th>
+                    <th>使用者數</th>
+                    <th>狀態</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {roles.map((role) => (
+                    <tr key={role.id}>
+                      <td>{role.name}</td>
+                      <td>{role.description}</td>
+                      <td>{role.users_count}</td>
+                      <td>
+                        <Badge
+                          bg={
+                            role.status === 'active' ? 'success' : 'secondary'
+                          }
+                          className="cursor-pointer"
+                          onClick={() => handleToggleStatus(role)}
+                        >
+                          {role.status === 'active' ? '啟用中' : '已停用'}
+                        </Badge>
+                      </td>
+                      <td>
+                        <div className="d-flex gap-2">
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            onClick={() => handleShowModal(role)}
+                          >
+                            <Edit2 size={14} />
+                          </Button>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => handleDelete(role)}
+                            disabled={role.name === '超級管理員'}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        </AdminSection>
       </div>
-
-      <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-        <Card.Body>
-          <Table responsive className={isDarkMode ? 'table-dark' : ''}>
-            <thead>
-              <tr>
-                <th>角色名稱</th>
-                <th>描述</th>
-                <th>使用者數</th>
-                <th>狀態</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {roles.map((role) => (
-                <tr key={role.id}>
-                  <td>{role.name}</td>
-                  <td>{role.description}</td>
-                  <td>{role.users_count}</td>
-                  <td>
-                    <Badge
-                      bg={role.status === 'active' ? 'success' : 'secondary'}
-                      className="cursor-pointer"
-                      onClick={() => handleToggleStatus(role)}
-                    >
-                      {role.status === 'active' ? '啟用中' : '已停用'}
-                    </Badge>
-                  </td>
-                  <td>
-                    <div className="d-flex gap-2">
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        onClick={() => handleShowModal(role)}
-                      >
-                        <Edit2 size={14} />
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(role)}
-                        disabled={role.name === '超級管理員'}
-                      >
-                        <Trash2 size={14} />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </Card.Body>
-      </Card>
 
       <Modal
         show={showModal}
@@ -438,6 +450,6 @@ export default function RolesPage() {
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </AdminPageLayout>
   )
 }

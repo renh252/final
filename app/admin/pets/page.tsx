@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, Button, Row, Col, Badge, Image, Form } from 'react-bootstrap'
+import { Button, Row, Col, Badge, Image, Form } from 'react-bootstrap'
 import { Plus, Edit, Trash, Eye, Heart, PawPrint } from 'lucide-react'
 import DataTable from '@/app/admin/_components/DataTable'
 import ModalForm from '@/app/admin/_components/ModalForm'
@@ -9,6 +9,10 @@ import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '../ThemeContext'
 import { useRouter } from 'next/navigation'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '../_components/AdminPageLayout'
 
 // 模擬寵物數據 - 基於資料庫結構
 const MOCK_PETS = [
@@ -449,101 +453,99 @@ export default function PetsPage() {
     },
   ]
 
+  // 統計數據
+  const petStats = [
+    {
+      title: '待領養',
+      count: pets.filter((p) => p.is_adopted === 0).length,
+      color: 'success',
+      icon: <PawPrint size={24} />,
+    },
+    {
+      title: '已領養',
+      count: pets.filter((p) => p.is_adopted === 1).length,
+      color: 'secondary',
+      icon: <Heart size={24} />,
+    },
+    {
+      title: '狗',
+      count: pets.filter((p) => p.species === '狗').length,
+      color: 'primary',
+      icon: <PawPrint size={24} />,
+    },
+    {
+      title: '貓',
+      count: pets.filter((p) => p.species === '貓').length,
+      color: 'info',
+      icon: <PawPrint size={24} />,
+    },
+  ]
+
+  // 頁面操作按鈕
+  const pageActions = (
+    <Button
+      variant="primary"
+      className="d-flex align-items-center"
+      onClick={handleAddPet}
+    >
+      <Plus size={18} className="me-1" /> 新增寵物
+    </Button>
+  )
+
   return (
-    <div className="pets-page p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>寵物管理</h2>
-        <div className="d-flex gap-2">
-          <Button variant="outline-secondary">匯入資料</Button>
-          <Button variant="primary" onClick={() => setShowModal(true)}>
-            <Plus size={18} className="me-2" />
-            新增寵物
-          </Button>
-        </div>
-      </div>
+    <AdminPageLayout title="寵物管理" stats={petStats} actions={pageActions}>
+      <AdminSection title="寵物列表">
+        <AdminCard>
+          <div className="d-flex flex-wrap justify-content-end mb-3">
+            <Form.Group
+              className="me-2 mb-2 mb-md-0"
+              style={{ minWidth: '150px' }}
+            >
+              <Form.Select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                size="sm"
+              >
+                {PET_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+            <Form.Group style={{ minWidth: '150px' }}>
+              <Form.Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                size="sm"
+              >
+                {PET_STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </div>
 
-      <Row className="mb-4">
-        {/* 狀態卡片 */}
-        <Col md={3}>
-          <Card className="text-center h-100">
-            <Card.Body>
-              <h3>{pets.length}</h3>
-              <p className="mb-0">總寵物數量</p>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="text-center h-100">
-            <Card.Body>
-              <h3>{pets.filter((p) => p.is_adopted === 0).length}</h3>
-              <p className="mb-0">可領養數量</p>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="text-center h-100">
-            <Card.Body>
-              <h3>{pets.filter((p) => p.is_adopted === 1).length}</h3>
-              <p className="mb-0">已領養數量</p>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+          <DataTable
+            data={filteredPets.length > 0 ? filteredPets : pets}
+            columns={columns}
+            renderActions={renderActions}
+            rowsPerPage={10}
+          />
+        </AdminCard>
+      </AdminSection>
 
-      <Row>
-        <Col md={12}>
-          <Card>
-            <Card.Header className="d-flex justify-content-between align-items-center">
-              <div>寵物列表</div>
-              <div className="d-flex gap-2">
-                <Form.Select
-                  size="sm"
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  style={{ width: '120px' }}
-                >
-                  {PET_TYPE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Form.Select>
-                <Form.Select
-                  size="sm"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  style={{ width: '120px' }}
-                >
-                  {PET_STATUS_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Form.Select>
-              </div>
-            </Card.Header>
-            <Card.Body>
-              <DataTable
-                columns={columns}
-                data={filteredPets.length > 0 ? filteredPets : pets}
-                onRowClick={(pet) => router.push(`/admin/pets/${pet.id}`)}
-                actions={renderActions}
-              />
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 寵物表單模態框 */}
+      {/* Modal 表單 */}
       <ModalForm
         show={showModal}
         onHide={() => setShowModal(false)}
         title={modalMode === 'add' ? '新增寵物' : '編輯寵物'}
-        fields={formFields}
         onSubmit={handleSubmit}
-        initialData={currentPet}
-        submitText={modalMode === 'add' ? '新增' : '更新'}
+        initialValues={currentPet}
+        fields={formFields}
       />
-    </div>
+    </AdminPageLayout>
   )
 }

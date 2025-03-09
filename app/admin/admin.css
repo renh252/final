@@ -88,36 +88,89 @@
   min-height: 100vh;
   background-color: var(--admin-bg-color);
   color: var(--admin-text-color);
+  position: relative;
 }
 
+/* 主容器 - 包含側邊欄和內容區域 */
 .admin-container {
   display: flex;
   flex: 1;
+  height: auto;
+  min-height: calc(100vh - 64px); /* 視窗高度減去頭部 */
 }
 
+/* 側邊欄 - 固定寬度，可滾動 */
 .admin-sidebar {
   width: 240px;
   background-color: var(--admin-sidebar-bg);
   color: var(--admin-sidebar-text);
   transition: width 0.3s ease;
-  height: calc(100vh - 128px);
-  overflow-y: auto;
-  position: sticky;
-  top: 64px;
   border-right: 1px solid var(--admin-header-border);
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0; /* 防止收縮 */
+  position: relative; /* 改為相對定位 */
+  height: 100%; /* 保證填滿父容器高度 */
+  overflow-y: auto;
+  z-index: 100; /* 確保側邊欄在適當的層級 */
 }
 
+/* nav 選單使用 flex-grow-1 填滿可用空間 */
+.nav.flex-column {
+  height: 100%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 確保 sidebar 內部內容可以填充全部高度 */
+.admin-sidebar > div {
+  min-height: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 側邊欄收起狀態 */
 .admin-sidebar.collapsed {
   width: 60px;
 }
 
+/* 主內容 - 彈性增長填充剩餘空間 */
 .admin-content {
-  flex: 1;
-  overflow: auto;
-  padding: 20px;
-  background-color: var(--admin-content-bg);
-  min-height: calc(100vh - 128px);
+  flex-grow: 1;
+  background-color: var(--admin-body-bg);
+  height: calc(100vh - 60px); /* 考慮header高度 */
+  min-height: calc(100vh - 60px);
+  display: flex;
+  overflow-y: auto; /* 允許內容滾動 */
+  flex-direction: column;
+  position: relative; /* 提供定位上下文 */
+}
+
+/* 內容包裝器 - 確保footer在最下方 */
+.content-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* 填充可用空間 */
+  min-height: min-content; /* 最小高度基於內容 */
+}
+
+/* 內容區域 */
+.content-area {
+  flex-grow: 1;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+/* AdminPageLayout內容區域 */
+.admin-layout-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .admin-header {
@@ -133,11 +186,19 @@
 }
 
 .admin-footer {
-  background-color: var(--admin-footer-bg);
+  background-color: transparent; /* 透明背景 */
   border-top: 1px solid var(--admin-footer-border);
   padding: 1rem;
   text-align: center;
-  height: 64px;
+  min-height: 64px; /* 使用最小高度而不是固定高度 */
+  width: 100%;
+  z-index: 10;
+  position: relative; /* 確保不會被固定 */
+}
+
+.admin-footer-wrapper {
+  width: 100%;
+  margin-top: auto; /* 確保 footer 在內容過短時位於底部 */
 }
 
 /* 處理初始載入和過渡動畫 */
@@ -196,18 +257,61 @@
   .admin-sidebar {
     position: fixed;
     height: 100%;
+    left: -240px;
     z-index: 1050;
-    left: 0;
-    top: 0;
-    transform: translateX(-100%);
+    transition: transform 0.3s ease, left 0.3s ease;
   }
 
   .admin-sidebar.open {
-    transform: translateX(0);
+    transform: translateX(240px);
   }
 
   .admin-content {
-    padding: 15px;
+    padding: 0;
+    height: calc(100vh - 60px); /* 調整高度，考慮header高度 */
+    min-height: calc(100vh - 60px);
+  }
+
+  .content-area {
+    padding: 1rem;
+  }
+
+  .admin-page-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    white-space: normal;
+  }
+
+  .admin-layout-container {
+    padding: 0.5rem;
+  }
+
+  .admin-page-header {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .admin-page-header .page-actions {
+    margin-left: 0;
+    min-width: auto;
+  }
+
+  /* 在移動裝置上確保按鈕有足夠的空間 */
+  .page-actions .btn {
+    padding: 0.375rem 0.75rem;
+    min-width: auto;
+    height: 35px;
+    font-size: 0.875rem;
+  }
+
+  /* 在小屏幕上確保按鈕內的文字和圖標對齊 */
+  .btn svg {
+    margin-right: 0.375rem;
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -219,10 +323,148 @@
   padding: 0.75rem 1rem;
   text-decoration: none;
   border-radius: 0.25rem;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  height: 42px; /* 固定按鈕高度 */
+  cursor: pointer; /* 確保鼠標顯示為指針形狀 */
+  z-index: 2; /* 確保按鈕在頂層 */
+}
+
+/* 確保按鈕的點擊範圍最大化 */
+button.sidebar-nav-link {
+  appearance: none;
+  background: none;
+  border: none;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  position: relative;
+  z-index: 5; /* 確保按鈕在最上層 */
+  margin: 0;
+  cursor: pointer;
+  pointer-events: auto !important;
+}
+
+button.sidebar-nav-link:focus {
+  outline: none;
+}
+
+/* 修復子菜單容器樣式，避免與按鈕重疊 */
+li:has(.sidebar-submenu) {
+  margin-bottom: 0.5rem;
+  position: relative; /* 確保定位上下文 */
+}
+
+/* 子菜單樣式 */
+.sidebar-submenu {
+  transition: all 0.3s ease;
+  margin-left: 0.5rem; /* 減少左邊距 */
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 4;
+  width: calc(100% - 0.5rem);
+  pointer-events: auto;
   background-color: transparent;
 }
 
+/* 子菜單展開狀態 */
+.sidebar-submenu.expanded {
+  max-height: 500px;
+  opacity: 1;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+/* 子菜單項目樣式，使用背景色和縮進表示層次 */
+.sidebar-submenu .sidebar-nav-link {
+  padding: 0.5rem 0.75rem 0.5rem 1.75rem; /* 調整左內邊距 */
+  font-size: 0.9em;
+  height: 38px;
+  position: relative;
+  z-index: 2;
+  border-radius: 0.2rem;
+  margin-bottom: 0.125rem; /* 間距較小 */
+}
+
+/* 子菜單項目的懸停效果略微不同 */
+.sidebar-submenu .sidebar-nav-link:hover {
+  background-color: var(--admin-sidebar-hover); /* 使用稍微淺一點的背景色 */
+}
+
+/* 子菜單項目前的小圓點，用來替代邊框線表示層次 */
+.sidebar-submenu .sidebar-nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--admin-sidebar-hover);
+}
+
+/* 活動狀態下的小圓點 */
+.sidebar-submenu .sidebar-nav-link.active::before {
+  background-color: white;
+}
+
+/* 側邊欄菜單項目之間的間距 */
+.admin-sidebar .nav.flex-column > li {
+  margin-bottom: 0.25rem; /* 確保菜單項目之間有適當間距 */
+  position: relative; /* 添加相對定位 */
+}
+
+/* 確保子菜單邊框不會延伸到下一個菜單項 */
+.sidebar-submenu::before {
+  display: none; /* 隱藏偽元素 */
+}
+
+/* 給所有菜單項添加統一的過渡效果 */
+.sidebar-nav-link,
+.sidebar-nav-link span,
+.sidebar-submenu,
+.sidebar-chevron {
+  transition: all 0.3s ease;
+}
+
+/* 增強金流管理按鈕的可點擊區域 */
+.sidebar-nav-link[title='金流管理'],
+.finance-btn,
+.sidebar-nav-link[data-menu-item='金流管理'] {
+  position: relative;
+  z-index: 10 !important; /* 確保優先級最高 */
+  pointer-events: auto !important; /* 確保事件可以被捕獲 */
+}
+
+/* 修復側邊欄菜單項的層級和點擊區域 */
+.admin-sidebar .nav > li {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/* 確保子菜單不會遮擋父級菜單項的點擊區域 */
+.sidebar-submenu {
+  pointer-events: auto;
+  z-index: 4;
+}
+
+/* 導航鏈接文字與圖標的間距 */
+.sidebar-nav-link span:not(.sidebar-chevron) {
+  margin-left: 0.5rem;
+  transition: opacity 0.3s ease, margin 0.3s ease, transform 0.3s ease;
+}
+
+/* 導航鏈接懸停和活動狀態 */
 .sidebar-nav-link:hover {
   background-color: var(--admin-sidebar-hover);
   color: var(--admin-sidebar-text);
@@ -233,217 +475,84 @@
   color: white !important;
 }
 
-/* 確保折疊菜單按鈕和一般導航保持一致的樣式 */
-button.sidebar-nav-link {
-  appearance: none;
-  background: none;
+/* 導航文字容器 */
+.sidebar-nav-link span {
+  transition: opacity 0.3s ease, transform 0.3s ease, margin 0.3s ease;
+  opacity: 1;
+  flex-shrink: 0;
 }
 
-button.sidebar-nav-link:focus {
-  outline: none;
-}
-
-/* 菜單折疊箭頭樣式 */
+/* 收起箭頭圖標 */
 .sidebar-chevron {
-  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
 }
 
 .sidebar-chevron.expanded {
-  transform: rotate(90deg);
+  transform: rotate(180deg);
 }
 
-/* 子菜單項目樣式調整 */
-.sidebar-submenu {
-  margin-left: 1rem;
-  border-left: 1px solid var(--admin-sidebar-hover);
+/* 收合狀態下調整圖標和按鈕樣式 */
+.admin-sidebar.collapsed .sidebar-nav-link {
+  padding: 0.75rem 0;
+  justify-content: center;
+  text-align: center;
+  display: flex;
+  align-items: center;
 }
 
-.sidebar-submenu .sidebar-nav-link {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
+.admin-sidebar.collapsed .sidebar-nav-link span {
+  display: none;
 }
 
-/* 確保深色模式下，子菜單的顏色也正確 */
+/* 消除圖標右邊距 */
+.admin-sidebar.collapsed .sidebar-nav-link .sidebar-icon,
+.admin-sidebar.collapsed .sidebar-nav-link .icon-container {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+/* 圖標居中顯示 */
+.admin-sidebar.collapsed .icon-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+}
+
+/* 圖標容器基本樣式 */
+.sidebar-nav-link .icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+  position: relative;
+  left: 0; /* 確保始終靠左 */
+  transition: margin 0.3s ease;
+}
+
+/* 深色主題下子菜單樣式 */
 .dark-theme .sidebar-submenu {
-  border-left-color: var(--admin-sidebar-hover);
+  background-color: transparent;
 }
 
-/* 占位元素樣式 */
-.sidebar-placeholder {
-  min-height: 400px;
+/* 深色主題下子菜單項目前的小圓點 */
+.dark-theme .sidebar-submenu .sidebar-nav-link::before {
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
-/* 統一深色主題下的 Card 樣式 */
-.dark-theme .card {
-  background-color: var(--admin-card-bg);
-  border-color: var(--admin-card-border);
-  color: var(--admin-text-color);
-}
-
-.dark-theme .card-header {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-color: var(--admin-card-border);
-  color: var(--admin-text-color);
-}
-
-.dark-theme .card-footer {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-color: var(--admin-card-border);
-}
-
-/* 強制確保卡片文字在深色主題下的顏色 */
-.dark-theme .card .card-title,
-.dark-theme .card h5.card-title,
-.dark-theme [class*='card'] .card-title,
-body.dark-theme .card .card-title {
-  color: var(--admin-text-color) !important;
-  font-weight: 600 !important;
-}
-
-.dark-theme .card .card-text,
-.dark-theme .card p.card-text,
-.dark-theme [class*='card'] .card-text,
-body.dark-theme .card .card-text {
-  color: rgba(224, 224, 224, 0.85) !important;
-}
-
-/* 統一深色主題下的 Table 樣式 */
-.dark-theme .table {
-  color: var(--admin-text-color);
-}
-
-.dark-theme .table-hover tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark-theme .table thead th {
-  border-bottom-color: var(--admin-card-border);
-  background-color: rgba(0, 0, 0, 0.2);
-}
-
-.dark-theme .table-striped tbody tr:nth-of-type(odd) {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.dark-theme .table td,
-.dark-theme .table th {
-  border-top-color: var(--admin-card-border);
-}
-
-/* 統一深色主題下的表單控件樣式 */
-.dark-theme .form-control,
-.dark-theme .custom-select,
-.dark-theme .input-group-text {
-  background-color: var(--admin-card-bg);
-  border-color: var(--admin-card-border);
-  color: var(--admin-text-color);
-}
-
-.dark-theme .form-control:focus,
-.dark-theme .custom-select:focus {
-  background-color: var(--admin-card-bg);
-  border-color: var(--admin-sidebar-active);
-  color: var(--admin-text-color);
-  box-shadow: 0 0 0 0.2rem rgba(58, 142, 255, 0.25);
-}
-
-/* 統一深色主題下的按鈕樣式 */
-.dark-theme .btn-light {
-  background-color: #2c2c2c;
-  border-color: #444;
-  color: var(--admin-text-color);
-}
-
-.dark-theme .btn-light:hover {
-  background-color: #3c3c3c;
-  border-color: #555;
-  color: var(--admin-text-color);
-}
-
-/* 統一深色主題下的下拉菜單樣式 */
-.dark-theme .dropdown-menu {
-  background-color: var(--admin-card-bg);
-  border-color: var(--admin-card-border);
-  color: var(--admin-text-color);
-}
-
-.dark-theme .dropdown-item {
-  color: var(--admin-text-color);
-}
-
-.dark-theme .dropdown-item:hover,
-.dark-theme .dropdown-item:focus {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--admin-text-color);
-}
-
-.dark-theme .dropdown-item.active,
-.dark-theme .dropdown-item:active {
-  background-color: var(--admin-sidebar-active);
-  color: white;
-}
-
-.dark-theme .dropdown-header {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.dark-theme .dropdown-divider {
-  border-top-color: var(--admin-card-border);
-}
-
-/* 統一深色主題下的模態框樣式 */
-.dark-theme .modal-content {
-  background-color: var(--admin-card-bg);
-  border-color: var(--admin-card-border);
-  color: var(--admin-text-color);
-}
-
-.dark-theme .modal-header,
-.dark-theme .modal-footer {
-  border-color: var(--admin-card-border);
-}
-
-.dark-theme .close {
-  color: var(--admin-text-color);
-  text-shadow: none;
-}
-
-.dark-theme .close:hover {
-  color: white;
-}
-
-/* 統一深色主題下的分頁樣式 */
-.dark-theme .pagination .page-link {
-  background-color: var(--admin-card-bg);
-  border-color: var(--admin-card-border);
-  color: var(--admin-text-color);
-}
-
-.dark-theme .pagination .page-item.active .page-link {
-  background-color: var(--admin-sidebar-active);
-  border-color: var(--admin-sidebar-active);
-  color: white;
-}
-
-.dark-theme .pagination .page-item.disabled .page-link {
-  background-color: var(--admin-card-bg);
-  border-color: var(--admin-card-border);
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* 統一深色主題下的徽章樣式 */
-.dark-theme .badge-light {
-  background-color: #3c3c3c;
-  color: var(--admin-text-color);
-}
-
-.dark-theme .badge-secondary {
-  background-color: #555;
-}
-
-/* DataTable 特定樣式 */
-.dark-theme .data-table-container .sortable-column:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+/* 深色主題下活動狀態的小圓點 */
+.dark-theme .sidebar-submenu .sidebar-nav-link.active::before {
+  background-color: white;
 }
 
 /* 深色主題下的表格樣式 */
@@ -475,7 +584,7 @@ body.dark-theme .card .card-text {
 .dark-theme .btn-light {
   background-color: #2a2a2a;
   border-color: #444;
-  color: #e0e0e0;
+  color: var(--admin-text-color);
 }
 
 .dark-theme .btn-light:hover {
@@ -516,6 +625,7 @@ body.dark-theme .card .card-text {
 }
 
 .dark-theme .admin-footer {
+  border-top-color: var(--admin-footer-border);
   color: var(--admin-text-color);
 }
 
@@ -635,6 +745,7 @@ body.dark-theme .card .card-text {
 
 .dark-theme .data-table.table-striped tbody tr:nth-of-type(odd) td {
   background-color: transparent !important;
+  color: #e0e0e0 !important;
 }
 
 /* 可排序列標題懸停效果 */
@@ -660,104 +771,6 @@ body.dark-theme .card .card-text {
   background-color: var(--admin-sidebar-active);
   border-color: var(--admin-sidebar-active);
   color: white;
-}
-
-/* 基本的 DataTable 樣式 */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-/* 深色主題下的 DataTable 專用樣式 */
-.dark-theme .data-table-container {
-  background-color: var(--admin-card-bg);
-  color: #e0e0e0;
-}
-
-.dark-theme .data-table {
-  color: #e0e0e0 !important;
-  border-color: var(--admin-card-border);
-  background-color: var(--admin-card-bg);
-}
-
-/* 覆蓋 Bootstrap 的表格樣式 */
-.dark-theme .table-dark,
-.dark-theme .table-dark > th,
-.dark-theme .table-dark > td,
-.dark-theme .table-striped > tbody > tr:nth-of-type(odd),
-.dark-theme .table-hover > tbody > tr:hover {
-  --bs-table-bg: var(--admin-card-bg);
-  --bs-table-striped-bg: rgba(255, 255, 255, 0.05);
-  --bs-table-hover-bg: rgba(255, 255, 255, 0.08);
-  --bs-table-color: #e0e0e0;
-  --bs-table-border-color: var(--admin-card-border);
-}
-
-/* 表頭樣式 */
-.dark-theme .data-table thead th {
-  background-color: #2c2c2c !important;
-  border-bottom-color: var(--admin-card-border) !important;
-  color: var(--admin-text-color) !important;
-}
-
-/* 表格行樣式 */
-.dark-theme .data-table tbody tr {
-  background-color: var(--admin-card-bg);
-  color: #e0e0e0 !important;
-}
-
-/* 表格行懸停效果 */
-.dark-theme .data-table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  color: #ffffff !important;
-}
-
-/* 表格單元格樣式 */
-.dark-theme .data-table td {
-  background-color: transparent !important;
-  border-top-color: var(--admin-card-border);
-  color: #e0e0e0 !important;
-}
-
-/* 表格條紋效果 */
-.dark-theme .data-table.table-striped tbody tr:nth-of-type(odd) {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-.dark-theme .data-table.table-striped tbody tr:nth-of-type(odd) td {
-  background-color: transparent !important;
-  color: #e0e0e0 !important;
-}
-
-/* 可排序列標題懸停效果 */
-.dark-theme .data-table .sortable-column:hover {
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  color: #ffffff !important;
-}
-
-/* 空資料提示文字 */
-.dark-theme .data-table .text-center {
-  color: #a0a0a0 !important;
-}
-
-/* 表單控件樣式 */
-.dark-theme .data-table-container .form-control {
-  background-color: var(--admin-card-bg);
-  border-color: var(--admin-card-border);
-  color: #e0e0e0;
-}
-
-/* 分頁控件樣式 */
-.dark-theme .data-table-container .pagination .page-link {
-  background-color: var(--admin-card-bg);
-  border-color: var(--admin-card-border);
-  color: #e0e0e0;
-}
-
-.dark-theme .data-table-container .pagination .page-item.active .page-link {
-  background-color: var(--admin-sidebar-active);
-  border-color: var(--admin-sidebar-active);
-  color: #ffffff;
 }
 
 /* 分頁信息文字 */
@@ -886,4 +899,488 @@ body.dark-theme .card .card-text {
 
 .dark-theme .forum-dashboard-page .card.bg-dark .small.text-muted {
   color: #adb5bd !important; /* 確保深色主題下小文字仍然可見 */
+}
+
+/* 添加新的內容區域樣式 */
+.content-area {
+  min-height: 0; /* 允許基於內容靈活增長 */
+  width: 100%;
+}
+
+/* ============= 統一後台樣式 ============= */
+
+/* 統一頁面標題樣式 */
+.admin-page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--admin-text-color);
+  margin-bottom: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark-theme .admin-page-title {
+  color: rgba(255, 255, 255, 0.9);
+  border-bottom-color: var(--admin-header-border);
+}
+
+/* 頁面標題容器 - 確保標題和動作按鈕的一致對齊 */
+.admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  flex-wrap: nowrap;
+  border-bottom: 1px solid var(--admin-header-border);
+  padding-bottom: 0.75rem;
+}
+
+.admin-page-header .page-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  min-width: 100px;
+  margin-left: 1rem;
+}
+
+/* 確保在所有頁面上的按鈕樣式一致 */
+.page-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  min-width: 100px;
+  height: 38px;
+}
+
+/* 設定 btn 內圖標的間距和對齊 */
+.btn svg {
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* 頁面區塊 - 確保所有section有一致的間距和樣式 */
+.admin-section {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.admin-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--admin-text-color);
+  margin-bottom: 1rem;
+}
+
+.dark-theme .admin-section-title {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 確保所有使用統一布局的頁面有一致的邊距 */
+.admin-layout-container {
+  padding: 0.75rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .admin-page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .admin-layout-container {
+    padding: 0.5rem;
+  }
+
+  .admin-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .admin-page-header .page-actions {
+    width: 100%;
+    margin-top: 0.5rem;
+    justify-content: flex-start;
+  }
+
+  /* 在移動裝置上確保按鈕有足夠的空間 */
+  .page-actions .btn {
+    padding: 0.5rem 0.75rem;
+    min-width: auto;
+  }
+}
+
+/* 統一卡片樣式 */
+.admin-card {
+  background-color: var(--admin-card-bg);
+  border-radius: 0.5rem;
+  border: 1px solid var(--admin-card-border);
+  box-shadow: 0 2px 8px var(--admin-shadow);
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+  height: 100%;
+  overflow: hidden;
+  color: var(--admin-text-color);
+}
+
+.admin-card:hover {
+  box-shadow: 0 4px 12px var(--admin-shadow);
+  transform: translateY(-2px);
+}
+
+.admin-card .card-header {
+  padding: 0.75rem 1rem;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid var(--admin-card-border);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--admin-text-color);
+}
+
+.admin-card .card-body {
+  padding: 1rem; /* 減少卡片內部間距，從默認的 1.25rem 減少到 1rem */
+  height: calc(100% - 56px);
+  color: var(--admin-text-color);
+}
+
+.admin-card .card-footer {
+  padding: 0.75rem 1rem;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-top: 1px solid var(--admin-card-border);
+}
+
+/* 統計卡片樣式 */
+.dashboard-card {
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px var(--admin-shadow);
+  transition: all 0.2s ease;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--admin-card-border);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px var(--admin-shadow);
+}
+
+.dashboard-card .text-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.dashboard-card h5 {
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin-bottom: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: var(--admin-text-color);
+}
+
+.dashboard-icon {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  min-height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1rem;
+  flex-shrink: 0;
+  color: white;
+}
+
+/* 卡片網格布局 */
+.stats-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .admin-page-title {
+    margin-bottom: 1rem;
+  }
+
+  .stats-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-card {
+    margin-bottom: 1rem;
+  }
+
+  .dashboard-card h3 {
+    font-size: 1.25rem;
+  }
+
+  .dashboard-icon {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+  }
+}
+
+/* 深色主題卡片適配 */
+.dark-theme .admin-card {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dark-theme .admin-card .card-header,
+.dark-theme .admin-card .card-footer {
+  border-color: var(--admin-card-border);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dark-theme .admin-card .card-body {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dark-theme .dashboard-card h5 {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dark-theme .dashboard-card .text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.dark-theme .chart-container .card-header {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 確保圖表在深色模式下可見 */
+.dark-theme .chart-container canvas {
+  filter: brightness(0.95) contrast(1.05);
+}
+
+/* 深色模式下的標籤和徽章 */
+.dark-theme .badge {
+  border: none;
+}
+
+/* 表格在深色模式下的樣式 */
+.dark-theme .table {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dark-theme .table thead th {
+  border-bottom-color: var(--admin-card-border);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 統一圖表容器 */
+.chart-container {
+  background-color: var(--admin-card-bg);
+  border-radius: 0.5rem;
+  border: 1px solid var(--admin-card-border);
+  box-shadow: 0 2px 8px var(--admin-shadow);
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+  height: 100%;
+  overflow: hidden;
+  min-height: 300px;
+  margin-bottom: 1.5rem;
+}
+
+.chart-container .card-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-text-color);
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid var(--admin-card-border);
+}
+
+/* 確保管理後台的所有容器都有完整高度 */
+html,
+body {
+  height: 100%;
+}
+
+/* 儀表板統計數據包裝器 */
+.dashboard-stat-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+/* 儀表板統計數值樣式 */
+.dashboard-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* 儀表板增長百分比標籤 */
+.dashboard-stat-badge {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* 成功和危險狀態的標籤顏色 */
+.dashboard-stat-badge.text-bg-success {
+  background-color: var(--bs-success);
+  color: white;
+}
+
+.dashboard-stat-badge.text-bg-danger {
+  background-color: var(--bs-danger);
+  color: white;
+}
+
+/* 深色模式下的統計數據樣式 */
+.dark-theme .dashboard-stat-value {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.dark-theme .dashboard-stat-badge {
+  /* 深色模式下的標籤已有默認樣式，無需額外設定 */
+}
+
+/* 歡迎警告框樣式 */
+.alert-info {
+  position: relative;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  background-color: #cff4fc;
+  color: #055160;
+  border: 1px solid #b6effb;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dark-theme .alert-info {
+  background-color: #0d3c45;
+  color: #9ee8f3;
+  border-color: #056170;
+}
+
+.alert-info p {
+  margin-bottom: 0;
+  padding-right: 1rem;
+}
+
+.alert-info .btn-close {
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  background-color: transparent;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  font-size: 1.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alert-info .btn-close:hover {
+  opacity: 1;
+}
+
+.dark-theme .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* 在移動裝置上的調整 */
+@media (max-width: 576px) {
+  .alert-info {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 2.5rem;
+  }
+
+  .alert-info .btn-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
+/* 子菜單展開狀態 */
+.sidebar-submenu.expanded {
+  max-height: 500px; /* 足夠大的高度以容納內容 */
+  opacity: 1;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* 側邊欄折疊時隱藏子菜單 */
+.admin-sidebar.collapsed .sidebar-submenu {
+  display: none;
+}
+
+/* 確保折疊菜單按鈕和一般導航保持一致的樣式 */
+button.sidebar-nav-link {
+  appearance: none;
+  background: none;
+}
+
+button.sidebar-nav-link:focus {
+  outline: none;
+}
+
+/* 子菜單項目樣式調整，確保與父級一致的高度和對齊 */
+.sidebar-submenu .sidebar-nav-link {
+  padding: 0.5rem 0.75rem 0.5rem 1.5rem; /* 增加左邊距以表示層級關係 */
+  font-size: 0.9em;
+  height: 38px; /* 稍微調整子菜單項目的高度 */
+  position: relative; /* 添加相對定位 */
+  z-index: 2; /* 確保高於邊框線 */
+}
+
+/* 修復最後一個子菜單項目的邊界問題 */
+.sidebar-submenu li:last-child .sidebar-nav-link {
+  margin-bottom: 0;
+}
+
+/* 解決選擇器衝突問題，全局重置 */
+.admin-sidebar button,
+.admin-sidebar a {
+  pointer-events: auto !important;
+}
+
+/* 特別處理金流管理按鈕 */
+.admin-sidebar [data-menu-item='金流管理'],
+.admin-sidebar .finance-btn {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 20 !important;
+}
+
+/* 確保所有菜單項的點擊區域不受干擾 */
+.admin-sidebar .nav.flex-column > li {
+  position: relative;
+  z-index: auto;
+  margin-bottom: 0.25rem;
+}
+
+/* 確保子菜單不會擋住父菜單的點擊區域 */
+.sidebar-submenu {
+  z-index: 1;
+  position: relative;
 }

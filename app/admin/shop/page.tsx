@@ -8,6 +8,10 @@ import ModalForm from '@/app/admin/_components/ModalForm'
 import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '../ThemeContext'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '../_components/AdminPageLayout'
 
 // 模擬商品數據
 const MOCK_PRODUCTS = [
@@ -295,71 +299,45 @@ export default function ProductsPage() {
   )
 
   return (
-    <div className="products-page">
-      <Row className="mb-4">
-        <Col>
-          <h2 className="mb-4">商品管理</h2>
-
-          <Row className="mb-4">
-            <Col md={6} lg={3} className="mb-3">
-              <Card
-                className={`h-100 ${isDarkMode ? 'bg-dark text-light' : ''}`}
-              >
-                <Card.Body className="d-flex align-items-center">
-                  <div className="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                    <Package size={24} className="text-primary" />
-                  </div>
-                  <div>
-                    <h6 className="mb-0">總商品數</h6>
-                    <h3 className="mb-0">{products.length}</h3>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={6} lg={3} className="mb-3">
-              <Card
-                className={`h-100 ${isDarkMode ? 'bg-dark text-light' : ''}`}
-              >
-                <Card.Body className="d-flex align-items-center">
-                  <div className="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                    <Tag size={24} className="text-success" />
-                  </div>
-                  <div>
-                    <h6 className="mb-0">上架商品</h6>
-                    <h3 className="mb-0">
-                      {products.filter((p) => p.status === 'active').length}
-                    </h3>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-
-          <Card>
-            <Card.Header className="d-flex justify-content-between align-items-center">
-              <div>商品列表</div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleAddProduct}
-                className="d-flex align-items-center"
-              >
-                <Plus size={16} className="me-1" /> 新增商品
-              </Button>
-            </Card.Header>
-            <Card.Body>
-              <DataTable
-                columns={columns}
-                data={products}
-                searchable={true}
-                searchKeys={['name', 'category']}
-                actions={renderActions}
-                onRowClick={handleViewProduct}
-              />
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+    <AdminPageLayout
+      title="商品管理"
+      actions={
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleAddProduct}
+          className="d-flex align-items-center"
+        >
+          <Plus size={16} className="me-1" /> 新增商品
+        </Button>
+      }
+      stats={[
+        {
+          title: '總商品數',
+          count: products.length,
+          color: 'primary',
+          icon: <Package size={24} />,
+        },
+        {
+          title: '上架商品',
+          count: products.filter((p) => p.status === 'active').length,
+          color: 'success',
+          icon: <Tag size={24} />,
+        },
+      ]}
+    >
+      <AdminSection>
+        <AdminCard title="商品列表">
+          <DataTable
+            columns={columns}
+            data={products}
+            searchable={true}
+            searchKeys={['name', 'category']}
+            actions={renderActions}
+            onRowClick={handleViewProduct}
+          />
+        </AdminCard>
+      </AdminSection>
 
       {/* 商品表單模態框 */}
       <ModalForm
@@ -371,6 +349,6 @@ export default function ProductsPage() {
         initialData={currentProduct}
         submitText={modalMode === 'add' ? '新增' : '更新'}
       />
-    </div>
+    </AdminPageLayout>
   )
 }

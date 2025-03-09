@@ -2,12 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import { Card, Button, Row, Col } from 'react-bootstrap'
-import { Plus, Edit, Trash, Eye } from 'lucide-react'
+import { Plus, Edit, Trash, Eye, Users } from 'lucide-react'
 import DataTable from '@/app/admin/_components/DataTable'
 import ModalForm from '@/app/admin/_components/ModalForm'
 import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '@/app/admin/_components/AdminPageLayout'
 
 // 模擬會員數據
 const MOCK_MEMBERS = [
@@ -283,35 +287,31 @@ export default function MembersPage() {
   )
 
   return (
-    <div className="members-page">
-      <Row className="mb-4">
-        <Col>
-          <h2 className="mb-4">會員管理</h2>
-          <Card>
-            <Card.Header className="d-flex justify-content-between align-items-center">
-              <div>會員列表</div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleAddMember}
-                className="d-flex align-items-center"
-              >
-                <Plus size={16} className="me-1" /> 新增會員
-              </Button>
-            </Card.Header>
-            <Card.Body>
-              <DataTable
-                columns={columns}
-                data={members}
-                searchable={true}
-                searchKeys={['name', 'email', 'phone']}
-                actions={renderActions}
-                onRowClick={handleViewMember}
-              />
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+    <AdminPageLayout
+      title="會員管理"
+      actions={
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleAddMember}
+          className="d-flex align-items-center"
+        >
+          <Plus size={16} className="me-1" /> 新增會員
+        </Button>
+      }
+    >
+      <AdminSection>
+        <AdminCard title="會員列表">
+          <DataTable
+            columns={columns}
+            data={members}
+            searchable={true}
+            searchKeys={['name', 'email', 'phone']}
+            actions={renderActions}
+            onRowClick={handleViewMember}
+          />
+        </AdminCard>
+      </AdminSection>
 
       {/* 會員表單模態框 */}
       <ModalForm
@@ -323,6 +323,6 @@ export default function MembersPage() {
         initialData={currentMember}
         submitText={modalMode === 'add' ? '新增' : '更新'}
       />
-    </div>
+    </AdminPageLayout>
   )
 }
