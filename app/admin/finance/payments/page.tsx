@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   Card,
   Row,
@@ -14,7 +14,7 @@ import {
 import {
   CreditCard,
   Smartphone,
-  Bank,
+  BanknoteIcon,
   Plus,
   Edit2,
   Trash2,
@@ -22,8 +22,8 @@ import {
   X,
 } from 'lucide-react'
 import { useTheme } from '@/app/admin/ThemeContext'
-import { useToast } from '@/app/admin/components/Toast'
-import { useConfirm } from '@/app/admin/components/ConfirmDialog'
+import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 
 // 模擬支付方式數據
 const MOCK_PAYMENT_METHODS = [
@@ -77,6 +77,33 @@ const MOCK_PAYMENT_METHODS = [
   },
 ]
 
+// 支付類型定義
+type PaymentType = 'credit_card' | 'mobile_payment' | 'bank_transfer'
+
+// 支付方式介面
+interface PaymentMethod {
+  id: number
+  name: string
+  type: PaymentType
+  provider: string
+  fee_rate: number
+  fee_fixed: number
+  min_amount: number
+  max_amount: number
+  status: 'active' | 'inactive'
+  settings: {
+    api_key?: string
+    secret_key?: string
+    webhook_url?: string
+    channel_id?: string
+    channel_secret?: string
+    bank_name?: string
+    account_name?: string
+    account_number?: string
+  }
+}
+
+// 支付類型選項
 const PAYMENT_TYPES = [
   {
     value: 'credit_card',
@@ -91,15 +118,18 @@ const PAYMENT_TYPES = [
   {
     value: 'bank_transfer',
     label: '銀行轉帳',
-    icon: Bank,
+    icon: BanknoteIcon,
   },
 ]
 
 export default function PaymentsPage() {
-  const [paymentMethods, setPaymentMethods] = useState(MOCK_PAYMENT_METHODS)
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(
+    MOCK_PAYMENT_METHODS as PaymentMethod[]
+  )
   const [showModal, setShowModal] = useState(false)
-  const [editingMethod, setEditingMethod] = useState<any>(null)
-  const [formData, setFormData] = useState({
+  const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null)
+  const [formData, setFormData] = useState<PaymentMethod>({
+    id: 0,
     name: '',
     type: 'credit_card',
     provider: '',
@@ -108,13 +138,22 @@ export default function PaymentsPage() {
     min_amount: 0,
     max_amount: 0,
     status: 'active',
-    settings: {},
+    settings: {
+      api_key: '',
+      secret_key: '',
+      webhook_url: '',
+      channel_id: '',
+      channel_secret: '',
+      bank_name: '',
+      account_name: '',
+      account_number: '',
+    },
   })
   const { isDarkMode } = useTheme()
   const { showToast } = useToast()
   const { confirm } = useConfirm()
 
-  const handleShowModal = (method?: any) => {
+  const handleShowModal = (method?: PaymentMethod) => {
     if (method) {
       setEditingMethod(method)
       setFormData({
@@ -124,6 +163,7 @@ export default function PaymentsPage() {
     } else {
       setEditingMethod(null)
       setFormData({
+        id: 0,
         name: '',
         type: 'credit_card',
         provider: '',
@@ -132,7 +172,16 @@ export default function PaymentsPage() {
         min_amount: 0,
         max_amount: 0,
         status: 'active',
-        settings: {},
+        settings: {
+          api_key: '',
+          secret_key: '',
+          webhook_url: '',
+          channel_id: '',
+          channel_secret: '',
+          bank_name: '',
+          account_name: '',
+          account_number: '',
+        },
       })
     }
     setShowModal(true)
@@ -142,6 +191,7 @@ export default function PaymentsPage() {
     setShowModal(false)
     setEditingMethod(null)
     setFormData({
+      id: 0,
       name: '',
       type: 'credit_card',
       provider: '',
@@ -150,27 +200,43 @@ export default function PaymentsPage() {
       min_amount: 0,
       max_amount: 0,
       status: 'active',
-      settings: {},
+      settings: {
+        api_key: '',
+        secret_key: '',
+        webhook_url: '',
+        channel_id: '',
+        channel_secret: '',
+        bank_name: '',
+        account_name: '',
+        account_number: '',
+      },
     })
   }
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  // 通用 onChange 處理函數，支持 react-bootstrap Form 組件
+  const handleChange = (e: React.ChangeEvent<any>) => {
     const { name, value } = e.target
-    if (name.startsWith('settings.')) {
+    if (name && name.startsWith('settings.')) {
       const settingKey = name.split('.')[1]
+      if (settingKey) {
+        setFormData((prev) => ({
+          ...prev,
+          settings: {
+            ...prev.settings,
+            [settingKey]: value,
+          },
+        }))
+      }
+    } else if (name) {
       setFormData((prev) => ({
         ...prev,
-        settings: {
-          ...prev.settings,
-          [settingKey]: value,
-        },
-      }))
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
+        [name]:
+          name === 'fee_rate' ||
+          name === 'fee_fixed' ||
+          name === 'min_amount' ||
+          name === 'max_amount'
+            ? parseFloat(value) || 0
+            : value,
       }))
     }
   }
@@ -180,6 +246,7 @@ export default function PaymentsPage() {
     // 模擬API請求
     setTimeout(() => {
       if (editingMethod) {
+        // 更新現有支付方式
         setPaymentMethods((prev) =>
           prev.map((method) =>
             method.id === editingMethod.id
@@ -189,17 +256,16 @@ export default function PaymentsPage() {
         )
         showToast('success', '更新成功', '支付方式已成功更新')
       } else {
-        setPaymentMethods((prev) => [
-          ...prev,
-          { ...formData, id: prev.length + 1 },
-        ])
+        // 新增支付方式
+        const newId = Math.max(...paymentMethods.map((m) => m.id), 0) + 1
+        setPaymentMethods((prev) => [...prev, { ...formData, id: newId }])
         showToast('success', '新增成功', '支付方式已成功新增')
       }
       handleCloseModal()
     }, 500)
   }
 
-  const handleDelete = (method: any) => {
+  const handleDelete = (method: PaymentMethod) => {
     confirm({
       title: '刪除支付方式',
       message: `確定要刪除支付方式「${method.name}」嗎？此操作無法撤銷。`,
@@ -215,7 +281,7 @@ export default function PaymentsPage() {
     })
   }
 
-  const handleToggleStatus = (method: any) => {
+  const handleToggleStatus = (method: PaymentMethod) => {
     // 模擬API請求
     setTimeout(() => {
       setPaymentMethods((prev) =>
@@ -237,12 +303,16 @@ export default function PaymentsPage() {
   }
 
   const getPaymentTypeIcon = (type: string) => {
-    const paymentType = PAYMENT_TYPES.find((t) => t.value === type)
-    if (paymentType) {
-      const Icon = paymentType.icon
-      return <Icon size={20} className="me-2" />
+    switch (type) {
+      case 'credit_card':
+        return <CreditCard size={20} className="me-2" />
+      case 'mobile_payment':
+        return <Smartphone size={20} className="me-2" />
+      case 'bank_transfer':
+        return <BanknoteIcon size={20} className="me-2" />
+      default:
+        return <CreditCard size={20} className="me-2" />
     }
-    return null
   }
 
   const renderSettingsFields = () => {
@@ -358,7 +428,7 @@ export default function PaymentsPage() {
   }
 
   return (
-    <div className="payments-page">
+    <div className="payments-page p-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>支付管理</h2>
         <Button variant="primary" onClick={() => handleShowModal()}>

@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { Card, Button, Row, Col, Badge, Image } from 'react-bootstrap'
 import { Plus, Edit, Trash, Eye, Tag, Package } from 'lucide-react'
-import DataTable from '../components/DataTable'
-import ModalForm from '../components/ModalForm'
-import { useToast } from '../components/Toast'
-import { useConfirm } from '../components/ConfirmDialog'
+import DataTable from '@/app/admin/_components/DataTable'
+import ModalForm from '@/app/admin/_components/ModalForm'
+import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '../ThemeContext'
 
 // 模擬商品數據

@@ -20,11 +20,11 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react'
-import { useToast } from '@/app/admin/components/Toast'
-import { useConfirm } from '@/app/admin/components/ConfirmDialog'
+import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
 import Link from 'next/link'
-import DataTable from '@/app/admin/components/DataTable'
+import DataTable from '@/app/admin/_components/DataTable'
 
 // 模擬文章數據
 const MOCK_ARTICLES = [
