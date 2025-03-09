@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react'
 import { Card, Button, Row, Col } from 'react-bootstrap'
 import { Plus, Edit, Trash, Eye } from 'lucide-react'
-import DataTable from '../components/DataTable'
-import ModalForm from '../components/ModalForm'
-import { useToast } from '../components/Toast'
-import { useConfirm } from '../components/ConfirmDialog'
-import { useTheme } from '../ThemeContext'
+import DataTable from '@/app/admin/_components/DataTable'
+import ModalForm from '@/app/admin/_components/ModalForm'
+import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
+import { useTheme } from '@/app/admin/ThemeContext'
 
 // 模擬會員數據
 const MOCK_MEMBERS = [
@@ -64,6 +64,12 @@ const STATUS_OPTIONS = [
   { value: 'inactive', label: '未啟用' },
   { value: 'blocked', label: '已封鎖' },
 ]
+
+// 表單字段驗證
+const phoneValidation = (value: string) => {
+  const phoneRegex = /^[0-9-]{10,}$/ // 移除了不必要的反斜線
+  return phoneRegex.test(value) ? null : '請輸入有效的電話號碼'
+}
 
 export default function MembersPage() {
   const [members, setMembers] = useState(MOCK_MEMBERS)
@@ -149,10 +155,7 @@ export default function MembersPage() {
       type: 'text' as const,
       required: true,
       placeholder: '請輸入電話號碼',
-      validation: (value: string) => {
-        const phoneRegex = /^[0-9\-]{10,}$/
-        return phoneRegex.test(value) ? null : '請輸入有效的電話號碼'
-      },
+      validation: phoneValidation,
     },
     {
       name: 'status',
@@ -206,24 +209,46 @@ export default function MembersPage() {
 
   // 處理表單提交
   const handleSubmit = async (formData: Record<string, any>) => {
-    // 模擬API請求延遲
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      // 模擬API請求延遲
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    if (modalMode === 'add') {
-      // 模擬新增會員
-      const newMember = {
-        id: Math.max(...members.map((m) => m.id)) + 1,
-        ...formData,
-        lastLogin: new Date().toISOString().split('T')[0],
+      if (modalMode === 'add') {
+        // 模擬新增會員API請求
+        // 只是Demo，所以直接新增到本地狀態
+        const newMember = {
+          id: Math.max(...members.map((m) => m.id)) + 1,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          status: formData.status,
+          registeredAt: new Date().toISOString().split('T')[0],
+          lastLogin: new Date().toISOString().split('T')[0],
+        }
+        setMembers((prev) => [...prev, newMember])
+        showToast('success', '新增成功', `會員 ${formData.name} 已成功新增`)
+      } else {
+        // 模擬更新會員API請求
+        setMembers((prev) =>
+          prev.map((m) => {
+            if (m.id === currentMember.id) {
+              return {
+                ...m,
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                status: formData.status,
+              }
+            }
+            return m
+          })
+        )
+        showToast('success', '更新成功', `會員 ${formData.name} 資料已成功更新`)
       }
-      setMembers((prev) => [...prev, newMember])
-      showToast('success', '新增成功', `會員 ${formData.name} 已成功新增`)
-    } else {
-      // 模擬更新會員
-      setMembers((prev) =>
-        prev.map((m) => (m.id === currentMember.id ? { ...m, ...formData } : m))
-      )
-      showToast('success', '更新成功', `會員 ${formData.name} 資料已成功更新`)
+      setShowModal(false)
+    } catch (error) {
+      console.error('處理會員表單時發生錯誤', error)
+      showToast('error', '處理失敗', '發生錯誤，請稍後再試')
     }
   }
 

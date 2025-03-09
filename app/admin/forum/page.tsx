@@ -206,7 +206,7 @@ export default function ForumDashboardPage() {
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h6 className="mb-0 text-muted">總文章數</h6>
+                  <h6 className="mb-0">總文章數</h6>
                   <h2 className="mt-2 mb-0">{MOCK_STATS.total_articles}</h2>
                 </div>
                 <div className="bg-primary bg-opacity-10 p-3 rounded">
@@ -224,7 +224,7 @@ export default function ForumDashboardPage() {
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h6 className="mb-0 text-muted">總檢舉數</h6>
+                  <h6 className="mb-0">總檢舉數</h6>
                   <h2 className="mt-2 mb-0">{MOCK_STATS.total_reports}</h2>
                 </div>
                 <div className="bg-danger bg-opacity-10 p-3 rounded">
@@ -242,7 +242,7 @@ export default function ForumDashboardPage() {
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h6 className="mb-0 text-muted">總評論數</h6>
+                  <h6 className="mb-0">總評論數</h6>
                   <h2 className="mt-2 mb-0">{MOCK_STATS.total_comments}</h2>
                 </div>
                 <div className="bg-info bg-opacity-10 p-3 rounded">
@@ -260,7 +260,7 @@ export default function ForumDashboardPage() {
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h6 className="mb-0 text-muted">活躍用戶</h6>
+                  <h6 className="mb-0">活躍用戶</h6>
                   <h2 className="mt-2 mb-0">{MOCK_STATS.active_users}</h2>
                 </div>
                 <div className="bg-success bg-opacity-10 p-3 rounded">
