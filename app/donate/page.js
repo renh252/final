@@ -2,17 +2,33 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import styles from './donate.module.css'
-import Dropdown from './_components/options'
 import Link from 'next/link'
 
-export default function DonatePage(props) {
-  const [activeSection, setActiveSection] = useState('method') // 用來儲存顯示的區塊
+import styles from './donate.module.css'
 
-  const handleButtonClick = (section) => {
-    // 當點擊按鈕時，更新 activeSection 來顯示對應的區塊
-    setActiveSection(section)
-  }
+import Dropdown from './_components/options'
+import MethodItem from './_components/methodItem'
+
+import Contents from './_data/Contents'
+
+export default function DonatePage() {
+  const [activeSection, setActiveSection] = useState('method') // 控制主選單（捐款方式/種類說明）
+  const [selectedMethod, setSelectedMethod] = useState('credit_card') // 控制捐款方式內的按鈕
+  const [activeButton, setActiveButton] = useState('method') // 初始選擇 'method' 或其他默認值
+
+  const cards = ['jcb', 'mastercard', 'visa']
+  const sections = [
+    { id: 'credit_card', label: '信用卡' },
+    { id: 'bank_atm', label: '銀行ATM' },
+    { id: 'post_office', label: '郵局' },
+    { id: 'faq', label: 'FAQ' },
+  ]
+  const sections2 = [
+    { id: 'rescue', label: '醫療救援' },
+    { id: 'pets', label: '線上認養' },
+    { id: 'expenditure', label: '平台支出' },
+  ]
+
   return (
     <>
       <div className={styles.donate_container}>
@@ -37,38 +53,27 @@ export default function DonatePage(props) {
                 🌟 您的愛心，可以讓牠們擁有新希望！
               </p>
             </li>
-            <li style={{ display: 'flex', 'align-items': 'center' }}>
-              <h5 style={{ 'margin-right': '5px' }}>支援付款方式</h5>
-              <Image
-                src="/images/credit_card/jcb.png"
-                alt="jcb.png"
-                width={45}
-                height={29}
-                className={styles.li_image}
-              ></Image>
-              <Image
-                src="/images/credit_card/mastercard.png"
-                alt="mastercard.png"
-                width={45}
-                height={29}
-                className={styles.li_image}
-              ></Image>
-              <Image
-                src="/images/credit_card/visa.png"
-                alt="visa.png"
-                width={45}
-                height={29}
-                className={styles.li_image}
-              ></Image>
+            <li style={{ display: 'flex', alignItems: 'center' }}>
+              <h5 style={{ marginRight: '5px' }}>支援付款方式</h5>
+              {cards.map((card) => (
+                <Image
+                  key={card}
+                  src={`/images/credit_card/${card}.png`}
+                  alt={card}
+                  width={45}
+                  height={29}
+                  className={styles.li_image}
+                />
+              ))}
             </li>
-            <li style={{ display: 'flex', 'align-items': 'center' }}>
-              <h5 style={{ 'margin-right': '5px' }}>選擇捐款種類</h5>
+            <li style={{ display: 'flex', alignItems: 'center' }}>
+              <h5 style={{ marginRight: '5px' }}>選擇捐款種類</h5>
               <Dropdown />
             </li>
-            <li style={{ display: 'flex', 'justify-content': 'end' }}>
+            <li style={{ display: 'flex', justifyContent: 'end' }}>
               <button
-                class="button"
-                style={{ width: '120px', height: '50px', 'font-size': '28px' }}
+                className="button"
+                style={{ width: '120px', height: '50px', fontSize: '28px' }}
               >
                 <Link href="/donate/flow">捐款</Link>
               </button>
@@ -76,186 +81,110 @@ export default function DonatePage(props) {
           </ul>
         </div>
       </div>
+
+      {/* 捐款方式與種類說明按鈕 */}
       <div>
         <ul className={styles.ul2}>
-          <li>
-            <button
-              class="button"
-              type="button"
-              onClick={() => handleButtonClick('method')}
-            >
-              捐款方式
-            </button>
-          </li>
-          <li>
-            <button
-              class="button"
-              type="button"
-              onClick={() => handleButtonClick('instructions')}
-            >
-              種類說明
-            </button>
-          </li>
+          {['method', 'instructions'].map((section) => (
+            <li key={section}>
+              <button
+                className="button"
+                onClick={() => {
+                  setActiveSection(section)
+                  setActiveButton(section) // 改變選擇的按鈕}}
+                }}
+                style={{
+                  backgroundColor:
+                    activeButton === section ? '#cda274' : '#003459', // 點擊後的顏色變化
+                  width: '160px',
+                  fontSize: '24px',
+                }}
+              >
+                {section === 'method' ? '捐款方式' : '種類說明'}
+              </button>
+            </li>
+          ))}
         </ul>
       </div>
-      <div className={styles.donate_container2}>
-        {/* 顯示 "捐款方式" 區塊 */}
-        {activeSection === 'method' && (
-          <div>
+
+      {/* 捐款方式內容 */}
+      {activeSection === 'method' ? (
+        <>
+          {/* 捐款方式按鈕 */}
+          <div className={styles.donate_container2}>
             <ul className={styles.ul2}>
-              <li>
-                <button class="button" type="button">
-                  信用卡
-                </button>
-              </li>
-              <li>
-                <button class="button" type="button">
-                  銀行ATM
-                </button>
-              </li>
-              <li>
-                <button class="button" type="button">
-                  郵局
-                </button>
-              </li>
-              <li>
-                <button class="button" type="button">
-                  FAQ
-                </button>
-              </li>
+              {sections.map(({ id, label }) => (
+                <li key={id}>
+                  <button
+                    className="button"
+                    onClick={() => setSelectedMethod(id)}
+                  >
+                    {label}
+                  </button>
+                </li>
+              ))}
             </ul>
+            {Contents[selectedMethod]?.map((item, index) => (
+              <MethodItem
+                key={index}
+                imgSrc={item.imgSrc}
+                alt={item.alt}
+                title={item.title}
+                description={item.description}
+              />
+            ))}
           </div>
-        )}
-        {/* 顯示 "種類說明" 區塊 */}
-        {activeSection === 'instructions' && (
-          <div>
+        </>
+      ) : (
+        <>
+          {/* 種類說明內容 */}
+          <div className={styles.donate_container2}>
             <ul className={styles.ul2}>
-              <li>
-                <button class="button" type="button">
-                  救援醫療
-                </button>
-              </li>
-              <li>
-                <button class="button" type="button">
-                  線上認養
-                </button>
-              </li>
-              <li>
-                <button class="button" type="button">
-                  支出一覽
-                </button>
-              </li>
+              {sections2.map(({ id, label }) => (
+                <li key={id}>
+                  <button
+                    className="button"
+                    onClick={() => setSelectedMethod(id)}
+                  >
+                    {label}
+                  </button>
+                </li>
+              ))}
             </ul>
-          </div>
-        )}
-        {activeSection === 'method' && (
-          <>
             <div>
-              <div className={styles.method_item}>
-                <div className={styles.icon}>
-                  <Image
-                    src="images/donate/icon/card1.png"
-                    alt="card1.png"
-                    width={150}
-                    height={150}
-                  ></Image>
+              <div className={styles.instructions_item}>
+                <div className={styles.instructions_content}>
+                  <h2>救援行動流程</h2>
+                  <h5>請您加入捐款支持我們，讓我們能持續這份神聖使命。</h5>
                 </div>
-                <div className={styles.content}>
-                  <h5>支援信用卡付款</h5>
-                  <p>
-                    支援VISA/MASTER/JCB等發卡組織，方便您快速進行付款。
-                    每筆手續費為捐款金額的2.75%，由本會負擔。
-                  </p>
-                </div>
+                <Image
+                  src="/images/donate/RescueFollowups.jpg"
+                  alt="donate.jpg"
+                  width={1100}
+                  height={400}
+                />
               </div>
-              <div className={styles.method_item}>
-                <div className={styles.icon}>
-                  <Image
-                    src="images/donate/icon/card2.png"
-                    alt="card2.png"
-                    width={150}
-                    height={150}
-                  ></Image>
+              <div className={styles.instructions_item}>
+                <div className={styles.instructions_content}>
+                  <h2>救援個案</h2>
+                  <h5>
+                    目前許多流浪動物因為生病、受傷或營養不良，需要緊急醫療救助。
+                  </h5>
+                  <h5>
+                    您的捐款將用於疫苗接種、疾病治療、手術費用及基本健康檢查，幫助牠們恢復健康，迎接新生活。
+                  </h5>
                 </div>
-                <div className={styles.content}>
-                  <h5>定期定額交易</h5>
-                  <p>
-                    可設定按照日/月/年自動定期支付固定金額，方便您輕鬆一次結帳。
-                  </p>
-                </div>
+                <Image
+                  src="/images/donate/RescueFollowups.jpg"
+                  alt="donate.jpg"
+                  width={1100}
+                  height={400}
+                />
               </div>
             </div>
-            <div>
-              <div className={styles.method_item}>
-                <div className={styles.icon}>
-                  <Image
-                    src="images/donate/icon/atm1.png"
-                    alt="atm1.png"
-                    width={150}
-                    height={150}
-                  ></Image>
-                </div>
-                <div className={styles.content} style={{ gap: '0px' }}>
-                  <p>戶名：社團法人新北市流浪貓狗再生保護協會</p>
-                  <p>捐款帳號：中國信託/ 新店分行</p>
-                  <p>銀行代號：822</p>
-                  <p>銀行帳號：3145-4046-2742</p>
-                </div>
-              </div>
-              <div className={styles.method_item}>
-                <div className={styles.icon}>
-                  <Image
-                    src="images/donate/icon/atm2.png"
-                    alt="atm2.png"
-                    width={150}
-                    height={150}
-                  ></Image>
-                </div>
-                <div className={styles.content}>
-                  <h5>捐款資料</h5>
-                  <p>
-                    捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額
-                    、後五碼， 如要報稅者需再提供ID或統一編號、收據收件地址
-                    、收件人。 感謝您！
-                  </p>
-                </div>
-              </div>
-              <div className={styles.method_item}>
-                <div className={styles.icon}>
-                  <Image
-                    src="images/donate/icon/atm1.png"
-                    alt="atm1.png"
-                    width={150}
-                    height={150}
-                  ></Image>
-                </div>
-                <div className={styles.content} style={{ gap: '0px' }}>
-                  <p>戶名：社團法人新北市流浪貓狗再生保護協會</p>
-                  <p>郵政劃撥：5029-8902</p>
-                </div>
-              </div>
-              <div className={styles.method_item}>
-                <div className={styles.icon}>
-                  <Image
-                    src="images/donate/icon/atm2.png"
-                    alt="atm2.png"
-                    width={150}
-                    height={150}
-                  ></Image>
-                </div>
-                <div className={styles.content}>
-                  <h5>定期定額交易</h5>
-                  <p>
-                    捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額
-                    、後五碼， 如要報稅者需再提供ID或統一編號、收據收件地址
-                    、收件人。 感謝您！
-                  </p>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </>
   )
 }
