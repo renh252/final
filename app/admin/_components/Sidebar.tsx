@@ -179,89 +179,92 @@ export default function Sidebar({ collapsed = false }) {
 
   // 渲染側邊欄內容
   return (
-    <div className="p-3">
-      <nav>
-        <ul className="nav flex-column gap-1 list-unstyled">
-          {filteredMenuItems.map((item) => (
-            <li key={item.path} className="mb-1">
-              {item.subItems ? (
-                <>
-                  <button
-                    className={`sidebar-nav-link w-100 text-start border-0 ${
+    <div className="h-100 d-flex flex-column">
+      {/* Sidebar 內容區域 - 使用 flex-grow-1 確保填充可用空間 */}
+      <div className="p-3 flex-grow-1 d-flex flex-column">
+        <nav className="flex-grow-1 d-flex flex-column">
+          <ul className="nav flex-column gap-1 list-unstyled flex-grow-1">
+            {filteredMenuItems.map((item) => (
+              <li key={item.path} className="mb-1">
+                {item.subItems ? (
+                  <>
+                    <button
+                      className={`sidebar-nav-link w-100 text-start border-0 ${
+                        isActive(item.path) ? 'active' : ''
+                      }`}
+                      onClick={() => toggleSubmenu(item.label)}
+                    >
+                      <span className={collapsed ? 'mx-auto' : 'me-3'}>
+                        {item.icon}
+                      </span>
+                      {!collapsed && (
+                        <>
+                          <span className="flex-grow-1">{item.label}</span>
+                          <span
+                            className={`sidebar-chevron ${
+                              expandedMenus[item.label] ? 'expanded' : ''
+                            }`}
+                          >
+                            {expandedMenus[item.label] ? (
+                              <ChevronDown
+                                size={16}
+                                color={
+                                  isActive(item.path) ? 'white' : getIconColor()
+                                }
+                              />
+                            ) : (
+                              <ChevronRight
+                                size={16}
+                                color={
+                                  isActive(item.path) ? 'white' : getIconColor()
+                                }
+                              />
+                            )}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                    {!collapsed && expandedMenus[item.label] && (
+                      <ul className="nav flex-column list-unstyled ps-4 mt-1 sidebar-submenu">
+                        {item.subItems
+                          .filter((subItem) => {
+                            if (!subItem.requiredPrivilege) return true
+                            return hasPermission(subItem.requiredPrivilege)
+                          })
+                          .map((subItem) => (
+                            <li key={subItem.path}>
+                              <Link
+                                href={subItem.path}
+                                className={`sidebar-nav-link py-1 ${
+                                  pathname === subItem.path ? 'active' : ''
+                                }`}
+                              >
+                                <span>{subItem.label}</span>
+                              </Link>
+                            </li>
+                          ))}
+                      </ul>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    href={item.path}
+                    className={`sidebar-nav-link ${
                       isActive(item.path) ? 'active' : ''
                     }`}
-                    onClick={() => toggleSubmenu(item.label)}
+                    title={collapsed ? item.label : ''}
                   >
                     <span className={collapsed ? 'mx-auto' : 'me-3'}>
                       {item.icon}
                     </span>
-                    {!collapsed && (
-                      <>
-                        <span className="flex-grow-1">{item.label}</span>
-                        <span
-                          className={`sidebar-chevron ${
-                            expandedMenus[item.label] ? 'expanded' : ''
-                          }`}
-                        >
-                          {expandedMenus[item.label] ? (
-                            <ChevronDown
-                              size={16}
-                              color={
-                                isActive(item.path) ? 'white' : getIconColor()
-                              }
-                            />
-                          ) : (
-                            <ChevronRight
-                              size={16}
-                              color={
-                                isActive(item.path) ? 'white' : getIconColor()
-                              }
-                            />
-                          )}
-                        </span>
-                      </>
-                    )}
-                  </button>
-                  {!collapsed && expandedMenus[item.label] && (
-                    <ul className="nav flex-column list-unstyled ps-4 mt-1 sidebar-submenu">
-                      {item.subItems
-                        .filter((subItem) => {
-                          if (!subItem.requiredPrivilege) return true
-                          return hasPermission(subItem.requiredPrivilege)
-                        })
-                        .map((subItem) => (
-                          <li key={subItem.path}>
-                            <Link
-                              href={subItem.path}
-                              className={`sidebar-nav-link py-1 ${
-                                pathname === subItem.path ? 'active' : ''
-                              }`}
-                            >
-                              <span>{subItem.label}</span>
-                            </Link>
-                          </li>
-                        ))}
-                    </ul>
-                  )}
-                </>
-              ) : (
-                <Link
-                  href={item.path}
-                  className={`sidebar-nav-link ${
-                    isActive(item.path) ? 'active' : ''
-                  }`}
-                  title={collapsed ? item.label : ''}
-                >
-                  <span className={collapsed ? 'mx-auto' : 'me-3'}>
-                    {item.icon}
-                  </span>
-                  {!collapsed && <span>{item.label}</span>}
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-      </nav>
+                    {!collapsed && <span>{item.label}</span>}
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
     </div>
   )
 }

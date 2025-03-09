@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAuthenticated } from '../../_lib/auth'
+import { isAuthenticated } from '@/app/admin/api/_lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
