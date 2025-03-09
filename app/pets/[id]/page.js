@@ -17,9 +17,9 @@ export default function PetDetailPage() {
   useEffect(() => {
     async function fetchPet() {
       try {
-        const response = await fetch(`/api/pet-data/${id}`)
+        const response = await fetch(`/api/pets/${id}`)
         if (!response.ok) {
-          throw new Error('寵物資料獲取失敗')
+          throw new Error('無法獲取寵物資料')
         }
         const data = await response.json()
         setPet(data.pet)
