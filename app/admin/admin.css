@@ -220,16 +220,52 @@
   text-decoration: none;
   border-radius: 0.25rem;
   transition: all 0.2s;
+  background-color: transparent;
 }
 
 .sidebar-nav-link:hover {
   background-color: var(--admin-sidebar-hover);
-  color: var(--admin-text-color);
+  color: var(--admin-sidebar-text);
 }
 
 .sidebar-nav-link.active {
-  background-color: var(--admin-sidebar-active);
-  color: white;
+  background-color: var(--admin-sidebar-active) !important;
+  color: white !important;
+}
+
+/* 確保折疊菜單按鈕和一般導航保持一致的樣式 */
+button.sidebar-nav-link {
+  appearance: none;
+  background: none;
+}
+
+button.sidebar-nav-link:focus {
+  outline: none;
+}
+
+/* 菜單折疊箭頭樣式 */
+.sidebar-chevron {
+  transition: transform 0.2s;
+}
+
+.sidebar-chevron.expanded {
+  transform: rotate(90deg);
+}
+
+/* 子菜單項目樣式調整 */
+.sidebar-submenu {
+  margin-left: 1rem;
+  border-left: 1px solid var(--admin-sidebar-hover);
+}
+
+.sidebar-submenu .sidebar-nav-link {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+/* 確保深色模式下，子菜單的顏色也正確 */
+.dark-theme .sidebar-submenu {
+  border-left-color: var(--admin-sidebar-hover);
 }
 
 /* 占位元素樣式 */
@@ -237,11 +273,177 @@
   min-height: 400px;
 }
 
-/* 深色主題下的卡片樣式 */
+/* 統一深色主題下的 Card 樣式 */
 .dark-theme .card {
   background-color: var(--admin-card-bg);
   border-color: var(--admin-card-border);
   color: var(--admin-text-color);
+}
+
+.dark-theme .card-header {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-color: var(--admin-card-border);
+  color: var(--admin-text-color);
+}
+
+.dark-theme .card-footer {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-color: var(--admin-card-border);
+}
+
+/* 強制確保卡片文字在深色主題下的顏色 */
+.dark-theme .card .card-title,
+.dark-theme .card h5.card-title,
+.dark-theme [class*='card'] .card-title,
+body.dark-theme .card .card-title {
+  color: var(--admin-text-color) !important;
+  font-weight: 600 !important;
+}
+
+.dark-theme .card .card-text,
+.dark-theme .card p.card-text,
+.dark-theme [class*='card'] .card-text,
+body.dark-theme .card .card-text {
+  color: rgba(224, 224, 224, 0.85) !important;
+}
+
+/* 統一深色主題下的 Table 樣式 */
+.dark-theme .table {
+  color: var(--admin-text-color);
+}
+
+.dark-theme .table-hover tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .table thead th {
+  border-bottom-color: var(--admin-card-border);
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .table td,
+.dark-theme .table th {
+  border-top-color: var(--admin-card-border);
+}
+
+/* 統一深色主題下的表單控件樣式 */
+.dark-theme .form-control,
+.dark-theme .custom-select,
+.dark-theme .input-group-text {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: var(--admin-text-color);
+}
+
+.dark-theme .form-control:focus,
+.dark-theme .custom-select:focus {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-sidebar-active);
+  color: var(--admin-text-color);
+  box-shadow: 0 0 0 0.2rem rgba(58, 142, 255, 0.25);
+}
+
+/* 統一深色主題下的按鈕樣式 */
+.dark-theme .btn-light {
+  background-color: #2c2c2c;
+  border-color: #444;
+  color: var(--admin-text-color);
+}
+
+.dark-theme .btn-light:hover {
+  background-color: #3c3c3c;
+  border-color: #555;
+  color: var(--admin-text-color);
+}
+
+/* 統一深色主題下的下拉菜單樣式 */
+.dark-theme .dropdown-menu {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: var(--admin-text-color);
+}
+
+.dark-theme .dropdown-item {
+  color: var(--admin-text-color);
+}
+
+.dark-theme .dropdown-item:hover,
+.dark-theme .dropdown-item:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--admin-text-color);
+}
+
+.dark-theme .dropdown-item.active,
+.dark-theme .dropdown-item:active {
+  background-color: var(--admin-sidebar-active);
+  color: white;
+}
+
+.dark-theme .dropdown-header {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.dark-theme .dropdown-divider {
+  border-top-color: var(--admin-card-border);
+}
+
+/* 統一深色主題下的模態框樣式 */
+.dark-theme .modal-content {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: var(--admin-text-color);
+}
+
+.dark-theme .modal-header,
+.dark-theme .modal-footer {
+  border-color: var(--admin-card-border);
+}
+
+.dark-theme .close {
+  color: var(--admin-text-color);
+  text-shadow: none;
+}
+
+.dark-theme .close:hover {
+  color: white;
+}
+
+/* 統一深色主題下的分頁樣式 */
+.dark-theme .pagination .page-link {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: var(--admin-text-color);
+}
+
+.dark-theme .pagination .page-item.active .page-link {
+  background-color: var(--admin-sidebar-active);
+  border-color: var(--admin-sidebar-active);
+  color: white;
+}
+
+.dark-theme .pagination .page-item.disabled .page-link {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* 統一深色主題下的徽章樣式 */
+.dark-theme .badge-light {
+  background-color: #3c3c3c;
+  color: var(--admin-text-color);
+}
+
+.dark-theme .badge-secondary {
+  background-color: #555;
+}
+
+/* DataTable 特定樣式 */
+.dark-theme .data-table-container .sortable-column:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* 深色主題下的表格樣式 */
@@ -249,6 +451,7 @@
   color: var(--admin-text-color);
 }
 
+/* 深色主題下的表格條紋樣式 */
 .dark-theme .table-striped tbody tr:nth-of-type(odd) {
   background-color: rgba(255, 255, 255, 0.05);
 }
@@ -303,37 +506,6 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* 深色主題下的下拉菜單樣式 */
-.dark-theme .dropdown-menu {
-  background-color: #2a2a2a;
-  border-color: #444;
-  color: #e0e0e0;
-}
-
-.dark-theme .dropdown-item {
-  color: #e0e0e0;
-}
-
-.dark-theme .dropdown-item:hover,
-.dark-theme .dropdown-item:focus {
-  background-color: #3a3a3a;
-  color: #ffffff;
-}
-
-.dark-theme .dropdown-item.active,
-.dark-theme .dropdown-item:active {
-  background-color: #0d6efd;
-  color: #ffffff;
-}
-
-.dark-theme .dropdown-header {
-  color: #aaaaaa;
-}
-
-.dark-theme .dropdown-divider {
-  border-color: #444;
-}
-
 /* 深色主題下的文字和背景顏色 */
 .dark-theme .admin-header {
   color: var(--admin-text-color);
@@ -362,4 +534,356 @@
 
 .dark-theme a:not(.btn):not(.dropdown-item):not(.sidebar-nav-link):hover {
   color: #5ca0ff;
+}
+
+/* 深色主題下的分頁樣式 */
+.dark-theme .pagination-dark .page-link,
+.pagination-dark .page-link {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: var(--admin-text-color);
+}
+
+.dark-theme .pagination-dark .page-item.active .page-link,
+.pagination-dark .page-item.active .page-link {
+  background-color: var(--admin-sidebar-active);
+  border-color: var(--admin-sidebar-active);
+  color: white;
+}
+
+.dark-theme .pagination-dark .page-item.disabled .page-link,
+.pagination-dark .page-item.disabled .page-link {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* DataTable 深色模式樣式 */
+.dark-theme .data-table-container .form-control {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: var(--admin-text-color);
+}
+
+.dark-theme .data-table-container .form-control:focus {
+  border-color: var(--admin-sidebar-active);
+  box-shadow: 0 0 0 0.25rem rgba(58, 142, 255, 0.25);
+}
+
+.dark-theme .data-table-container .table-dark {
+  background-color: var(--admin-card-bg);
+  color: var(--admin-text-color);
+  border-color: var(--admin-card-border);
+}
+
+.dark-theme .data-table-container .table-dark thead th {
+  border-bottom: 2px solid var(--admin-card-border);
+}
+
+/* 深色主題下的 DataTable 專用樣式 */
+.dark-theme .data-table-container {
+  background-color: var(--admin-card-bg);
+  color: var(--admin-text-color);
+}
+
+.dark-theme .data-table {
+  color: var(--admin-text-color);
+  border-color: var(--admin-card-border);
+  background-color: var(--admin-card-bg);
+}
+
+/* 覆蓋 Bootstrap 的表格樣式 */
+.dark-theme .table-dark,
+.dark-theme .table-dark > th,
+.dark-theme .table-dark > td,
+.dark-theme .table-striped > tbody > tr:nth-of-type(odd),
+.dark-theme .table-hover > tbody > tr:hover {
+  --bs-table-bg: var(--admin-card-bg);
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.05);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.08);
+  --bs-table-color: var(--admin-text-color);
+  --bs-table-border-color: var(--admin-card-border);
+}
+
+/* 表頭樣式 */
+.dark-theme .data-table thead th {
+  background-color: #2c2c2c !important;
+  border-bottom-color: var(--admin-card-border) !important;
+  color: var(--admin-text-color) !important;
+}
+
+/* 表格行樣式 */
+.dark-theme .data-table tbody tr {
+  background-color: var(--admin-card-bg);
+}
+
+/* 表格行懸停效果 */
+.dark-theme .data-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 表格單元格樣式 */
+.dark-theme .data-table td {
+  background-color: transparent !important;
+  border-top-color: var(--admin-card-border);
+}
+
+/* 表格條紋效果 */
+.dark-theme .data-table.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark-theme .data-table.table-striped tbody tr:nth-of-type(odd) td {
+  background-color: transparent !important;
+}
+
+/* 可排序列標題懸停效果 */
+.dark-theme .data-table .sortable-column:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 表單控件樣式 */
+.dark-theme .data-table-container .form-control {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: var(--admin-text-color);
+}
+
+/* 分頁控件樣式 */
+.dark-theme .data-table-container .pagination .page-link {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: var(--admin-text-color);
+}
+
+.dark-theme .data-table-container .pagination .page-item.active .page-link {
+  background-color: var(--admin-sidebar-active);
+  border-color: var(--admin-sidebar-active);
+  color: white;
+}
+
+/* 基本的 DataTable 樣式 */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* 深色主題下的 DataTable 專用樣式 */
+.dark-theme .data-table-container {
+  background-color: var(--admin-card-bg);
+  color: #e0e0e0;
+}
+
+.dark-theme .data-table {
+  color: #e0e0e0 !important;
+  border-color: var(--admin-card-border);
+  background-color: var(--admin-card-bg);
+}
+
+/* 覆蓋 Bootstrap 的表格樣式 */
+.dark-theme .table-dark,
+.dark-theme .table-dark > th,
+.dark-theme .table-dark > td,
+.dark-theme .table-striped > tbody > tr:nth-of-type(odd),
+.dark-theme .table-hover > tbody > tr:hover {
+  --bs-table-bg: var(--admin-card-bg);
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.05);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.08);
+  --bs-table-color: #e0e0e0;
+  --bs-table-border-color: var(--admin-card-border);
+}
+
+/* 表頭樣式 */
+.dark-theme .data-table thead th {
+  background-color: #2c2c2c !important;
+  border-bottom-color: var(--admin-card-border) !important;
+  color: var(--admin-text-color) !important;
+}
+
+/* 表格行樣式 */
+.dark-theme .data-table tbody tr {
+  background-color: var(--admin-card-bg);
+  color: #e0e0e0 !important;
+}
+
+/* 表格行懸停效果 */
+.dark-theme .data-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+/* 表格單元格樣式 */
+.dark-theme .data-table td {
+  background-color: transparent !important;
+  border-top-color: var(--admin-card-border);
+  color: #e0e0e0 !important;
+}
+
+/* 表格條紋效果 */
+.dark-theme .data-table.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark-theme .data-table.table-striped tbody tr:nth-of-type(odd) td {
+  background-color: transparent !important;
+  color: #e0e0e0 !important;
+}
+
+/* 可排序列標題懸停效果 */
+.dark-theme .data-table .sortable-column:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+/* 空資料提示文字 */
+.dark-theme .data-table .text-center {
+  color: #a0a0a0 !important;
+}
+
+/* 表單控件樣式 */
+.dark-theme .data-table-container .form-control {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: #e0e0e0;
+}
+
+/* 分頁控件樣式 */
+.dark-theme .data-table-container .pagination .page-link {
+  background-color: var(--admin-card-bg);
+  border-color: var(--admin-card-border);
+  color: #e0e0e0;
+}
+
+.dark-theme .data-table-container .pagination .page-item.active .page-link {
+  background-color: var(--admin-sidebar-active);
+  border-color: var(--admin-sidebar-active);
+  color: #ffffff;
+}
+
+/* 分頁信息文字 */
+.dark-theme
+  .data-table-container
+  .d-flex.justify-content-between.align-items-center {
+  color: #e0e0e0 !important;
+}
+
+/* 按鈕文字顏色 */
+.dark-theme .data-table-container .btn-outline-primary,
+.dark-theme .data-table-container .btn-outline-secondary,
+.dark-theme .data-table-container .btn-outline-danger {
+  color: #e0e0e0 !important;
+}
+
+.dark-theme .data-table-container .btn-outline-primary:hover,
+.dark-theme .data-table-container .btn-outline-secondary:hover,
+.dark-theme .data-table-container .btn-outline-danger:hover {
+  color: #ffffff !important;
+}
+
+/* 表格內徽章樣式 */
+.dark-theme .data-table .badge {
+  color: #ffffff !important;
+}
+
+.dark-theme .data-table .badge-light,
+.dark-theme .data-table .bg-light {
+  background-color: #3c3c3c !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-theme .data-table .badge-secondary,
+.dark-theme .data-table .bg-secondary {
+  background-color: #555555 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .data-table .badge-primary,
+.dark-theme .data-table .bg-primary {
+  background-color: #3a8eff !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .data-table .badge-success,
+.dark-theme .data-table .bg-success {
+  background-color: #28a745 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .data-table .badge-danger,
+.dark-theme .data-table .bg-danger {
+  background-color: #dc3545 !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .data-table .badge-warning,
+.dark-theme .data-table .bg-warning {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+}
+
+.dark-theme .data-table .badge-info,
+.dark-theme .data-table .bg-info {
+  background-color: #17a2b8 !important;
+  color: #ffffff !important;
+}
+
+/* 搜索框與過濾按鈕樣式 */
+.search-input {
+  padding-right: 35px;
+}
+
+.search-icon {
+  color: #777;
+}
+
+.dark-theme .search-input {
+  background-color: #2a2a2a !important;
+  border-color: #444 !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-theme .search-input:focus {
+  background-color: #333 !important;
+  border-color: #3a8eff !important;
+  box-shadow: 0 0 0 0.2rem rgba(58, 142, 255, 0.25) !important;
+}
+
+.dark-theme .search-icon {
+  color: #aaa !important;
+}
+
+.dark-theme .filter-button {
+  background-color: #2a2a2a !important;
+  border-color: #444 !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-theme .filter-button:hover {
+  background-color: #333 !important;
+  border-color: #555 !important;
+  color: #fff !important;
+}
+
+/* 論壇管理頁面卡片標題樣式 */
+.forum-dashboard-page h6 {
+  color: #6c757d; /* 與text-muted相同的顏色，但可在深色模式下覆蓋 */
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.forum-dashboard-page h2 {
+  font-weight: 600;
+  color: #212529; /* 默認深色文字 */
+}
+
+.dark-theme .forum-dashboard-page h6 {
+  color: #adb5bd; /* 深色主題下更亮的灰色 */
+}
+
+.dark-theme .forum-dashboard-page h2 {
+  color: #e9ecef; /* 深色主題下接近白色的文字 */
+}
+
+.dark-theme .forum-dashboard-page .card.bg-dark .small.text-muted {
+  color: #adb5bd !important; /* 確保深色主題下小文字仍然可見 */
 }

@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, Button, Row, Col, Badge, Image } from 'react-bootstrap'
+import { Card, Button, Row, Col, Badge, Image, Form } from 'react-bootstrap'
 import { Plus, Edit, Trash, Eye, Heart, PawPrint } from 'lucide-react'
-import DataTable from '../components/DataTable'
-import ModalForm from '../components/ModalForm'
-import { useToast } from '../components/Toast'
-import { useConfirm } from '../components/ConfirmDialog'
+import DataTable from '@/app/admin/_components/DataTable'
+import ModalForm from '@/app/admin/_components/ModalForm'
+import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '../ThemeContext'
+import { useRouter } from 'next/navigation'
 
 // 模擬寵物數據 - 基於資料庫結構
 const MOCK_PETS = [
@@ -137,6 +138,22 @@ const ADOPTED_OPTIONS = [
   { value: 1, label: '已領養' },
 ]
 
+// 動物種類過濾選項
+const PET_TYPE_OPTIONS = [
+  { value: 'all', label: '全部' },
+  { value: '狗', label: '狗' },
+  { value: '貓', label: '貓' },
+  { value: 'other', label: '其他' },
+]
+
+// 動物狀態過濾選項
+const PET_STATUS_OPTIONS = [
+  { value: 'all', label: '全部狀態' },
+  { value: 'available', label: '待領養' },
+  { value: 'pending', label: '申請中' },
+  { value: 'adopted', label: '已領養' },
+]
+
 export default function PetsPage() {
   const [pets, setPets] = useState(MOCK_PETS)
   const [showModal, setShowModal] = useState(false)
@@ -145,148 +162,141 @@ export default function PetsPage() {
   const { showToast } = useToast()
   const { confirm } = useConfirm()
   const { isDarkMode } = useTheme()
+  const router = useRouter()
+  const [filteredPets, setFilteredPets] = useState([])
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
 
-  // 表格列定義
+  // 載入寵物資料
+  useEffect(() => {
+    // 此處模擬API載入資料
+    // 實際應用中應該使用fetch或axios從後端獲取數據
+    setPets(MOCK_PETS)
+  }, [])
+
+  // 當過濾條件改變時，更新顯示的寵物列表
+  useEffect(() => {
+    let filtered = [...pets]
+
+    // 根據種類過濾
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter((pet) => pet.species === typeFilter)
+    }
+
+    // 根據狀態過濾
+    if (statusFilter !== 'all') {
+      const statusMap = {
+        available: 0,
+        pending: 2,
+        adopted: 1,
+      }
+      filtered = filtered.filter(
+        (pet) => pet.is_adopted === statusMap[statusFilter]
+      )
+    }
+
+    setFilteredPets(filtered)
+  }, [pets, typeFilter, statusFilter])
+
+  // 寵物表格列定義
   const columns = [
     {
+      key: 'id',
+      label: 'ID',
+      sortable: true,
+    },
+    {
       key: 'main_photo',
-      label: '圖片',
-      render: (value: string) => (
+      label: '照片',
+      render: (value) => (
         <Image
           src={value || 'https://via.placeholder.com/50'}
-          alt="寵物圖片"
-          width={40}
-          height={40}
-          rounded
+          alt="寵物照片"
+          width={50}
+          height={50}
+          className="rounded"
         />
       ),
     },
-    { key: 'id', label: 'ID', sortable: true },
-    { key: 'name', label: '名稱', sortable: true },
+    {
+      key: 'name',
+      label: '名稱',
+      sortable: true,
+    },
     {
       key: 'species',
-      label: '類型',
+      label: '種類',
       sortable: true,
-      render: (value: string) => {
-        return <Badge bg="info">{value}</Badge>
-      },
     },
-    { key: 'variety', label: '品種', sortable: true },
-    { key: 'gender', label: '性別', sortable: true },
+    {
+      key: 'variety',
+      label: '品種',
+      sortable: true,
+    },
+    {
+      key: 'gender',
+      label: '性別',
+    },
     {
       key: 'is_adopted',
       label: '狀態',
       sortable: true,
-      render: (value: number) => {
-        return (
-          <span
-            className={`badge ${value === 0 ? 'bg-success' : 'bg-primary'}`}
-          >
-            {value === 0 ? '可領養' : '已領養'}
-          </span>
-        )
+      render: (value) => {
+        if (value === 0) {
+          return <Badge bg="success">待領養</Badge>
+        } else if (value === 1) {
+          return <Badge bg="secondary">已領養</Badge>
+        } else if (value === 2) {
+          return <Badge bg="warning">申請中</Badge>
+        }
+        return <Badge bg="light">未知</Badge>
       },
-    },
-    {
-      key: 'store_name',
-      label: '所屬店鋪',
-      sortable: true,
     },
     {
       key: 'created_at',
-      label: '建立日期',
+      label: '新增日期',
       sortable: true,
-      render: (value: string) => new Date(value).toLocaleDateString('zh-TW'),
     },
   ]
 
-  // 表單欄位定義
-  const formFields = [
-    {
-      name: 'name',
-      label: '名稱',
-      type: 'text' as const,
-      required: true,
-      placeholder: '請輸入寵物名稱',
-    },
-    {
-      name: 'species',
-      label: '類型',
-      type: 'select' as const,
-      required: true,
-      options: SPECIES_OPTIONS,
-    },
-    {
-      name: 'variety',
-      label: '品種',
-      type: 'text' as const,
-      required: true,
-      placeholder: '請輸入品種',
-    },
-    {
-      name: 'gender',
-      label: '性別',
-      type: 'select' as const,
-      required: true,
-      options: GENDER_OPTIONS,
-    },
-    {
-      name: 'birthday',
-      label: '出生日期',
-      type: 'date' as const,
-      required: true,
-    },
-    {
-      name: 'weight',
-      label: '體重(kg)',
-      type: 'number' as const,
-      required: true,
-      placeholder: '請輸入體重',
-      validation: (value: number) => {
-        return value > 0 ? null : '體重必須大於0'
-      },
-    },
-    {
-      name: 'chip_number',
-      label: '晶片號碼',
-      type: 'text' as const,
-      required: true,
-      placeholder: '請輸入晶片號碼',
-    },
-    {
-      name: 'fixed',
-      label: '是否絕育',
-      type: 'select' as const,
-      required: true,
-      options: FIXED_OPTIONS,
-    },
-    {
-      name: 'is_adopted',
-      label: '是否已領養',
-      type: 'select' as const,
-      required: true,
-      options: ADOPTED_OPTIONS,
-    },
-    {
-      name: 'store_id',
-      label: '所屬店鋪',
-      type: 'select' as const,
-      required: true,
-      options: STORE_OPTIONS,
-    },
-    {
-      name: 'main_photo',
-      label: '圖片URL',
-      type: 'text' as const,
-      placeholder: '請輸入圖片URL',
-    },
-    {
-      name: 'story',
-      label: '寵物故事',
-      type: 'textarea' as const,
-      placeholder: '請輸入寵物故事',
-    },
-  ]
+  // 渲染操作按鈕
+  const renderActions = (pet) => (
+    <div className="d-flex gap-2">
+      <Button
+        variant="outline-primary"
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation()
+          router.push(`/admin/pets/${pet.id}`)
+        }}
+        title="查看詳情"
+      >
+        <Eye size={16} />
+      </Button>
+      <Button
+        variant="outline-secondary"
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation()
+          handleEditPet(pet)
+        }}
+        title="編輯寵物"
+      >
+        <Edit size={16} />
+      </Button>
+      <Button
+        variant="outline-danger"
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation()
+          handleDeletePet(pet)
+        }}
+        title="刪除寵物"
+      >
+        <Trash size={16} />
+      </Button>
+    </div>
+  )
 
   // 處理新增寵物
   const handleAddPet = () => {
@@ -296,28 +306,19 @@ export default function PetsPage() {
   }
 
   // 處理編輯寵物
-  const handleEditPet = (pet: any) => {
-    setCurrentPet(pet)
-    setModalMode('edit')
-    setShowModal(true)
-  }
-
-  // 處理查看寵物詳情
-  const handleViewPet = (pet: any) => {
-    // 這裡可以實現查看詳情的邏輯，例如導航到詳情頁面
-    showToast('info', '寵物詳情', `查看寵物 ${pet.name} 的詳細資料`)
+  const handleEditPet = (pet) => {
+    // 實現編輯寵物邏輯
+    console.log('編輯寵物', pet)
   }
 
   // 處理刪除寵物
-  const handleDeletePet = (pet: any) => {
+  const handleDeletePet = (pet) => {
     confirm({
       title: '刪除寵物',
-      message: `確定要刪除寵物 ${pet.name} 嗎？此操作無法撤銷。`,
-      type: 'danger',
-      confirmText: '刪除',
+      message: `確定要刪除寵物「${pet.name}」嗎？此操作無法撤銷。`,
       onConfirm: () => {
-        // 模擬刪除操作
-        setPets((prev) => prev.filter((p) => p.id !== pet.id))
+        // 實現刪除寵物邏輯
+        setPets(pets.filter((p) => p.id !== pet.id))
         showToast('success', '刪除成功', `寵物 ${pet.name} 已成功刪除`)
       },
     })
@@ -337,12 +338,12 @@ export default function PetsPage() {
     if (modalMode === 'add') {
       // 模擬新增寵物
       const newPet = {
-        id: Math.max(...pets.map((p) => p.id)) + 1,
         ...formData,
+        id: Math.floor(Math.random() * 1000) + pets.length + 1,
         store_name: storeName,
         created_at: new Date().toISOString().split('T')[0],
       }
-      setPets((prev) => [...prev, newPet])
+      setPets((prev) => [...prev, newPet as (typeof prev)[0]])
       showToast('success', '新增成功', `寵物 ${formData.name} 已成功新增`)
     } else {
       // 模擬更新寵物
@@ -361,97 +362,172 @@ export default function PetsPage() {
     }
   }
 
-  // 渲染操作按鈕
-  const renderActions = (pet: any) => (
-    <div className="d-flex gap-2">
-      <Button
-        variant="outline-primary"
-        size="sm"
-        onClick={() => handleViewPet(pet)}
-        title="查看詳情"
-      >
-        <Eye size={16} />
-      </Button>
-      <Button
-        variant="outline-secondary"
-        size="sm"
-        onClick={() => handleEditPet(pet)}
-        title="編輯寵物"
-      >
-        <Edit size={16} />
-      </Button>
-      <Button
-        variant="outline-danger"
-        size="sm"
-        onClick={() => handleDeletePet(pet)}
-        title="刪除寵物"
-      >
-        <Trash size={16} />
-      </Button>
-    </div>
-  )
+  // 在React hooks後面，handleSubmit前面修正formFields定義
+  const formFields = [
+    { name: 'name', label: '寵物名稱', type: 'text' as const, required: true },
+    {
+      name: 'gender',
+      label: '性別',
+      type: 'select' as const,
+      options: [
+        { value: 'male', label: '公' },
+        { value: 'female', label: '母' },
+      ],
+      required: true,
+    },
+    {
+      name: 'species',
+      label: '物種',
+      type: 'select' as const,
+      options: [
+        { value: 'dog', label: '狗' },
+        { value: 'cat', label: '貓' },
+        { value: 'other', label: '其他' },
+      ],
+      required: true,
+    },
+    { name: 'variety', label: '品種', type: 'text' as const, required: true },
+    {
+      name: 'birthday',
+      label: '出生日期',
+      type: 'date' as const,
+      required: true,
+    },
+    {
+      name: 'weight',
+      label: '體重(kg)',
+      type: 'number' as const,
+      required: true,
+    },
+    {
+      name: 'chip_number',
+      label: '晶片號碼',
+      type: 'text' as const,
+      required: false,
+    },
+    {
+      name: 'fixed',
+      label: '是否絕育',
+      type: 'select' as const,
+      options: [
+        { value: 1, label: '是' },
+        { value: 0, label: '否' },
+      ],
+      required: true,
+    },
+    {
+      name: 'story',
+      label: '寵物故事',
+      type: 'textarea' as const,
+      required: false,
+    },
+    {
+      name: 'store_id',
+      label: '所屬店鋪',
+      type: 'select' as const,
+      options: STORE_OPTIONS.map((store) => ({
+        value: store.value,
+        label: store.label,
+      })),
+      required: true,
+    },
+    {
+      name: 'is_adopted',
+      label: '領養狀態',
+      type: 'select' as const,
+      options: [
+        { value: 0, label: '待領養' },
+        { value: 1, label: '已領養' },
+      ],
+      required: true,
+    },
+    {
+      name: 'main_photo',
+      label: '主要照片URL',
+      type: 'text' as const,
+      required: true,
+    },
+  ]
 
   return (
-    <div className="pets-page">
+    <div className="pets-page p-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>寵物管理</h2>
+        <div className="d-flex gap-2">
+          <Button variant="outline-secondary">匯入資料</Button>
+          <Button variant="primary" onClick={() => setShowModal(true)}>
+            <Plus size={18} className="me-2" />
+            新增寵物
+          </Button>
+        </div>
+      </div>
+
       <Row className="mb-4">
-        <Col>
-          <h2 className="mb-4">寵物管理</h2>
+        {/* 狀態卡片 */}
+        <Col md={3}>
+          <Card className="text-center h-100">
+            <Card.Body>
+              <h3>{pets.length}</h3>
+              <p className="mb-0">總寵物數量</p>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className="text-center h-100">
+            <Card.Body>
+              <h3>{pets.filter((p) => p.is_adopted === 0).length}</h3>
+              <p className="mb-0">可領養數量</p>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className="text-center h-100">
+            <Card.Body>
+              <h3>{pets.filter((p) => p.is_adopted === 1).length}</h3>
+              <p className="mb-0">已領養數量</p>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-          <Row className="mb-4">
-            <Col md={6} lg={3} className="mb-3">
-              <Card
-                className={`h-100 ${isDarkMode ? 'bg-dark text-light' : ''}`}
-              >
-                <Card.Body className="d-flex align-items-center">
-                  <div className="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                    <PawPrint size={24} className="text-primary" />
-                  </div>
-                  <div>
-                    <h6 className="mb-0">總寵物數</h6>
-                    <h3 className="mb-0">{pets.length}</h3>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={6} lg={3} className="mb-3">
-              <Card
-                className={`h-100 ${isDarkMode ? 'bg-dark text-light' : ''}`}
-              >
-                <Card.Body className="d-flex align-items-center">
-                  <div className="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                    <Heart size={24} className="text-success" />
-                  </div>
-                  <div>
-                    <h6 className="mb-0">可領養</h6>
-                    <h3 className="mb-0">
-                      {pets.filter((p) => p.is_adopted === 0).length}
-                    </h3>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-
+      <Row>
+        <Col md={12}>
           <Card>
             <Card.Header className="d-flex justify-content-between align-items-center">
               <div>寵物列表</div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleAddPet}
-                className="d-flex align-items-center"
-              >
-                <Plus size={16} className="me-1" /> 新增寵物
-              </Button>
+              <div className="d-flex gap-2">
+                <Form.Select
+                  size="sm"
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  style={{ width: '120px' }}
+                >
+                  {PET_TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Form.Select>
+                <Form.Select
+                  size="sm"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  style={{ width: '120px' }}
+                >
+                  {PET_STATUS_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Form.Select>
+              </div>
             </Card.Header>
             <Card.Body>
               <DataTable
                 columns={columns}
-                data={pets}
-                searchable={true}
-                searchKeys={['name', 'variety', 'species']}
+                data={filteredPets.length > 0 ? filteredPets : pets}
+                onRowClick={(pet) => router.push(`/admin/pets/${pet.id}`)}
                 actions={renderActions}
-                onRowClick={handleViewPet}
               />
             </Card.Body>
           </Card>

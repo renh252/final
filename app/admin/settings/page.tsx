@@ -12,7 +12,7 @@ import {
   Database,
 } from 'lucide-react'
 import { useTheme } from '@/app/admin/ThemeContext'
-import { useToast } from '@/app/admin/components/Toast'
+import { useToast } from '@/app/admin/_components/Toast'
 
 // 模擬系統設定數據
 const MOCK_SETTINGS = {
