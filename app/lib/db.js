@@ -50,5 +50,15 @@ export async function query(sql, params = []) {
 // 為了保持向後兼容，也提供預設導出
 export default pool
 
-// 提供與 db.ts 相同的 db 導出，方便使用
-export const db = pool
+// 創建 db 對象，確保與 query 函數行為一致
+export const db = {
+  query: async (sql, params = []) => {
+    try {
+      const [results] = await pool.query(sql, params)
+      return [results, null]
+    } catch (error) {
+      console.error('SQL查詢錯誤:', error)
+      return [null, error]
+    }
+  },
+}
