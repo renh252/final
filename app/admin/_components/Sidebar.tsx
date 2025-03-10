@@ -39,7 +39,7 @@ interface MenuItem {
   }[]
 }
 
-export default function Sidebar({ collapsed = false }) {
+export default function Sidebar({ collapsed = false, onToggle }) {
   const [mounted, setMounted] = useState(false)
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
     {}
@@ -127,6 +127,28 @@ export default function Sidebar({ collapsed = false }) {
     }))
   }
 
+  // 處理鏈接點擊事件
+  const handleLinkClick = (e) => {
+    // 如果側邊欄已收起，則展開側邊欄
+    if (collapsed) {
+      e.preventDefault() // 阻止默認導航行為
+      onToggle() // 調用父組件傳入的切換函數
+
+      // 在移動設備上，我們需要延遲導航，以便用戶能夠看到展開的側邊欄
+      // 使用setTimeout延遲導航，給側邊欄足夠的時間展開
+      const href = e.currentTarget.getAttribute('href')
+      if (href) {
+        setTimeout(() => {
+          // 使用window.location.href而不是router.push，確保頁面完全重新加載
+          // 這樣可以避免React的狀態管理導致側邊欄閃現後消失
+          window.location.href = href
+        }, 300) // 300毫秒的延遲，與側邊欄的過渡動畫時間相匹配
+      }
+
+      return false
+    }
+  }
+
   // 確保只在客戶端渲染
   useEffect(() => {
     setMounted(true)
@@ -193,7 +215,23 @@ export default function Sidebar({ collapsed = false }) {
                       className={`sidebar-nav-link w-100 text-start border-0 ${
                         isActive(item.path) ? 'active' : ''
                       } ${item.label === '金流管理' ? 'finance-btn' : ''}`}
-                      onClick={() => toggleSubmenu(item.label)}
+                      onClick={(e) => {
+                        if (collapsed) {
+                          e.preventDefault() // 阻止默認行為
+                          onToggle() // 調用父組件傳入的切換函數
+
+                          // 在移動設備上，我們需要延遲展開子菜單
+                          // 給側邊欄足夠的時間展開後再展開子菜單
+                          setTimeout(() => {
+                            setExpandedMenus((prev) => ({
+                              ...prev,
+                              [item.label]: true,
+                            }))
+                          }, 350) // 稍微長於側邊欄的過渡動畫時間
+                        } else {
+                          toggleSubmenu(item.label)
+                        }
+                      }}
                       title={item.label}
                       data-menu-item={item.label}
                     >
@@ -263,6 +301,7 @@ export default function Sidebar({ collapsed = false }) {
                       isActive(item.path) ? 'active' : ''
                     }`}
                     title={collapsed ? item.label : ''}
+                    onClick={handleLinkClick}
                   >
                     <div className="icon-container sidebar-icon">
                       {item.icon}
