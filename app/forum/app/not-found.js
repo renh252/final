@@ -1,19 +1,15 @@
+'use client';
 import React from 'react';
-import { Container, Row, Col, Alert } from 'react-bootstrap';
+import { Spinner } from 'react-bootstrap';
 
-const NotFound = () => {
+const Loading = () => {
     return (
-        <Container className="mt-5">
-            <Row className="justify-content-center">
-                <Col md={6}>
-                    <Alert variant="danger" className="text-center">
-                        <h1>404 - 找不到頁面</h1>
-                        <p>抱歉，您所尋找的頁面不存在。</p>
-                    </Alert>
-                </Col>
-            </Row>
-        </Container>
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+            <Spinner animation="border" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </Spinner>
+        </div>
     );
 };
 
-export default NotFound;
+export default Loading;

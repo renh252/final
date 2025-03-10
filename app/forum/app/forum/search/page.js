@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import PostList from '../../components/PostList';
-import Loading from '../../app/loading';
+import PostList from '../../../components/PostList';
+import Loading from '../../../app/loading';
 
 const SearchPage = () => {
     const router = useRouter();
@@ -15,8 +15,10 @@ const SearchPage = () => {
             if (!query.keyword) return;
 
             setLoading(true);
+            setError(null);
+
             try {
-                const response = await fetch(`/api/forum/list?page=1&keyword=${query.keyword}`);
+                const response = await fetch(`/api/forum/list?search=${query.keyword}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch articles');
                 }

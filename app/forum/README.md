@@ -1,6 +1,6 @@
 # Forum Website
 
-This project is a forum website built using React and Next.js, utilizing Bootstrap for styling. It features a dynamic API for fetching articles, a user-friendly interface for browsing content, and a responsive design for various devices.
+This project is a forum website built using React and Next.js, styled with Bootstrap. It includes various features such as article listing, search functionality, and a dynamic API for fetching articles.
 
 ## Project Structure
 
@@ -10,97 +10,69 @@ forum
 │   └── forum
 │       ├── article
 │       │   └── [id]
-│       │       └── route.ts
+│       │       └── route.js        # Dynamic API route for fetching article details by ID
 │       ├── featured
-│       │   └── route.ts
+│       │   └── route.js            # API for fetching featured articles
 │       └── list
-│           └── route.ts
+│           └── route.js            # API for fetching paginated list of articles
 ├── app
-│   ├── forum
-│   │   ├── article
-│   │   │   └── [id]
-│   │   │       └── page.js
-│   │   └── list
-│   │       └── page.js
-│   ├── search
-│   │   └── page.js
-│   ├── loading.js
-│   └── not-found.js
+│   └── forum
+│       ├── article
+│       │   └── [id]
+│       │       └── page.js          # Page for displaying a single article
+│       ├── list
+│       │   └── page.js              # Main forum page displaying articles
+│       └── search
+│           └── page.js              # Page for displaying search results
 ├── components
-│   ├── ButtonGroup.js
-│   ├── Carousel.js
-│   ├── NavTabs.js
-│   ├── Pagination.js
-│   ├── PinnedCard.js
-│   ├── PostList.js
-│   └── SearchBox.js
+│   ├── ButtonGroup.js               # Component for button group to filter articles
+│   ├── Carousel.js                   # Carousel component for featured articles
+│   ├── NavTabs.js                    # Navigation tabs for article categories
+│   ├── Pagination.js                 # Pagination component for navigating through articles
+│   ├── PinnedCard.js                 # Card component for displaying pinned articles
+│   ├── PostList.js                   # List component for displaying articles
+│   └── SearchBox.js                  # Search input component for searching articles
 ├── context
-│   └── ArticleContext.tsx
-├── pages
-│   ├── _app.js
-│   ├── _document.js
-│   └── index.js
-├── public
-│   └── images
-├── styles
-│   └── globals.css
-├── package.json
-├── tsconfig.json
-└── README.md
+│   └── ArticleContext.js             # Context API for managing article state
+├── app
+│   ├── loading.js                    # Loading component displayed during data fetching
+│   └── not-found.js                  # Custom 404 page
+├── package.json                      # NPM configuration file
+├── next.config.js                   # Next.js configuration file
+└── README.md                        # Project documentation
 ```
 
 ## Features
 
-1. **Dynamic API Routes**: 
-   - Fetch individual article details by ID.
-   - Retrieve featured articles for the homepage.
-   - Support pagination for article listings.
-
-2. **Responsive Design**: 
-   - Built with Bootstrap to ensure a mobile-friendly layout.
-
-3. **User Interface Components**:
-   - Carousel for featured articles.
-   - Button group for category filtering.
-   - Navigation tabs for sorting articles.
-   - Search functionality for easy content discovery.
-   - Pagination for navigating through article lists.
-
-4. **Global State Management**: 
-   - Utilizes React Context API to manage article data and application state.
-
-5. **Loading and Error Handling**: 
-   - Includes loading indicators and custom error pages for a better user experience.
+- **Dynamic API Routes**: The project includes dynamic API routes for fetching article details, featured articles, and paginated lists of articles.
+- **Responsive Design**: The website is designed to be responsive, ensuring a good user experience on both desktop and mobile devices.
+- **Search Functionality**: Users can search for articles using keywords, with results displayed on a dedicated search results page.
+- **Article Filtering**: Users can filter articles by categories using a button group.
+- **Loading Indicators**: A loading spinner is displayed while data is being fetched from the API.
 
 ## Getting Started
-
-To get started with the project, follow these steps:
 
 1. Clone the repository:
    ```
    git clone <repository-url>
-   ```
-
-2. Navigate to the project directory:
-   ```
    cd forum
    ```
 
-3. Install dependencies:
+2. Install dependencies:
    ```
    npm install
    ```
 
-4. Run the development server:
+3. Run the development server:
    ```
    npm run dev
    ```
 
-5. Open your browser and visit `http://localhost:3000` to view the application.
+4. Open your browser and navigate to `http://localhost:3000` to view the forum website.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a pull request or open an issue for any suggestions or improvements.
+Contributions are welcome! Please feel free to submit a pull request or open an issue for any enhancements or bug fixes.
 
 ## License
 

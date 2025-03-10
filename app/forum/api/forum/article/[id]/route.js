@@ -1,3 +1,4 @@
+'use client';
 import { NextResponse } from 'next/server';
 
 export async function GET(request, { params }) {
@@ -18,16 +19,16 @@ export async function GET(request, { params }) {
     }
 }
 
-// 假設的函數，實際上應該從資料庫獲取資料
+// 假設的函數，實際上應該從資料庫或其他來源獲取資料
 async function getArticleById(id) {
-    // 這裡應該有實際的資料庫查詢邏輯
-    // 例如：return await db.collection('articles').findOne({ id });
+    // 這裡應該有實際的資料獲取邏輯
+    // 例如：從資料庫查詢文章
     return {
         id,
         title: 'Sample Article Title',
         content: 'This is the content of the article.',
         author: 'Author Name',
-        publishedAt: new Date().toISOString(),
+        publishedAt: '2023-10-01T12:00:00Z',
         category: 'General',
     };
 }

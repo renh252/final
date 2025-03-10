@@ -1,26 +1,22 @@
+'use client';
 import React from 'react';
 import { Card } from 'react-bootstrap';
-import { Link } from 'next/link';
+import Link from 'next/link';
 
-const PinnedCard = ({ article }) => {
+function PinnedCard({ article }) {
     return (
         <Card className="mb-3">
             <Card.Body>
                 <Card.Title>
-                    <Link href={`/forum/article/${article.id}`}>
-                        <span className="badge bg-warning me-2">置頂</span>
-                        {article.title}
-                    </Link>
+                    <i className="fas fa-thumbtack"></i> {article.title}
                 </Card.Title>
-                <Card.Text>
-                    {article.summary}
-                </Card.Text>
-                <Card.Footer className="text-muted">
-                    作者: {article.author} | 發布時間: {new Date(article.publishedAt).toLocaleDateString()}
-                </Card.Footer>
+                <Card.Text>{article.summary}</Card.Text>
+                <Link href={`/forum/article/${article.id}`} className="btn btn-primary">
+                    查看文章
+                </Link>
             </Card.Body>
         </Card>
     );
-};
+}
 
 export default PinnedCard;
