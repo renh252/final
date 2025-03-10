@@ -1,4 +1,6 @@
-import Spinner from 'react-bootstrap/Spinner';
+'use client';
+import React from 'react';
+import { Spinner } from 'react-bootstrap';
 
 const Loading = () => {
     return (

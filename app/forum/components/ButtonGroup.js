@@ -1,10 +1,11 @@
+'use client';
 import React from 'react';
 import { ButtonGroup, Button } from 'react-bootstrap';
 
 const ButtonGroupComponent = () => {
     const handleButtonClick = (category) => {
-        // 這裡可以添加篩選文章的邏輯
-        console.log(`篩選類別: ${category}`);
+        // 這裡可以添加按鈕點擊後的事件處理邏輯
+        console.log(`Selected category: ${category}`);
     };
 
     return (

@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Loading from '../../../loading';
@@ -36,13 +37,10 @@ const ArticlePage = () => {
 
     return (
         <div className="container mt-5">
-            {article && (
-                <div className="article">
-                    <h1>{article.title}</h1>
-                    <p className="text-muted">By {article.author} on {new Date(article.publishedAt).toLocaleDateString()}</p>
-                    <div className="content" dangerouslySetInnerHTML={{ __html: article.content }} />
-                </div>
-            )}
+            <h1>{article.title}</h1>
+            <p className="text-muted">By {article.author} on {new Date(article.publishedAt).toLocaleDateString()}</p>
+            <div className="content" dangerouslySetInnerHTML={{ __html: article.content }} />
+            <p className="mt-3">Category: {article.category}</p>
         </div>
     );
 };

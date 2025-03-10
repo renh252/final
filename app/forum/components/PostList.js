@@ -1,21 +1,22 @@
+'use client';
 import React from 'react';
 import { ListGroup } from 'react-bootstrap';
-import { useContext } from 'react';
-import { ArticleContext } from '../context/ArticleContext';
 
-const PostList = () => {
-    const { articles } = useContext(ArticleContext);
+const PostList = ({ articles }) => { // 修改從 posts 到 articles
+    if (!articles || articles.length === 0) {
+        return <div className="alert alert-info">沒有文章可顯示</div>;
+    }
 
     return (
-        <ListGroup>
-            {articles.map(article => (
-                <ListGroup.Item key={article.id} className="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h5>{article.title}</h5>
-                        <p>{article.summary}</p>
-                        <small>作者: {article.author} | 發布時間: {new Date(article.publishedAt).toLocaleDateString()}</small>
+        <ListGroup className="mb-4">
+            {articles.map((article) => (
+                <ListGroup.Item key={article.id} action href={`/forum/article/${article.id}`}>
+                    <div className="d-flex w-100 justify-content-between">
+                        <h5 className="mb-1">{article.title}</h5>
+                        <small>{article.publishDate}</small>
                     </div>
-                    <img src={article.thumbnail} alt={article.title} className="img-thumbnail ms-2" style={{ width: '100px' }} />
+                    <p className="mb-1">{article.summary}</p>
+                    <small>作者: {article.author}</small>
                 </ListGroup.Item>
             ))}
         </ListGroup>
