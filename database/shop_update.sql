@@ -195,10 +195,12 @@ WHERE `promotion_id` = 5;
 UPDATE `promotions` 
 SET `promotion_name` = '寵物零食優惠週', 
     `promotion_description` = '寵物零食專屬折扣，最高可享15%優惠', 
-    `start_date` = '2025-05-01', 
-    `end_date` = '2025-05-07', 
+    `start_date` = '2025-01-01', 
+    `end_date` = '2025-12-07', 
     `discount_percentage` = 15 
 WHERE `promotion_id` = 7;
 
 
 -- promotion_products
+
+
