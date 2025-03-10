@@ -78,12 +78,28 @@ export async function createPet(pet: Pet) {
         chip_number, fixed, story, store_id, is_adopted, main_photo
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
+
+    // 處理日期格式，將 ISO 格式轉換為 YYYY-MM-DD 格式
+    let birthdayValue = null
+    if (pet.birthday && pet.birthday !== '') {
+      try {
+        // 嘗試解析日期
+        const date = new Date(pet.birthday)
+        // 格式化為 YYYY-MM-DD
+        birthdayValue = date.toISOString().split('T')[0]
+        console.log(`轉換日期格式: ${pet.birthday} -> ${birthdayValue}`)
+      } catch (error) {
+        console.error(`日期格式轉換錯誤: ${pet.birthday}`, error)
+        birthdayValue = null
+      }
+    }
+
     const values = [
       pet.name,
       pet.gender,
       pet.species,
       pet.variety,
-      pet.birthday || null,
+      birthdayValue,
       pet.weight || null,
       pet.chip_number || null,
       pet.fixed !== undefined ? pet.fixed : null,
@@ -137,7 +153,21 @@ export async function updatePet(id: number, pet: Partial<Pet>) {
     }
     if (pet.birthday !== undefined) {
       updateFields.push('birthday = ?')
-      values.push(pet.birthday === '' ? null : pet.birthday)
+      // 處理日期格式，將 ISO 格式轉換為 YYYY-MM-DD 格式
+      let birthdayValue = null
+      if (pet.birthday && pet.birthday !== '') {
+        try {
+          // 嘗試解析日期
+          const date = new Date(pet.birthday)
+          // 格式化為 YYYY-MM-DD
+          birthdayValue = date.toISOString().split('T')[0]
+          console.log(`轉換日期格式: ${pet.birthday} -> ${birthdayValue}`)
+        } catch (error) {
+          console.error(`日期格式轉換錯誤: ${pet.birthday}`, error)
+          birthdayValue = null
+        }
+      }
+      values.push(birthdayValue)
     }
     if (pet.weight !== undefined) {
       updateFields.push('weight = ?')

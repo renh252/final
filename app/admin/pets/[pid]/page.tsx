@@ -42,11 +42,13 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/admin/api/pets/${params.pid}`, {
+      const response = await fetch(`/api/admin/pets/${params.pid}`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
         },
-        cache: 'no-store',
       })
 
       if (!response.ok) {
@@ -115,7 +117,7 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
 
     try {
       setLoading(true)
-      const response = await fetch(`/admin/api/pets/${params.pid}`, {
+      const response = await fetch(`/api/admin/pets/${params.pid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +155,7 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
       onConfirm: async () => {
         try {
           setLoading(true)
-          const response = await fetch(`/admin/api/pets/${params.pid}`, {
+          const response = await fetch(`/api/admin/pets/${params.pid}`, {
             method: 'DELETE',
             headers: {
               Authorization: `Bearer ${getToken()}`,
@@ -201,7 +203,7 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
       onConfirm: async () => {
         try {
           setLoading(true)
-          const response = await fetch(`/admin/api/pets/photos/${photoId}`, {
+          const response = await fetch(`/api/admin/pets/photos/${photoId}`, {
             method: 'DELETE',
             headers: {
               Authorization: `Bearer ${getToken()}`,
@@ -236,7 +238,7 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
   const handleSetMainPhoto = async (photoId: number, photoUrl: string) => {
     try {
       setLoading(true)
-      const response = await fetch(`/admin/api/pets/photos/${photoId}`, {
+      const response = await fetch(`/api/admin/pets/photos/${photoId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

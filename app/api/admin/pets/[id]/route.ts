@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { verifyToken } from '@/app/admin/api/_lib/jwt'
+import { verifyToken } from '@/app/api/admin/_lib/jwt'
 import {
   getPetById,
   updatePet,
   deletePet,
   getPetPhotos,
   Pet,
-} from '@/app/admin/api/_lib/pet-database'
+} from '@/app/api/admin/_lib/pet-database'
 
 // 獲取單個寵物
 export async function GET(

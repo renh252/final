@@ -29,7 +29,9 @@ export default function AdminLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [currentPath, setCurrentPath] = useState('')
   const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
 
   // 使用 ref 來跟踪最新的 sidebarCollapsed 狀態
   const sidebarCollapsedRef = useRef(sidebarCollapsed)
@@ -39,14 +41,25 @@ export default function AdminLayout({
     sidebarCollapsedRef.current = sidebarCollapsed
   }, [sidebarCollapsed])
 
+  // 在客戶端環境中更新路徑
+  useEffect(() => {
+    if (pathname) {
+      setCurrentPath(pathname)
+    }
+  }, [pathname])
+
   // 檢查當前是否為公開頁面
-  const isPublicPath = PUBLIC_PATHS.some((path) => pathname === path)
+  const isPublicPath = PUBLIC_PATHS.some((path) => currentPath === path)
 
   // 檢查是否需要特殊處理的頁面（不包含標準布局）
-  const isExcludedPath = EXCLUDE_LAYOUT_PATHS.some((path) => pathname === path)
+  const isExcludedPath = EXCLUDE_LAYOUT_PATHS.some(
+    (path) => currentPath === path
+  )
 
-  // 處理載入狀態和客戶端初始化
+  // 確保組件只在客戶端渲染
   useEffect(() => {
+    setMounted(true)
+
     // 標記為客戶端環境
     document.body.classList.add('admin-body')
 
