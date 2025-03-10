@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { InputGroup, FormControl, Button } from 'react-bootstrap';
-import { useRouter } from 'next/navigation';  // 修改從 next/navigation 引入
+import { useRouter } from 'next/navigation';
 
 const SearchBox = () => {
     const [query, setQuery] = useState('');
@@ -14,16 +14,20 @@ const SearchBox = () => {
     };
 
     return (
-        <InputGroup className="mb-3">
-            <FormControl
-                placeholder="搜尋文章"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-            />
-            <Button variant="primary" onClick={handleSearch}>
-                搜尋
-            </Button>
-        </InputGroup>
+        <div style={{ width: "400px" }}> {/* 設置固定寬度 */}
+            <InputGroup className="mb-3">
+                <FormControl
+                    placeholder="搜尋文章"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    size="sm"
+                    className="flex-grow-1" // 確保輸入框能夠彈性伸展
+                />
+                <Button variant="primary" onClick={handleSearch} size="sm">
+                    搜尋
+                </Button>
+            </InputGroup>
+        </div>
     );
 };
 
