@@ -157,12 +157,16 @@ export default function DonatePage() {
                   <h2>救援行動流程</h2>
                   <h5>請您加入捐款支持我們，讓我們能持續這份神聖使命。</h5>
                 </div>
-                <Image
-                  src="/images/donate/RescueFollowups.jpg"
-                  alt="donate.jpg"
-                  width={1100}
-                  height={400}
-                />
+                <div className={styles.test}>
+                  <Image
+                    src="/images/donate/RescueFollowups.jpg"
+                    alt="donate.jpg"
+                    layout="responsive"
+                    width={1100}
+                    height={400}
+                    className={styles.img_size}
+                  />
+                </div>
               </div>
               <div className={styles.instructions_item}>
                 <div className={styles.instructions_content}>
@@ -174,12 +178,6 @@ export default function DonatePage() {
                     您的捐款將用於疫苗接種、疾病治療、手術費用及基本健康檢查，幫助牠們恢復健康，迎接新生活。
                   </h5>
                 </div>
-                <Image
-                  src="/images/donate/RescueFollowups.jpg"
-                  alt="donate.jpg"
-                  width={1100}
-                  height={400}
-                />
               </div>
             </div>
           </div>
