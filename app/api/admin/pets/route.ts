@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { verifyToken } from '@/app/admin/api/_lib/jwt'
+import { verifyToken } from '@/app/api/admin/_lib/jwt'
 import {
   getAllPets,
   createPet,
   getAllPetStores,
   Pet,
   getPetById,
-} from '@/app/admin/api/_lib/pet-database'
+} from '@/app/api/admin/_lib/pet-database'
 
 // 獲取寵物列表
 export async function GET(request: Request) {

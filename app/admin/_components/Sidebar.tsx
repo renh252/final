@@ -44,6 +44,7 @@ export default function Sidebar({ collapsed = false, onToggle }) {
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
     {}
   )
+  const [currentPath, setCurrentPath] = useState<string>('')
   const pathname = usePathname()
   const { isDarkMode } = useTheme()
   const { admin, hasPermission } = useAdmin()
@@ -149,12 +150,23 @@ export default function Sidebar({ collapsed = false, onToggle }) {
     }
   }
 
-  // 確保只在客戶端渲染
+  // 在客戶端環境中更新路徑
+  useEffect(() => {
+    if (pathname) {
+      setCurrentPath(pathname)
+    }
+  }, [pathname])
+
+  // 確保組件只在客戶端渲染
   useEffect(() => {
     setMounted(true)
+  }, [])
 
-    // 展開當前路徑的菜單
-    const segments = pathname.split('/').filter(Boolean)
+  // 在客戶端環境中展開當前路徑的菜單
+  useEffect(() => {
+    if (!mounted) return
+
+    const segments = pathname?.split('/').filter(Boolean) || []
     if (segments.length > 1) {
       // 查找當前路徑匹配的菜單項
       menuItems.forEach((item) => {
@@ -166,38 +178,26 @@ export default function Sidebar({ collapsed = false, onToggle }) {
         }
       })
     }
-  }, [pathname])
+  }, [pathname, mounted])
 
-  // 檢查路徑是否活動
+  // 如果尚未掛載，返回骨架屏
+  if (!mounted) {
+    return <SidebarSkeleton />
+  }
+
+  // 檢查當前路徑是否匹配
   const isActive = (path: string) => {
-    // 首頁路由特殊處理
-    if (path === '/admin') {
-      // 精確匹配 /admin 路徑或者是 /admin/ 路徑
-      return pathname === '/admin' || pathname === '/admin/'
-    }
+    if (!currentPath) return false
 
-    // 精確匹配優先
-    if (pathname === path) {
+    if (path === '/admin' && currentPath === '/admin') {
       return true
     }
 
-    // 對於子頁面，只有當前路徑是直接子頁面時才高亮
-    // 例如：/admin/finance/transactions/donations 只會高亮 donations，而不會高亮 transactions
-    const pathParts = path.split('/')
-    const currentParts = pathname.split('/')
-
-    // 檢查是否為直接父路徑（差一級）
-    if (pathParts.length === currentParts.length - 1) {
-      return currentParts.slice(0, pathParts.length).join('/') === path
+    if (path !== '/admin' && currentPath.startsWith(path)) {
+      return true
     }
 
-    // 對於其他情況，檢查是否為父路徑
-    return pathname.startsWith(`${path}/`)
-  }
-
-  // 如果不是客戶端，返回有相同結構的骨架
-  if (!mounted) {
-    return <SidebarSkeleton />
+    return false
   }
 
   // 渲染側邊欄內容

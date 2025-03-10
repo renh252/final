@@ -82,11 +82,13 @@ export default function PetsPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('/admin/api/pets', {
+      const response = await fetch('/api/admin/pets', {
         headers: {
           Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
         },
-        cache: 'no-store',
       })
 
       if (!response.ok) {
@@ -285,7 +287,7 @@ export default function PetsPage() {
       message: `確定要刪除寵物「${pet.name}」嗎？此操作無法撤銷。`,
       onConfirm: async () => {
         try {
-          const response = await fetch(`/admin/api/pets/${pet.id}`, {
+          const response = await fetch(`/api/admin/pets/${pet.id}`, {
             method: 'DELETE',
             headers: {
               Authorization: `Bearer ${getToken()}`,
@@ -310,9 +312,12 @@ export default function PetsPage() {
   // 處理表單提交
   const handleSubmit = async (formData: Record<string, any>) => {
     try {
+      console.log('提交寵物表單數據:', formData)
+
       if (modalMode === 'add') {
         // 新增寵物
-        const response = await fetch('/admin/api/pets', {
+        console.log('執行新增寵物操作')
+        const response = await fetch('/api/admin/pets', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -323,10 +328,19 @@ export default function PetsPage() {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
-          throw new Error(errorData.error || '新增寵物失敗')
+          console.error(
+            '新增寵物失敗，狀態碼:',
+            response.status,
+            '錯誤數據:',
+            errorData
+          )
+          throw new Error(
+            errorData.error || `新增寵物失敗 (${response.status})`
+          )
         }
 
         const result = await response.json()
+        console.log('新增寵物成功，結果:', result)
 
         // 直接將新寵物添加到列表中，而不是重新獲取整個列表
         if (result.pet) {
@@ -339,19 +353,49 @@ export default function PetsPage() {
         showToast('success', '新增成功', `寵物 ${formData.name} 已成功新增`)
       } else {
         // 更新寵物
-        const response = await fetch(`/admin/api/pets/${currentPet.id}`, {
+        console.log(`執行更新寵物操作，ID: ${currentPet.id}`)
+
+        // 處理數值型欄位
+        const processedData = { ...formData }
+        if (processedData.weight !== undefined && processedData.weight !== '') {
+          processedData.weight = Number(processedData.weight)
+        }
+        if (processedData.fixed !== undefined) {
+          processedData.fixed = Number(processedData.fixed)
+        }
+        if (processedData.is_adopted !== undefined) {
+          processedData.is_adopted = Number(processedData.is_adopted)
+        }
+        if (processedData.store_id !== undefined) {
+          processedData.store_id = Number(processedData.store_id)
+        }
+
+        console.log('處理後的更新數據:', processedData)
+
+        const response = await fetch(`/api/admin/pets/${currentPet.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${getToken()}`,
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(processedData),
         })
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
-          throw new Error(errorData.error || '更新寵物失敗')
+          console.error(
+            '更新寵物失敗，狀態碼:',
+            response.status,
+            '錯誤數據:',
+            errorData
+          )
+          throw new Error(
+            errorData.error || `更新寵物失敗 (${response.status})`
+          )
         }
+
+        const result = await response.json()
+        console.log('更新寵物成功，結果:', result)
 
         // 更新寵物列表
         setPets((prev) =>
@@ -359,7 +403,7 @@ export default function PetsPage() {
             p.id === currentPet.id
               ? {
                   ...p,
-                  ...formData,
+                  ...processedData,
                 }
               : p
           )
@@ -403,18 +447,23 @@ export default function PetsPage() {
         options: SPECIES_OPTIONS,
         required: true,
       },
-      { name: 'variety', label: '品種', type: 'text' as const, required: true },
+      {
+        name: 'variety',
+        label: '品種',
+        type: 'text' as const,
+        required: true,
+      },
       {
         name: 'birthday',
         label: '出生日期',
         type: 'date' as const,
-        required: true,
+        required: false,
       },
       {
         name: 'weight',
         label: '體重(kg)',
         type: 'number' as const,
-        required: true,
+        required: false,
       },
       {
         name: 'chip_number',
@@ -427,7 +476,8 @@ export default function PetsPage() {
         label: '是否絕育',
         type: 'select' as const,
         options: FIXED_OPTIONS,
-        required: true,
+        required: false,
+        defaultValue: 0,
       },
       {
         name: 'story',
@@ -448,12 +498,14 @@ export default function PetsPage() {
         type: 'select' as const,
         options: ADOPTED_OPTIONS,
         required: true,
+        defaultValue: 0,
       },
       {
         name: 'main_photo',
         label: '主要照片URL',
         type: 'text' as const,
-        required: true,
+        required: false,
+        defaultValue: '/images/default_no_pet.jpg',
       },
     ],
     [storeOptions]
