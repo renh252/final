@@ -1,4 +1,4 @@
--- 0308新增
+-- 0308新增(product_variants、products、product_like、product_img、categories)
 CREATE TABLE `product_like` (
   `product_id` int NOT NULL,
   `user_id` int NOT NULL,
@@ -163,3 +163,42 @@ WHERE `variant_id` = 11;
 UPDATE `product_variants` 
 SET `variant_name` = '貓乾糧 5 - 變體 A', `price` = 120, `stock_quantity` = 10, `updated_at` = NOW()
 WHERE `variant_id` = 12;
+
+
+-- 0309新增(promotions、promotion_products)
+-- promotions
+UPDATE `promotions` 
+SET `promotion_name` = '夏季寵物用品大促', 
+    `promotion_description` = '全館寵物食品、零食、日常用品享受高達30%折扣' 
+WHERE `promotion_id` = 1;
+
+UPDATE `promotions` 
+SET `promotion_name` = '寵物美容護理優惠', 
+    `promotion_description` = '寵物美容產品限時買一送一，包括洗毛精、護毛素等' 
+WHERE `promotion_id` = 2;
+
+UPDATE `promotions` 
+SET `promotion_name` = '新品飼料優惠', 
+    `promotion_description` = '全新上市的寵物乾糧和罐頭享受首次購買20%折扣' 
+WHERE `promotion_id` = 3;
+
+UPDATE `promotions` 
+SET `promotion_name` = '寵物用品滿額折扣', 
+    `promotion_description` = '全館消費滿500元可享受額外10%折扣，適用於所有寵物商品' 
+WHERE `promotion_id` = 4;
+
+UPDATE `promotions` 
+SET `promotion_name` = '雙11寵物狂歡節', 
+    `promotion_description` = '雙11期間所有寵物商品享有30%折扣，限時搶購' 
+WHERE `promotion_id` = 5;
+
+UPDATE `promotions` 
+SET `promotion_name` = '寵物零食優惠週', 
+    `promotion_description` = '寵物零食專屬折扣，最高可享15%優惠', 
+    `start_date` = '2025-05-01', 
+    `end_date` = '2025-05-07', 
+    `discount_percentage` = 15 
+WHERE `promotion_id` = 7;
+
+
+-- promotion_products
