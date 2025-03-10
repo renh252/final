@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { ButtonGroup, Button } from 'react-bootstrap';
+import { Button, Row, Col } from 'react-bootstrap';
 
 const ButtonGroupComponent = () => {
     const handleButtonClick = (category) => {
@@ -8,14 +8,30 @@ const ButtonGroupComponent = () => {
         console.log(`Selected category: ${category}`);
     };
 
+    const categories = [
+        '限定公告',
+        '寵物健康',
+        '線下聚會',
+        '經驗分享',
+        '送養寵物'
+    ];
+
     return (
-        <ButtonGroup className="mb-3">
-            <Button variant="primary" onClick={() => handleButtonClick('公告')}>限定公告</Button>
-            <Button variant="primary" onClick={() => handleButtonClick('寵物健康')}>寵物健康</Button>
-            <Button variant="primary" onClick={() => handleButtonClick('線下聚會')}>線下聚會</Button>
-            <Button variant="primary" onClick={() => handleButtonClick('經驗分享')}>經驗分享</Button>
-            <Button variant="primary" onClick={() => handleButtonClick('送養寵物')}>送養寵物</Button>
-        </ButtonGroup>
+        <div className="container-fluid mb-4">
+            <Row className="g-3">
+                {categories.map((category, index) => (
+                    <Col key={index} xs={12} sm={6} md={4} lg>
+                        <Button 
+                            variant="outline-primary" 
+                            onClick={() => handleButtonClick(category)}
+                            className="w-100 py-2 fs-5"
+                        >
+                            {category}
+                        </Button>
+                    </Col>
+                ))}
+            </Row>
+        </div>
     );
 };
 
