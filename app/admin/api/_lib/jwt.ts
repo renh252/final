@@ -11,10 +11,16 @@ export interface AdminPayload {
   id: number
   account: string
   privileges: string
+  role?: string // 添加 role 屬性，用於權限控制
 }
 
 // 產生 JWT Token
 export async function generateToken(payload: AdminPayload): Promise<string> {
+  // 根據 privileges 設置 role
+  if (!payload.role) {
+    payload.role = 'admin' // 預設為管理員角色
+  }
+
   return await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -26,7 +32,14 @@ export async function generateToken(payload: AdminPayload): Promise<string> {
 export async function verifyToken(token: string): Promise<AdminPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET)
-    return payload as AdminPayload
+    const adminPayload = payload as AdminPayload
+
+    // 確保 role 屬性存在
+    if (!adminPayload.role && adminPayload.privileges) {
+      adminPayload.role = 'admin' // 預設為管理員角色
+    }
+
+    return adminPayload
   } catch (error) {
     console.error('JWT 驗證失敗:', error)
     return null
