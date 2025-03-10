@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 const SearchBox = () => {
     const [query, setQuery] = useState('');
+    const [isHovered, setIsHovered] = useState(false);
     const router = useRouter();
 
     const handleSearch = () => {
@@ -23,7 +24,18 @@ const SearchBox = () => {
                     size="sm"
                     className="flex-grow-1" // 確保輸入框能夠彈性伸展
                 />
-                <Button variant="primary" onClick={handleSearch} size="sm">
+                <Button 
+                    onClick={handleSearch} 
+                    size="sm"
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    style={{ 
+                        backgroundColor: isHovered ? '#092C4C' : '#063970', 
+                        borderColor: isHovered ? '#092C4C' : '#063970',
+                        color: 'white',
+                        transition: 'background-color 0.2s ease'
+                    }}
+                >
                     搜尋
                 </Button>
             </InputGroup>

@@ -1,10 +1,13 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, Row, Col } from 'react-bootstrap';
 
 const ButtonGroupComponent = () => {
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [hoveredCategory, setHoveredCategory] = useState(null);
+
     const handleButtonClick = (category) => {
-        // 這裡可以添加按鈕點擊後的事件處理邏輯
+        setSelectedCategory(category);
         console.log(`Selected category: ${category}`);
     };
 
@@ -17,19 +20,32 @@ const ButtonGroupComponent = () => {
     ];
 
     return (
-        <div className="container-fluid mb-4">
+        <div className="container-fluid mt-4 mb-4">
             <Row className="g-3">
-                {categories.map((category, index) => (
-                    <Col key={index} xs={12} sm={6} md={4} lg>
-                        <Button 
-                            variant="outline-primary" 
-                            onClick={() => handleButtonClick(category)}
-                            className="w-100 py-2 fs-5"
-                        >
-                            {category}
-                        </Button>
-                    </Col>
-                ))}
+                {categories.map((category, index) => {
+                    const isSelected = category === selectedCategory;
+                    const isHovered = category === hoveredCategory;
+                    
+                    return (
+                        <Col key={index} xs={12} sm={6} md={4} lg>
+                            <Button 
+                                variant="primary"
+                                onClick={() => handleButtonClick(category)}
+                                onMouseEnter={() => setHoveredCategory(category)}
+                                onMouseLeave={() => setHoveredCategory(null)}
+                                className="w-100 py-2 fs-5"
+                                style={{
+                                    backgroundColor: isSelected || isHovered ? '#C79650' : '#092C4C',
+                                    borderColor: isSelected || isHovered ? '#C79650' : '#092C4C',
+                                    color: 'white',
+                                    transition: 'background-color 0.2s ease'
+                                }}
+                            >
+                                {category}
+                            </Button>
+                        </Col>
+                    );
+                })}
             </Row>
         </div>
     );

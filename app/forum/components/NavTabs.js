@@ -7,7 +7,19 @@ const NavTabs = ({ onTabSelect }) => {
 
     const handleSelect = (tab) => {
         setActiveTab(tab);
-        onTabSelect(tab);
+        if (onTabSelect) {
+            onTabSelect(tab);
+        }
+    };
+
+    const activeStyle = {
+        backgroundColor: '#C79650',
+        color: 'white',
+        borderColor: '#C79650'
+    };
+
+    const inactiveStyle = {
+        color: 'black'  // 未選中的標籤使用黑色字體
     };
 
     return (
@@ -15,8 +27,9 @@ const NavTabs = ({ onTabSelect }) => {
             <Nav.Item>
                 <Nav.Link 
                     eventKey="popular" 
-                    active={activeTab === 'popular'} 
+                    active={activeTab === 'popular'}
                     onClick={() => handleSelect('popular')}
+                    style={activeTab === 'popular' ? activeStyle : inactiveStyle}
                 >
                     熱門
                 </Nav.Link>
@@ -24,8 +37,9 @@ const NavTabs = ({ onTabSelect }) => {
             <Nav.Item>
                 <Nav.Link 
                     eventKey="latest" 
-                    active={activeTab === 'latest'} 
+                    active={activeTab === 'latest'}
                     onClick={() => handleSelect('latest')}
+                    style={activeTab === 'latest' ? activeStyle : inactiveStyle}
                 >
                     最新
                 </Nav.Link>
@@ -33,8 +47,9 @@ const NavTabs = ({ onTabSelect }) => {
             <Nav.Item>
                 <Nav.Link 
                     eventKey="rules" 
-                    active={activeTab === 'rules'} 
+                    active={activeTab === 'rules'}
                     onClick={() => handleSelect('rules')}
+                    style={activeTab === 'rules' ? activeStyle : inactiveStyle}
                 >
                     板規
                 </Nav.Link>
