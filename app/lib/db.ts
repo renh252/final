@@ -23,7 +23,9 @@ const poolConfig: PoolOptions = {
 export const pool: Pool = mysql.createPool(poolConfig)
 
 // 處理數據庫連接錯誤
-pool.on('error', (err: NodeJS.ErrnoException) => {
+// 使用 any 類型來繞過 TypeScript 的類型檢查
+// 因為 mysql2/promise 的類型定義中沒有包含 'error' 事件
+;(pool as any).on('error', (err: any) => {
   console.error('數據庫連接錯誤:', err)
   if (err.code === 'PROTOCOL_CONNECTION_LOST') {
     console.error('數據庫連接被關閉')

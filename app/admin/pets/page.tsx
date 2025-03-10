@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Button, Row, Col, Badge, Image, Form } from 'react-bootstrap'
+import { useState, useEffect, useMemo } from 'react'
+import { Button, Form, Badge, Image } from 'react-bootstrap'
 import { Plus, Edit, Trash, Eye, Heart, PawPrint } from 'lucide-react'
-import DataTable from '@/app/admin/_components/DataTable'
-import ModalForm from '@/app/admin/_components/ModalForm'
-import { useToast } from '@/app/admin/_components/Toast'
-import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
-import { useTheme } from '../ThemeContext'
 import { useRouter } from 'next/navigation'
 import AdminPageLayout, {
   AdminSection,
   AdminCard,
-} from '../_components/AdminPageLayout'
+} from '@/app/admin/_components/AdminPageLayout'
+import DataTable from '@/app/admin/_components/DataTable'
+import ModalForm from '@/app/admin/_components/ModalForm'
+import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
+import { useTheme } from '@/app/admin/ThemeContext'
 
 // 模擬寵物數據 - 基於資料庫結構
 const MOCK_PETS = [
@@ -311,8 +311,10 @@ export default function PetsPage() {
 
   // 處理編輯寵物
   const handleEditPet = (pet) => {
-    // 實現編輯寵物邏輯
-    console.log('編輯寵物', pet)
+    // 設置當前寵物和模態框模式
+    setCurrentPet(pet)
+    setModalMode('edit')
+    setShowModal(true)
   }
 
   // 處理刪除寵物
@@ -366,92 +368,100 @@ export default function PetsPage() {
     }
   }
 
-  // 在React hooks後面，handleSubmit前面修正formFields定義
-  const formFields = [
-    { name: 'name', label: '寵物名稱', type: 'text' as const, required: true },
-    {
-      name: 'gender',
-      label: '性別',
-      type: 'select' as const,
-      options: [
-        { value: 'male', label: '公' },
-        { value: 'female', label: '母' },
-      ],
-      required: true,
-    },
-    {
-      name: 'species',
-      label: '物種',
-      type: 'select' as const,
-      options: [
-        { value: 'dog', label: '狗' },
-        { value: 'cat', label: '貓' },
-        { value: 'other', label: '其他' },
-      ],
-      required: true,
-    },
-    { name: 'variety', label: '品種', type: 'text' as const, required: true },
-    {
-      name: 'birthday',
-      label: '出生日期',
-      type: 'date' as const,
-      required: true,
-    },
-    {
-      name: 'weight',
-      label: '體重(kg)',
-      type: 'number' as const,
-      required: true,
-    },
-    {
-      name: 'chip_number',
-      label: '晶片號碼',
-      type: 'text' as const,
-      required: false,
-    },
-    {
-      name: 'fixed',
-      label: '是否絕育',
-      type: 'select' as const,
-      options: [
-        { value: 1, label: '是' },
-        { value: 0, label: '否' },
-      ],
-      required: true,
-    },
-    {
-      name: 'story',
-      label: '寵物故事',
-      type: 'textarea' as const,
-      required: false,
-    },
-    {
-      name: 'store_id',
-      label: '所屬店鋪',
-      type: 'select' as const,
-      options: STORE_OPTIONS.map((store) => ({
-        value: store.value,
-        label: store.label,
-      })),
-      required: true,
-    },
-    {
-      name: 'is_adopted',
-      label: '領養狀態',
-      type: 'select' as const,
-      options: [
-        { value: 0, label: '待領養' },
-        { value: 1, label: '已領養' },
-      ],
-      required: true,
-    },
-    {
-      name: 'main_photo',
-      label: '主要照片URL',
-      type: 'text' as const,
-      required: true,
-    },
-  ]
+  // 使用 useMemo 包裝 formFields，避免每次渲染時都創建新的數組
+  const formFields = useMemo(
+    () => [
+      {
+        name: 'name',
+        label: '寵物名稱',
+        type: 'text' as const,
+        required: true,
+      },
+      {
+        name: 'gender',
+        label: '性別',
+        type: 'select' as const,
+        options: [
+          { value: 'male', label: '公' },
+          { value: 'female', label: '母' },
+        ],
+        required: true,
+      },
+      {
+        name: 'species',
+        label: '物種',
+        type: 'select' as const,
+        options: [
+          { value: 'dog', label: '狗' },
+          { value: 'cat', label: '貓' },
+          { value: 'other', label: '其他' },
+        ],
+        required: true,
+      },
+      { name: 'variety', label: '品種', type: 'text' as const, required: true },
+      {
+        name: 'birthday',
+        label: '出生日期',
+        type: 'date' as const,
+        required: true,
+      },
+      {
+        name: 'weight',
+        label: '體重(kg)',
+        type: 'number' as const,
+        required: true,
+      },
+      {
+        name: 'chip_number',
+        label: '晶片號碼',
+        type: 'text' as const,
+        required: false,
+      },
+      {
+        name: 'fixed',
+        label: '是否絕育',
+        type: 'select' as const,
+        options: [
+          { value: 1, label: '是' },
+          { value: 0, label: '否' },
+        ],
+        required: true,
+      },
+      {
+        name: 'story',
+        label: '寵物故事',
+        type: 'textarea' as const,
+        required: false,
+      },
+      {
+        name: 'store_id',
+        label: '所屬店鋪',
+        type: 'select' as const,
+        options: STORE_OPTIONS.map((store) => ({
+          value: store.value,
+          label: store.label,
+        })),
+        required: true,
+      },
+      {
+        name: 'is_adopted',
+        label: '領養狀態',
+        type: 'select' as const,
+        options: [
+          { value: 0, label: '待領養' },
+          { value: 1, label: '已領養' },
+        ],
+        required: true,
+      },
+      {
+        name: 'main_photo',
+        label: '主要照片URL',
+        type: 'text' as const,
+        required: true,
+      },
+    ],
+    []
+  ) // 空依賴數組，表示 formFields 只會在組件首次渲染時創建
 
   // 統計數據
   const petStats = [
@@ -531,8 +541,8 @@ export default function PetsPage() {
           <DataTable
             data={filteredPets.length > 0 ? filteredPets : pets}
             columns={columns}
-            renderActions={renderActions}
-            rowsPerPage={10}
+            actions={renderActions}
+            itemsPerPage={10}
           />
         </AdminCard>
       </AdminSection>
@@ -543,7 +553,7 @@ export default function PetsPage() {
         onHide={() => setShowModal(false)}
         title={modalMode === 'add' ? '新增寵物' : '編輯寵物'}
         onSubmit={handleSubmit}
-        initialValues={currentPet}
+        initialData={currentPet}
         fields={formFields}
       />
     </AdminPageLayout>
