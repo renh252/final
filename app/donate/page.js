@@ -49,6 +49,7 @@ export default function DonatePage() {
             width={300}
             height={600}
             className={styles.image}
+            priority
           />
         </div>
         <div className={styles.donate_item}>
@@ -73,6 +74,7 @@ export default function DonatePage() {
                   width={45}
                   height={29}
                   className={styles.li_image}
+                  priority
                 />
               ))}
             </li>
@@ -175,6 +177,7 @@ export default function DonatePage() {
                     width={1100}
                     height={400}
                     className={styles.img_size}
+                    priority
                   />
                 </div>
               </div>
@@ -211,6 +214,7 @@ export default function DonatePage() {
                                 height={300} // 圖片高度
                                 objectFit="cover" // 圖片填充模式
                                 className={styles.cases_img}
+                                priority
                               />
                             </div>
                           ) : (

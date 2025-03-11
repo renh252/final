@@ -1,121 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Button, Row, Col, Badge, Image, Form } from 'react-bootstrap'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { Button, Form, Badge, Image, Alert } from 'react-bootstrap'
 import { Plus, Edit, Trash, Eye, Heart, PawPrint } from 'lucide-react'
-import DataTable from '@/app/admin/_components/DataTable'
-import ModalForm from '@/app/admin/_components/ModalForm'
-import { useToast } from '@/app/admin/_components/Toast'
-import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
-import { useTheme } from '../ThemeContext'
 import { useRouter } from 'next/navigation'
 import AdminPageLayout, {
   AdminSection,
   AdminCard,
-} from '../_components/AdminPageLayout'
-
-// 模擬寵物數據 - 基於資料庫結構
-const MOCK_PETS = [
-  {
-    id: 1,
-    name: 'Pet1',
-    gender: '母',
-    species: '狗',
-    variety: '貴賓',
-    birthday: '2024-01-31',
-    weight: 31.84,
-    chip_number: '8958766700',
-    fixed: 1,
-    story: 'This is the story of Pet1. It is a very lovely pet.',
-    store_id: 1,
-    created_at: '2025-01-14',
-    is_adopted: 0,
-    main_photo: 'https://via.placeholder.com/50',
-    store_name: 'Pet Store 1',
-  },
-  {
-    id: 2,
-    name: 'Pet2',
-    gender: '母',
-    species: '貓',
-    variety: '波斯貓',
-    birthday: '2020-05-05',
-    weight: 49.46,
-    chip_number: '5354310530',
-    fixed: 1,
-    story: 'This is the story of Pet2. It is a very lovely pet.',
-    store_id: 6,
-    created_at: '2025-01-14',
-    is_adopted: 1,
-    main_photo: 'https://via.placeholder.com/50',
-    store_name: 'Pet Store 6',
-  },
-  {
-    id: 3,
-    name: 'Pet3',
-    gender: '公',
-    species: '貓',
-    variety: '暹羅貓',
-    birthday: '2022-05-23',
-    weight: 13.76,
-    chip_number: '5803740308',
-    fixed: 0,
-    story: 'This is the story of Pet3. It is a very lovely pet.',
-    store_id: 10,
-    created_at: '2025-01-14',
-    is_adopted: 1,
-    main_photo: 'https://via.placeholder.com/50',
-    store_name: 'Pet Store 10',
-  },
-  {
-    id: 4,
-    name: 'Pet4',
-    gender: '母',
-    species: '狗',
-    variety: '馬爾濟斯',
-    birthday: '2018-09-07',
-    weight: 7.61,
-    chip_number: '8524556371',
-    fixed: 1,
-    story: 'This is the story of Pet4. It is a very lovely pet.',
-    store_id: 10,
-    created_at: '2025-01-14',
-    is_adopted: 0,
-    main_photo: 'https://via.placeholder.com/50',
-    store_name: 'Pet Store 10',
-  },
-  {
-    id: 5,
-    name: 'Pet5',
-    gender: '公',
-    species: '貓',
-    variety: '米克斯',
-    birthday: '2024-01-31',
-    weight: 31.24,
-    chip_number: '8362333427',
-    fixed: 0,
-    story: 'This is the story of Pet5. It is a very lovely pet.',
-    store_id: 3,
-    created_at: '2025-01-14',
-    is_adopted: 0,
-    main_photo: 'https://via.placeholder.com/50',
-    store_name: 'Pet Store 3',
-  },
-]
-
-// 寵物店鋪選項
-const STORE_OPTIONS = [
-  { value: 1, label: 'Pet Store 1' },
-  { value: 2, label: 'Pet Store 2' },
-  { value: 3, label: 'Pet Store 3' },
-  { value: 4, label: 'Pet Store 4' },
-  { value: 5, label: 'Pet Store 5' },
-  { value: 6, label: 'Pet Store 6' },
-  { value: 7, label: 'Pet Store 7' },
-  { value: 8, label: 'Pet Store 8' },
-  { value: 9, label: 'Pet Store 9' },
-  { value: 10, label: 'Pet Store 10' },
-]
+} from '@/app/admin/_components/AdminPageLayout'
+import DataTable from '@/app/admin/_components/DataTable'
+import ModalForm from '@/app/admin/_components/ModalForm'
+import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
+import { useTheme } from '@/app/admin/ThemeContext'
+import Cookies from 'js-cookie'
 
 // 寵物類型選項
 const SPECIES_OPTIONS = [
@@ -159,7 +57,8 @@ const PET_STATUS_OPTIONS = [
 ]
 
 export default function PetsPage() {
-  const [pets, setPets] = useState(MOCK_PETS)
+  const [pets, setPets] = useState([])
+  const [storeOptions, setStoreOptions] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [currentPet, setCurrentPet] = useState<any>(null)
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
@@ -170,13 +69,77 @@ export default function PetsPage() {
   const [filteredPets, setFilteredPets] = useState([])
   const [typeFilter, setTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [fetchAttempt, setFetchAttempt] = useState(0)
+
+  // 獲取 token
+  const getToken = () => Cookies.get('admin_token') || ''
 
   // 載入寵物資料
-  useEffect(() => {
-    // 此處模擬API載入資料
-    // 實際應用中應該使用fetch或axios從後端獲取數據
-    setPets(MOCK_PETS)
+  const fetchPets = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const response = await fetch('/api/admin/pets', {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `伺服器回應錯誤: ${response.status}`)
+      }
+
+      const data = await response.json()
+      setPets(data.pets || [])
+
+      // 設置店鋪選項
+      if (data.stores) {
+        setStoreOptions(
+          data.stores.map((store: any) => ({
+            value: store.id,
+            label: store.name,
+          }))
+        )
+      }
+    } catch (error) {
+      console.error('獲取寵物資料時發生錯誤:', error)
+      setError(
+        error instanceof Error ? error.message : '獲取資料失敗，請稍後再試'
+      )
+      // 不顯示 toast，因為已經有錯誤訊息顯示在頁面上
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    // 只有在嘗試次數小於 3 次時才獲取資料
+    if (fetchAttempt < 3) {
+      const token = getToken()
+      // 如果已經有寵物數據且不是重試，則不再獲取
+      if (token && (pets.length === 0 || fetchAttempt > 0)) {
+        fetchPets().catch(() => {
+          // 增加嘗試次數
+          setFetchAttempt((prev) => prev + 1)
+        })
+      } else if (pets.length > 0) {
+        // 如果已經有數據，設置 loading 為 false
+        setLoading(false)
+      }
+    }
+  }, [fetchAttempt, fetchPets, pets.length])
+
+  // 重試獲取資料
+  const handleRetry = () => {
+    setFetchAttempt(0) // 重置嘗試次數
+  }
 
   // 當過濾條件改變時，更新顯示的寵物列表
   useEffect(() => {
@@ -214,7 +177,7 @@ export default function PetsPage() {
       label: '照片',
       render: (value) => (
         <Image
-          src={value || 'https://via.placeholder.com/50'}
+          src={value || '/images/default_no_pet.jpg'}
           alt="寵物照片"
           width={50}
           height={50}
@@ -260,6 +223,28 @@ export default function PetsPage() {
       key: 'created_at',
       label: '新增日期',
       sortable: true,
+      render: (value) => {
+        if (!value) return '-'
+        try {
+          // 將 UTC 日期轉換為 GMT+8 (台灣時間)
+          const date = new Date(value)
+
+          // 使用 toLocaleString 方法，指定台灣時區和格式
+          return date.toLocaleString('zh-TW', {
+            timeZone: 'Asia/Taipei',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+          })
+        } catch (error) {
+          console.error('日期格式轉換錯誤:', error)
+          return value
+        }
+      },
     },
   ]
 
@@ -311,8 +296,10 @@ export default function PetsPage() {
 
   // 處理編輯寵物
   const handleEditPet = (pet) => {
-    // 實現編輯寵物邏輯
-    console.log('編輯寵物', pet)
+    // 設置當前寵物和模態框模式
+    setCurrentPet(pet)
+    setModalMode('edit')
+    setShowModal(true)
   }
 
   // 處理刪除寵物
@@ -320,138 +307,231 @@ export default function PetsPage() {
     confirm({
       title: '刪除寵物',
       message: `確定要刪除寵物「${pet.name}」嗎？此操作無法撤銷。`,
-      onConfirm: () => {
-        // 實現刪除寵物邏輯
-        setPets(pets.filter((p) => p.id !== pet.id))
-        showToast('success', '刪除成功', `寵物 ${pet.name} 已成功刪除`)
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin/pets/${pet.id}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+            },
+          })
+
+          if (!response.ok) {
+            throw new Error('刪除寵物失敗')
+          }
+
+          // 更新寵物列表
+          setPets(pets.filter((p) => p.id !== pet.id))
+          showToast('success', '刪除成功', `寵物 ${pet.name} 已成功刪除`)
+        } catch (error) {
+          console.error('刪除寵物時發生錯誤:', error)
+          showToast('error', '刪除失敗', '無法刪除寵物，請稍後再試')
+        }
       },
     })
   }
 
   // 處理表單提交
   const handleSubmit = async (formData: Record<string, any>) => {
-    // 模擬API請求延遲
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      console.log('提交寵物表單數據:', formData)
 
-    // 找到對應的店鋪名稱
-    const store = STORE_OPTIONS.find(
-      (s) => s.value === Number(formData.store_id)
-    )
-    const storeName = store ? store.label : ''
+      if (modalMode === 'add') {
+        // 新增寵物
+        console.log('執行新增寵物操作')
+        const response = await fetch('/api/admin/pets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+          body: JSON.stringify(formData),
+        })
 
-    if (modalMode === 'add') {
-      // 模擬新增寵物
-      const newPet = {
-        ...formData,
-        id: Math.floor(Math.random() * 1000) + pets.length + 1,
-        store_name: storeName,
-        created_at: new Date().toISOString().split('T')[0],
-      }
-      setPets((prev) => [...prev, newPet as (typeof prev)[0]])
-      showToast('success', '新增成功', `寵物 ${formData.name} 已成功新增`)
-    } else {
-      // 模擬更新寵物
-      setPets((prev) =>
-        prev.map((p) =>
-          p.id === currentPet.id
-            ? {
-                ...p,
-                ...formData,
-                store_name: storeName,
-              }
-            : p
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          console.error(
+            '新增寵物失敗，狀態碼:',
+            response.status,
+            '錯誤數據:',
+            errorData
+          )
+          throw new Error(
+            errorData.error || `新增寵物失敗 (${response.status})`
+          )
+        }
+
+        const result = await response.json()
+        console.log('新增寵物成功，結果:', result)
+
+        // 直接將新寵物添加到列表中，而不是重新獲取整個列表
+        if (result.pet) {
+          setPets((prev) => [...prev, result.pet])
+        } else {
+          // 如果 API 沒有返回新寵物數據，才重新獲取
+          setFetchAttempt(0) // 重置嘗試次數，觸發重新獲取
+        }
+
+        showToast('success', '新增成功', `寵物 ${formData.name} 已成功新增`)
+      } else {
+        // 更新寵物
+        console.log(`執行更新寵物操作，ID: ${currentPet.id}`)
+
+        // 處理數值型欄位
+        const processedData = { ...formData }
+        if (processedData.weight !== undefined && processedData.weight !== '') {
+          processedData.weight = Number(processedData.weight)
+        }
+        if (processedData.fixed !== undefined) {
+          processedData.fixed = Number(processedData.fixed)
+        }
+        if (processedData.is_adopted !== undefined) {
+          processedData.is_adopted = Number(processedData.is_adopted)
+        }
+        if (processedData.store_id !== undefined) {
+          processedData.store_id = Number(processedData.store_id)
+        }
+
+        console.log('處理後的更新數據:', processedData)
+
+        const response = await fetch(`/api/admin/pets/${currentPet.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+          body: JSON.stringify(processedData),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          console.error(
+            '更新寵物失敗，狀態碼:',
+            response.status,
+            '錯誤數據:',
+            errorData
+          )
+          throw new Error(
+            errorData.error || `更新寵物失敗 (${response.status})`
+          )
+        }
+
+        const result = await response.json()
+        console.log('更新寵物成功，結果:', result)
+
+        // 更新寵物列表
+        setPets((prev) =>
+          prev.map((p) =>
+            p.id === currentPet.id
+              ? {
+                  ...p,
+                  ...processedData,
+                }
+              : p
+          )
         )
+
+        showToast('success', '更新成功', `寵物 ${formData.name} 資料已成功更新`)
+      }
+
+      // 關閉模態框
+      setShowModal(false)
+    } catch (error) {
+      console.error('提交寵物資料時發生錯誤:', error)
+      showToast(
+        'error',
+        '操作失敗',
+        error instanceof Error ? error.message : '無法完成操作，請稍後再試'
       )
-      showToast('success', '更新成功', `寵物 ${formData.name} 資料已成功更新`)
     }
   }
 
-  // 在React hooks後面，handleSubmit前面修正formFields定義
-  const formFields = [
-    { name: 'name', label: '寵物名稱', type: 'text' as const, required: true },
-    {
-      name: 'gender',
-      label: '性別',
-      type: 'select' as const,
-      options: [
-        { value: 'male', label: '公' },
-        { value: 'female', label: '母' },
-      ],
-      required: true,
-    },
-    {
-      name: 'species',
-      label: '物種',
-      type: 'select' as const,
-      options: [
-        { value: 'dog', label: '狗' },
-        { value: 'cat', label: '貓' },
-        { value: 'other', label: '其他' },
-      ],
-      required: true,
-    },
-    { name: 'variety', label: '品種', type: 'text' as const, required: true },
-    {
-      name: 'birthday',
-      label: '出生日期',
-      type: 'date' as const,
-      required: true,
-    },
-    {
-      name: 'weight',
-      label: '體重(kg)',
-      type: 'number' as const,
-      required: true,
-    },
-    {
-      name: 'chip_number',
-      label: '晶片號碼',
-      type: 'text' as const,
-      required: false,
-    },
-    {
-      name: 'fixed',
-      label: '是否絕育',
-      type: 'select' as const,
-      options: [
-        { value: 1, label: '是' },
-        { value: 0, label: '否' },
-      ],
-      required: true,
-    },
-    {
-      name: 'story',
-      label: '寵物故事',
-      type: 'textarea' as const,
-      required: false,
-    },
-    {
-      name: 'store_id',
-      label: '所屬店鋪',
-      type: 'select' as const,
-      options: STORE_OPTIONS.map((store) => ({
-        value: store.value,
-        label: store.label,
-      })),
-      required: true,
-    },
-    {
-      name: 'is_adopted',
-      label: '領養狀態',
-      type: 'select' as const,
-      options: [
-        { value: 0, label: '待領養' },
-        { value: 1, label: '已領養' },
-      ],
-      required: true,
-    },
-    {
-      name: 'main_photo',
-      label: '主要照片URL',
-      type: 'text' as const,
-      required: true,
-    },
-  ]
+  // 使用 useMemo 包裝 formFields，避免每次渲染時都創建新的數組
+  const formFields = useMemo(
+    () => [
+      {
+        name: 'name',
+        label: '寵物名稱',
+        type: 'text' as const,
+        required: true,
+      },
+      {
+        name: 'gender',
+        label: '性別',
+        type: 'select' as const,
+        options: GENDER_OPTIONS,
+        required: true,
+      },
+      {
+        name: 'species',
+        label: '物種',
+        type: 'select' as const,
+        options: SPECIES_OPTIONS,
+        required: true,
+      },
+      {
+        name: 'variety',
+        label: '品種',
+        type: 'text' as const,
+        required: true,
+      },
+      {
+        name: 'birthday',
+        label: '出生日期',
+        type: 'date' as const,
+        required: false,
+      },
+      {
+        name: 'weight',
+        label: '體重(kg)',
+        type: 'number' as const,
+        required: false,
+      },
+      {
+        name: 'chip_number',
+        label: '晶片號碼',
+        type: 'text' as const,
+        required: false,
+      },
+      {
+        name: 'fixed',
+        label: '是否絕育',
+        type: 'select' as const,
+        options: FIXED_OPTIONS,
+        required: false,
+        defaultValue: 0,
+      },
+      {
+        name: 'story',
+        label: '寵物故事',
+        type: 'textarea' as const,
+        required: false,
+      },
+      {
+        name: 'store_id',
+        label: '所屬店鋪',
+        type: 'select' as const,
+        options: storeOptions,
+        required: true,
+      },
+      {
+        name: 'is_adopted',
+        label: '領養狀態',
+        type: 'select' as const,
+        options: ADOPTED_OPTIONS,
+        required: true,
+        defaultValue: 0,
+      },
+      {
+        name: 'main_photo',
+        label: '主要照片URL',
+        type: 'text' as const,
+        required: false,
+        defaultValue: '/images/default_no_pet.jpg',
+      },
+    ],
+    [storeOptions]
+  )
 
   // 統計數據
   const petStats = [
@@ -496,6 +576,18 @@ export default function PetsPage() {
     <AdminPageLayout title="寵物管理" stats={petStats} actions={pageActions}>
       <AdminSection title="寵物列表">
         <AdminCard>
+          {error && (
+            <Alert variant="danger" className="mb-3">
+              <Alert.Heading>獲取資料失敗</Alert.Heading>
+              <p>{error}</p>
+              <div className="d-flex justify-content-end">
+                <Button variant="outline-danger" onClick={handleRetry}>
+                  重試
+                </Button>
+              </div>
+            </Alert>
+          )}
+
           <div className="d-flex flex-wrap justify-content-end mb-3">
             <Form.Group
               className="me-2 mb-2 mb-md-0"
@@ -528,12 +620,29 @@ export default function PetsPage() {
             </Form.Group>
           </div>
 
-          <DataTable
-            data={filteredPets.length > 0 ? filteredPets : pets}
-            columns={columns}
-            renderActions={renderActions}
-            rowsPerPage={10}
-          />
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">載入中...</span>
+              </div>
+              <p className="mt-2">載入寵物資料中...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-3">
+              {/* 錯誤訊息已在上方顯示，這裡不需要重複顯示 */}
+            </div>
+          ) : (
+            <DataTable
+              data={filteredPets.length > 0 ? filteredPets : pets}
+              columns={columns}
+              actions={renderActions}
+              itemsPerPage={10}
+              searchable={true}
+              searchKeys={['name', 'species', 'variety', 'gender']}
+              onRowClick={(pet) => router.push(`/admin/pets/${pet.id}`)}
+              pageSizeOptions={[10, 20, 50, 100]}
+            />
+          )}
         </AdminCard>
       </AdminSection>
 
@@ -543,7 +652,7 @@ export default function PetsPage() {
         onHide={() => setShowModal(false)}
         title={modalMode === 'add' ? '新增寵物' : '編輯寵物'}
         onSubmit={handleSubmit}
-        initialValues={currentPet}
+        initialData={currentPet}
         fields={formFields}
       />
     </AdminPageLayout>

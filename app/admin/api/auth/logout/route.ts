@@ -9,16 +9,19 @@ export async function POST(request: NextRequest) {
 
     if (admin) {
       try {
-        // 注意：若 manager 表中沒有 last_logout_at 欄位，此操作會失敗
-        // 以下語句使用 IF EXISTS 確保語句不會因欄位不存在而失敗
-        await executeQuery(
-          "SET @column_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'manager' AND COLUMN_NAME = 'last_logout_at'); " +
-            "SET @sql = IF(@column_exists > 0, 'UPDATE manager SET last_logout_at = NOW() WHERE id = ?', 'SELECT 1'); " +
-            'PREPARE stmt FROM @sql; ' +
-            'EXECUTE stmt USING ?; ' +
-            'DEALLOCATE PREPARE stmt;',
-          [admin.id]
+        // 先檢查欄位是否存在
+        const logoutColumnExists = await executeQuery(
+          "SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'manager' AND COLUMN_NAME = 'last_logout_at'",
+          []
         )
+
+        // 如果欄位存在，則更新登出時間
+        if (logoutColumnExists[0].count > 0) {
+          await executeQuery(
+            'UPDATE manager SET last_logout_at = NOW() WHERE id = ?',
+            [admin.id]
+          )
+        }
       } catch (error) {
         console.warn('更新登出時間失敗:', error)
         // 但繼續處理登出流程，不要因為更新時間失敗而阻止登出

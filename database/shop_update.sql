@@ -1,12 +1,14 @@
 -- 0308新增(product_variants、products、product_like、product_img、categories)
 CREATE TABLE `product_like` (
+    `id` int NOT NULL AUTO_INCREMENT,
   `product_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ;
 
 CREATE TABLE `product_img` (
-  `product_id` int NOT NULL,
+`id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL ,
   `product_img1` varchar(255) NOT NULL ,
   `product_img2` varchar(255),
   `product_img3` varchar(255),

@@ -1,103 +1,96 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, Row, Col, Button, Tab, Nav, Form, Badge } from 'react-bootstrap'
+import { useState, useEffect, useCallback } from 'react'
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Tab,
+  Nav,
+  Form,
+  Badge,
+  Alert,
+} from 'react-bootstrap'
 import { ArrowLeft, Save, Trash, Heart } from 'lucide-react'
 import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '../../ThemeContext'
 import Link from 'next/link'
-
-// 模擬寵物數據
-const MOCK_PET = {
-  id: 1,
-  name: 'Pet1',
-  gender: '母',
-  species: '狗',
-  variety: '貴賓',
-  birthday: '2024-01-31',
-  weight: 31.84,
-  chip_number: '8958766700',
-  fixed: 1,
-  story: 'This is the story of Pet1. It is a very lovely pet.',
-  store_id: 1,
-  created_at: '2025-01-14',
-  is_adopted: 0,
-  main_photo: 'https://via.placeholder.com/300',
-  store_name: 'Pet Store 1',
-  photos: [
-    'https://via.placeholder.com/300',
-    'https://via.placeholder.com/300',
-    'https://via.placeholder.com/300',
-  ],
-  traits: [
-    { id: 1, name: '親人', category: '性格' },
-    { id: 2, name: '活潑', category: '性格' },
-    { id: 3, name: '已接種疫苗', category: '健康' },
-  ],
-  appointments: [
-    {
-      id: 101,
-      date: '2025-02-15',
-      time: '14:00',
-      status: '已確認',
-      user_name: '王小明',
-    },
-    {
-      id: 102,
-      date: '2025-02-20',
-      time: '10:30',
-      status: '待確認',
-      user_name: '李小花',
-    },
-  ],
-}
-
-// 寵物店鋪選項
-const STORE_OPTIONS = [
-  { value: 1, label: 'Pet Store 1' },
-  { value: 2, label: 'Pet Store 2' },
-  { value: 3, label: 'Pet Store 3' },
-  { value: 4, label: 'Pet Store 4' },
-  { value: 5, label: 'Pet Store 5' },
-  { value: 6, label: 'Pet Store 6' },
-  { value: 7, label: 'Pet Store 7' },
-  { value: 8, label: 'Pet Store 8' },
-  { value: 9, label: 'Pet Store 9' },
-  { value: 10, label: 'Pet Store 10' },
-]
-
-// 性別選項
-const GENDER_OPTIONS = [
-  { value: '公', label: '公' },
-  { value: '母', label: '母' },
-]
-
-// 是否絕育選項
-const FIXED_OPTIONS = [
-  { value: 1, label: '是' },
-  { value: 0, label: '否' },
-]
-
-// 是否已領養選項
-const ADOPTED_OPTIONS = [
-  { value: 0, label: '可領養' },
-  { value: 1, label: '已領養' },
-]
+import { useRouter } from 'next/navigation'
+import Cookies from 'js-cookie'
 
 export default function PetDetailPage({ params }: { params: { pid: string } }) {
-  const [pet, setPet] = useState(MOCK_PET)
+  const [pet, setPet] = useState(null)
+  const [photos, setPhotos] = useState([])
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState(MOCK_PET)
+  const [formData, setFormData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [fetchAttempt, setFetchAttempt] = useState(0)
   const { showToast } = useToast()
   const { confirm } = useConfirm()
   const { isDarkMode } = useTheme()
+  const router = useRouter()
 
-  // 模擬從API獲取寵物數據
-  useEffect(() => {
-    // 這裡可以根據params.pid從API獲取寵物數據
-    console.log(`獲取寵物ID: ${params.pid}的數據`)
+  // 獲取 token
+  const getToken = () => Cookies.get('admin_token') || ''
+
+  // 從API獲取寵物數據
+  const fetchPet = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const response = await fetch(`/api/admin/pets/${params.pid}`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `伺服器回應錯誤: ${response.status}`)
+      }
+
+      const data = await response.json()
+      setPet(data.pet || null)
+      setPhotos(data.photos || [])
+      setFormData(data.pet || null)
+    } catch (error) {
+      console.error(`獲取寵物 ID: ${params.pid} 時發生錯誤:`, error)
+      setError(
+        error instanceof Error ? error.message : '獲取資料失敗，請稍後再試'
+      )
+    } finally {
+      setLoading(false)
+    }
   }, [params.pid])
+
+  useEffect(() => {
+    // 只有在嘗試次數小於 3 次時才獲取資料
+    if (fetchAttempt < 3) {
+      const token = getToken()
+      // 如果已經有寵物數據且不是重試，則不再獲取
+      if (token && (!pet || fetchAttempt > 0)) {
+        fetchPet().catch(() => {
+          // 增加嘗試次數
+          setFetchAttempt((prev) => prev + 1)
+        })
+      } else if (pet) {
+        // 如果已經有數據，設置 loading 為 false
+        setLoading(false)
+      }
+    }
+  }, [fetchAttempt, fetchPet, pet])
+
+  // 重試獲取資料
+  const handleRetry = () => {
+    setFetchAttempt(0) // 重置嘗試次數
+  }
 
   // 處理表單變更
   const handleChange = (
@@ -119,77 +112,247 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
   }
 
   // 處理表單提交
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // 模擬API請求
-    setTimeout(() => {
-      // 找到對應的店鋪名稱
-      const store = STORE_OPTIONS.find(
-        (s) => s.value === Number(formData.store_id)
-      )
-      const storeName = store ? store.label : ''
 
-      setPet({
-        ...formData,
-        store_name: storeName,
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/admin/pets/${params.pid}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(formData),
       })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `伺服器回應錯誤: ${response.status}`)
+      }
+
+      // 更新寵物資料
+      setPet(formData)
       setIsEditing(false)
       showToast('success', '更新成功', '寵物資料已成功更新')
-    }, 500)
+    } catch (error) {
+      console.error('更新寵物資料時發生錯誤:', error)
+      showToast(
+        'error',
+        '更新失敗',
+        error instanceof Error ? error.message : '無法更新寵物資料，請稍後再試'
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
   // 處理刪除寵物
   const handleDeletePet = () => {
     confirm({
       title: '刪除寵物',
-      message: `確定要刪除寵物 ${pet.name} 嗎？此操作無法撤銷。`,
-      type: 'danger',
-      confirmText: '刪除',
-      onConfirm: () => {
-        // 模擬API請求
-        setTimeout(() => {
-          showToast('success', '刪除成功', `寵物 ${pet.name} 已成功刪除`)
-          // 這裡可以導航回寵物列表頁面
-        }, 500)
+      message: `確定要刪除寵物「${pet?.name}」嗎？此操作無法撤銷。`,
+      onConfirm: async () => {
+        try {
+          setLoading(true)
+          const response = await fetch(`/api/admin/pets/${params.pid}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+            },
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}))
+            throw new Error(
+              errorData.error || `伺服器回應錯誤: ${response.status}`
+            )
+          }
+
+          showToast('success', '刪除成功', `寵物 ${pet?.name} 已成功刪除`)
+          router.push('/admin/pets')
+        } catch (error) {
+          console.error('刪除寵物時發生錯誤:', error)
+          showToast(
+            'error',
+            '刪除失敗',
+            error instanceof Error ? error.message : '無法刪除寵物，請稍後再試'
+          )
+        } finally {
+          setLoading(false)
+        }
       },
     })
   }
 
-  // 計算寵物年齡
-  const calculateAge = (birthday: string) => {
-    const birthDate = new Date(birthday)
-    const today = new Date()
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
+  // 處理照片上傳
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
 
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--
+    // 這裡應該實現照片上傳邏輯
+    // 由於這需要文件上傳服務，這裡只是示例
+    showToast('info', '功能開發中', '照片上傳功能正在開發中')
+  }
+
+  // 處理照片刪除
+  const handleDeletePhoto = async (photoId: number) => {
+    confirm({
+      title: '刪除照片',
+      message: '確定要刪除此照片嗎？此操作無法撤銷。',
+      onConfirm: async () => {
+        try {
+          setLoading(true)
+          const response = await fetch(`/api/admin/pets/photos/${photoId}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+            },
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}))
+            throw new Error(
+              errorData.error || `伺服器回應錯誤: ${response.status}`
+            )
+          }
+
+          // 更新照片列表
+          setPhotos(photos.filter((photo) => photo.id !== photoId))
+          showToast('success', '刪除成功', '照片已成功刪除')
+        } catch (error) {
+          console.error('刪除照片時發生錯誤:', error)
+          showToast(
+            'error',
+            '刪除失敗',
+            error instanceof Error ? error.message : '無法刪除照片，請稍後再試'
+          )
+        } finally {
+          setLoading(false)
+        }
+      },
+    })
+  }
+
+  // 設置主照片
+  const handleSetMainPhoto = async (photoId: number, photoUrl: string) => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/admin/pets/photos/${photoId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ is_main: 1 }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `伺服器回應錯誤: ${response.status}`)
+      }
+
+      // 更新照片列表
+      setPhotos(
+        photos.map((photo) => ({
+          ...photo,
+          is_main: photo.id === photoId ? 1 : 0,
+        }))
+      )
+
+      // 更新寵物主照片
+      setPet((prev) => ({
+        ...prev,
+        main_photo: photoUrl,
+      }))
+
+      if (formData) {
+        setFormData((prev) => ({
+          ...prev,
+          main_photo: photoUrl,
+        }))
+      }
+
+      showToast('success', '設置成功', '主照片已成功設置')
+    } catch (error) {
+      console.error('設置主照片時發生錯誤:', error)
+      showToast(
+        'error',
+        '設置失敗',
+        error instanceof Error ? error.message : '無法設置主照片，請稍後再試'
+      )
+    } finally {
+      setLoading(false)
     }
+  }
 
-    return age
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">載入中...</span>
+        </div>
+        <p className="mt-2">載入寵物資料中...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="py-5">
+        <Alert variant="danger" className="mb-3">
+          <Alert.Heading>獲取資料失敗</Alert.Heading>
+          <p>{error}</p>
+          <div className="d-flex justify-content-between">
+            <Link href="/admin/pets" className="btn btn-outline-secondary">
+              <ArrowLeft size={18} className="me-2" /> 返回列表
+            </Link>
+            <Button variant="outline-danger" onClick={handleRetry}>
+              重試
+            </Button>
+          </div>
+        </Alert>
+      </div>
+    )
+  }
+
+  if (!pet) {
+    return (
+      <div className="text-center py-5">
+        <h3>找不到此寵物</h3>
+        <Link href="/admin/pets" className="btn btn-primary mt-3">
+          返回寵物列表
+        </Link>
+      </div>
+    )
   }
 
   return (
-    <div className="pet-detail-page">
+    <div className="mb-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="d-flex align-items-center">
-          <Link href="/admin/pets" className="btn btn-link p-0 me-3">
-            <ArrowLeft size={24} />
-          </Link>
-          <h2 className="mb-0">寵物詳情</h2>
-        </div>
+        <Link href="/admin/pets" className="btn btn-outline-secondary">
+          <ArrowLeft size={18} className="me-2" /> 返回列表
+        </Link>
         <div>
           {isEditing ? (
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              className="d-flex align-items-center"
-            >
-              <Save size={18} className="me-2" /> 儲存變更
-            </Button>
+            <>
+              <Button
+                variant="success"
+                onClick={handleSubmit}
+                className="d-flex align-items-center me-2"
+              >
+                <Save size={18} className="me-2" /> 儲存變更
+              </Button>
+              <Button
+                variant="outline-secondary"
+                onClick={() => {
+                  setIsEditing(false)
+                  setFormData(pet)
+                }}
+              >
+                取消
+              </Button>
+            </>
           ) : (
             <>
               <Button
@@ -217,7 +380,7 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
             <Card.Body>
               <div className="text-center mb-4">
                 <img
-                  src={pet.main_photo}
+                  src={pet.main_photo || '/images/default_no_pet.jpg'}
                   alt={pet.name}
                   className="img-fluid rounded mb-3"
                   style={{ maxHeight: '250px', objectFit: 'cover' }}
@@ -229,18 +392,6 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
                   <Badge bg={pet.is_adopted === 0 ? 'success' : 'primary'}>
                     {pet.is_adopted === 0 ? '可領養' : '已領養'}
                   </Badge>
-                </div>
-                <div className="d-flex justify-content-center flex-wrap gap-1 mt-2">
-                  {pet.traits.map((trait) => (
-                    <Badge
-                      key={trait.id}
-                      bg="light"
-                      text="dark"
-                      className="me-1 mb-1"
-                    >
-                      {trait.name}
-                    </Badge>
-                  ))}
                 </div>
               </div>
 
@@ -256,13 +407,27 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
                     />
                   </Form.Group>
                   <Form.Group className="mb-3">
-                    <Form.Label>類型</Form.Label>
-                    <Form.Control
-                      type="text"
+                    <Form.Label>性別</Form.Label>
+                    <Form.Select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                    >
+                      <option value="公">公</option>
+                      <option value="母">母</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>種類</Form.Label>
+                    <Form.Select
                       name="species"
                       value={formData.species}
                       onChange={handleChange}
-                    />
+                    >
+                      <option value="狗">狗</option>
+                      <option value="貓">貓</option>
+                      <option value="其他">其他</option>
+                    </Form.Select>
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>品種</Form.Label>
@@ -274,20 +439,6 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
                     />
                   </Form.Group>
                   <Form.Group className="mb-3">
-                    <Form.Label>性別</Form.Label>
-                    <Form.Select
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleChange}
-                    >
-                      {GENDER_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                  <Form.Group className="mb-3">
                     <Form.Label>出生日期</Form.Label>
                     <Form.Control
                       type="date"
@@ -297,7 +448,7 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
                     />
                   </Form.Group>
                   <Form.Group className="mb-3">
-                    <Form.Label>體重(kg)</Form.Label>
+                    <Form.Label>體重 (kg)</Form.Label>
                     <Form.Control
                       type="number"
                       name="weight"
@@ -322,247 +473,172 @@ export default function PetDetailPage({ params }: { params: { pid: string } }) {
                       value={formData.fixed}
                       onChange={handleChange}
                     >
-                      {FIXED_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
+                      <option value={1}>是</option>
+                      <option value={0}>否</option>
                     </Form.Select>
                   </Form.Group>
                   <Form.Group className="mb-3">
-                    <Form.Label>是否已領養</Form.Label>
+                    <Form.Label>領養狀態</Form.Label>
                     <Form.Select
                       name="is_adopted"
                       value={formData.is_adopted}
                       onChange={handleChange}
                     >
-                      {ADOPTED_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
+                      <option value={0}>可領養</option>
+                      <option value={1}>已領養</option>
                     </Form.Select>
                   </Form.Group>
                   <Form.Group className="mb-3">
-                    <Form.Label>所屬店鋪</Form.Label>
-                    <Form.Select
-                      name="store_id"
-                      value={formData.store_id}
-                      onChange={handleChange}
-                    >
-                      {STORE_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>寵物故事</Form.Label>
+                    <Form.Label>主要照片URL</Form.Label>
                     <Form.Control
-                      as="textarea"
-                      rows={3}
-                      name="story"
-                      value={formData.story}
+                      type="text"
+                      name="main_photo"
+                      value={formData.main_photo}
                       onChange={handleChange}
                     />
                   </Form.Group>
                 </Form>
               ) : (
-                <div>
+                <div className="pet-info">
                   <p>
-                    <strong>性別：</strong> {pet.gender}
+                    <strong>ID:</strong> {pet.id}
                   </p>
                   <p>
-                    <strong>年齡：</strong> {calculateAge(pet.birthday)} 歲
+                    <strong>性別:</strong> {pet.gender}
                   </p>
                   <p>
-                    <strong>體重：</strong> {pet.weight} kg
+                    <strong>種類:</strong> {pet.species}
                   </p>
                   <p>
-                    <strong>晶片號碼：</strong> {pet.chip_number}
+                    <strong>品種:</strong> {pet.variety}
                   </p>
                   <p>
-                    <strong>是否絕育：</strong> {pet.fixed === 1 ? '是' : '否'}
+                    <strong>出生日期:</strong> {pet.birthday}
                   </p>
                   <p>
-                    <strong>所屬店鋪：</strong> {pet.store_name}
+                    <strong>體重:</strong> {pet.weight} kg
                   </p>
                   <p>
-                    <strong>建立日期：</strong>{' '}
-                    {new Date(pet.created_at).toLocaleDateString('zh-TW')}
+                    <strong>晶片號碼:</strong> {pet.chip_number || '無'}
                   </p>
-                  <div className="mt-3">
-                    <h6>寵物故事</h6>
-                    <p>{pet.story}</p>
-                  </div>
+                  <p>
+                    <strong>是否絕育:</strong> {pet.fixed ? '是' : '否'}
+                  </p>
+                  <p>
+                    <strong>所屬店鋪:</strong> {pet.store_name || '無'}
+                  </p>
+                  <p>
+                    <strong>新增日期:</strong> {pet.created_at}
+                  </p>
                 </div>
               )}
             </Card.Body>
           </Card>
         </Col>
-
         <Col lg={8}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <Tab.Container defaultActiveKey="photos">
-                <Nav variant="tabs" className="mb-3">
+          <Tab.Container id="pet-tabs" defaultActiveKey="story">
+            <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+              <Card.Header>
+                <Nav variant="tabs">
                   <Nav.Item>
-                    <Nav.Link eventKey="photos">相片集</Nav.Link>
+                    <Nav.Link eventKey="story">寵物故事</Nav.Link>
                   </Nav.Item>
                   <Nav.Item>
-                    <Nav.Link eventKey="appointments">預約記錄</Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="traits">特徵標籤</Nav.Link>
+                    <Nav.Link eventKey="photos">照片管理</Nav.Link>
                   </Nav.Item>
                 </Nav>
-
+              </Card.Header>
+              <Card.Body>
                 <Tab.Content>
-                  <Tab.Pane eventKey="photos">
-                    <h5 className="mb-3">相片集</h5>
-                    <Row>
-                      {pet.photos.map((photo, index) => (
-                        <Col key={index} md={4} className="mb-3">
-                          <Card>
-                            <Card.Img variant="top" src={photo} />
-                            <Card.Body className="p-2">
-                              <div className="d-flex justify-content-between">
-                                <Button variant="outline-primary" size="sm">
-                                  設為主圖
-                                </Button>
-                                <Button variant="outline-danger" size="sm">
-                                  刪除
-                                </Button>
-                              </div>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-                      ))}
-                      <Col md={4} className="mb-3">
-                        <Card
-                          className="h-100 d-flex justify-content-center align-items-center"
-                          style={{ minHeight: '200px' }}
-                        >
-                          <Button variant="outline-primary">+ 新增相片</Button>
-                        </Card>
-                      </Col>
-                    </Row>
-                  </Tab.Pane>
-
-                  <Tab.Pane eventKey="appointments">
-                    <h5 className="mb-3">預約記錄</h5>
-                    {pet.appointments.length > 0 ? (
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th>ID</th>
-                            <th>日期</th>
-                            <th>時間</th>
-                            <th>預約者</th>
-                            <th>狀態</th>
-                            <th>操作</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {pet.appointments.map((appointment) => (
-                            <tr key={appointment.id}>
-                              <td>{appointment.id}</td>
-                              <td>{appointment.date}</td>
-                              <td>{appointment.time}</td>
-                              <td>{appointment.user_name}</td>
-                              <td>
-                                <Badge
-                                  bg={
-                                    appointment.status === '已確認'
-                                      ? 'success'
-                                      : 'warning'
-                                  }
-                                >
-                                  {appointment.status}
-                                </Badge>
-                              </td>
-                              <td>
-                                <Button variant="outline-primary" size="sm">
-                                  查看
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                  <Tab.Pane eventKey="story">
+                    {isEditing ? (
+                      <Form.Group>
+                        <Form.Label>寵物故事</Form.Label>
+                        <Form.Control
+                          as="textarea"
+                          rows={10}
+                          name="story"
+                          value={formData.story || ''}
+                          onChange={handleChange}
+                        />
+                      </Form.Group>
                     ) : (
-                      <p className="text-muted">無預約記錄</p>
+                      <div>
+                        <h5>關於 {pet.name}</h5>
+                        <p>{pet.story || '尚無寵物故事'}</p>
+                      </div>
                     )}
                   </Tab.Pane>
+                  <Tab.Pane eventKey="photos">
+                    <div className="mb-3">
+                      <h5>照片管理</h5>
+                      <p>管理寵物的照片集，設置主照片或刪除不需要的照片。</p>
+                      <div className="mb-3">
+                        <input
+                          type="file"
+                          className="form-control"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                        />
+                        <div className="form-text">
+                          上傳新照片 (支援 JPG, PNG 格式)
+                        </div>
+                      </div>
+                    </div>
 
-                  <Tab.Pane eventKey="traits">
-                    <h5 className="mb-3">特徵標籤</h5>
                     <Row>
-                      <Col md={6}>
-                        <Card className="mb-3">
-                          <Card.Header>性格特徵</Card.Header>
-                          <Card.Body>
-                            <div className="d-flex flex-wrap gap-2">
-                              {pet.traits
-                                .filter((trait) => trait.category === '性格')
-                                .map((trait) => (
-                                  <Badge
-                                    key={trait.id}
-                                    bg="primary"
-                                    className="p-2"
-                                  >
-                                    {trait.name}{' '}
-                                    <span
-                                      className="ms-1"
-                                      style={{ cursor: 'pointer' }}
+                      {photos.length > 0 ? (
+                        photos.map((photo) => (
+                          <Col key={photo.id} md={4} className="mb-3">
+                            <Card>
+                              <Card.Img
+                                variant="top"
+                                src={photo.photo_url}
+                                alt={photo.title || '寵物照片'}
+                              />
+                              <Card.Body>
+                                <div className="d-flex justify-content-between align-items-center">
+                                  {photo.is_main ? (
+                                    <Badge bg="success">主照片</Badge>
+                                  ) : (
+                                    <Button
+                                      variant="outline-primary"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleSetMainPhoto(
+                                          photo.id,
+                                          photo.photo_url
+                                        )
+                                      }
                                     >
-                                      &times;
-                                    </span>
-                                  </Badge>
-                                ))}
-                              <Button variant="outline-primary" size="sm">
-                                + 新增
-                              </Button>
-                            </div>
-                          </Card.Body>
-                        </Card>
-                      </Col>
-                      <Col md={6}>
-                        <Card className="mb-3">
-                          <Card.Header>健康狀況</Card.Header>
-                          <Card.Body>
-                            <div className="d-flex flex-wrap gap-2">
-                              {pet.traits
-                                .filter((trait) => trait.category === '健康')
-                                .map((trait) => (
-                                  <Badge
-                                    key={trait.id}
-                                    bg="success"
-                                    className="p-2"
+                                      設為主照片
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="outline-danger"
+                                    size="sm"
+                                    onClick={() => handleDeletePhoto(photo.id)}
                                   >
-                                    {trait.name}{' '}
-                                    <span
-                                      className="ms-1"
-                                      style={{ cursor: 'pointer' }}
-                                    >
-                                      &times;
-                                    </span>
-                                  </Badge>
-                                ))}
-                              <Button variant="outline-primary" size="sm">
-                                + 新增
-                              </Button>
-                            </div>
-                          </Card.Body>
-                        </Card>
-                      </Col>
+                                    刪除
+                                  </Button>
+                                </div>
+                              </Card.Body>
+                            </Card>
+                          </Col>
+                        ))
+                      ) : (
+                        <Col>
+                          <div className="text-center py-4">
+                            <p>尚無照片</p>
+                          </div>
+                        </Col>
+                      )}
                     </Row>
                   </Tab.Pane>
                 </Tab.Content>
-              </Tab.Container>
-            </Card.Body>
-          </Card>
+              </Card.Body>
+            </Card>
+          </Tab.Container>
         </Col>
       </Row>
     </div>
