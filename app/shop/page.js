@@ -7,8 +7,8 @@ import Link from 'next/link'
 // style
 import styles from './shop.module.css'
 // data
-import Products from './_data/data.json'
-import Category from './_data/category.json'
+// import Products from './_data/data.json'
+// import Category from './_data/category.json'
 // card
 import Card from '../_components/ui/Card'
 import CardSwitchButton from '../_components/ui/CardSwitchButton'
@@ -34,16 +34,12 @@ const fetcher = (url) => fetch(url).then((res) => res.json())
 
 
 export default function PetsPage() {
+  
 
-  // 使用 SWR 獲取資料 - 使用整合的 API 路由
-  const { data: petsData, error: petsError } = useSWR(
-    '/api/shop-data?type=products',
-    fetcher
-  )
 
 
   // 卡片滑動-------------------------------
-  const promotionRef = useRef(null)
+  const promotionRef = useRef({})
   const categoryRefs = useRef({})
 
   const scroll = (direction, ref) => {
@@ -60,35 +56,80 @@ export default function PetsPage() {
       behavior: 'smooth',
     })
   }
+ 
 
 
+  // console.log(Products);
+  // // 擴充一個能代表是否有加入收藏(我的最愛)的屬性fav，它是一個布林值，預設為false
+  // const initState = Products.map((v) => {
+  //   return { ...v, fav: false }
+  // })
+  // // 因為需要切換網頁上的加入收藏圖示
+  // const [products, setproducts] = useState(initState)  
+  // // 處理切換fav屬性(布林值)
+  // const onToggleFav = (product_id) => {
+    
+  //   // 利用map展開陣列
+  //   const nextProduct = products.map((v) => {
+  //     // 在成員(物件)中比對isbn為bookIsbn的成員
+  //     if (v.id == product_id) {
+  //       // 如果比對出isbn為bookIsbn的成員，展開物件後fav布林值"反相"(!v.fav)
+  //       return { ...v, fav: !v.fav }
+  //     } else {
+  //       // 否則直接返回物件
+  //       return v
+  //     }
+  //   })
 
+  //   // 步驟3: 設定到狀態中
+  //   setproducts(nextProduct)
+  // }
 
-  console.log(Products);
-  // 擴充一個能代表是否有加入收藏(我的最愛)的屬性fav，它是一個布林值，預設為false
-  const initState = Products.map((v) => {
-    return { ...v, fav: false }
-  })
-  // 因為需要切換網頁上的加入收藏圖示
-  const [products, setproducts] = useState(initState)  
-  // 處理切換fav屬性(布林值)
-  const onToggleFav = (product_id) => {
-    event.stopPropagation(); 
-    // 利用map展開陣列
-    const nextProduct = products.map((v) => {
-      // 在成員(物件)中比對isbn為bookIsbn的成員
-      if (v.id == product_id) {
-        // 如果比對出isbn為bookIsbn的成員，展開物件後fav布林值"反相"(!v.fav)
-        return { ...v, fav: !v.fav }
-      } else {
-        // 否則直接返回物件
-        return v
-      }
-    })
+   // ----------------------------
 
-    // 步驟3: 設定到狀態中
-    setproducts(nextProduct)
-  }
+  // 使用 SWR 獲取資料 - 使用整合的 API 路由
+  const { data, error } = useSWR('/api/shop', fetcher)
+// 处理加载状态
+  if (!data) return <div>Loading...</div>
+    
+  // 处理错误状态
+  if (error) return <div>Failed to load</div>
+
+  // 获取 promotions 数据
+  const promotions = data.promotions
+  const promotion_products = data.promotion_products
+  const categories = data.categories
+  const products = data.products
+  
+  // const product_like = data.product_like
+
+  console.log(promotions)
+  // -----------------
+
+  // 處理喜愛商品數據
+  // const toggleLike = async (productId) => {
+  //   const isLiked = product_like.some(product => product.product_id === productId)
+  //   const url = '/api/shop/product_like'
+  //   const method = isLiked ? 'DELETE' : 'POST'
+
+  //   try {
+  //     const response = await fetch(url, {
+  //       method,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ productId }),
+  //     })
+
+  //     if (response.ok) {
+  //       // 重新獲取喜愛商品數據
+  //       mutate()
+  //     }
+  //   } catch (error) {
+  //     console.error('Error toggling like:', error)
+  //   }
+  // }
+
 
   return (
     <>
@@ -97,92 +138,103 @@ export default function PetsPage() {
       <main className={styles.main}>
         <div className={styles.contains}>
           {/* contain */}
-          <div className={styles.contain}>
-            <div className={styles.contain_title}>
-              <IconLine key={'8折優惠區'} title={'8折優惠區'}/>
-            </div>
-            <div className={styles.contain_body}>
-              <div className={styles.group}>
-                  <div className={styles.groupBody}>
+          {promotions.map((promotion) => {
+            return(
+            <>
+              <div className={styles.contain}>
+                <div className={styles.contain_title}>
+                  <IconLine key={promotion.promotion_id} title={promotion.promotion_name}/>
+                </div>
+                <div className={styles.contain_body}>
+                  <div className={styles.group}>
+                      <div className={styles.groupBody}>
+                        <CardSwitchButton
+                          direction="left"
+                          onClick={() =>scroll(-1, promotionRef.current[promotion.promotion_id])}
+                          aria-label="向左滑動"
+                        />
+                          <div className={styles.cardGroup} ref={(el) => (promotionRef.current[promotion.promotion_id] = { current: el })}>
+                            {promotion_products.filter((product) => product.promotion_id == promotion.promotion_id).map((product) => {
+                              return(
+                                <>
+                                <Link href={`/shop/${product.product_id}`}>
+                                  <Card
+                                    key={product.product_id }
+                                    image={product.image_url}
+                                    title={product.product_name}
+                                  >
+                                    <div className={styles.cardText}>
+                                      <p>${product.price} <del>${product.price}</del></p>
+                                      <button className={styles.likeButton} onClick={(event)=>{
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        // toggleLike(product.product_id);
+                                        // onToggleFav(product.id)
+                                        }}>
+                                        {product.fav ? <FaHeart/> : <FaRegHeart/>}
+                                      </button>
+                                    </div>
+                                  </Card>
+                                </Link>
+                                </>
+                              )
+                            })}
+                          </div>
+                          {/* <div className={styles.cardContainer}>
+                        </div> */}
                     <CardSwitchButton
-                      direction="left"
-                      onClick={() => scroll(-1, promotionRef)}
-                      aria-label="向左滑動"
+                      direction="right"
+                      onClick={() => scroll(1, promotionRef.current[promotion.promotion_id])}
+                      aria-label="向右滑動"
                     />
-                      <div className={styles.cardGroup} ref={promotionRef}>
-                        {products.map((product) => {
-                          return(
-                            <>
-                            <Link href={``}>
-                              <Card
-                                key={product.id}
-                                image={product.image}
-                                title={product.title}
-                              >
-                                <div className={styles.cardText}>
-                                  <p>${product.price} <del>${product.price}</del></p>
-                                  <button className={styles.likeButton} onClick={(event)=>{
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    onToggleFav(product.id)}}>
-                                    {product.fav ? <FaHeart/> : <FaRegHeart/>}
-                                  </button>
-                                </div>
-                              </Card>
-                            </Link>
-                            </>
-                          )
-                        })}
+                        {/* <button className={styles.angle}>
+                          <FaAngleRight/>
+                        </button> */}
                       </div>
-                      {/* <div className={styles.cardContainer}>
-                    </div> */}
-                <CardSwitchButton
-                  direction="right"
-                  onClick={() => scroll(1, promotionRef)}
-                  aria-label="向右滑動"
-                />
-                    {/* <button className={styles.angle}>
-                      <FaAngleRight/>
-                    </button> */}
                   </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+            )
+          })}
 
           {/* contain */}
+          {categories.filter((category) => category.parent_id == null).map((parent) => (
+          <>
           <div className={styles.contain}>
             <div className={styles.contain_title}>
-              <IconLine key={'title'} title={'title'}/>
+              <IconLine key={parent.category_id} title={parent.category_name}/>
             </div>
             <div className={styles.contain_body}>
               {/* subTitle */}
-              {Category.filter((category) => category.parent_id == 1).map((category) => (
-                <div className={styles.group} key={category.id}>
+              {categories.filter((category) => category.parent_id == parent.category_id).map((category) => (
+                <div className={styles.group} key={category.category_id}>
                   <div className={styles.groupTitle}>
                     <p>{category.category_name}</p>
                   </div>
                   <div className={styles.groupBody}>
                     <CardSwitchButton
                       direction="left"
-                      onClick={() => scroll(-1, categoryRefs.current[category.id])}
+                      onClick={() => scroll(-1, categoryRefs.current[category.category_id])}
                       aria-label="向左滑動"
                     />
-                    <div className={styles.cardGroup} ref={(el) => (categoryRefs.current[category.id] = { current: el })}>
-                      {products.filter((product) => product.category_id == category.id).map((product) => {
+                    <div className={styles.cardGroup} ref={(el) => (categoryRefs.current[category.category_id] = { current: el })}>
+                      {products.filter((product) => product.category_id == category.category_id).map((product) => {
                         return(
                             <>
                             <Link href={``}>
                               <Card
-                                key={product.id}
-                                image={product.image}
-                                title={product.title}
+                                key={product.	product_id}
+                                image={product.image_url}
+                                title={product.product_name}
                               >
                                 <div className={styles.cardText}>
                                   <p>${product.price} <del>${product.price}</del></p>
                                   <button className={styles.likeButton} onClick={(event)=>{     
                                     event.preventDefault();
                                     event.stopPropagation();
-                                    onToggleFav(product.id)}}>
+                                    // onToggleFav(product.id)
+                                    }}>
                                     {product.fav ? <FaHeart/> : <FaRegHeart/>}
                                   </button>
                                 </div>
@@ -196,7 +248,7 @@ export default function PetsPage() {
                     
                     <CardSwitchButton
                       direction="right"
-                      onClick={() => scroll(1, categoryRefs.current[category.id])}
+                      onClick={() => scroll(1, categoryRefs.current[category.category_id])}
                       aria-label="向左滑動"
                     />
                   </div>
@@ -205,6 +257,8 @@ export default function PetsPage() {
               
             </div>
           </div>
+          </>
+          ))}
         </div>
       </main>
     </>
