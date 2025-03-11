@@ -48,7 +48,13 @@ export async function executeQuery<T = any>(
   let connection
   try {
     connection = await adminPool.getConnection()
+    console.log('執行 SQL 查詢:', sql, '參數:', params)
     const [results] = await connection.execute(sql, params)
+    console.log('SQL 查詢結果:', results)
+    if (!Array.isArray(results)) {
+      console.error('SQL 查詢返回值格式錯誤：', results)
+      throw new Error('SQL 查詢返回值格式錯誤')
+    }
     return results as T[]
   } catch (error) {
     console.error('SQL查詢錯誤:', error)
