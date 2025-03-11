@@ -14,25 +14,50 @@ import { FaRegHeart,FaHeart } from "react-icons/fa";
 import Products from '../_data/data.json'
 import Category from '../_data/category.json'
 
+// 連接資料庫
+import useSWR from 'swr'
+const fetcher = (url) => fetch(url).then((res) => res.json())
+
 
 export default function PagesProductTitle({title}) {
   
   // card愛心狀態
-  const initState = Products.map((v) => {
-    return { ...v, fav: false }
-  })
-  const [products, setproducts] = useState(initState)  
-  const onToggleFav = (product_id) => {
-    const nextProduct = products.map((v) => {
-      if (v.id == product_id) {
-        return { ...v, fav: !v.fav }
-      } else {
-        return v
-      }
-    })
-    setproducts(nextProduct)
-  }
+  // const initState = Products.map((v) => {
+  //   return { ...v, fav: false }
+  // })
+  // const [products, setproducts] = useState(initState)  
+  // const onToggleFav = (product_id) => {
+  //   const nextProduct = products.map((v) => {
+  //     if (v.id == product_id) {
+  //       return { ...v, fav: !v.fav }
+  //     } else {
+  //       return v
+  //     }
+  //   })
+  //   setproducts(nextProduct)
+  // }
   
+
+
+   // ----------------------------
+
+  // 使用 SWR 獲取資料 - 使用整合的 API 路由
+  const { data, error } = useSWR('/api/shop', fetcher)
+// 处理加载状态
+  if (!data) return <div>Loading...</div>
+    
+  // 处理错误状态
+  if (error) return <div>Failed to load</div>
+
+  const categories = data.categories
+  const products = data.products
+  
+  // const product_like = data.product_like
+
+  // -----------------
+
+
+
   return (
     
     <>
