@@ -1,328 +1,223 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, Button, Row, Col } from 'react-bootstrap'
-import { Plus, Edit, Trash, Eye, Users } from 'lucide-react'
-import DataTable from '@/app/admin/_components/DataTable'
-import ModalForm from '@/app/admin/_components/ModalForm'
+import React, { useState, useEffect, useMemo } from 'react'
+import { Button } from 'react-bootstrap'
+import { Eye, Edit, Trash2 } from 'lucide-react'
+import DataTable from '../_components/DataTable'
+import type { Column } from '../_components/DataTable'
 import { useToast } from '@/app/admin/_components/Toast'
-import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
-import { useTheme } from '@/app/admin/ThemeContext'
-import AdminPageLayout, {
-  AdminSection,
-  AdminCard,
-} from '@/app/admin/_components/AdminPageLayout'
+import Cookies from 'js-cookie'
 
-// 模擬會員數據
-const MOCK_MEMBERS = [
-  {
-    id: 1,
-    name: '王小明',
-    email: 'wang@example.com',
-    phone: '0912-345-678',
-    status: 'active',
-    registeredAt: '2023-01-15',
-    lastLogin: '2023-03-10',
-  },
-  {
-    id: 2,
-    name: '李小花',
-    email: 'lee@example.com',
-    phone: '0923-456-789',
-    status: 'active',
-    registeredAt: '2023-02-20',
-    lastLogin: '2023-03-15',
-  },
-  {
-    id: 3,
-    name: '張大山',
-    email: 'chang@example.com',
-    phone: '0934-567-890',
-    status: 'inactive',
-    registeredAt: '2023-01-05',
-    lastLogin: '2023-02-01',
-  },
-  {
-    id: 4,
-    name: '林小雨',
-    email: 'lin@example.com',
-    phone: '0945-678-901',
-    status: 'active',
-    registeredAt: '2023-03-01',
-    lastLogin: '2023-03-18',
-  },
-  {
-    id: 5,
-    name: '陳大海',
-    email: 'chen@example.com',
-    phone: '0956-789-012',
-    status: 'blocked',
-    registeredAt: '2022-12-10',
-    lastLogin: '2023-01-20',
-  },
-]
-
-// 會員狀態選項
-const STATUS_OPTIONS = [
-  { value: 'active', label: '正常' },
-  { value: 'inactive', label: '未啟用' },
-  { value: 'blocked', label: '已封鎖' },
-]
-
-// 表單字段驗證
-const phoneValidation = (value: string) => {
-  const phoneRegex = /^[0-9-]{10,}$/ // 移除了不必要的反斜線
-  return phoneRegex.test(value) ? null : '請輸入有效的電話號碼'
+interface Member {
+  user_id: number
+  user_email: string
+  user_name: string
+  user_number: string
+  user_address: string
+  user_birthday: string | null
+  user_level: string | null
+  profile_picture: string | null
+  user_status: string | null
 }
 
-export default function MembersPage() {
-  const [members, setMembers] = useState(MOCK_MEMBERS)
-  const [showModal, setShowModal] = useState(false)
-  const [currentMember, setCurrentMember] = useState<any>(null)
-  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
+const STATUS_OPTIONS = [
+  { value: '正常', label: '正常' },
+  { value: '禁言', label: '禁言' },
+]
+
+const LEVEL_OPTIONS = [
+  { value: '愛心小天使', label: '愛心小天使' },
+  { value: '乾爹乾媽', label: '乾爹乾媽' },
+]
+
+const MembersPage = () => {
+  const [members, setMembers] = useState<Member[]>([])
+  const [loading, setLoading] = useState(true)
   const { showToast } = useToast()
-  const { confirm } = useConfirm()
-  const { isDarkMode } = useTheme()
 
-  // 表格列定義
-  const columns = [
-    { key: 'id', label: 'ID', sortable: true },
-    { key: 'name', label: '姓名', sortable: true },
-    { key: 'email', label: '電子郵件', sortable: true },
-    { key: 'phone', label: '電話', sortable: true },
-    {
-      key: 'status',
-      label: '狀態',
-      sortable: true,
-      render: (value: string) => {
-        let badgeClass = ''
-        let statusText = ''
+  useEffect(() => {
+    fetchMembers()
+  }, [])
 
-        switch (value) {
-          case 'active':
-            badgeClass = 'bg-success'
-            statusText = '正常'
-            break
-          case 'inactive':
-            badgeClass = 'bg-warning'
-            statusText = '未啟用'
-            break
-          case 'blocked':
-            badgeClass = 'bg-danger'
-            statusText = '已封鎖'
-            break
-          default:
-            badgeClass = 'bg-secondary'
-            statusText = '未知'
-        }
-
-        return <span className={`badge ${badgeClass}`}>{statusText}</span>
-      },
-    },
-    {
-      key: 'registeredAt',
-      label: '註冊日期',
-      sortable: true,
-      render: (value: string) => new Date(value).toLocaleDateString('zh-TW'),
-    },
-    {
-      key: 'lastLogin',
-      label: '最後登入',
-      sortable: true,
-      render: (value: string) => new Date(value).toLocaleDateString('zh-TW'),
-    },
-  ]
-
-  // 表單欄位定義
-  const formFields = [
-    {
-      name: 'name',
-      label: '姓名',
-      type: 'text' as const,
-      required: true,
-      placeholder: '請輸入會員姓名',
-    },
-    {
-      name: 'email',
-      label: '電子郵件',
-      type: 'email' as const,
-      required: true,
-      placeholder: '請輸入電子郵件',
-      validation: (value: string) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return emailRegex.test(value) ? null : '請輸入有效的電子郵件地址'
-      },
-    },
-    {
-      name: 'phone',
-      label: '電話',
-      type: 'text' as const,
-      required: true,
-      placeholder: '請輸入電話號碼',
-      validation: phoneValidation,
-    },
-    {
-      name: 'status',
-      label: '狀態',
-      type: 'select' as const,
-      required: true,
-      options: STATUS_OPTIONS,
-    },
-    {
-      name: 'registeredAt',
-      label: '註冊日期',
-      type: 'date' as const,
-      required: true,
-    },
-  ]
-
-  // 處理新增會員
-  const handleAddMember = () => {
-    setCurrentMember(null)
-    setModalMode('add')
-    setShowModal(true)
-  }
-
-  // 處理編輯會員
-  const handleEditMember = (member: any) => {
-    setCurrentMember(member)
-    setModalMode('edit')
-    setShowModal(true)
-  }
-
-  // 處理查看會員詳情
-  const handleViewMember = (member: any) => {
-    // 這裡可以實現查看詳情的邏輯，例如導航到詳情頁面
-    showToast('info', '會員詳情', `查看會員 ${member.name} 的詳細資料`)
-  }
-
-  // 處理刪除會員
-  const handleDeleteMember = (member: any) => {
-    confirm({
-      title: '刪除會員',
-      message: `確定要刪除會員 ${member.name} 嗎？此操作無法撤銷。`,
-      type: 'danger',
-      confirmText: '刪除',
-      onConfirm: () => {
-        // 模擬刪除操作
-        setMembers((prev) => prev.filter((m) => m.id !== member.id))
-        showToast('success', '刪除成功', `會員 ${member.name} 已成功刪除`)
-      },
-    })
-  }
-
-  // 處理表單提交
-  const handleSubmit = async (formData: Record<string, any>) => {
+  const fetchMembers = async () => {
     try {
-      // 模擬API請求延遲
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const token = Cookies.get('admin_token')
+      console.log('使用的 token:', token)
 
-      if (modalMode === 'add') {
-        // 模擬新增會員API請求
-        // 只是Demo，所以直接新增到本地狀態
-        const newMember = {
-          id: Math.max(...members.map((m) => m.id)) + 1,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          status: formData.status,
-          registeredAt: new Date().toISOString().split('T')[0],
-          lastLogin: new Date().toISOString().split('T')[0],
-        }
-        setMembers((prev) => [...prev, newMember])
-        showToast('success', '新增成功', `會員 ${formData.name} 已成功新增`)
-      } else {
-        // 模擬更新會員API請求
-        setMembers((prev) =>
-          prev.map((m) => {
-            if (m.id === currentMember.id) {
-              return {
-                ...m,
-                name: formData.name,
-                email: formData.email,
-                phone: formData.phone,
-                status: formData.status,
-              }
-            }
-            return m
-          })
-        )
-        showToast('success', '更新成功', `會員 ${formData.name} 資料已成功更新`)
+      if (!token) {
+        console.error('未找到 token')
+        showToast('error', '錯誤', '請先登入')
+        window.location.href = '/admin/login'
+        return
       }
-      setShowModal(false)
+
+      const response = await fetch('/api/admin/members', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.error('認證失敗')
+          showToast('error', '錯誤', '認證失敗，請重新登入')
+          window.location.href = '/admin/login'
+          return
+        }
+        if (response.status === 403) {
+          console.error('沒有權限')
+          showToast('error', '錯誤', '沒有權限訪問此資源')
+          return
+        }
+        throw new Error('獲取會員列表失敗')
+      }
+
+      const data = await response.json()
+      console.log('獲取的會員數據:', data)
+
+      if (data.members && Array.isArray(data.members)) {
+        setMembers(data.members)
+      } else {
+        console.error('返回的數據格式不正確:', data)
+        showToast('error', '錯誤', '數據格式錯誤')
+      }
     } catch (error) {
-      console.error('處理會員表單時發生錯誤', error)
-      showToast('error', '處理失敗', '發生錯誤，請稍後再試')
+      console.error('獲取會員列表時發生錯誤:', error)
+      showToast('error', '錯誤', '獲取會員列表失敗')
+    } finally {
+      setLoading(false)
     }
   }
 
-  // 渲染操作按鈕
-  const renderActions = (member: any) => (
-    <div className="d-flex gap-2">
-      <Button
-        variant="outline-primary"
-        size="sm"
-        onClick={() => handleViewMember(member)}
-        title="查看詳情"
-      >
-        <Eye size={16} />
-      </Button>
-      <Button
-        variant="outline-secondary"
-        size="sm"
-        onClick={() => handleEditMember(member)}
-        title="編輯會員"
-      >
-        <Edit size={16} />
-      </Button>
-      <Button
-        variant="outline-danger"
-        size="sm"
-        onClick={() => handleDeleteMember(member)}
-        title="刪除會員"
-      >
-        <Trash size={16} />
-      </Button>
-    </div>
+  const handleView = (member: Member): React.ReactNode => {
+    // TODO: 實作查看會員詳情
+    return null
+  }
+
+  const handleEdit = (member: Member): React.ReactNode => {
+    // TODO: 實作編輯會員資料
+    return null
+  }
+
+  const handleDelete = async (member: Member): Promise<void> => {
+    try {
+      const response = await fetch(`/api/admin/members/${member.user_id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('刪除失敗')
+      }
+
+      showToast('success', '成功', '會員已刪除')
+      setMembers((prev) => prev.filter((m) => m.user_id !== member.user_id))
+    } catch (error) {
+      console.error('刪除會員時發生錯誤:', error)
+      showToast('error', '錯誤', '刪除會員失敗')
+    }
+  }
+
+  const columns = useMemo<Column[]>(
+    () => [
+      {
+        key: 'user_id',
+        label: 'ID',
+        sortable: true,
+      },
+      {
+        key: 'user_name',
+        label: '姓名',
+        sortable: true,
+      },
+      {
+        key: 'user_email',
+        label: '電子郵件',
+        sortable: true,
+      },
+      {
+        key: 'user_number',
+        label: '電話',
+        sortable: true,
+      },
+      {
+        key: 'user_address',
+        label: '地址',
+        sortable: true,
+      },
+      {
+        key: 'user_birthday',
+        label: '生日',
+        sortable: true,
+      },
+      {
+        key: 'user_level',
+        label: '等級',
+        sortable: true,
+        render: (value: string) => (
+          <span
+            className={`badge ${
+              value === '乾爹乾媽' ? 'bg-success' : 'bg-primary'
+            }`}
+          >
+            {value || '-'}
+          </span>
+        ),
+      },
+      {
+        key: 'user_status',
+        label: '狀態',
+        sortable: true,
+        render: (value: string) => (
+          <span
+            className={`badge ${value === '正常' ? 'bg-success' : 'bg-danger'}`}
+          >
+            {value || '-'}
+          </span>
+        ),
+      },
+      {
+        key: 'actions',
+        label: '操作',
+        render: (_, member: Member) => (
+          <div className="d-flex gap-2">
+            <Button variant="info" size="sm" onClick={() => handleView(member)}>
+              <Eye size={16} />
+            </Button>
+            <Button
+              variant="warning"
+              size="sm"
+              onClick={() => handleEdit(member)}
+            >
+              <Edit size={16} />
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => handleDelete(member)}
+            >
+              <Trash2 size={16} />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    []
   )
 
   return (
-    <AdminPageLayout
-      title="會員管理"
-      actions={
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleAddMember}
-          className="d-flex align-items-center"
-        >
-          <Plus size={16} className="me-1" /> 新增會員
-        </Button>
-      }
-    >
-      <AdminSection>
-        <AdminCard title="會員列表">
-          <DataTable
-            columns={columns}
-            data={members}
-            searchable={true}
-            searchKeys={['name', 'email', 'phone']}
-            actions={renderActions}
-            onRowClick={handleViewMember}
-          />
-        </AdminCard>
-      </AdminSection>
-
-      {/* 會員表單模態框 */}
-      <ModalForm
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        title={modalMode === 'add' ? '新增會員' : '編輯會員'}
-        fields={formFields}
-        onSubmit={handleSubmit}
-        initialData={currentMember}
-        submitText={modalMode === 'add' ? '新增' : '更新'}
+    <div className="container-fluid">
+      <h1 className="h3 mb-4">會員管理</h1>
+      <DataTable
+        data={members}
+        columns={columns}
+        loading={loading}
+        searchable
+        pageSizeOptions={[10, 20, 50, 100]}
       />
-    </AdminPageLayout>
+    </div>
   )
 }
+
+export default MembersPage
