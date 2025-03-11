@@ -8,6 +8,7 @@
   width: 100%;
   height: 100%;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   margin: 30px auto;
   padding: 50px;
@@ -18,6 +19,7 @@
   width: 100%;
   height: 100%;
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
   justify-content: center;
   margin: 30px auto;
@@ -35,11 +37,13 @@
   list-style: none;
   display: flex;
   flex-direction: column;
+  flex-wrap: wrap;
 }
 .ul2 {
   list-style: none;
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
 }
 .li_image {
   margin-right: 5px;
@@ -98,4 +102,27 @@
 .img_size {
   display: flex;
   width: 100%;
+}
+
+.cases {
+  display: flex;
+  width: 235px;
+  margin: 20px;
+  padding: 20px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  gap: 8px;
+  border-radius: var(--card-corner-radius, 12px);
+  background: #c79650;
+  color: white;
+  box-shadow: 10px 10px 15px -2px rgba(0, 0, 0, 0.2);
+}
+
+.cases_img {
+  width: 200px;
+  height: 200px;
+  aspect-ratio: 1/1;
+  border-radius: 15px;
 }
