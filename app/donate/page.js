@@ -10,8 +10,18 @@ import Dropdown from './_components/options'
 import MethodItem from './_components/methodItem'
 
 import Contents from './_data/Contents'
+import useSWR from 'swr'
+
+//swr專用的獲取函式
+const fetcher = (...args) => fetch(...args).then((res) => res.json())
 
 export default function DonatePage() {
+  const url = '/api/donate'
+  // 向伺服器fetch，注意data必須為陣列才呈現
+  const { data, isLoading, error } = useSWR(url, fetcher)
+  // 解出所需資料
+  const cases = data?.data?.cases
+
   const [activeSection, setActiveSection] = useState('method') // 控制主選單（捐款方式/種類說明）
   const [selectedMethod, setSelectedMethod] = useState('credit_card') // 控制捐款方式內的按鈕
   const [activeButton, setActiveButton] = useState('method') // 初始選擇 'method' 或其他默認值
@@ -39,6 +49,7 @@ export default function DonatePage() {
             width={300}
             height={600}
             className={styles.image}
+            priority
           />
         </div>
         <div className={styles.donate_item}>
@@ -63,6 +74,7 @@ export default function DonatePage() {
                   width={45}
                   height={29}
                   className={styles.li_image}
+                  priority
                 />
               ))}
             </li>
@@ -157,12 +169,17 @@ export default function DonatePage() {
                   <h2>救援行動流程</h2>
                   <h5>請您加入捐款支持我們，讓我們能持續這份神聖使命。</h5>
                 </div>
-                <Image
-                  src="/images/donate/RescueFollowups.jpg"
-                  alt="donate.jpg"
-                  width={1100}
-                  height={400}
-                />
+                <div className={styles.test}>
+                  <Image
+                    src="/images/donate/RescueFollowups.jpg"
+                    alt="donate.jpg"
+                    layout="responsive"
+                    width={1100}
+                    height={400}
+                    className={styles.img_size}
+                    priority
+                  />
+                </div>
               </div>
               <div className={styles.instructions_item}>
                 <div className={styles.instructions_content}>
@@ -174,12 +191,44 @@ export default function DonatePage() {
                     您的捐款將用於疫苗接種、疾病治療、手術費用及基本健康檢查，幫助牠們恢復健康，迎接新生活。
                   </h5>
                 </div>
-                <Image
-                  src="/images/donate/RescueFollowups.jpg"
-                  alt="donate.jpg"
-                  width={1100}
-                  height={400}
-                />
+                <ul
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    padding: '0',
+                  }}
+                >
+                  {cases?.map((post) => {
+                    return (
+                      <li key={post.id} className={styles.cases}>
+                        {' '}
+                        {/* 顯示第一張圖片 */}
+                        <div>
+                          {post.images && post.images.length > 0 ? (
+                            <div>
+                              <Image
+                                src={post.images[0]} // 取得第一張圖片的 URL
+                                alt={`Case Image`} // 圖片描述
+                                width={300} // 圖片寬度
+                                height={300} // 圖片高度
+                                objectFit="cover" // 圖片填充模式
+                                className={styles.cases_img}
+                                priority
+                              />
+                            </div>
+                          ) : (
+                            <p>No images available</p> // 若沒有圖片時顯示的訊息
+                          )}
+                        </div>
+                        <h5>{post.title}</h5>
+                        <button type="button" className="button">
+                          查看詳情
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
               </div>
             </div>
           </div>
