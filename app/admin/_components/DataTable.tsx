@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Table, Form, Button, Pagination } from 'react-bootstrap'
 import { ChevronUp, ChevronDown, Search, Filter } from 'lucide-react'
 
-interface Column {
+export interface Column {
   key: string
   label: string
   sortable?: boolean
@@ -14,27 +14,32 @@ interface Column {
 interface DataTableProps {
   columns: Column[]
   data: any[]
+  loading?: boolean
   itemsPerPage?: number
   searchable?: boolean
   searchKeys?: string[]
   onRowClick?: (row: any) => void
   actions?: (row: any) => React.ReactNode
+  pageSizeOptions?: number[]
 }
 
-export default function DataTable({
+const DataTable = ({
   columns,
   data,
+  loading = false,
   itemsPerPage = 10,
   searchable = true,
   searchKeys = [],
   onRowClick,
   actions,
-}: DataTableProps) {
+  pageSizeOptions = [10, 20, 50, 100],
+}: DataTableProps) => {
   const [sortKey, setSortKey] = useState<string>('')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [filteredData, setFilteredData] = useState(data)
+  const [pageSize, setPageSize] = useState(itemsPerPage)
 
   // 處理排序
   const handleSort = (key: string) => {
@@ -68,6 +73,14 @@ export default function DataTable({
     setFilteredData(filtered)
     setCurrentPage(1)
   }, [searchTerm, data, columns, searchKeys])
+
+  // 當數據或頁面大小變化時，確保當前頁面有效
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredData.length / pageSize))
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage)
+    }
+  }, [filteredData, pageSize, currentPage])
 
   // 處理排序後的數據
   useEffect(() => {
@@ -105,12 +118,9 @@ export default function DataTable({
   }, [sortKey, sortDirection])
 
   // 計算分頁
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedData = filteredData.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  )
+  const totalPages = Math.ceil(filteredData.length / pageSize)
+  const startIndex = (currentPage - 1) * pageSize
+  const paginatedData = filteredData.slice(startIndex, startIndex + pageSize)
 
   // 處理分頁變更
   const handlePageChange = (page: number) => {
@@ -151,77 +161,106 @@ export default function DataTable({
       )}
 
       <div className="table-responsive">
-        <Table hover striped className="data-table">
-          <thead>
-            <tr>
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  onClick={() => column.sortable && handleSort(column.key)}
-                  style={{ cursor: column.sortable ? 'pointer' : 'default' }}
-                  className={column.sortable ? 'sortable-column' : ''}
-                >
-                  <div className="d-flex align-items-center">
-                    {column.label}
-                    {column.sortable && sortKey === column.key && (
-                      <span className="ms-1">
-                        {sortDirection === 'asc' ? (
-                          <ChevronUp size={16} />
-                        ) : (
-                          <ChevronDown size={16} />
-                        )}
-                      </span>
-                    )}
-                  </div>
-                </th>
-              ))}
-              {actions && <th>操作</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedData.length > 0 ? (
-              paginatedData.map((row, index) => (
-                <tr
-                  key={index}
-                  onClick={() => onRowClick && onRowClick(row)}
-                  style={{ cursor: onRowClick ? 'pointer' : 'default' }}
-                >
-                  {columns.map((column) => (
-                    <td key={`${index}-${column.key}`}>
-                      {column.render
-                        ? column.render(row[column.key], row)
-                        : row[column.key] !== undefined &&
-                          row[column.key] !== null
-                        ? String(row[column.key])
-                        : '-'}
-                    </td>
-                  ))}
-                  {actions && (
-                    <td onClick={(e) => e.stopPropagation()}>{actions(row)}</td>
-                  )}
-                </tr>
-              ))
-            ) : (
+        {loading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">載入中...</span>
+            </div>
+            <p className="mt-2">載入資料中...</p>
+          </div>
+        ) : (
+          <Table hover striped className="data-table">
+            <thead>
               <tr>
-                <td
-                  colSpan={columns.length + (actions ? 1 : 0)}
-                  className="text-center py-4"
-                >
-                  沒有找到符合的資料
-                </td>
+                {columns.map((column) => (
+                  <th
+                    key={column.key}
+                    onClick={() => column.sortable && handleSort(column.key)}
+                    style={{ cursor: column.sortable ? 'pointer' : 'default' }}
+                    className={column.sortable ? 'sortable-column' : ''}
+                  >
+                    <div className="d-flex align-items-center">
+                      {column.label}
+                      {column.sortable && sortKey === column.key && (
+                        <span className="ms-1">
+                          {sortDirection === 'asc' ? (
+                            <ChevronUp size={16} />
+                          ) : (
+                            <ChevronDown size={16} />
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </th>
+                ))}
+                {actions && <th>操作</th>}
               </tr>
-            )}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {paginatedData.length > 0 ? (
+                paginatedData.map((row, index) => (
+                  <tr
+                    key={index}
+                    onClick={() => onRowClick && onRowClick(row)}
+                    style={{ cursor: onRowClick ? 'pointer' : 'default' }}
+                  >
+                    {columns.map((column) => (
+                      <td key={`${index}-${column.key}`}>
+                        {column.render
+                          ? column.render(row[column.key], row)
+                          : row[column.key] !== undefined &&
+                            row[column.key] !== null
+                          ? String(row[column.key])
+                          : '-'}
+                      </td>
+                    ))}
+                    {actions && (
+                      <td onClick={(e) => e.stopPropagation()}>
+                        {actions(row)}
+                      </td>
+                    )}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={columns.length + (actions ? 1 : 0)}
+                    className="text-center py-4"
+                  >
+                    沒有找到符合的資料
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        )}
       </div>
 
-      {totalPages > 1 && (
-        <div className="d-flex justify-content-between align-items-center mt-3">
-          <div>
-            顯示 {startIndex + 1}-
-            {Math.min(startIndex + itemsPerPage, filteredData.length)} 筆，共{' '}
+      {/* 分頁控制 */}
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div className="d-flex align-items-center">
+          <span className="me-2">
+            顯示 {filteredData.length > 0 ? startIndex + 1 : 0}-
+            {Math.min(startIndex + pageSize, filteredData.length)} 筆，共{' '}
             {filteredData.length} 筆
-          </div>
+          </span>
+          <Form.Select
+            size="sm"
+            style={{ width: '80px' }}
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value))
+              setCurrentPage(1) // 重置到第一頁
+            }}
+          >
+            {pageSizeOptions.map((size) => (
+              <option key={size} value={size}>
+                {size} 筆
+              </option>
+            ))}
+          </Form.Select>
+        </div>
+        {totalPages > 1 && (
           <Pagination>
             <Pagination.First
               onClick={() => handlePageChange(1)}
@@ -264,8 +303,10 @@ export default function DataTable({
               disabled={currentPage === totalPages}
             />
           </Pagination>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
+
+export default DataTable

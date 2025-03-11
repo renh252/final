@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
         id: manager.id,
         account: manager.manager_account,
         privileges: manager.manager_privileges,
+        role: 'admin',
       })
 
       // 更新最後登入時間，確認表是否有 last_login_at 欄位

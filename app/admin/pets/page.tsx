@@ -223,6 +223,28 @@ export default function PetsPage() {
       key: 'created_at',
       label: '新增日期',
       sortable: true,
+      render: (value) => {
+        if (!value) return '-'
+        try {
+          // 將 UTC 日期轉換為 GMT+8 (台灣時間)
+          const date = new Date(value)
+
+          // 使用 toLocaleString 方法，指定台灣時區和格式
+          return date.toLocaleString('zh-TW', {
+            timeZone: 'Asia/Taipei',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+          })
+        } catch (error) {
+          console.error('日期格式轉換錯誤:', error)
+          return value
+        }
+      },
     },
   ]
 
@@ -615,6 +637,10 @@ export default function PetsPage() {
               columns={columns}
               actions={renderActions}
               itemsPerPage={10}
+              searchable={true}
+              searchKeys={['name', 'species', 'variety', 'gender']}
+              onRowClick={(pet) => router.push(`/admin/pets/${pet.id}`)}
+              pageSizeOptions={[10, 20, 50, 100]}
             />
           )}
         </AdminCard>
