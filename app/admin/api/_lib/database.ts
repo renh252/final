@@ -13,7 +13,9 @@ const adminPool = mysql.createPool({
 })
 
 // 處理數據庫連接錯誤
-adminPool.on('error', (err) => {
+// 使用 as any 來繞過 TypeScript 的類型檢查
+// 因為 mysql2 的類型定義中沒有包含 on 方法
+;(adminPool as any).on('error', (err: any) => {
   console.error('後台數據庫連接錯誤:', err)
   if (err.code === 'PROTOCOL_CONNECTION_LOST') {
     console.error('數據庫連接被關閉')
@@ -39,12 +41,15 @@ export async function testConnection() {
 }
 
 // 提供查詢輔助函數
-export async function executeQuery(sql: string, params: any[] = []) {
+export async function executeQuery<T = any>(
+  sql: string,
+  params: any[] = []
+): Promise<T[]> {
   let connection
   try {
     connection = await adminPool.getConnection()
     const [results] = await connection.execute(sql, params)
-    return results
+    return results as T[]
   } catch (error) {
     console.error('SQL查詢錯誤:', error)
     throw error
