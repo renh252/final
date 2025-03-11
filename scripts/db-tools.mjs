@@ -83,27 +83,27 @@ async function generateDbSummary() {
     // 獲取所有表格及其詳細資訊
     const tablesQuery = `
       SELECT 
-        table_name,
-        (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = ? AND table_name = t.table_name) as column_count,
+        t.TABLE_NAME as table_name,
+        (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = t.TABLE_NAME) as column_count,
         (
-          SELECT COUNT(DISTINCT index_name)
-          FROM information_schema.statistics 
-          WHERE table_schema = ? 
-          AND table_name = t.table_name
-          AND index_name != 'PRIMARY'
+          SELECT COUNT(DISTINCT INDEX_NAME)
+          FROM information_schema.STATISTICS 
+          WHERE TABLE_SCHEMA = ? 
+          AND TABLE_NAME = t.TABLE_NAME
+          AND INDEX_NAME != 'PRIMARY'
         ) as index_count,
         (
           SELECT COUNT(*)
-          FROM information_schema.key_column_usage
-          WHERE table_schema = ?
-          AND table_name = t.table_name
-          AND referenced_table_name IS NOT NULL
+          FROM information_schema.KEY_COLUMN_USAGE
+          WHERE TABLE_SCHEMA = ?
+          AND TABLE_NAME = t.TABLE_NAME
+          AND REFERENCED_TABLE_NAME IS NOT NULL
         ) as foreign_key_count,
-        (SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = ? AND table_name = t.table_name AND index_name = 'PRIMARY') as has_primary
-      FROM information_schema.tables t
-      WHERE t.table_schema = ?
-      AND t.table_type = 'BASE TABLE'
-      ORDER BY table_name
+        (SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = t.TABLE_NAME AND INDEX_NAME = 'PRIMARY') as has_primary
+      FROM information_schema.TABLES t
+      WHERE t.TABLE_SCHEMA = ?
+      AND t.TABLE_TYPE = 'BASE TABLE'
+      ORDER BY t.TABLE_NAME
     `
 
     const [tables] = await connection.query(tablesQuery, [
@@ -175,20 +175,26 @@ async function generateDbSummary() {
     console.log('-'.repeat(80))
 
     tablesList.forEach((table) => {
-      console.log(
-        tableFormat.replace(/%(-?\d+)s/g, (match, size) => {
-          const pad = parseInt(size, 10)
-          const str = String(arguments[i++] || '')
-          return pad > 0
-            ? str.padEnd(Math.abs(pad))
-            : str.padStart(Math.abs(pad))
-        }),
+      const values = [
         table.name,
         table.columns,
         table.indexes,
         table.foreignKeys,
-        table.hasPrimaryKey ? '✓' : '✗'
-      )
+        table.hasPrimaryKey ? '✓' : '✗',
+      ]
+
+      let formattedLine = tableFormat
+      values.forEach((value, index) => {
+        formattedLine = formattedLine.replace(/%(-?\d+)s/, (match, size) => {
+          const pad = parseInt(size, 10)
+          const str = String(value)
+          return pad > 0
+            ? str.padEnd(Math.abs(pad))
+            : str.padStart(Math.abs(pad))
+        })
+      })
+
+      console.log(formattedLine)
     })
 
     // 生成JSON摘要
