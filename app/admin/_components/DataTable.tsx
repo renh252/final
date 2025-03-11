@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Table, Form, Button, Pagination } from 'react-bootstrap'
 import { ChevronUp, ChevronDown, Search, Filter } from 'lucide-react'
 

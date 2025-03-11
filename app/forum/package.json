@@ -1,0 +1,28 @@
+{
+  "name": "forum",
+  "version": "1.0.0",
+  "description": "A forum website built with React and Next.js",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "keywords": [
+    "forum",
+    "react",
+    "nextjs"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "bootstrap": "^5.1.3",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "next": "^12.0.7"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-next": "^12.0.7"
+  }
+}
