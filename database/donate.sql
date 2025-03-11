@@ -72,8 +72,8 @@ INSERT INTO cases (title, content) VALUES
 ('彰化狗狗被釘入刺，救援醫療成功', '一隻狗狗被不明物體釘入傷口，幸好在動物救援小組的幫助下，成功移除異物並進行醫療處置，狗狗迅速康復。');
 
 INSERT INTO case_images (case_id, image_url) VALUES
-(7, 'http://www.test.123/image1.jpg'),
-(7, 'http://www.test.123/image2.jpg');
+(7, 'https://www.savedogs.org/upload/ckeditor/forum_photos/followup/2024-10-18/R02.jpg'),
+(7, 'https://www.savedogs.org/upload/ckeditor/forum_photos/followup/2024-10-18/R01.jpg');
 
 -- 第八筆資料
 INSERT INTO cases (title, content) VALUES
