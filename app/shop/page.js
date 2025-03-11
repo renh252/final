@@ -58,33 +58,33 @@ export default function PetsPage() {
   }
  
 
-
+/*
   // console.log(Products);
-  // // 擴充一個能代表是否有加入收藏(我的最愛)的屬性fav，它是一個布林值，預設為false
-  // const initState = Products.map((v) => {
-  //   return { ...v, fav: false }
-  // })
-  // // 因為需要切換網頁上的加入收藏圖示
-  // const [products, setproducts] = useState(initState)  
-  // // 處理切換fav屬性(布林值)
-  // const onToggleFav = (product_id) => {
+  // 擴充一個能代表是否有加入收藏(我的最愛)的屬性fav，它是一個布林值，預設為false
+  const initState = Products.map((v) => {
+    return { ...v, fav: false }
+  })
+  // 因為需要切換網頁上的加入收藏圖示
+  const [products, setproducts] = useState(initState)  
+  // 處理切換fav屬性(布林值)
+  const onToggleFav = (product_id) => {
     
-  //   // 利用map展開陣列
-  //   const nextProduct = products.map((v) => {
-  //     // 在成員(物件)中比對isbn為bookIsbn的成員
-  //     if (v.id == product_id) {
-  //       // 如果比對出isbn為bookIsbn的成員，展開物件後fav布林值"反相"(!v.fav)
-  //       return { ...v, fav: !v.fav }
-  //     } else {
-  //       // 否則直接返回物件
-  //       return v
-  //     }
-  //   })
+    // 利用map展開陣列
+    const nextProduct = products.map((v) => {
+      // 在成員(物件)中比對isbn為bookIsbn的成員
+      if (v.id == product_id) {
+        // 如果比對出isbn為bookIsbn的成員，展開物件後fav布林值"反相"(!v.fav)
+        return { ...v, fav: !v.fav }
+      } else {
+        // 否則直接返回物件
+        return v
+      }
+    })
 
-  //   // 步驟3: 設定到狀態中
-  //   setproducts(nextProduct)
-  // }
-
+    // 步驟3: 設定到狀態中
+    setproducts(nextProduct)
+  }
+*/
    // ----------------------------
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
