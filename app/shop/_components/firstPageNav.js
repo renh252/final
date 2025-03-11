@@ -56,7 +56,30 @@ export default function FirstPageNav() {
   if (error) return <div>Failed to load</div>
 
   const categories = data.categories
+  const products = data.products
+  // 创建一个Set来存储所有有商品的分类ID
+  const categoriesWithProducts = new Set(products.map(product => product.category_id));
+
   
+ 
+  // 检查父类别是否有至少一个包含商品的子类别
+  const parentHasProductsInChildren = (parentId) => {
+    return categories.some(category => 
+      category.parent_id === parentId && categoriesWithProducts.has(category.category_id)
+    );
+  };
+
+  // 过滤出有商品的子类别
+  const getChildrenWithProducts = (parentId) => {
+    return categories.filter(category => 
+      category.parent_id === parentId && categoriesWithProducts.has(category.category_id)
+    );
+  };
+
+  // 过滤出有商品子类别的父类别
+  const parentsWithProducts = categories.filter(category => 
+    category.parent_id == null && parentHasProductsInChildren(category.category_id)
+  );
   // -----------------
 
 
@@ -70,22 +93,16 @@ export default function FirstPageNav() {
         </button>
         <div className={styles.nav_items_contain}>
           <div className={styles.nav_items}  ref={navItemsRef}>
-            {categories.filter((category) => category.parent_id == null).map((parent) => {
-              // 检查是否存在子类别
-              const hasChildren = categories.some(child => child.parent_id === parent.category_id);
-              
-              // 只有在有子类别的情况下才渲染父类别
-              return hasChildren && (
-                <div key={parent.category_id} className={styles.item_group} 
-                    onMouseEnter={() => handleMouseEnter(parent.category_id)}
-                    onMouseLeave={() => handleMouseLeave(parent.category_id)}
-                    >
-                  <Link href={`/shop/categories/${parent.category_id}`}>
-                    {parent.category_name}
-                  </Link>
-                </div>
-              );
-            })}
+          {parentsWithProducts.map((parent) => (
+              <div key={parent.category_id} className={styles.item_group} 
+                  onMouseEnter={() => handleMouseEnter(parent.category_id)}
+                  onMouseLeave={() => handleMouseLeave(parent.category_id)}
+              >
+                <Link href={`/shop/categories/${parent.category_id}`}>
+                  {parent.category_name}
+                </Link>
+              </div>
+            ))}
           </div>
   
 
@@ -106,7 +123,7 @@ export default function FirstPageNav() {
             onMouseLeave={() => handleMouseLeave(parent.category_id)}>
               <ul>
                 {categories
-                  ?.filter((category_child) => category_child.parent_id == parent.category_id)
+                  ?.filter((category_child) => category_child.parent_id == parent.category_id  && categoriesWithProducts.has(category_child.category_id))
                   .map((child) => (
                     <Link key={child.id} href={`/shop/categories/${parent.category_id}/${child.id}`} className={styles.subtitle}>
                       <li>{child.category_name}</li>
