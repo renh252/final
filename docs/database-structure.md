@@ -1,0 +1,517 @@
+# Pet Project 資料庫結構
+
+本文檔提供 `pet_proj` 資料庫的完整結構，包含所有表格、欄位、索引和關係。此資訊可用於開發過程中參考，也可以在與 AI 對話時提供，以確保 AI 能準確理解資料庫設計。
+
+## 資料表概覽
+
+`pet_proj` 資料庫包含以下主要資料表：
+
+| 資料表名稱               | 描述                 |
+| ------------------------ | -------------------- |
+| `pets`                   | 寵物基本資訊         |
+| `pet_store`              | 寵物商店/收容所資訊  |
+| `pet_trait`              | 寵物特徵資訊         |
+| `pet_trait_list`         | 特徵類型定義         |
+| `pets_like`              | 使用者喜愛的寵物記錄 |
+| `pets_recent_activities` | 寵物相關的最近活動   |
+| `pet_appointment`        | 與寵物相關的預約     |
+| `users`                  | 使用者資訊           |
+| `user_sessions`          | 使用者登入會話       |
+| `posts`                  | 社區貼文             |
+| `posts_likes`            | 貼文喜歡記錄         |
+| `comments`               | 貼文評論             |
+| `bookmarks`              | 使用者收藏           |
+| `follows`                | 使用者關注關係       |
+| `categories`             | 分類資訊             |
+| `products`               | 商品資訊             |
+| `product_variants`       | 商品變體             |
+| `product_reviews`        | 商品評價             |
+| `orders`                 | 訂單資訊             |
+| `order_items`            | 訂單項目明細         |
+| `promotions`             | 促銷活動             |
+| `promotion_products`     | 促銷商品關聯         |
+| `receipts`               | 收據資訊             |
+| `donations`              | 捐款記錄             |
+| `bank_transfer_details`  | 銀行轉帳詳情         |
+| `expenses`               | 支出記錄             |
+| `refunds`                | 退款記錄             |
+| `return_order`           | 退貨訂單             |
+| `reports`                | 報告/舉報            |
+| `bans`                   | 封禁記錄             |
+| `manager`                | 後台管理員資訊       |
+
+## 核心資料表詳細結構
+
+### `pets` 表 - 寵物資訊
+
+```sql
+CREATE TABLE `pets` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `type` enum('dog','cat','other') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `variety` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `breed` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `age_year` int DEFAULT NULL,
+  `age_month` int DEFAULT NULL,
+  `gender` enum('M','F','U') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `size` enum('small','medium','large') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `color` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `fur_length` enum('short','medium','long') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `vaccinated` tinyint(1) DEFAULT '0',
+  `neutered` tinyint(1) DEFAULT '0',
+  `chip_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `adopt_fee` decimal(10,0) DEFAULT NULL,
+  `adopt_status` enum('available','pending','adopted') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'available',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `like_count` int DEFAULT '0',
+  `medical_history` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `diet_habits` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `activity_needs` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `images` json DEFAULT NULL,
+  `main_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `store_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_pets_store` (`store_id`),
+  CONSTRAINT `fk_pets_store` FOREIGN KEY (`store_id`) REFERENCES `pet_store` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### `pet_store` 表 - 寵物商店/收容所
+
+```sql
+CREATE TABLE `pet_store` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `city` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `website` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `operation_hours` json DEFAULT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `logo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### `users` 表 - 使用者資訊
+
+```sql
+CREATE TABLE `users` (
+  `user_id` int NOT NULL,
+  `user_email` varchar(255) NOT NULL,
+  `user_password` varchar(255) NOT NULL,
+  `user_name` varchar(255) NOT NULL,
+  `user_number` varchar(255) NOT NULL,
+  `user_address` varchar(255) NOT NULL,
+  `user_birthday` date DEFAULT NULL,
+  `user_level` varchar(255) DEFAULT NULL,
+  `profile_picture` varchar(255) DEFAULT NULL,
+  `user_status` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+```
+
+### 欄位說明
+
+| 欄位名稱        | 類型         | 說明       | 可能的值                 |
+| --------------- | ------------ | ---------- | ------------------------ |
+| user_id         | int          | 使用者 ID  | 自動遞增                 |
+| user_email      | varchar(255) | 電子郵件   | 必填                     |
+| user_password   | varchar(255) | 密碼       | 必填                     |
+| user_name       | varchar(255) | 使用者名稱 | 必填                     |
+| user_number     | varchar(255) | 電話號碼   | 必填                     |
+| user_address    | varchar(255) | 地址       | 必填                     |
+| user_birthday   | date         | 生日       | 可為 NULL                |
+| user_level      | varchar(255) | 使用者等級 | '愛心小天使', '乾爹乾媽' |
+| profile_picture | varchar(255) | 個人頭像   | 可為 NULL                |
+| user_status     | varchar(255) | 使用者狀態 | '正常', '禁言'           |
+
+### 注意事項
+
+1. 欄位命名規則：
+
+   - 所有欄位名稱都以 `user_` 為前綴（除了 `profile_picture`）
+   - 使用下劃線命名法
+   - 不使用駝峰命名法
+
+2. 狀態值：
+
+   - `user_status` 只有 '正常' 和 '禁言' 兩種狀態
+   - `user_level` 只有 '愛心小天使' 和 '乾爹乾媽' 兩種等級
+
+3. 資料限制：
+
+   - 電子郵件、密碼、名稱、電話和地址為必填欄位
+   - 生日、等級、頭像和狀態可以為 NULL
+
+4. 常見查詢模式：
+
+```sql
+-- 獲取所有正常狀態的會員
+SELECT * FROM users WHERE user_status = '正常';
+
+-- 獲取特定等級的會員
+SELECT * FROM users WHERE user_level = '乾爹乾媽';
+
+-- 搜尋會員
+SELECT * FROM users
+WHERE user_name LIKE ?
+   OR user_email LIKE ?
+   OR user_number LIKE ?;
+```
+
+### 相關資料表
+
+- `pets_like`: 會員收藏的寵物
+- `posts`: 會員發布的貼文
+- `comments`: 會員的評論
+- `orders`: 會員的訂單
+- `donations`: 會員的捐款記錄
+
+### `posts` 表 - 社區貼文
+
+```sql
+CREATE TABLE `posts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `images` json DEFAULT NULL,
+  `like_count` int DEFAULT '0',
+  `comment_count` int DEFAULT '0',
+  `view_count` int DEFAULT '0',
+  `status` enum('published','draft','hidden') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'published',
+  `category_id` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_posts_user` (`user_id`),
+  KEY `fk_posts_category` (`category_id`),
+  CONSTRAINT `fk_posts_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_posts_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### `products` 表 - 商品資訊
+
+```sql
+CREATE TABLE `products` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `category_id` int DEFAULT NULL,
+  `base_price` decimal(10,2) NOT NULL,
+  `stock` int DEFAULT '0',
+  `images` json DEFAULT NULL,
+  `main_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `rating` decimal(2,1) DEFAULT '0.0',
+  `review_count` int DEFAULT '0',
+  `is_active` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_products_category` (`category_id`),
+  CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### `orders` 表 - 訂單資訊
+
+```sql
+CREATE TABLE `orders` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `status` enum('pending','processing','shipped','delivered','cancelled') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'pending',
+  `total_amount` decimal(10,2) NOT NULL,
+  `shipping_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `shipping_city` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `shipping_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `shipping_fee` decimal(8,2) DEFAULT '0.00',
+  `payment_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `is_paid` tinyint(1) DEFAULT '0',
+  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_orders_user` (`user_id`),
+  CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### `donations` 表 - 捐款記錄
+
+```sql
+CREATE TABLE `donations` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `payment_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `is_anonymous` tinyint(1) DEFAULT '0',
+  `is_paid` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_donations_user` (`user_id`),
+  CONSTRAINT `fk_donations_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### `manager` 表 - 後台管理員
+
+```sql
+CREATE TABLE `manager` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `role` enum('admin','editor','viewer') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'editor',
+  `last_login` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+## 表格關聯圖
+
+```
+pets ────┐
+         │
+         ▼
+     pet_store ◄───── pet_appointment
+         ▲
+         │
+users ───┘
+   │
+   ├─────► posts ◄───── comments
+   │        │
+   │        ▼
+   │     categories
+   │
+   ├─────► orders ◄───── order_items
+   │                        │
+   │                        ▼
+   │                     products ◄───── product_variants
+   │                        │
+   │                        ▼
+   │                  product_reviews
+   │
+   └─────► donations
+```
+
+## 資料庫統計資訊
+
+- 資料表總數: 31
+- 所有表格均使用 InnoDB 引擎，支援外鍵和交易
+- 所有表格均使用 utf8mb4_general_ci 字符集與排序規則
+- 大多數表格包含 created_at 和 updated_at 時間戳記欄位，方便追蹤記錄的創建和更新時間
+
+## 常見查詢模式
+
+### 寵物相關查詢
+
+```sql
+-- 獲取可收養的寵物列表
+SELECT p.*, ps.name as store_name, ps.address
+FROM pets p
+JOIN pet_store ps ON p.store_id = ps.id
+WHERE p.adopt_status = 'available'
+ORDER BY p.created_at DESC;
+
+-- 獲取寵物詳細資料及特徵
+SELECT p.*,
+       GROUP_CONCAT(DISTINCT ptl.trait_name) as traits
+FROM pets p
+LEFT JOIN pet_trait pt ON p.id = pt.pet_id
+LEFT JOIN pet_trait_list ptl ON pt.trait_id = ptl.id
+WHERE p.id = ?
+GROUP BY p.id;
+```
+
+### 用戶相關查詢
+
+```sql
+-- 獲取用戶收藏的寵物
+SELECT p.*
+FROM pets p
+JOIN pets_like pl ON p.id = pl.pet_id
+WHERE pl.user_id = ?;
+
+-- 用戶發布的貼文
+SELECT p.*, u.username, u.profile_image
+FROM posts p
+JOIN users u ON p.user_id = u.id
+WHERE u.id = ?
+ORDER BY p.created_at DESC;
+```
+
+### 訂單相關查詢
+
+```sql
+-- 獲取訂單詳情和訂單項目
+SELECT o.*, oi.product_id, oi.quantity, oi.price, p.name as product_name
+FROM orders o
+JOIN order_items oi ON o.id = oi.order_id
+JOIN products p ON oi.product_id = p.id
+WHERE o.user_id = ? AND o.id = ?;
+```
+
+# 資料庫結構說明
+
+## 管理員表 (manager)
+
+### 表結構
+
+```sql
+CREATE TABLE manager (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  manager_account VARCHAR(50) NOT NULL UNIQUE,
+  manager_password VARCHAR(255) NOT NULL,
+  manager_privileges VARCHAR(50) NOT NULL,
+  is_active TINYINT(1) DEFAULT 1,
+  last_login_at DATETIME,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### 欄位說明
+
+- `id`: 管理員唯一識別碼
+- `manager_account`: 管理員帳號
+- `manager_password`: 加密後的密碼（使用 bcrypt）
+- `manager_privileges`: 權限代碼
+  - `111`: 超級管理員
+  - 其他權限代碼待定義
+- `is_active`: 帳號狀態（1: 啟用, 0: 停用）
+- `last_login_at`: 最後登入時間
+- `created_at`: 創建時間
+- `updated_at`: 更新時間
+
+### 注意事項
+
+1. 密碼加密使用 bcrypt，需要處理 PHP 和 Node.js 的兼容性
+2. 權限代碼使用逗號分隔的字串格式
+3. 超級管理員（111）擁有所有權限
+
+## 會員表 (users)
+
+### 表結構
+
+```sql
+CREATE TABLE users (
+  user_id INT PRIMARY KEY AUTO_INCREMENT,
+  user_email VARCHAR(100) NOT NULL UNIQUE,
+  user_name VARCHAR(50) NOT NULL,
+  user_number VARCHAR(20),
+  user_address TEXT,
+  user_birthday DATE,
+  user_level VARCHAR(20),
+  profile_picture VARCHAR(255),
+  user_status VARCHAR(20) DEFAULT '正常',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### 欄位說明
+
+- `user_id`: 會員唯一識別碼
+- `user_email`: 電子郵件（唯一）
+- `user_name`: 會員姓名
+- `user_number`: 電話號碼
+- `user_address`: 地址
+- `user_birthday`: 生日
+- `user_level`: 會員等級
+  - `愛心小天使`
+  - `乾爹乾媽`
+- `profile_picture`: 頭像圖片路徑
+- `user_status`: 會員狀態
+  - `正常`
+  - `禁言`
+- `created_at`: 創建時間
+- `updated_at`: 更新時間
+
+### 注意事項
+
+1. 所有時間欄位使用 MySQL TIMESTAMP 類型
+2. 狀態和等級使用預定義的字串值
+3. 圖片路徑存儲相對路徑
+
+## API 響應格式
+
+### 成功響應
+
+```typescript
+{
+  success: true,
+  message: string,
+  data: {
+    // 數據內容
+  }
+}
+```
+
+### 錯誤響應
+
+```typescript
+{
+  success: false,
+  message: string,
+  error?: any
+}
+```
+
+## 資料庫連接配置
+
+### 開發環境
+
+```typescript
+{
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'pet_proj',
+  port: 3306
+}
+```
+
+### 注意事項
+
+1. 使用環境變數配置敏感資訊
+2. 設置適當的連接池大小
+3. 處理連接錯誤和重試機制
+
+## 查詢最佳實踐
+
+### 1. 使用預處理語句
+
+```typescript
+const query = 'SELECT * FROM users WHERE user_id = ?'
+const results = await executeQuery(query, [id])
+```
+
+### 2. 正確處理 NULL 值
+
+```typescript
+const birthday = row.birthday ? new Date(row.birthday) : null
+```
+
+### 3. 使用適當的索引
+
+- 主鍵索引：user_id, id
+- 唯一索引：user_email, manager_account
+- 普通索引：user_status, user_level
+
+### 4. 日期時間處理
+
+```sql
+DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as formatted_date
+```
