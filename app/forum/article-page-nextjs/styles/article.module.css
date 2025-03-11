@@ -1,0 +1,39 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.text-muted {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.content {
+    margin-top: 20px;
+    line-height: 1.6;
+}
+
+.mt-3 {
+    margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .text-muted {
+        font-size: 0.8rem;
+    }
+}
