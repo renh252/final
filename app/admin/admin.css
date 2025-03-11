@@ -257,13 +257,51 @@
   .admin-sidebar {
     position: fixed;
     height: 100%;
-    left: -240px;
+    left: -240px; /* 初始位置在屏幕左側外 */
     z-index: 1050;
-    transition: transform 0.3s ease, left 0.3s ease;
+    transition: left 0.3s ease, width 0.3s ease;
+    will-change: left, width; /* 提示瀏覽器優化動畫 */
   }
 
   .admin-sidebar.open {
-    transform: translateX(240px);
+    left: 0; /* 直接將側邊欄移動到左側邊緣 */
+    transform: none; /* 移除 transform */
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); /* 增加陰影效果 */
+  }
+
+  .admin-sidebar.collapsed {
+    width: 60px;
+    left: -60px;
+  }
+
+  .admin-sidebar.collapsed.open {
+    left: 0; /* 直接將側邊欄移動到左側邊緣 */
+    transform: none; /* 移除 transform */
+  }
+
+  /* 移動設備上的遮罩層 */
+  .mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3); /* 降低透明度，從 0.5 改為 0.3 */
+    z-index: 1040;
+    opacity: 0;
+    transition: opacity 0.3s ease, background-color 0.3s ease; /* 添加背景顏色過渡 */
+    pointer-events: none;
+    backdrop-filter: blur(2px); /* 添加模糊效果，增加層次感 */
+  }
+
+  .mobile-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* 深色模式下的遮罩層 */
+  .dark-theme .mobile-overlay {
+    background-color: rgba(0, 0, 0, 0.4); /* 深色模式下稍微增加透明度 */
   }
 
   .admin-content {
@@ -570,14 +608,15 @@ li:has(.sidebar-submenu) {
 .dark-theme .form-select {
   background-color: #2a2a2a;
   border-color: #444;
-  color: #e0e0e0;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .dark-theme .form-control:focus,
 .dark-theme .form-select:focus {
-  background-color: #2a2a2a;
-  color: #e0e0e0;
-  border-color: #0d6efd;
+  background-color: #333;
+  border-color: #666;
+  color: white;
+  box-shadow: 0 0 0 0.25rem rgba(58, 142, 255, 0.25);
 }
 
 /* 深色主題下的按鈕樣式 */
@@ -736,6 +775,7 @@ li:has(.sidebar-submenu) {
 .dark-theme .data-table td {
   background-color: transparent !important;
   border-top-color: var(--admin-card-border);
+  color: var(--admin-text-color) !important;
 }
 
 /* 表格條紋效果 */
@@ -745,7 +785,10 @@ li:has(.sidebar-submenu) {
 
 .dark-theme .data-table.table-striped tbody tr:nth-of-type(odd) td {
   background-color: transparent !important;
-  color: #e0e0e0 !important;
+}
+
+.dark-theme .data-table.table-striped tbody tr:nth-of-type(even) td {
+  background-color: transparent !important;
 }
 
 /* 可排序列標題懸停效果 */
@@ -1254,10 +1297,6 @@ body {
   color: rgba(255, 255, 255, 0.95);
 }
 
-.dark-theme .dashboard-stat-badge {
-  /* 深色模式下的標籤已有默認樣式，無需額外設定 */
-}
-
 /* 歡迎警告框樣式 */
 .alert-info {
   position: relative;
@@ -1383,4 +1422,43 @@ button.sidebar-nav-link:focus {
 .sidebar-submenu {
   z-index: 1;
   position: relative;
+}
+
+/* Placeholder 樣式 */
+.form-control::placeholder {
+  color: #6c757d;
+  opacity: 0.7;
+}
+
+/* 深色模式下的 Placeholder 樣式 */
+.dark-theme .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+}
+
+/* 支持不同瀏覽器的 placeholder 樣式 */
+.dark-theme .form-control::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+}
+
+.dark-theme .form-control::-moz-placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+}
+
+.dark-theme .form-control:-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+}
+
+.dark-theme .form-control::-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+}
+
+/* 搜索輸入框的 placeholder 樣式 */
+.dark-theme .search-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  opacity: 1;
 }
