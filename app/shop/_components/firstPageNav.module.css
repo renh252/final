@@ -1,3 +1,49 @@
+.nav{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* background-color: #fff; */
+
+  .collapse_contain{
+    background-color: #fff;
+    width: 100%;
+    position: absolute;
+    top: 90%;
+    border-radius: 0 0 20px 20px;
+    border: rgba(89, 62, 47, 1) dashed 1px;
+
+    
+    .collapse{
+      width: 100%;
+      padding: 10px;
+    }
+      ul{
+        /* display: flex;
+        gap: 10px;
+        flex-direction: column; */
+        gap: 50px;
+      }
+      li{
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        background-color: none;
+        color: black;
+        padding: 10px 0;
+        margin: 10px 0;
+        list-style: none;
+        border-radius: 16px;
+        /* border: black solid 1px; */
+      }
+      li:hover{
+        background-color: rgba(199, 150, 80, 1);
+        color: #fff;
+      }
+   
+  }
+  
+}
 
 .product_nav{
   position: relative;
@@ -10,29 +56,35 @@
   gap: 20px;
   background-color: rgba(89, 62, 47, 1);
   border-radius: 20px;
-
-
-
+  z-index: 10;
 }
-
-.nav_items{
-  top:0;
+.nav_items_contain{
   width: 100%;
+  overflow: hidden;
+  /* align-items: center; */
+}
+.nav_items{
   display: flex;
+  justify-content: space-around;
   flex-direction: row;
-  justify-content: center;
-  overflow:hidden;
+  white-space: nowrap;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* 对 Firefox 隐藏滚动条 */
+  -ms-overflow-style: none; /* 对 IE 和 Edge 隐藏滚动条 */
 }
 .item_group{
+  display: flex;
   position: relative;
   display: flex;
-  width: 20%;
   height: 60px;
-  a{
+
+  >a{
     color: #fff;
     font-size: 24px;
     font-weight: bold;
-    width: 100%;
+    /* width: 100%; */
     background-color: rgba(89, 62, 47, 1);
     color: #fff;
     border: none;
@@ -44,19 +96,7 @@
     background-color: rgba(199, 150, 80, 1);
     color: #fff;
   }
-  .collapse{
-    padding: 10px;
-    position: absolute;
-    border-radius: 0 0 20px 20px;
-    top: 80px;
-    background-color: #fff;
-  }
-  li{
-    color: black;
-    padding: 0;
-    list-style: none;
-  }
-  
+
 
 }
 .nav_title{
