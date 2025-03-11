@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import adminPool, { executeQuery } from '@/app/admin/api/_lib/database'
-import { generateToken, verifyPassword } from '@/app/admin/api/_lib/jwt'
+import { executeQuery } from '@/app/api/admin/_lib/database'
+import { generateToken, verifyPassword } from '@/app/api/admin/_lib/jwt'
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,19 +58,24 @@ export async function POST(request: NextRequest) {
         id: manager.id,
         account: manager.manager_account,
         privileges: manager.manager_privileges,
+        role: 'admin',
       })
 
       // 更新最後登入時間，確認表是否有 last_login_at 欄位
       try {
-        // 使用 INFORMATION_SCHEMA 檢查欄位是否存在，並只在存在時更新
-        await executeQuery(
-          "SET @column_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'manager' AND COLUMN_NAME = 'last_login_at'); " +
-            "SET @sql = IF(@column_exists > 0, 'UPDATE manager SET last_login_at = NOW() WHERE id = ?', 'SELECT 1'); " +
-            'PREPARE stmt FROM @sql; ' +
-            'EXECUTE stmt USING ?; ' +
-            'DEALLOCATE PREPARE stmt;',
-          [manager.id]
+        // 先檢查欄位是否存在
+        const loginColumnExists = await executeQuery(
+          "SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'manager' AND COLUMN_NAME = 'last_login_at'",
+          []
         )
+
+        // 如果欄位存在，則更新登入時間
+        if (loginColumnExists[0].count > 0) {
+          await executeQuery(
+            'UPDATE manager SET last_login_at = NOW() WHERE id = ?',
+            [manager.id]
+          )
+        }
       } catch (updateError) {
         console.warn('更新登入時間失敗:', updateError)
         // 但繼續處理登入流程，不要因為更新時間失敗而阻止登入
