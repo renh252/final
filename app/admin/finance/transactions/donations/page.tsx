@@ -196,9 +196,70 @@ export default function DonationsPage() {
       filteredDonations.length,
   }
 
+  // 統計卡片資料
+  const donationStats = [
+    {
+      title: '總捐款金額',
+      count: (
+        <div className="dashboard-stat-wrapper">
+          <div className="dashboard-stat-value">
+            {formatCurrency(statistics.totalAmount)}
+          </div>
+          <div className="dashboard-stat-badge text-bg-success">
+            ↑ 12.5% 較上月
+          </div>
+        </div>
+      ),
+      color: 'primary',
+      icon: <Heart size={24} />,
+    },
+    {
+      title: '捐款人數',
+      count: (
+        <div className="dashboard-stat-wrapper">
+          <div className="dashboard-stat-value">{statistics.totalDonors}</div>
+          <div className="dashboard-stat-badge text-bg-success">
+            ↑ 8.2% 較上月
+          </div>
+        </div>
+      ),
+      color: 'success',
+      icon: <Users size={24} />,
+    },
+    {
+      title: '定期捐款人數',
+      count: (
+        <div className="dashboard-stat-wrapper">
+          <div className="dashboard-stat-value">{statistics.monthlyDonors}</div>
+          <div className="dashboard-stat-badge text-bg-success">
+            ↑ 5.7% 較上月
+          </div>
+        </div>
+      ),
+      color: 'info',
+      icon: <Calendar size={24} />,
+    },
+    {
+      title: '平均捐款金額',
+      count: (
+        <div className="dashboard-stat-wrapper">
+          <div className="dashboard-stat-value">
+            {formatCurrency(statistics.averageAmount)}
+          </div>
+          <div className="dashboard-stat-badge text-bg-success">
+            ↑ 3.4% 較上月
+          </div>
+        </div>
+      ),
+      color: 'warning',
+      icon: <TrendingUp size={24} />,
+    },
+  ]
+
   return (
     <AdminPageLayout
       title="捐款記錄"
+      stats={donationStats}
       actions={
         <Button variant="outline-primary" onClick={handleExport}>
           <Download size={18} className="me-2" />
@@ -207,91 +268,6 @@ export default function DonationsPage() {
       }
     >
       <div className="admin-layout-container">
-        <AdminSection>
-          <Row className="mb-4">
-            <Col md={3}>
-              <Card
-                className={`admin-card h-100 ${
-                  isDarkMode ? 'bg-dark text-light' : ''
-                }`}
-              >
-                <Card.Body>
-                  <div className="d-flex align-items-center">
-                    <div className="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                      <Heart size={24} className="text-primary" />
-                    </div>
-                    <div className="text-content">
-                      <h6 className="text-muted mb-1">總捐款金額</h6>
-                      <h3 className="mb-0">
-                        {formatCurrency(statistics.totalAmount)}
-                      </h3>
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={3}>
-              <Card
-                className={`admin-card h-100 ${
-                  isDarkMode ? 'bg-dark text-light' : ''
-                }`}
-              >
-                <Card.Body>
-                  <div className="d-flex align-items-center">
-                    <div className="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                      <Users size={24} className="text-success" />
-                    </div>
-                    <div className="text-content">
-                      <h6 className="text-muted mb-1">捐款人數</h6>
-                      <h3 className="mb-0">{statistics.totalDonors}</h3>
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={3}>
-              <Card
-                className={`admin-card h-100 ${
-                  isDarkMode ? 'bg-dark text-light' : ''
-                }`}
-              >
-                <Card.Body>
-                  <div className="d-flex align-items-center">
-                    <div className="rounded-circle bg-info bg-opacity-10 p-3 me-3">
-                      <Calendar size={24} className="text-info" />
-                    </div>
-                    <div className="text-content">
-                      <h6 className="text-muted mb-1">定期捐款人數</h6>
-                      <h3 className="mb-0">{statistics.monthlyDonors}</h3>
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={3}>
-              <Card
-                className={`admin-card h-100 ${
-                  isDarkMode ? 'bg-dark text-light' : ''
-                }`}
-              >
-                <Card.Body>
-                  <div className="d-flex align-items-center">
-                    <div className="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
-                      <TrendingUp size={24} className="text-warning" />
-                    </div>
-                    <div className="text-content">
-                      <h6 className="text-muted mb-1">平均捐款金額</h6>
-                      <h3 className="mb-0">
-                        {formatCurrency(statistics.averageAmount)}
-                      </h3>
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-        </AdminSection>
-
         <AdminSection title="捐款查詢">
           <Card
             className={`admin-card ${isDarkMode ? 'bg-dark text-light' : ''}`}

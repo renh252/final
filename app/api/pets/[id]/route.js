@@ -29,6 +29,25 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: '找不到此寵物' }, { status: 404 })
     }
 
+    // 獲取寵物照片
+    const [photos] = await connection.execute(
+      `
+      SELECT 
+        id,
+        pet_id,
+        photo_url,
+        is_main,
+        sort_order,
+        title,
+        description,
+        created_at
+      FROM pet_photos
+      WHERE pet_id = ?
+      ORDER BY is_main DESC, sort_order ASC
+      `,
+      [id]
+    )
+
     // 獲取店家資訊，用於地點顯示
     const [stores] = await connection.execute(`
       SELECT id, address FROM pet_store
@@ -88,6 +107,7 @@ export async function GET(request, { params }) {
       age: ageDisplay,
       location: locationDisplay,
       gender: genderDisplay,
+      photos: photos,
     }
 
     connection.release()

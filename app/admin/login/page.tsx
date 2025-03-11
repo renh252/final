@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     try {
       // 發送登入請求
-      const response = await fetch('/admin/api/auth/login', {
+      const response = await fetch('/api/admin/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

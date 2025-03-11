@@ -5,7 +5,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import styles from './pet-detail.module.css'
-import { FaArrowLeft, FaMapMarkerAlt, FaBirthdayCake } from 'react-icons/fa'
+import {
+  FaArrowLeft,
+  FaMapMarkerAlt,
+  FaBirthdayCake,
+  FaChevronLeft,
+  FaChevronRight,
+} from 'react-icons/fa'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 
 export default function PetDetailPage() {
@@ -13,6 +19,7 @@ export default function PetDetailPage() {
   const [pet, setPet] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
   useEffect(() => {
     async function fetchPet() {
@@ -32,6 +39,31 @@ export default function PetDetailPage() {
 
     fetchPet()
   }, [id])
+
+  // 處理照片輪播
+  const nextPhoto = () => {
+    if (pet?.photos && pet.photos.length > 0) {
+      setCurrentPhotoIndex((prevIndex) =>
+        prevIndex === pet.photos.length - 1 ? 0 : prevIndex + 1
+      )
+    }
+  }
+
+  const prevPhoto = () => {
+    if (pet?.photos && pet.photos.length > 0) {
+      setCurrentPhotoIndex((prevIndex) =>
+        prevIndex === 0 ? pet.photos.length - 1 : prevIndex - 1
+      )
+    }
+  }
+
+  // 獲取當前顯示的照片 URL
+  const getCurrentPhotoUrl = () => {
+    if (pet?.photos && pet.photos.length > 0) {
+      return pet.photos[currentPhotoIndex].photo_url
+    }
+    return pet?.main_photo || '/images/default_no_pet.jpg'
+  }
 
   if (loading) return <div className={styles.container}>載入中...</div>
 
@@ -69,12 +101,41 @@ export default function PetDetailPage() {
       <div className={styles.content}>
         <div className={styles.imageContainer}>
           <Image
-            src={pet.image_url || '/images/default_no_pet.jpg'}
+            src={getCurrentPhotoUrl()}
             alt={pet.name}
             fill
             className={styles.image}
             priority
           />
+          {pet?.photos && pet.photos.length > 1 && (
+            <>
+              <button
+                className={`${styles.photoNavButton} ${styles.prevButton}`}
+                onClick={prevPhoto}
+                aria-label="上一張照片"
+              >
+                <FaChevronLeft />
+              </button>
+              <button
+                className={`${styles.photoNavButton} ${styles.nextButton}`}
+                onClick={nextPhoto}
+                aria-label="下一張照片"
+              >
+                <FaChevronRight />
+              </button>
+              <div className={styles.photoIndicator}>
+                {pet.photos.map((_, index) => (
+                  <span
+                    key={index}
+                    className={`${styles.dot} ${
+                      index === currentPhotoIndex ? styles.activeDot : ''
+                    }`}
+                    onClick={() => setCurrentPhotoIndex(index)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         <div className={styles.details}>

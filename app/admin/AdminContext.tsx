@@ -49,9 +49,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState<Admin | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [lastVerified, setLastVerified] = useState<number>(0)
+  const [currentPath, setCurrentPath] = useState<string>('')
   const verifyInProgress = useRef(false)
   const router = useRouter()
   const pathname = usePathname()
+
+  // 在客戶端環境中更新路徑
+  useEffect(() => {
+    if (pathname) {
+      setCurrentPath(pathname)
+    }
+  }, [pathname])
 
   // 在初始化時嘗試從 localStorage 讀取管理員信息
   useEffect(() => {
@@ -112,7 +120,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setIsLoading(true)
 
       // 呼叫登出 API
-      await fetch('/admin/api/auth/logout', {
+      await fetch('/api/admin/auth/logout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -156,14 +164,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       // 獲取 token
       const token = Cookies.get('admin_token')
       if (!token) {
-        if (pathname !== '/admin/login') {
+        // 清除狀態
+        Cookies.remove('admin_token')
+        localStorage.removeItem('admin')
+        setAdmin(null)
+
+        if (currentPath !== '/admin/login') {
           router.push('/admin/login')
         }
         return false
       }
 
       // 驗證 token
-      const response = await fetch('/admin/api/auth/verify', {
+      const response = await fetch('/api/admin/auth/verify', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -177,7 +190,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('admin')
         setAdmin(null)
 
-        if (pathname !== '/admin/login') {
+        if (currentPath !== '/admin/login') {
           router.push('/admin/login')
         }
         return false
@@ -192,7 +205,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('驗證錯誤:', error)
 
-      if (pathname !== '/admin/login') {
+      // 清除狀態
+      Cookies.remove('admin_token')
+      localStorage.removeItem('admin')
+      setAdmin(null)
+
+      if (currentPath !== '/admin/login') {
         router.push('/admin/login')
       }
       return false
@@ -200,7 +218,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setIsLoading(false)
       verifyInProgress.current = false
     }
-  }, [admin, lastVerified, pathname, router])
+  }, [admin, lastVerified, currentPath, router])
 
   // 節流版本的 checkAuth - 每 10 秒最多執行一次
   const throttledCheckAuth = useCallback(

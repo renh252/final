@@ -2,7 +2,7 @@
 
 import { Bell, User, Menu } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ThemeToggle from './ThemeToggle'
 import { useTheme } from '../ThemeContext'
 import { useAdmin } from '../AdminContext'
