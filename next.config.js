@@ -30,15 +30,6 @@ const nextConfig = {
   skipMiddlewareUrlNormalize: true,
   // output: 'export', // don't use with `next start` or api route
   // distDir: 'dist',
-  // 啟用 API 路由代理，避免 CORS 問題
-  async rewrites() {
-    return [
-      {
-        source: '/admin/api/:path*',
-        destination: '/api/admin/:path*',
-      },
-    ]
-  },
 }
 
 module.exports = nextConfig

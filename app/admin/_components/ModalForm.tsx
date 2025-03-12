@@ -57,7 +57,27 @@ export default function ModalForm({
 
       fields.forEach((field) => {
         if (initialData && initialData[field.name] !== undefined) {
-          initialFormData[field.name] = initialData[field.name]
+          // 處理日期格式
+          if (field.type === 'date' && initialData[field.name]) {
+            try {
+              // 嘗試將 ISO 格式的日期時間字串轉換為 yyyy-MM-dd 格式
+              const date = new Date(initialData[field.name])
+              initialFormData[field.name] = date.toISOString().split('T')[0]
+              console.log(
+                `轉換日期格式: ${initialData[field.name]} -> ${
+                  initialFormData[field.name]
+                }`
+              )
+            } catch (error) {
+              console.error(
+                `日期格式轉換錯誤: ${initialData[field.name]}`,
+                error
+              )
+              initialFormData[field.name] = ''
+            }
+          } else {
+            initialFormData[field.name] = initialData[field.name]
+          }
         } else if (field.defaultValue !== undefined) {
           initialFormData[field.name] = field.defaultValue
         } else {
@@ -94,6 +114,20 @@ export default function ModalForm({
       newValue = (e.target as HTMLInputElement).checked
     } else if (type === 'number') {
       newValue = value === '' ? '' : Number(value)
+    } else if (type === 'date') {
+      // 確保日期格式正確
+      if (value) {
+        try {
+          // 將 yyyy-MM-dd 格式保持不變
+          newValue = value
+          console.log(`日期輸入: ${value}`)
+        } catch (error) {
+          console.error(`日期格式處理錯誤: ${value}`, error)
+          newValue = ''
+        }
+      } else {
+        newValue = ''
+      }
     }
 
     setFormData((prev) => ({ ...prev, [name]: newValue }))

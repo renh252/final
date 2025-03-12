@@ -208,35 +208,23 @@ export default function PetsPage() {
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data: petsData, error: petsError } = useSWR(
-    '/api/pet-data?type=pets',
+    '/api/pets?type=pets',
     fetcher
   )
-  const { data: speciesData } = useSWR('/api/pet-data?type=species', fetcher)
+  const { data: speciesData } = useSWR('/api/pets?type=species', fetcher)
   const { data: breedsData, mutate: mutateBreeds } = useSWR(
     selectedSpecies
-      ? `/api/pet-data?type=breeds&species_id=${selectedSpecies}`
+      ? `/api/pets?type=breeds&species_id=${selectedSpecies}`
       : null,
     fetcher
   )
   // 獲取所有不重複的品種資料
   const { data: varietiesData, mutate: mutateVarieties } = useSWR(
     selectedSpecies
-      ? `/api/pet-data?type=varieties&species_id=${selectedSpecies}`
-      : '/api/pet-data?type=varieties',
+      ? `/api/pets?type=varieties&species_id=${selectedSpecies}`
+      : '/api/pets?type=varieties',
     fetcher
   )
-
-  // 輸出獲取到的資料，用於除錯
-  useEffect(() => {
-    if (petsData?.pets?.length > 0) {
-      console.log('前端獲取到的第一筆寵物資料:', petsData.pets[0])
-    }
-
-    // 調試 varietiesData
-    if (varietiesData) {
-      console.log('獲取到的品種資料:', varietiesData)
-    }
-  }, [petsData, varietiesData])
 
   // 確保在頁面載入時就獲取所有品種資料
   useEffect(() => {
