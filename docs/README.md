@@ -4,8 +4,30 @@
 
 ## 核心文檔
 
-1. **[資料庫結構](./database-structure.md)** - 詳細的資料庫表格結構和關係
-2. **[專案架構和設計細節](./project-overview.md)** - 專案技術棧、檔案結構和主要功能模塊
+1. **[專案概述](./project-overview.md)** - 專案技術棧、檔案結構和主要功能模塊
+2. **[資料庫結構](./database-structure.md)** - 詳細的資料庫表格結構和關係
+3. **[後台管理系統結構](./admin-structure.md)** - 後台管理系統的路由結構和功能模塊
+4. **[前端元件結構](./frontend-components.md)** - 前端元件的結構和使用方式
+5. **[API 結構](./api-structure.md)** - API 路由結構和設計原則
+6. **[當前狀態與計劃](./current-status.md)** - 項目當前狀態和下一步計劃
+
+## 專案概述
+
+Pet Project 是一個綜合性的寵物領養和社區平台，包含以下主要功能：
+
+1. **寵物領養功能** - 瀏覽和搜尋可領養的寵物，提交領養申請，預約看寵物
+2. **社群討論區** - 創建和回覆貼文，點讚和收藏貼文，上傳圖片
+3. **寵物用品商城** - 商品分類和搜尋，購物車功能，結帳流程，訂單追蹤
+4. **捐款和公益活動** - 捐款功能，公益活動展示，資金使用透明度報告
+5. **會員管理系統** - 會員註冊和登入，會員資料管理，收藏和訂單管理
+6. **管理後台** - 寵物資訊管理，會員管理，商城管理，論壇管理，金流管理
+
+### 技術棧
+
+- **前端**: Next.js 14 (App Router), TypeScript, React Bootstrap
+- **後端**: Next.js API Routes, TypeScript, MySQL
+- **認證**: JWT (JSON Web Token)
+- **部署**: 計劃部署到 Vercel 或 AWS
 
 ## 如何在 AI 對話中使用這些文檔
 
@@ -71,9 +93,13 @@
 
 ## 目錄結構
 
+- `project-overview.md`: 專案概覽
 - `database-structure.md`: 資料庫結構說明
 - `db-structure-usage.md`: 資料庫使用指南
-- `project-overview.md`: 專案概覽
+- `admin-structure.md`: 後台管理系統結構
+- `frontend-components.md`: 前端元件結構
+- `api-structure.md`: API 結構
+- `current-status.md`: 當前狀態與計劃
 
 ## 認證機制說明
 
@@ -157,3 +183,11 @@
 1. 提供完整的測試案例
 2. 包含認證相關的測試
 3. 記錄常見的測試場景
+
+## 已知問題和限制
+
+請參考 [當前狀態與計劃](./current-status.md) 文檔中的「已知問題」部分。
+
+## 下一步計劃
+
+請參考 [當前狀態與計劃](./current-status.md) 文檔中的「下一步計劃」部分。
