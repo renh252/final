@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2025-03-11 15:58:22
+-- 產生時間： 2025-03-12 10:21:31
 -- 伺服器版本： 8.0.40
 -- PHP 版本： 8.2.12
 -- 刪除舊的資料庫
@@ -2369,6 +2369,12 @@ ALTER TABLE `posts_likes`
 ALTER TABLE `products`
   ADD PRIMARY KEY (`product_id`),
   ADD KEY `category_id` (`category_id`);
+
+--
+-- 資料表索引 `product_img`
+--
+ALTER TABLE `product_img`
+  ADD PRIMARY KEY (`product_id`);
 
 --
 -- 資料表索引 `product_like`
