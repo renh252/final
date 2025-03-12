@@ -28,6 +28,18 @@
   border-radius: 20px;
   padding: 20px 50px;
 }
+.donate_container3 {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: center;
+  margin: 30px auto;
+  padding: 50px;
+  border-radius: 20px;
+  padding: 20px 50px;
+}
 .donate_item {
   display: flex;
   width: 45%;
@@ -125,4 +137,24 @@
   height: 200px;
   aspect-ratio: 1/1;
   border-radius: 15px;
+}
+
+.petContainer {
+  max-height: 500px; /* 限制高度 */
+  overflow-y: auto; /* 超過範圍時可滾動 */
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.petList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  list-style: none;
+  padding: 0;
+}
+
+.petItem {
+  margin: 15px;
 }

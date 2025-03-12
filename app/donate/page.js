@@ -12,19 +12,27 @@ import MethodItem from './_components/methodItem'
 import Contents from './_data/Contents'
 import useSWR from 'swr'
 
+import Card from '@/app/_components/ui/Card'
+
 //swr專用的獲取函式
 const fetcher = (...args) => fetch(...args).then((res) => res.json())
 
 export default function DonatePage() {
-  const url = '/api/donate'
-  // 向伺服器fetch，注意data必須為陣列才呈現
-  const { data, isLoading, error } = useSWR(url, fetcher)
+  const url = '/api/donate' // 接救援醫療資料
+  const url2 = '/api/pets?type=pets' // 接救援醫療資料
+
+  // 向伺服器fetch
+  const { data } = useSWR(url, fetcher)
+  const { data: petsData } = useSWR(url2, fetcher) // 接線上認養資料
+
   // 解出所需資料
   const cases = data?.data?.cases
+  const pets = petsData?.pets ? [...petsData.pets] : []
 
   const [activeSection, setActiveSection] = useState('method') // 控制主選單（捐款方式/種類說明）
   const [selectedMethod, setSelectedMethod] = useState('credit_card') // 控制捐款方式內的按鈕
-  const [activeButton, setActiveButton] = useState('method') // 初始選擇 'method' 或其他默認值
+  const [activeButton, setActiveButton] = useState('method') // 初始選擇 'method'
+  const [selectedCategory, setSelectedCategory] = useState('rescue') // 初始選擇 'rescue'
 
   const cards = ['jcb', 'mastercard', 'visa']
   const sections = [
@@ -49,6 +57,7 @@ export default function DonatePage() {
             width={300}
             height={600}
             className={styles.image}
+            priority
           />
         </div>
         <div className={styles.donate_item}>
@@ -73,6 +82,7 @@ export default function DonatePage() {
                   width={45}
                   height={29}
                   className={styles.li_image}
+                  priority
                 />
               ))}
             </li>
@@ -100,12 +110,13 @@ export default function DonatePage() {
               <button
                 className="button"
                 onClick={() => {
+                  // 改變選擇的按鈕
                   setActiveSection(section)
-                  setActiveButton(section) // 改變選擇的按鈕}}
+                  setActiveButton(section)
                 }}
                 style={{
                   backgroundColor:
-                    activeButton === section ? '#cda274' : '#003459', // 點擊後的顏色變化
+                    activeButton === section ? '#cda274' : '#003459',
                   width: '160px',
                   fontSize: '24px',
                 }}
@@ -128,6 +139,9 @@ export default function DonatePage() {
                   <button
                     className="button"
                     onClick={() => setSelectedMethod(id)}
+                    style={{
+                      backgroundColor: selectedMethod === id ? '#cda274' : '',
+                    }}
                   >
                     {label}
                   </button>
@@ -154,79 +168,189 @@ export default function DonatePage() {
                 <li key={id}>
                   <button
                     className="button"
-                    onClick={() => setSelectedMethod(id)}
+                    onClick={() => setSelectedCategory(id)}
+                    style={{
+                      backgroundColor: selectedCategory === id ? '#cda274' : '',
+                    }}
                   >
                     {label}
                   </button>
                 </li>
               ))}
             </ul>
-            <div>
-              <div className={styles.instructions_item}>
-                <div className={styles.instructions_content}>
-                  <h2>救援行動流程</h2>
-                  <h5>請您加入捐款支持我們，讓我們能持續這份神聖使命。</h5>
+
+            {selectedCategory === 'rescue' && (
+              <>
+                <div className={styles.instructions_item}>
+                  <div className={styles.instructions_content}>
+                    <h2>救援行動流程</h2>
+                    <h5>請您加入捐款支持我們，讓我們能持續這份神聖使命。</h5>
+                  </div>
+                  <div>
+                    <Image
+                      src="/images/donate/RescueFollowups.jpg"
+                      alt="Rescue Process"
+                      layout="responsive"
+                      width={1100}
+                      height={400}
+                      className={styles.img_size}
+                      priority
+                    />
+                  </div>
                 </div>
-                <div className={styles.test}>
-                  <Image
-                    src="/images/donate/RescueFollowups.jpg"
-                    alt="donate.jpg"
-                    layout="responsive"
-                    width={1100}
-                    height={400}
-                    className={styles.img_size}
-                  />
-                </div>
-              </div>
-              <div className={styles.instructions_item}>
-                <div className={styles.instructions_content}>
-                  <h2>救援個案</h2>
-                  <h5>
-                    目前許多流浪動物因為生病、受傷或營養不良，需要緊急醫療救助。
-                  </h5>
-                  <h5>
-                    您的捐款將用於疫苗接種、疾病治療、手術費用及基本健康檢查，幫助牠們恢復健康，迎接新生活。
-                  </h5>
-                </div>
-                <ul
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    padding: '0',
-                  }}
-                >
-                  {cases?.map((post) => {
-                    return (
+                <div className={styles.instructions_item}>
+                  <div className={styles.instructions_content}>
+                    <h2>救援個案</h2>
+                    <h5>
+                      目前許多流浪動物因為生病、受傷或營養不良，需要緊急醫療救助。
+                    </h5>
+                    <h5>
+                      您的捐款將用於疫苗接種、疾病治療、手術費用及基本健康檢查，幫助牠們恢復健康，迎接新生活。
+                    </h5>
+                  </div>
+                  <ul
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                      padding: '0',
+                    }}
+                  >
+                    {cases?.map((post) => (
                       <li key={post.id} className={styles.cases}>
-                        {' '}
                         {/* 顯示第一張圖片 */}
-                        <div>
-                          {post.images && post.images.length > 0 ? (
-                            <div>
-                              <Image
-                                src={post.images[0]} // 取得第一張圖片的 URL
-                                alt={`Case Image`} // 圖片描述
-                                width={300} // 圖片寬度
-                                height={300} // 圖片高度
-                                objectFit="cover" // 圖片填充模式
-                                className={styles.cases_img}
-                              />
-                            </div>
-                          ) : (
-                            <p>No images available</p> // 若沒有圖片時顯示的訊息
-                          )}
-                        </div>
+                        {post.images?.[0] ? (
+                          <Image
+                            src={post.images[0]}
+                            alt="Case Image"
+                            width={300}
+                            height={300}
+                            objectFit="cover"
+                            className={styles.cases_img}
+                            priority
+                          />
+                        ) : (
+                          // 若沒有圖片時顯示的訊息
+                          <p>No images available</p>
+                        )}
                         <h5>{post.title}</h5>
                         <button type="button" className="button">
                           查看詳情
                         </button>
                       </li>
-                    )
-                  })}
-                </ul>
+                    ))}
+                  </ul>
+                  <button
+                    className="button"
+                    style={{ width: '180px', height: '50px', fontSize: '28px' }}
+                  >
+                    <Link href="/donate">立即捐款</Link>
+                  </button>
+                </div>
+              </>
+            )}
+            {selectedCategory === 'pets' && (
+              <>
+                <div className={styles.instructions_item}>
+                  <div className={styles.instructions_content}>
+                    <h2>毛孩們</h2>
+                    <h5>領養代替購買，給浪浪一個家</h5>
+                  </div>
+                </div>
+                <div className={styles.instructions_content}>
+                  <div className={styles.petContainer}>
+                    <ul className={styles.petList}>
+                      {pets.map((pet) => (
+                        <li key={pet.id} className={styles.petItem}>
+                          <Link
+                            href={`/pets/${pet.id}`}
+                            className={styles.cardLink}
+                          >
+                            <Card
+                              image={
+                                pet.image_url ||
+                                pet.main_photo ||
+                                '/images/default_no_pet.jpg'
+                              }
+                              title={pet.name}
+                            >
+                              <p>品種：{pet.variety}</p>
+                              <p>
+                                <span>年齡：{pet.age}</span>
+                                <span className={styles.separator}>・</span>
+                                <span>{pet.gender}</span>
+                              </p>
+                              <p>地點：{pet.location}</p>
+                            </Card>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className={styles.donate_container3}>
+                    <ul className={styles.ul2}>
+                      <li>
+                        <button
+                          className="button"
+                          style={{
+                            width: '180px',
+                            height: '50px',
+                            fontSize: '28px',
+                          }}
+                        >
+                          <Link href="/pets">寵物列表</Link>
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          className="button"
+                          style={{
+                            width: '180px',
+                            height: '50px',
+                            fontSize: '28px',
+                          }}
+                        >
+                          <Link href="/donate">立即捐款</Link>
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </>
+            )}
+            {selectedCategory === 'expenditure' && (
+              <div className={styles.instructions_item}>
+                <div className={styles.instructions_content}>
+                  <h2>協會的開支與收入來源</h2>
+                  <h5>
+                    透明運用每一分資源，讓愛心發揮最大價值！
+                    本協會的收入來自捐款支持、義賣活動與合作計畫，
+                  </h5>
+                  <h5>
+                    並將善款用於醫療救援、食物供應、收容改善與認養推廣，確保每一筆資金都真正幫助到需要的浪浪。
+                  </h5>
+                </div>
+                <div>
+                  <Image
+                    src="/images/donate/Details.jpg"
+                    alt="Rescue Process"
+                    layout="responsive"
+                    width={1100}
+                    height={400}
+                    className={styles.img_size}
+                    priority
+                  />
+                </div>
+                <div style={{ marginTop: '32px' }}>
+                  <button
+                    className="button"
+                    style={{ width: '180px', height: '50px', fontSize: '28px' }}
+                  >
+                    <Link href="/donate">立即捐款</Link>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </>
       )}
