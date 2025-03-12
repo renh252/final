@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Loading from '../../../loading';
-import NotFound from '../../../not-found';
-import ArticleHeader from '../../../components/Article/ArticleHeader';
-import ArticleBody from '../../../components/Article/ArticleBody';
-import ArticleFooter from '../../../components/Article/ArticleFooter';
-import Comments from '../../../components/Article/Comments';
+import Loading from '../../components/UI/loading';
+import NotFound from '../../components/UI/not-found';
+import ArticleHeader from '../../components/ArticleHeader';
+import ArticleBody from '../../components/ArticleBody';
+import ArticleFooter from '../../components/ArticleFooter';
+import Comments from '../../components/Comments';
 
 const ArticlePage = () => {
     const router = useRouter();

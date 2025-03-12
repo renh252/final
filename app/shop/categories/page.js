@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 // product_menu
 import ProductMenu from '../_components/productMenu'
 // style
@@ -22,21 +23,22 @@ const fetcher = (url) => fetch(url).then((res) => res.json())
 export default function PagesProductTitle({title}) {
   
   // card愛心狀態
-  // const initState = Products.map((v) => {
-  //   return { ...v, fav: false }
-  // })
-  // const [products, setproducts] = useState(initState)  
-  // const onToggleFav = (product_id) => {
-  //   const nextProduct = products.map((v) => {
-  //     if (v.id == product_id) {
-  //       return { ...v, fav: !v.fav }
-  //     } else {
-  //       return v
-  //     }
-  //   })
-  //   setproducts(nextProduct)
-  // }
-  
+  /*
+  const initState = Products.map((v) => {
+    return { ...v, fav: false }
+  })
+  const [products, setproducts] = useState(initState)  
+  const onToggleFav = (product_id) => {
+    const nextProduct = products.map((v) => {
+      if (v.id == product_id) {
+        return { ...v, fav: !v.fav }
+      } else {
+        return v
+      }
+    })
+    setproducts(nextProduct)
+  }
+  */
 
 
    // ----------------------------
@@ -88,16 +90,27 @@ export default function PagesProductTitle({title}) {
                     <div className={styles.cardGroup}>
                       {products.filter((product) => product.category_id == category.id).map((product) => {
                         return(
-                          <Card
-                            key={product.id}
-                            image={product.image}
-                            title={product.title}
-                            text1= {`$${product.price}`}
-                            text1_del={`$${product.price}`}
-                            btn_text={product.fav ? <FaHeart/> : <FaRegHeart/>}
-                            btn_color='red'
-                            btn_onclick={() => {onToggleFav(product.id)}}
-                          />
+                          <>
+                            <Link href={``}>
+                              <Card
+                                key={product.	product_id}
+                                image={product.image_url}
+                                title={product.product_name}
+                              >
+                                <div className={styles.cardText}>
+                                  <p>${product.price} <del>${product.price}</del></p>
+                                  <button className={styles.likeButton} onClick={(event)=>{     
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    // onToggleFav(product.id)
+                                    }}>
+                                    {product.fav ? <FaHeart/> : <FaRegHeart/>}
+                                  </button>
+                                </div>
+                              </Card>
+                            </Link>
+
+                          </>
                         )
                       })}
                     </div>
