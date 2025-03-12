@@ -1,91 +1,67 @@
-import * as crypto from 'crypto'
+import ecpay_payment from 'ecpay_aio_nodejs'
 
-// 將 generateCheckMacValue 函數提取到文件外部
-function generateCheckMacValue(params, HashKey, HashIV) {
-  let paramString = Object.entries(params)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${value}`)
-    .join('&')
+const { MERCHANTID, HASHKEY, HASHIV, HOST } = process.env
 
-  const raw = `HashKey=${HashKey}&${paramString}&HashIV=${HashIV}`
-  const encoded = encodeURIComponent(raw).toLowerCase()
-  const hashed = crypto
-    .createHash('sha256')
-    .update(encoded)
-    .digest('hex')
-    .toUpperCase()
-
-  return hashed
+const options = {
+  OperationMode: 'Test', //Test or Production
+  MercProfile: {
+    MerchantID: MERCHANTID,
+    HashKey: HASHKEY,
+    HashIV: HASHIV,
+  },
+  IgnorePayment: [
+    // "Credit", "WebATM", "ATM", "CVS", "BARCODE", "AndroidPay"
+  ],
+  IsProjectContractor: false,
 }
 
+let TradeNo
+
 export async function GET(req) {
-  const { searchParams } = new URL(req.url)
-  const amount = searchParams.get('amount')
-  const items = searchParams.get('items')
+  const MerchantTradeDate = new Date().toLocaleString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'UTC',
+  })
 
-  const parsedAmount = Number(amount) || 0
+  TradeNo = 'test' + new Date().getTime()
 
-  if (!parsedAmount) {
-    return new Response(
-      JSON.stringify({ success: false, message: '缺少總金額' }),
-      { status: 400 }
-    )
-  }
-
-  const MerchantID = '3002607' // 測試用商店代號
-  const HashKey = 'pwFHCqoQZGmho4w6'
-  const HashIV = 'EkRm7iFT261dpevs'
-  const APIURL = `https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5`
-
-  const MerchantTradeNo = `od${Date.now()}`
-  const MerchantTradeDate = new Date()
-    .toLocaleString('zh-TW', { hour12: false })
-    .replace(/\/| /g, (match) => (match === '/' ? '-' : '')) // 將日期中的斜線 / 替換成 -
-
-  const ParamsBeforeCMV = {
-    MerchantID,
-    MerchantTradeNo,
+  let base_param = {
+    MerchantTradeNo: TradeNo,
     MerchantTradeDate,
-    PaymentType: 'aio',
-    EncryptType: 1,
-    TotalAmount: parsedAmount,
-    TradeDesc: '商店線上付款',
-    ItemName: items ? items.split(',').join('#') : '線上商店購買一批',
-    ReturnURL: 'https://www.ecpay.com.tw',
-    OrderResultURL: 'http://localhost:3000/ecpay/result',
-    ChoosePayment: 'ALL',
+    TotalAmount: '100',
+    TradeDesc: '測試交易描述',
+    ItemName: '測試商品等',
+    ReturnURL: `${HOST}/api/return`,
+    ClientBackURL: `${HOST}/api/clientReturn`,
   }
 
-  const CheckMacValue = generateCheckMacValue(ParamsBeforeCMV, HashKey, HashIV)
+  const create = new ecpay_payment(options)
+  const html = create.payment_client.aio_check_out_all(base_param)
 
-  return new Response(
-    JSON.stringify({
-      success: true,
-      data: {
-        action: APIURL,
-        params: { ...ParamsBeforeCMV, CheckMacValue },
-      },
-    }),
-    { status: 200 }
-  )
+  return new Response(JSON.stringify({ html }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 export async function POST(req) {
-  const data = await req.json()
-  const { CheckMacValue, ...params } = data
+  const body = await req.json()
+  const { CheckMacValue, ...data } = body
+  const create = new ecpay_payment(options)
+  const checkValue = create.payment_client.helper.gen_chk_mac_value(data)
 
-  const HashKey = 'pwFHCqoQZGmho4w6'
-  const HashIV = 'EkRm7iFT261dpevs'
+  console.log(
+    '確認交易正確性：',
+    CheckMacValue === checkValue,
+    CheckMacValue,
+    checkValue
+  )
 
-  if (CheckMacValue === generateCheckMacValue(params, HashKey, HashIV)) {
-    return new Response(
-      JSON.stringify({ success: true, message: '支付成功' }),
-      { status: 200 }
-    )
-  } else {
-    return new Response(
-      JSON.stringify({ success: false, message: '支付失敗' }),
-      { status: 400 }
-    )
-  }
+  return new Response('1|OK', { status: 200 })
 }
