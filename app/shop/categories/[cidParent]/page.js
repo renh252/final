@@ -1,32 +1,32 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect ,useRef} from 'react'
+import Link from 'next/link'
 // product_menu
-import ProductMenu from '../../_components/productMenu'
+import ProductMenu from '@/app/shop/_components/productMenu'
 // style
-import styles from '../../shop.module.css'
+import styles from '@/app/shop/shop.module.css'
 import categories_styles from '../categories.module.css'
 // card
-import Card from '../../../_components/card'
+import Card from '@/app/_components/ui/Card'
+import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import { FaAngleLeft,FaAngleRight } from "react-icons/fa6";
 import { FaRegHeart,FaHeart } from "react-icons/fa";
-// breadcrumb
-// import Breadcrumb from '../../../'
-import Banner from '@/app/_components/banner'
-// data
-import Products from '../../_data/data.json'
-import Category from '../../_data/category.json'
 import { useParams } from 'next/navigation'
 
+// 連接資料庫
+import useSWR from 'swr'
+const fetcher = (url) => fetch(url).then((res) => res.json())
 
-export default function PagesProductTitle({title}) {
+
+export default function PagesProductTitle() {
   // 從網址上得到動態路由參數
   const params = useParams()
   const cid_parent = params?.cidParent
 
   
   // card愛心狀態
-  const initState = Products.map((v) => {
+/*  const initState = Products.map((v) => {
     return { ...v, fav: false }
   })
   const [products, setproducts] = useState(initState)  
@@ -40,7 +40,44 @@ export default function PagesProductTitle({title}) {
     })
     setproducts(nextProduct)
   }
+  */
+
+
+  // 卡片滑動-------------------------------
+  const categoryRefs = useRef({})
+
+  const scroll = (direction, ref) => {
+    const container = ref.current
+    const cardWidth = 280 // 卡片寬度
+    const gap = 30 // gap 值轉換為像素
+    const scrollAmount = (cardWidth + gap) * 4 // 每次滾動四個卡片的寬度加上間距
+
+    const currentScroll = container.scrollLeft
+    const targetScroll = currentScroll + direction * scrollAmount
+
+    container.scrollTo({
+      left: targetScroll,
+      behavior: 'smooth',
+    })
+  }
+
+   // ----------------------------
+
+  // 使用 SWR 獲取資料 - 使用整合的 API 路由
+  const { data, error } = useSWR('/api/shop', fetcher)
+// 处理加载状态
+  if (!data) return <div>Loading...</div>
+    
+  // 处理错误状态
+  if (error) return <div>Failed to load</div>
+
+  const categories = data.categories
+  const products = data.products
   
+  // const product_like = data.product_like
+
+  // -----------------
+
   return (
     
     <>
@@ -59,34 +96,50 @@ export default function PagesProductTitle({title}) {
             <div className={categories_styles.contain_body}>
               {/* subTitle */}
               {/* subTitle */}
-              {Category.filter((category) => category.parent_id == cid_parent).map((category) => (
+              {categories.filter((category) => category.parent_id == cid_parent).map((category) => (
                 <div className={styles.group} key={category.id}>
                   <div className={styles.groupTitle}>
                     <p>{category.category_name}</p>
                   </div>
                   <div className={styles.groupBody}>
-                    <button className={styles.angle}>
-                      <FaAngleLeft/>
-                    </button>
-                    <div className={styles.cardGroup}>
-                      {products.filter((product) => product.category_id == category.id).map((product) => {
+                    <CardSwitchButton
+                      direction="left"
+                      onClick={() => scroll(-1, categoryRefs.current[category.category_id])}
+                      aria-label="向左滑動"
+                    />
+                    <div className={styles.cardGroup} ref={(el) => (categoryRefs.current[category.category_id] = { current: el })}>
+                      {products.filter((product) => product.category_id == category.category_id).map((product) => {
                         return(
-                          <Card
-                            key={product.id}
-                            image={product.image}
-                            title={product.title}
-                            text1= {`$${product.price}`}
-                            text1_del={`$${product.price}`}
-                            btn_text={product.fav ? <FaHeart/> : <FaRegHeart/>}
-                            btn_color='red'
-                            btn_onclick={() => {onToggleFav(product.id)}}
-                          />
+                            <>
+                            <Link href={``}>
+                              <Card
+                                key={product.	product_id}
+                                image={product.image_url || '/images/default_no_pet.jpg'}
+                                title={product.product_name}
+                              >
+                                <div className={styles.cardText}>
+                                  <p>${product.price} <del>${product.price}</del></p>
+                                  <button className={styles.likeButton} onClick={(event)=>{     
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    // onToggleFav(product.id)
+                                    }}>
+                                    {product.fav ? <FaHeart/> : <FaRegHeart/>}
+                                  </button>
+                                </div>
+                              </Card>
+                            </Link>
+                            </>
                         )
                       })}
                     </div>
-                    <button className={styles.angle}>
-                      <FaAngleRight/>
-                    </button>
+                    
+                    
+                    <CardSwitchButton
+                      direction="right"
+                      onClick={() => scroll(1, categoryRefs.current[category.category_id])}
+                      aria-label="向左滑動"
+                    />
                   </div>
                 </div>
               ))}
