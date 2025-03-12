@@ -5,8 +5,6 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 // style
 import styles from './productMenu.module.css'
-// data
-import Category from '../_data/category.json'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -58,12 +56,12 @@ export default function ProductMenu(props) {
       <div className={styles.productMenu}>
       {parentsWithProducts.map((parent) => (
           <>
-          <Link href = {`/shop/categories/${parent.id} `} className={styles.title}>
+          <Link href = {`/shop/categories/${parent.category_id} `} className={styles.title}>
             <p>{parent.category_name}</p>
           </Link>
-          {Category.filter((category_child) => category_child.parent_id == parent.id).map((child) => (
+          {getChildrenWithProducts(parent.category_id).map((child) => (
             <>
-              <Link href = {`/shop/categories/${parent.id}/${child.id}`} className={styles.subtitle}>
+              <Link href = {`/shop/categories/${parent.category_id}/${child.category_id}`} className={styles.subtitle}>
                 <p>{child.category_name}</p>
               </Link>
             </>

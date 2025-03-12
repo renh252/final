@@ -114,25 +114,19 @@ export default function FirstPageNav() {
   
       {/* Collapse 组件移到外部 */}
       <div className={styles.collapse_contain}>
-        {categories.filter((category) => category.parent_id == null).map((parent) => {
-          const hasChildren = categories.some(child => child.parent_id === parent.category_id);
-          
-          return hasChildren && (
-            <Collapse key={parent.category_id} in={openState[parent.category_id]} className={styles.collapse}
-            onMouseEnter={() => handleMouseEnter(parent.category_id)}
-            onMouseLeave={() => handleMouseLeave(parent.category_id)}>
-              <ul>
-                {categories
-                  ?.filter((category_child) => category_child.parent_id == parent.category_id  && categoriesWithProducts.has(category_child.category_id))
-                  .map((child) => (
-                    <Link key={child.id} href={`/shop/categories/${parent.category_id}/${child.id}`} className={styles.subtitle}>
-                      <li>{child.category_name}</li>
-                    </Link>
-                  ))}
-              </ul>
-            </Collapse>
-          );
-        })}
+        {parentsWithProducts.map((parent) => (
+          <Collapse key={parent.category_id} in={openState[parent.category_id]} className={styles.collapse}
+          onMouseEnter={() => handleMouseEnter(parent.category_id)}
+          onMouseLeave={() => handleMouseLeave(parent.category_id)}>
+            <ul>
+              {getChildrenWithProducts(parent.category_id).map((child) => (
+                <Link key={child.category_id} href={`/shop/categories/${parent.category_id}/${child.category_id}`} className={styles.subtitle}>
+                  <li>{child.category_name}</li>
+                </Link>
+              ))}
+            </ul>
+          </Collapse>
+        ))}
       </div>
       </div>
     </>
