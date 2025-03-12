@@ -78,7 +78,7 @@ export default function PagesProductTitle({title}) {
             <div className={categories_styles.contain_body}>
               {/* subTitle */}
               {/* subTitle */}
-              {Category.filter((category) => category.parent_id == 1).map((category) => (
+              {categories.filter((category) => category.parent_id == 1).map((category) => (
                 <div className={styles.group} key={category.id}>
                   <div className={styles.groupTitle}>
                     <p>{category.category_name}</p>
@@ -94,7 +94,7 @@ export default function PagesProductTitle({title}) {
                             <Link href={``}>
                               <Card
                                 key={product.	product_id}
-                                image={product.image_url}
+                                image={product.image_url || '/images/default_no_pet.jpg'}
                                 title={product.product_name}
                               >
                                 <div className={styles.cardText}>
