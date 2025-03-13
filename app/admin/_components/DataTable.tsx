@@ -79,13 +79,112 @@ const DataTable = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [filteredData, setFilteredData] = useState(data)
+  const [filteredData, setFilteredData] = useState<any[]>([])
   const [pageSize, setPageSize] = useState(itemsPerPage)
   const [selectedRows, setSelectedRows] = useState<any[]>([])
   const [selectAll, setSelectAll] = useState(false)
   const [filters, setFilters] = useState<Record<string, any>>({})
   const [showFilters, setShowFilters] = useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  const dataRef = React.useRef(data)
+
+  useEffect(() => {
+    if (JSON.stringify(dataRef.current) !== JSON.stringify(data)) {
+      dataRef.current = data
+      setSelectedRows([])
+      setSelectAll(false)
+      processDataFiltering()
+    }
+  }, [data])
+
+  const processDataFiltering = React.useCallback(() => {
+    let result = [...dataRef.current]
+
+    if (searchTerm.trim()) {
+      const keys =
+        searchKeys.length > 0 ? searchKeys : columns.map((col) => col.key)
+
+      result = result.filter((item) => {
+        return keys.some((key) => {
+          const value = item[key]
+          if (value === null || value === undefined) return false
+          return String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        })
+      })
+    }
+
+    if (Object.keys(filters).length > 0) {
+      result = result.filter((item) => {
+        return Object.entries(filters).every(([key, value]) => {
+          if (!value || value === 'all') return true
+          return String(item[key]) === String(value)
+        })
+      })
+    }
+
+    if (sortKey) {
+      result = [...result].sort((a, b) => {
+        const aValue = a[sortKey]
+        const bValue = b[sortKey]
+
+        if (aValue === bValue) return 0
+
+        if (aValue === null || aValue === undefined)
+          return sortDirection === 'asc' ? -1 : 1
+        if (bValue === null || bValue === undefined)
+          return sortDirection === 'asc' ? 1 : -1
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === 'asc'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue)
+        }
+
+        return sortDirection === 'asc'
+          ? aValue > bValue
+            ? 1
+            : -1
+          : aValue > bValue
+          ? -1
+          : 1
+      })
+    }
+
+    setFilteredData(result)
+  }, [searchTerm, columns, searchKeys, filters, sortKey, sortDirection])
+
+  useEffect(() => {
+    processDataFiltering()
+    setCurrentPage(1)
+  }, [searchTerm, filters, sortKey, sortDirection])
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredData.length / pageSize))
+    if (currentPage > maxPage && maxPage > 0 && filteredData.length > 0) {
+      setCurrentPage(maxPage)
+    }
+  }, [filteredData.length, pageSize])
+
+  const paginationData = React.useMemo(() => {
+    const totalPages = Math.ceil(filteredData.length / pageSize)
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = Math.min(startIndex + pageSize, filteredData.length)
+    const currentData = filteredData.slice(startIndex, endIndex)
+
+    return {
+      totalPages,
+      startIndex,
+      endIndex,
+      currentData,
+    }
+  }, [filteredData, pageSize, currentPage])
+
+  useEffect(() => {
+    if (filteredData.length === 0 && data.length > 0) {
+      setFilteredData(data)
+    }
+  }, [])
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -96,74 +195,6 @@ const DataTable = ({
     }
   }
 
-  useEffect(() => {
-    let filtered = [...data]
-
-    if (searchTerm.trim()) {
-      const keys =
-        searchKeys.length > 0 ? searchKeys : columns.map((col) => col.key)
-
-      filtered = filtered.filter((item) => {
-        return keys.some((key) => {
-          const value = item[key]
-          if (value === null || value === undefined) return false
-          return String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        })
-      })
-    }
-
-    if (Object.keys(filters).length > 0) {
-      filtered = filtered.filter((item) => {
-        return Object.entries(filters).every(([key, value]) => {
-          if (!value || value === 'all') return true
-          return String(item[key]) === String(value)
-        })
-      })
-    }
-
-    setFilteredData(filtered)
-    setCurrentPage(1)
-  }, [searchTerm, data, columns, searchKeys, filters])
-
-  useEffect(() => {
-    const maxPage = Math.max(1, Math.ceil(filteredData.length / pageSize))
-    if (currentPage > maxPage) {
-      setCurrentPage(maxPage)
-    }
-  }, [filteredData, pageSize, currentPage])
-
-  useEffect(() => {
-    if (!sortKey) return
-
-    const sorted = [...filteredData].sort((a, b) => {
-      const aValue = a[sortKey]
-      const bValue = b[sortKey]
-
-      if (aValue === bValue) return 0
-
-      if (aValue === null || aValue === undefined)
-        return sortDirection === 'asc' ? -1 : 1
-      if (bValue === null || bValue === undefined)
-        return sortDirection === 'asc' ? 1 : -1
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue)
-      }
-
-      return sortDirection === 'asc'
-        ? aValue > bValue
-          ? 1
-          : -1
-        : aValue > bValue
-        ? -1
-        : 1
-    })
-
-    setFilteredData(sorted)
-  }, [sortKey, sortDirection])
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
   }
@@ -173,16 +204,11 @@ const DataTable = ({
     setCurrentPage(1)
   }
 
-  const totalPages = Math.ceil(filteredData.length / pageSize)
-  const startIndex = (currentPage - 1) * pageSize
-  const endIndex = Math.min(startIndex + pageSize, filteredData.length)
-  const currentData = filteredData.slice(startIndex, endIndex)
-
   const handleSelectAll = () => {
     if (selectAll) {
       setSelectedRows([])
     } else {
-      setSelectedRows([...currentData])
+      setSelectedRows([...paginationData.currentData])
     }
     setSelectAll(!selectAll)
   }
@@ -219,12 +245,15 @@ const DataTable = ({
   }
 
   const renderPagination = () => {
-    if (totalPages <= 1) return null
+    if (paginationData.totalPages <= 1) return null
 
     const pageItems = []
     const maxPageItems = 5
     let startPage = Math.max(1, currentPage - Math.floor(maxPageItems / 2))
-    let endPage = Math.min(totalPages, startPage + maxPageItems - 1)
+    let endPage = Math.min(
+      paginationData.totalPages,
+      startPage + maxPageItems - 1
+    )
 
     if (endPage - startPage + 1 < maxPageItems) {
       startPage = Math.max(1, endPage - maxPageItems + 1)
@@ -262,15 +291,15 @@ const DataTable = ({
       <Pagination.Next
         key="next"
         onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        disabled={currentPage === paginationData.totalPages}
       />
     )
 
     pageItems.push(
       <Pagination.Last
         key="last"
-        onClick={() => handlePageChange(totalPages)}
-        disabled={currentPage === totalPages}
+        onClick={() => handlePageChange(paginationData.totalPages)}
+        disabled={currentPage === paginationData.totalPages}
       />
     )
 
@@ -376,7 +405,7 @@ const DataTable = ({
       )
     }
 
-    if (currentData.length === 0) {
+    if (paginationData.currentData.length === 0) {
       return (
         <tbody>
           <tr>
@@ -395,7 +424,7 @@ const DataTable = ({
 
     return (
       <tbody>
-        {currentData.map((row, index) => (
+        {paginationData.currentData.map((row, index) => (
           <tr
             key={index}
             className={onRowClick ? 'cursor-pointer' : ''}
@@ -567,7 +596,8 @@ const DataTable = ({
             ))}
           </Form.Select>
           <span className="text-muted">
-            顯示 {startIndex + 1}-{endIndex} 筆，共 {filteredData.length} 筆
+            顯示 {paginationData.startIndex + 1}-{paginationData.endIndex}{' '}
+            筆，共 {filteredData.length} 筆
           </span>
         </div>
       </div>
@@ -589,7 +619,8 @@ const DataTable = ({
         <div>
           {filteredData.length > 0 && (
             <span className="text-muted">
-              顯示 {startIndex + 1}-{endIndex} 筆，共 {filteredData.length} 筆
+              顯示 {paginationData.startIndex + 1}-{paginationData.endIndex}{' '}
+              筆，共 {filteredData.length} 筆
             </span>
           )}
         </div>

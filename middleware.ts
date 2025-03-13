@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifyToken } from './app/admin/api/_lib/jwt'
+import { verifyToken } from './app/api/admin/_lib/jwt'
 
 // 需要保護的路徑模式
 const PROTECTED_PATHS = ['/admin']
 // 不需要認證的路徑模式
-const PUBLIC_PATHS = ['/admin/login', '/admin/api/auth/login']
+const PUBLIC_PATHS = ['/admin/login', '/api/admin/auth/login']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // 檢查是否為API請求
   if (
-    pathname.startsWith('/admin/api') &&
-    !pathname.startsWith('/admin/api/auth/login')
+    pathname.startsWith('/api/admin') &&
+    !pathname.startsWith('/api/admin/auth/login')
   ) {
     // API 驗證由各自的路由處理，這裡只做簡單的檢查
     return NextResponse.next()
@@ -59,5 +59,6 @@ export const config = {
   matcher: [
     // 需要中間件處理的路徑
     '/admin/:path*',
+    '/api/admin/:path*',
   ],
 }
