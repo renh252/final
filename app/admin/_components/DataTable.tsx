@@ -23,6 +23,8 @@ import {
   Edit,
   FileText,
 } from 'lucide-react'
+import { useTheme } from '@/app/admin/ThemeContext'
+import styles from './DataTable.module.css'
 
 export interface Column {
   key: string
@@ -75,6 +77,7 @@ const DataTable = ({
   onImport,
   advancedFiltering = false,
 }: DataTableProps) => {
+  const { isDarkMode } = useTheme()
   const [sortKey, setSortKey] = useState<string>('')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [searchTerm, setSearchTerm] = useState('')
@@ -526,7 +529,9 @@ const DataTable = ({
       <div className="d-flex flex-wrap align-items-center">
         {selectable && selectedRows.length > 0 && (
           <div className="me-3 mb-2 mb-md-0">
-            <span className="me-2">已選擇 {selectedRows.length} 項</span>
+            <span className={`me-2 text-${isDarkMode ? 'light' : 'muted'}`}>
+              已選擇 {selectedRows.length} 項
+            </span>
             {batchActions.map((action, index) => (
               <Button
                 key={index}
@@ -595,7 +600,7 @@ const DataTable = ({
               </option>
             ))}
           </Form.Select>
-          <span className="text-muted">
+          <span className={`text-${isDarkMode ? 'light' : 'muted'}`}>
             顯示 {paginationData.startIndex + 1}-{paginationData.endIndex}{' '}
             筆，共 {filteredData.length} 筆
           </span>
@@ -605,11 +610,19 @@ const DataTable = ({
   )
 
   return (
-    <div className="data-table-container">
+    <div
+      className={`data-table-container ${
+        isDarkMode ? styles['table-dark'] : ''
+      }`}
+    >
       {renderToolbar()}
 
       <div className="table-responsive">
-        <Table hover>
+        <Table
+          hover
+          variant={isDarkMode ? 'dark' : 'light'}
+          className={isDarkMode ? styles['table-dark'] : ''}
+        >
           {renderTableHeader()}
           {renderTableBody()}
         </Table>
@@ -618,7 +631,7 @@ const DataTable = ({
       <div className="d-flex justify-content-between align-items-center mt-3">
         <div>
           {filteredData.length > 0 && (
-            <span className="text-muted">
+            <span className={`text-${isDarkMode ? 'light' : 'muted'}`}>
               顯示 {paginationData.startIndex + 1}-{paginationData.endIndex}{' '}
               筆，共 {filteredData.length} 筆
             </span>

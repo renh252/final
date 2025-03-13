@@ -31,18 +31,7 @@ export async function GET(request: NextRequest) {
       ORDER BY p.product_id DESC
     `)
 
-    // 處理響應數據，轉換狀態值
-    const processedProducts = products.map((product) => ({
-      ...product,
-      product_status:
-        product.product_status === '上架'
-          ? 'active'
-          : product.product_status === '下架'
-          ? 'inactive'
-          : product.product_status,
-    }))
-
-    return NextResponse.json({ products: processedProducts })
+    return NextResponse.json({ products })
   } catch (error) {
     console.error('獲取商品列表時發生錯誤:', error)
     return NextResponse.json({ error: '獲取商品列表失敗' }, { status: 500 })
