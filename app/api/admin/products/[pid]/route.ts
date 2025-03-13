@@ -21,23 +21,35 @@ export async function GET(
       `SELECT 
         p.product_id,
         p.product_name,
-        p.product_price,
+        p.price,
         p.product_description,
-        p.product_image,
-        p.product_stock,
+        p.image_url as main_image,
+        p.stock_quantity as stock,
         p.product_status,
-        p.product_category,
+        p.category_id,
         p.created_at,
         p.updated_at,
+        p.is_deleted,
         c.category_name
       FROM products p
-      LEFT JOIN product_categories c ON p.product_category = c.category_id
+      LEFT JOIN categories c ON p.category_id = c.category_id
       WHERE p.product_id = ?`,
       [productId]
     )
 
     if (!product || product.length === 0) {
       return NextResponse.json({ error: '商品不存在' }, { status: 404 })
+    }
+
+    // 處理響應數據，轉換狀態值
+    const processedProduct = {
+      ...product[0],
+      product_status:
+        product[0].product_status === '上架'
+          ? 'active'
+          : product[0].product_status === '下架'
+          ? 'inactive'
+          : product[0].product_status,
     }
 
     // 獲取商品變體
@@ -48,7 +60,7 @@ export async function GET(
 
     // 獲取商品圖片
     const images = await executeQuery(
-      `SELECT * FROM product_images WHERE product_id = ?`,
+      `SELECT * FROM product_img WHERE product_id = ?`,
       [productId]
     )
 
@@ -59,7 +71,7 @@ export async function GET(
         r.user_id,
         u.user_name,
         r.rating,
-        r.comment,
+        r.review_text as comment,
         r.created_at
       FROM product_reviews r
       LEFT JOIN users u ON r.user_id = u.user_id
@@ -70,7 +82,7 @@ export async function GET(
 
     return NextResponse.json({
       product: {
-        ...product[0],
+        ...processedProduct,
         variants,
         images,
         reviews,
@@ -107,16 +119,24 @@ export async function PUT(
       return NextResponse.json({ error: '商品不存在' }, { status: 404 })
     }
 
+    // 轉換狀態值
+    const productStatus =
+      data.product_status === 'active'
+        ? '上架'
+        : data.product_status === 'inactive'
+        ? '下架'
+        : data.product_status
+
     // 更新商品基本信息
     await executeQuery(
       `UPDATE products SET
         product_name = ?,
-        product_price = ?,
+        price = ?,
         product_description = ?,
-        product_image = ?,
-        product_stock = ?,
+        image_url = ?,
+        stock_quantity = ?,
         product_status = ?,
-        product_category = ?,
+        category_id = ?,
         updated_at = NOW()
       WHERE product_id = ?`,
       [
@@ -125,7 +145,7 @@ export async function PUT(
         data.product_description,
         data.product_image,
         data.product_stock,
-        data.product_status,
+        productStatus,
         data.product_category,
         productId,
       ]
@@ -144,8 +164,8 @@ export async function PUT(
           `INSERT INTO product_variants (
             product_id, 
             variant_name, 
-            variant_price, 
-            variant_stock
+            price, 
+            stock_quantity
           ) VALUES (?, ?, ?, ?)`,
           [
             productId,
@@ -163,9 +183,20 @@ export async function PUT(
       [productId]
     )
 
+    // 處理響應數據，轉換狀態值
+    const processedProduct = {
+      ...updatedProduct[0],
+      product_status:
+        updatedProduct[0].product_status === '上架'
+          ? 'active'
+          : updatedProduct[0].product_status === '下架'
+          ? 'inactive'
+          : updatedProduct[0].product_status,
+    }
+
     return NextResponse.json({
       message: '商品更新成功',
-      product: updatedProduct[0],
+      product: processedProduct,
     })
   } catch (error) {
     console.error('更新商品時發生錯誤:', error)
@@ -197,24 +228,11 @@ export async function DELETE(
       return NextResponse.json({ error: '商品不存在' }, { status: 404 })
     }
 
-    // 刪除商品相關數據
-    // 1. 刪除商品變體
-    await executeQuery(`DELETE FROM product_variants WHERE product_id = ?`, [
-      productId,
-    ])
-
-    // 2. 刪除商品圖片
-    await executeQuery(`DELETE FROM product_images WHERE product_id = ?`, [
-      productId,
-    ])
-
-    // 3. 刪除商品評論
-    await executeQuery(`DELETE FROM product_reviews WHERE product_id = ?`, [
-      productId,
-    ])
-
-    // 4. 刪除商品本身
-    await executeQuery(`DELETE FROM products WHERE product_id = ?`, [productId])
+    // 標記商品為已刪除，而不是真正刪除
+    await executeQuery(
+      `UPDATE products SET is_deleted = 1, updated_at = NOW() WHERE product_id = ?`,
+      [productId]
+    )
 
     return NextResponse.json({ message: '商品刪除成功' })
   } catch (error) {

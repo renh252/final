@@ -387,3 +387,407 @@ API 文檔相關的程式碼位於以下文件中：
 
 - `app/api/docs/route.ts`：API 文檔路由
 - `app/api/docs/swagger.json`：Swagger 配置文件
+
+## 商品資料結構
+
+### 商品 (Product)
+
+```typescript
+interface Product {
+  product_id: number
+  product_name: string
+  product_description: string | null
+  category_id: number | null
+  price: number
+  stock_quantity: number
+  image_url: string | null
+  product_status: '上架' | '下架' // 資料庫儲存值
+  status: 'active' | 'inactive' // 前端顯示值
+  is_deleted: 0 | 1
+  created_at: string
+  updated_at: string
+}
+```
+
+### 商品變體 (ProductVariant)
+
+```typescript
+interface ProductVariant {
+  variant_id: number
+  product_id: number
+  variant_name: string
+  price: number
+  stock_quantity: number
+  created_at: string
+  updated_at: string
+}
+```
+
+### 注意事項
+
+1. 商品狀態處理：
+
+   - 資料庫中 `product_status` 儲存為 '上架' 或 '下架'
+   - API 回應中會增加 `status` 欄位，將 '上架' 映射為 'active'，'下架' 映射為 'inactive'
+   - 前端發送請求時使用 'active' 或 'inactive'，後端會自動轉換
+
+2. 刪除處理：
+   - 使用 `is_deleted` 欄位實現軟刪除功能，值為 1 表示已刪除
+   - 預設 API 只返回 `is_deleted = 0` 的記錄
+   - 需要查詢刪除的商品時，使用 `include_deleted=true` 參數
+
+## 商品管理 API
+
+### 獲取商品列表
+
+```
+GET /api/admin/products
+```
+
+#### 請求參數
+
+| 參數名          | 類型    | 必填 | 說明                                        |
+| --------------- | ------- | ---- | ------------------------------------------- |
+| page            | number  | 否   | 頁碼，默認為 1                              |
+| limit           | number  | 否   | 每頁記錄數，默認為 10                       |
+| sort            | string  | 否   | 排序字段，如 'product_id'                   |
+| order           | string  | 否   | 排序方向，'asc' 或 'desc'，默認為 'desc'    |
+| search          | string  | 否   | 搜索關鍵字，搜索 product_name 和 product_id |
+| category_id     | number  | 否   | 篩選特定分類的商品                          |
+| product_status  | string  | 否   | 篩選狀態，'active' 或 'inactive'            |
+| include_deleted | boolean | 否   | 是否包含已刪除商品，默認為 false            |
+
+#### 響應範例
+
+```json
+{
+  "products": [
+    {
+      "product_id": 1,
+      "product_name": "寵物項圈",
+      "product_description": "適合小型犬的項圈",
+      "category_id": 2,
+      "category_name": "寵物用品",
+      "price": 350,
+      "stock_quantity": 100,
+      "main_image": "/images/products/collar.jpg",
+      "product_status": "上架",
+      "status": "active",
+      "is_deleted": 0,
+      "created_at": "2023-05-15 10:30:00",
+      "updated_at": "2023-05-16 14:20:00"
+    }
+    // 更多商品...
+  ],
+  "pagination": {
+    "total": 45,
+    "page": 1,
+    "limit": 10,
+    "pages": 5
+  }
+}
+```
+
+### 獲取商品詳情
+
+```
+GET /api/admin/products/:product_id
+```
+
+#### 請求參數
+
+| 參數名     | 類型   | 必填 | 說明    |
+| ---------- | ------ | ---- | ------- |
+| product_id | number | 是   | 商品 ID |
+
+#### 響應範例
+
+```json
+{
+  "product": {
+    "product_id": 1,
+    "product_name": "寵物項圈",
+    "product_description": "適合小型犬的項圈",
+    "category_id": 2,
+    "category_name": "寵物用品",
+    "price": 350,
+    "stock_quantity": 100,
+    "main_image": "/images/products/collar.jpg",
+    "product_status": "上架",
+    "status": "active",
+    "is_deleted": 0,
+    "created_at": "2023-05-15 10:30:00",
+    "updated_at": "2023-05-16 14:20:00",
+    "variants": [
+      {
+        "variant_id": 1,
+        "product_id": 1,
+        "variant_name": "紅色",
+        "price": 350,
+        "stock_quantity": 30
+      },
+      {
+        "variant_id": 2,
+        "product_id": 1,
+        "variant_name": "藍色",
+        "price": 350,
+        "stock_quantity": 40
+      },
+      {
+        "variant_id": 3,
+        "product_id": 1,
+        "variant_name": "黑色",
+        "price": 380,
+        "stock_quantity": 30
+      }
+    ]
+  }
+}
+```
+
+### 新增商品
+
+```
+POST /api/admin/products
+```
+
+#### 請求內容
+
+```json
+{
+  "product_name": "寵物食盆",
+  "product_description": "耐用不鏽鋼寵物食盆",
+  "product_category": 2,
+  "product_price": 280,
+  "product_stock": 50,
+  "product_status": "active",
+  "product_image": "/images/products/bowl.jpg",
+  "variants": [
+    {
+      "variant_name": "小型",
+      "variant_price": 280,
+      "variant_stock": 20
+    },
+    {
+      "variant_name": "中型",
+      "variant_price": 350,
+      "variant_stock": 15
+    },
+    {
+      "variant_name": "大型",
+      "variant_price": 450,
+      "variant_stock": 15
+    }
+  ]
+}
+```
+
+#### 響應範例
+
+```json
+{
+  "message": "商品添加成功",
+  "product": {
+    "product_id": 46,
+    "product_name": "寵物食盆",
+    "product_description": "耐用不鏽鋼寵物食盆",
+    "category_id": 2,
+    "price": 280,
+    "stock_quantity": 50,
+    "image_url": "/images/products/bowl.jpg",
+    "product_status": "上架",
+    "status": "active",
+    "is_deleted": 0,
+    "created_at": "2023-06-01 09:15:00",
+    "updated_at": "2023-06-01 09:15:00"
+  }
+}
+```
+
+### 更新商品
+
+```
+PUT /api/admin/products/:product_id
+```
+
+#### 請求參數
+
+| 參數名     | 類型   | 必填 | 說明    |
+| ---------- | ------ | ---- | ------- |
+| product_id | number | 是   | 商品 ID |
+
+#### 請求內容
+
+```json
+{
+  "product_name": "優質寵物食盆",
+  "product_description": "升級版耐用不鏽鋼寵物食盆",
+  "product_category": 2,
+  "product_price": 300,
+  "product_stock": 60,
+  "product_status": "active",
+  "product_image": "/images/products/bowl-premium.jpg",
+  "variants": [
+    {
+      "variant_id": 10,
+      "variant_name": "小型",
+      "variant_price": 300,
+      "variant_stock": 25
+    },
+    {
+      "variant_name": "豪華版",
+      "variant_price": 500,
+      "variant_stock": 10
+    }
+  ]
+}
+```
+
+#### 響應範例
+
+```json
+{
+  "message": "商品更新成功",
+  "product": {
+    "product_id": 46,
+    "product_name": "優質寵物食盆",
+    "product_description": "升級版耐用不鏽鋼寵物食盆",
+    "category_id": 2,
+    "price": 300,
+    "stock_quantity": 60,
+    "image_url": "/images/products/bowl-premium.jpg",
+    "product_status": "上架",
+    "status": "active",
+    "is_deleted": 0,
+    "created_at": "2023-06-01 09:15:00",
+    "updated_at": "2023-06-01 10:30:00"
+  }
+}
+```
+
+### 刪除商品 (軟刪除)
+
+```
+DELETE /api/admin/products/:product_id
+```
+
+#### 請求參數
+
+| 參數名     | 類型   | 必填 | 說明    |
+| ---------- | ------ | ---- | ------- |
+| product_id | number | 是   | 商品 ID |
+
+#### 響應範例
+
+```json
+{
+  "message": "商品刪除成功"
+}
+```
+
+### 批量刪除商品
+
+```
+POST /api/admin/products/batch-delete
+```
+
+#### 請求內容
+
+```json
+{
+  "product_ids": [45, 46, 47]
+}
+```
+
+#### 響應範例
+
+```json
+{
+  "message": "批量刪除完成",
+  "deleted": 3,
+  "failed": 0
+}
+```
+
+### 更新商品狀態
+
+```
+PUT /api/admin/products/:product_id/status
+```
+
+#### 請求參數
+
+| 參數名     | 類型   | 必填 | 說明    |
+| ---------- | ------ | ---- | ------- |
+| product_id | number | 是   | 商品 ID |
+
+#### 請求內容
+
+```json
+{
+  "status": "inactive"
+}
+```
+
+#### 響應範例
+
+```json
+{
+  "message": "商品狀態更新成功",
+  "product": {
+    "product_id": 46,
+    "product_status": "下架",
+    "status": "inactive"
+  }
+}
+```
+
+### 導入商品數據
+
+```
+POST /api/admin/products/import
+```
+
+#### 請求內容
+
+使用 `multipart/form-data` 格式，包含一個名為 `file` 的文件字段，文件可以是 CSV 或 JSON 格式。
+
+#### 響應範例
+
+```json
+{
+  "message": "成功導入 15 個商品，失敗 2 個",
+  "results": {
+    "total": 17,
+    "success": 15,
+    "failed": 2,
+    "errors": [
+      {
+        "row": 3,
+        "error": "商品名稱不能為空"
+      },
+      {
+        "row": 12,
+        "error": "商品價格必須是有效數字"
+      }
+    ]
+  }
+}
+```
+
+### 導出商品數據
+
+```
+GET /api/admin/products/export
+```
+
+#### 請求參數
+
+| 參數名          | 類型    | 必填 | 說明                                  |
+| --------------- | ------- | ---- | ------------------------------------- |
+| format          | string  | 否   | 導出格式，'csv' 或 'json'，默認 'csv' |
+| include_deleted | boolean | 否   | 是否包含已刪除商品，默認為 false      |
+
+#### 響應
+
+文件下載，文件類型取決於請求的 format 參數。

@@ -16,21 +16,33 @@ export async function GET(request: NextRequest) {
       SELECT 
         p.product_id,
         p.product_name,
-        p.product_price,
+        p.price,
         p.product_description,
-        p.product_image,
-        p.product_stock,
+        p.image_url as main_image,
+        p.stock_quantity as stock,
         p.product_status,
-        p.product_category,
+        p.category_id,
         p.created_at,
         p.updated_at,
+        p.is_deleted,
         c.category_name
       FROM products p
-      LEFT JOIN product_categories c ON p.product_category = c.category_id
+      LEFT JOIN categories c ON p.category_id = c.category_id
       ORDER BY p.product_id DESC
     `)
 
-    return NextResponse.json({ products })
+    // 處理響應數據，轉換狀態值
+    const processedProducts = products.map((product) => ({
+      ...product,
+      product_status:
+        product.product_status === '上架'
+          ? 'active'
+          : product.product_status === '下架'
+          ? 'inactive'
+          : product.product_status,
+    }))
+
+    return NextResponse.json({ products: processedProducts })
   } catch (error) {
     console.error('獲取商品列表時發生錯誤:', error)
     return NextResponse.json({ error: '獲取商品列表失敗' }, { status: 500 })
@@ -60,26 +72,36 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 轉換狀態值
+    const productStatus =
+      data.product_status === 'active'
+        ? '上架'
+        : data.product_status === 'inactive'
+        ? '下架'
+        : data.product_status
+
     // 插入商品數據
     const result = await executeQuery<{ insertId: number }>(
       `
       INSERT INTO products (
         product_name, 
-        product_price, 
+        price, 
         product_description, 
-        product_image, 
-        product_stock, 
+        image_url, 
+        stock_quantity, 
         product_status, 
-        product_category
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        category_id,
+        is_deleted
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.product_name,
         data.product_price,
         data.product_description || '',
         data.product_image || '',
         data.product_stock || 0,
-        data.product_status || 'active',
+        productStatus,
         data.product_category,
+        0, // 新建商品預設為未刪除
       ]
     )
 
@@ -97,8 +119,8 @@ export async function POST(request: NextRequest) {
           `INSERT INTO product_variants (
             product_id, 
             variant_name, 
-            variant_price, 
-            variant_stock
+            price, 
+            stock_quantity
           ) VALUES (?, ?, ?, ?)`,
           [
             productId,

@@ -18,7 +18,7 @@ export async function GET(
 
     // 獲取分類信息
     const category = await executeQuery(
-      `SELECT * FROM product_categories WHERE category_id = ?`,
+      `SELECT * FROM categories WHERE category_id = ?`,
       [categoryId]
     )
 
@@ -44,7 +44,7 @@ export async function GET(
 
     // 獲取子分類
     const subCategories = await executeQuery(
-      `SELECT * FROM product_categories WHERE parent_category_id = ?`,
+      `SELECT * FROM categories WHERE parent_id = ?`,
       [categoryId]
     )
 
@@ -76,7 +76,7 @@ export async function PUT(
 
     // 檢查分類是否存在
     const existingCategory = await executeQuery(
-      `SELECT * FROM product_categories WHERE category_id = ?`,
+      `SELECT * FROM categories WHERE category_id = ?`,
       [categoryId]
     )
 
@@ -90,7 +90,7 @@ export async function PUT(
       data.category_name !== existingCategory[0].category_name
     ) {
       const nameCheck = await executeQuery(
-        `SELECT * FROM product_categories WHERE category_name = ? AND category_id != ?`,
+        `SELECT * FROM categories WHERE category_name = ? AND category_id != ?`,
         [data.category_name, categoryId]
       )
 
@@ -100,9 +100,9 @@ export async function PUT(
     }
 
     // 檢查父分類是否形成循環引用
-    if (data.parent_category_id) {
+    if (data.parent_id) {
       // 不能將自己設為父分類
-      if (data.parent_category_id === categoryId) {
+      if (data.parent_id === categoryId) {
         return NextResponse.json(
           { error: '不能將自己設為父分類' },
           { status: 400 }
@@ -117,7 +117,7 @@ export async function PUT(
         if (parentId === targetId) return true
 
         const children = await executeQuery(
-          `SELECT category_id FROM product_categories WHERE parent_category_id = ?`,
+          `SELECT category_id FROM categories WHERE parent_id = ?`,
           [parentId]
         )
 
@@ -130,7 +130,7 @@ export async function PUT(
         return false
       }
 
-      if (await checkCircular(categoryId, data.parent_category_id)) {
+      if (await checkCircular(categoryId, data.parent_id)) {
         return NextResponse.json(
           { error: '不能選擇子分類作為父分類' },
           { status: 400 }
@@ -140,10 +140,11 @@ export async function PUT(
 
     // 更新分類信息
     await executeQuery(
-      `UPDATE product_categories SET
+      `UPDATE categories SET
         category_name = ?,
         category_description = ?,
-        parent_category_id = ?,
+        parent_id = ?,
+        category_tag = ?,
         updated_at = NOW()
       WHERE category_id = ?`,
       [
@@ -151,16 +152,17 @@ export async function PUT(
         data.category_description !== undefined
           ? data.category_description
           : existingCategory[0].category_description,
-        data.parent_category_id !== undefined
-          ? data.parent_category_id
-          : existingCategory[0].parent_category_id,
+        data.parent_id !== undefined
+          ? data.parent_id
+          : existingCategory[0].parent_id,
+        data.category_tag || existingCategory[0].category_tag,
         categoryId,
       ]
     )
 
     // 獲取更新後的分類信息
     const updatedCategory = await executeQuery(
-      `SELECT * FROM product_categories WHERE category_id = ?`,
+      `SELECT * FROM categories WHERE category_id = ?`,
       [categoryId]
     )
 
@@ -190,7 +192,7 @@ export async function DELETE(
 
     // 檢查分類是否存在
     const existingCategory = await executeQuery(
-      `SELECT * FROM product_categories WHERE category_id = ?`,
+      `SELECT * FROM categories WHERE category_id = ?`,
       [categoryId]
     )
 
@@ -200,7 +202,7 @@ export async function DELETE(
 
     // 檢查是否有子分類
     const subCategories = await executeQuery(
-      `SELECT * FROM product_categories WHERE parent_category_id = ?`,
+      `SELECT * FROM categories WHERE parent_id = ?`,
       [categoryId]
     )
 
@@ -225,7 +227,7 @@ export async function DELETE(
     }
 
     // 刪除分類
-    await executeQuery(`DELETE FROM product_categories WHERE category_id = ?`, [
+    await executeQuery(`DELETE FROM categories WHERE category_id = ?`, [
       categoryId,
     ])
 
