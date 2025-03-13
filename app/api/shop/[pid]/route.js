@@ -53,6 +53,7 @@ export async function GET(request, { params }) {
       r.created_at,
       r.rating,
       users.user_name,
+      users.profile_picture,
       product_variants.variant_name,
       products.product_name
       FROM product_reviews AS r

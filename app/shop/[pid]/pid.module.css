@@ -1,56 +1,285 @@
 .main{
-
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
 }
-.group{
 
-}
 .h3{
   font-size: 24px;
   margin: 0;
   padding: 0;
 }
 
-.imgContainer {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  aspect-ratio: 1/1;
-  border-radius: 12px;
-  overflow: hidden;
-  img {
-    object-fit: cover;
-    display: block;
-    transition: transform 0.1s ease; 
-    
-  }
-}
 .row{
   width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 20px;
   >div{
-    width: 40%;
-    
+    width: 450px;
   }
 }
-.productType{
+.imgs{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .imgContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1/1;
+    border-radius: 12px;
+    overflow: hidden;
+    img {
+      object-fit: cover;
+      display: block;
+      transition: transform 0.1s ease; 
+    }
+  }
+  .img_group{
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+
+    .imgs_item{
+      overflow: hidden;
+      width: 100px;
+      aspect-ratio: 1/1;
+      border-radius: 12px;
+    }
+  }
+}
+.info{
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  gap: 10px;
+
+  >:nth-child(1),>:nth-child(3){
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items:flex-start;
+  }
+
+  >:nth-child(3){
+    .priceGroup{
+      display: flex;
+      flex-direction: column;
+      justify-content: start;
+      /* align-items: flex-end; */
+      gap: 5px;
+      p{
+        padding: 0;
+        margin: 0;
+      }
+    }
+  }
+
+  .iconGroup{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    .comment{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+      padding: 5px 8px;
+      border-radius: 8px;
+    }
+  }
+
+  .productVariant{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    p{
+      padding: 0;
+      margin: 0;
+    }
+    .variantGroup{
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      .comment{
+        padding: 5px 8px;
+        background-color: rgba(243, 243, 243, 1);
+        color: rgba(58, 73, 128, 1);
+        border-radius: 15px;
+        border: none;
+      }
+      .comment.active{
+        background-color: rgba(58, 73, 128, 1);
+        color: rgba(243, 243, 243, 1);
+      }
+    }
+  }
+
+  .btnGroup{
+    display: flex;
+    flex-direction: row;
+    align-items:flex-start;
+    gap: 14px;
+    .countBtn{
+      background-color: rgba(243, 243, 243, 1);
+      color: rgba(58, 73, 128, 1);
+      border-radius: 23px;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 30px;
+      input{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 20px;
+        background-color: rgba(243, 243, 243, 1);
+        border: none;
+      }
+      button{
+        width: 16px;
+        height: 16px;
+        border: none;
+        display: flex;
+        justify-content: center;
+        align-items: center
+
+      }
+      button:hover{
+        cursor: pointer;
+        border-radius: 50%;
+        background-color: rgba(58, 73, 128, 0.11);
+        box-shadow: 0px 0px 10px rgba(58, 73, 128, 0.322);
+      }
+    }
+    .addCartBtn{
+      background-color: rgba(58, 73, 128, 1);
+      color: rgba(243, 243, 243, 1);
+      border: none;
+      border-radius: 23px;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+
+  }
+
+  .promotions{
+    border: 1px solid rgb(171, 175, 171);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    .promotion{
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+    }
+    svg{
+      color: rgba(215, 89, 81, 1);
+    }
+  }
 }
-.iconGroup{
+
+.contain{
+  background-color: #fff;
+  
+  width: 90%;
   display: flex;
-  flex-direction: row;
-  gap: 10px;
-  .comment{
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 20px;
+  border-radius: 20px;
+  overflow: hidden;
+
+  .containTitle{
+    background-color: rgba(89, 62, 47, 1);
+    width: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
-    font-size: 14px;
-    padding: 5px 8px;
-    border-radius: 8px;
+    padding: 20px 0;
+    color: #fff;
+    p{
+      padding: 0;
+      margin: 0;
+    }
+  }
+  .containBody{
+    width: 80%;
+    
+    .reviewItem{
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .reviewItemTitle{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+
+          .left{
+          display: flex;
+          flex-direction: column;
+          
+              .top{
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 30px;
+                  .user{
+                  display: flex;
+                  flex-direction: row;
+                  align-items: center;
+                  gap: 10px;
+                  font-size: 24px;
+                    .userImg{
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      background-color: rgb(214, 211, 211);
+                      width: 50px;
+                      height:50px;
+                      border-radius: 50%;
+                      overflow: hidden;
+                      img{
+                        object-fit: cover;
+                        display: block;
+                      }
+                  }
+                  }
+                  .rating{
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 5px;
+                    padding: 5px 10px;
+                    background-color: rgba(251, 243, 234, 1);
+                    color: rgba(212, 141, 59, 1);
+                    font-size: 18px;
+                    border-radius: 21px;
+                    }
+              }
+              .reviewProduct{
+                color: gray;
+                margin-left: 50px;
+              }
+          }
+      }
+    }
   }
 }
