@@ -45,6 +45,45 @@ export async function GET(request, { params }) {
     )
     responseData.promotion = promotion
 
+    // 獲取評價
+    const [reviews] = await connection.execute(`
+      SELECT 
+      r.review_id ,
+      r.review_text,
+      r.created_at,
+      r.rating,
+      users.user_name,
+      users.profile_picture,
+      product_variants.variant_name,
+      products.product_name
+      FROM product_reviews AS r
+      JOIN users
+      ON r.user_id = users.user_id
+      JOIN products
+      ON r.product_id = products.product_id
+      JOIN product_variants
+      ON r.variant_id = product_variants.variant_id
+      WHERE r.product_id =?
+      ORDER BY r.created_at DESC`
+    , [id]
+    )
+    responseData.reviews = reviews
+
+    // 產品類別
+    const [categories] = await connection.execute(`
+    SELECT 
+    *
+    FROM 
+      categories c
+    JOIN 
+      products p
+      ON p.category_id = c.category_id
+    WHERE 
+      p.product_id = ?
+      `, [id])
+    responseData.categories = categories
+
+
     // 释放连接
     connection.release()
 

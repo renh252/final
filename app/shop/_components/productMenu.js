@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams , usePathname } from 'next/navigation'
 // style
 import styles from './productMenu.module.css'
 
@@ -12,7 +12,13 @@ const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function ProductMenu(props) {
 
-  
+// 從網址上得到動態路由參數
+const params = useParams()
+const pathname = usePathname()
+
+// 獲取路徑的最後一個值
+const lastPathSegment = pathname.split('/').pop()
+
  // ----------------------------
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
@@ -56,12 +62,13 @@ export default function ProductMenu(props) {
       <div className={styles.productMenu}>
       {parentsWithProducts.map((parent) => (
           <>
-          <Link href = {`/shop/categories/${parent.category_id} `} className={styles.title}>
+          <Link href = {`/shop/categories/${parent.category_id} `} className={`${styles.title} ${lastPathSegment == parent.category_id ? styles.active : ''}`}>
             <p>{parent.category_name}</p>
           </Link>
           {getChildrenWithProducts(parent.category_id).map((child) => (
             <>
-              <Link href = {`/shop/categories/${parent.category_id}/${child.category_id}`} className={styles.subtitle}>
+              <Link href = {`/shop/categories/${parent.category_id}/${child.category_id}`} className={`${styles.title} ${lastPathSegment == child.category_id ? styles.active : ''}`}
+              >
                 <p>{child.category_name}</p>
               </Link>
             </>
