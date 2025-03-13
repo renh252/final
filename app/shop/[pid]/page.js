@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect ,useRef } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 
 // styles
 import styles from './pid.module.css'
+import shopStyles from '@/app/shop/shop.module.css'
 import { FaShareNodes } from "react-icons/fa6";
-import { FaRegHeart } from "react-icons/fa6";
 import { FaRegStar } from "react-icons/fa6";
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { FaCartShopping } from "react-icons/fa6";
@@ -17,6 +17,13 @@ import { FaMinus } from "react-icons/fa6";
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
 
 // components
+import {IconLine_lg} from '@/app/shop/_components/icon_line'
+// card
+import Card from '@/app/_components/ui/Card'
+import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
+import { FaRegHeart,FaHeart } from "react-icons/fa";
+
+
 
 
 // 連接資料庫
@@ -31,6 +38,26 @@ export default function PidPage(props) {
   const params = useParams()
   const pid = params?.pid
 
+    // 卡片滑動-------------------------------
+    const categoryRefs = useRef(null)
+  
+    const scroll = (direction, ref) => {
+      const container = ref.current
+      const cardWidth = 280 // 卡片寬度
+      const gap = 30 // gap 值轉換為像素
+      const scrollAmount = (cardWidth + gap) * 4 // 每次滾動四個卡片的寬度加上間距
+  
+      const currentScroll = container.scrollLeft
+      const targetScroll = currentScroll + direction * scrollAmount
+  
+      container.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth',
+      })
+    }
+
+// ----------------------------
+
    // 使用 SWR 獲取資料 - 使用整合的 API 路由
     const { data, error } = useSWR(`/api/shop/${pid}`, fetcher)
    // 处理加载状态
@@ -41,9 +68,8 @@ export default function PidPage(props) {
   
     // 获取 promotions 数据
 
-    let { product ,product_imgs, promotion, variants } = data
-    console.log(variants);
-    console.log(promotion);
+    let { product ,product_imgs, promotion, variants,reviews ,categories} = data
+
     
     
     
@@ -183,7 +209,90 @@ export default function PidPage(props) {
                   
               </div>
           </div>
-
+          <IconLine_lg title='商品介紹'/>
+          <div className={styles.row}>
+            <p>{product.product_description}</p>
+          </div>
+          <IconLine_lg title='評價'/>
+          <div className={styles.contain}>
+            <div className={styles.containTitle}>
+                  <p>評論區</p>
+            </div>
+            <div className={styles.containBody}>
+            {reviews.length > 0 ? (
+              reviews.map((r) => {
+                return (
+                  <div key={r.review_id } className={styles.reviewItem}>
+                    <div className={styles.reviewItemTitle}> 
+                      <div>
+                        <div>
+                          <div className={styles.user}>
+                            {r.user_name}
+                          </div>
+                          <div>
+                            <FaRegStar/>
+                            {r.rating}
+                          </div>
+                        </div>
+                        <div className={styles.reviewProduct}>
+                          {r.product_name} 
+                          {r.variant_name? `( ${r.variant_name} )` : ''}
+                        </div>
+                      </div>
+                      <div>
+                        {new Date(r.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <p>{r.review_text}</p>
+                  </div>
+                )
+              })
+            ) : (
+              <p>目前無評論</p>
+            )}
+            </div>
+          </div>   
+          <IconLine_lg title='推薦商品'/>  
+            <div className={styles.groupBody}>
+                      <CardSwitchButton
+                        direction="left"
+                        onClick={() => scroll(-1, categoryRefs)}
+                        aria-label="向左滑動"
+                      />
+                      <div className={shopStyles.cardGroup} ref={categoryRefs}>
+                        {categories.map((product) => {
+                          return(
+                              <>
+                              <Link href={`/shop/${product.product_id}`}>
+                                <Card
+                                  key={product.	product_id}
+                                  image={product.image_url || '/images/default_no_pet.jpg'}
+                                  title={product.product_name}
+                                >
+                                  <div className={shopStyles.cardText}>
+                                    <p>${product.price} <del>${product.price}</del></p>
+                                    <button className={shopStyles.likeButton} onClick={(event)=>{     
+                                      event.preventDefault();
+                                      event.stopPropagation();
+                                      // onToggleFav(product.id)
+                                      }}>
+                                      {product.fav ? <FaHeart/> : <FaRegHeart/>}
+                                    </button>
+                                  </div>
+                                </Card>
+                              </Link>
+                              </>
+                          )
+                        })}
+                      </div>
+                      
+                      
+                      <CardSwitchButton
+                        direction="right"
+                        onClick={() => scroll(1, categoryRefs)}
+                        aria-label="向左滑動"
+                      />
+                    </div>
       </main>
   )
 }

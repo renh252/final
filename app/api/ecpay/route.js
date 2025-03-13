@@ -1,91 +1,121 @@
 import * as crypto from 'crypto'
 
-// 將 generateCheckMacValue 函數提取到文件外部
-function generateCheckMacValue(params, HashKey, HashIV) {
-  let paramString = Object.entries(params)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${value}`)
-    .join('&')
+export async function POST(req) {
+  const { amount, items } = await req.json()
 
-  const raw = `HashKey=${HashKey}&${paramString}&HashIV=${HashIV}`
-  const encoded = encodeURIComponent(raw).toLowerCase()
-  const hashed = crypto
-    .createHash('sha256')
-    .update(encoded)
-    .digest('hex')
-    .toUpperCase()
+  const itemName =
+    items.split(',').length > 1
+      ? items.split(',').join('#')
+      : '線上商店購買一批'
 
-  return hashed
-}
-
-export async function GET(req) {
-  const { searchParams } = new URL(req.url)
-  const amount = searchParams.get('amount')
-  const items = searchParams.get('items')
-
-  const parsedAmount = Number(amount) || 0
-
-  if (!parsedAmount) {
-    return new Response(
-      JSON.stringify({ success: false, message: '缺少總金額' }),
-      { status: 400 }
-    )
+  if (!amount) {
+    return new Response(JSON.stringify({ error: '缺少總金額' }), {
+      status: 400,
+    })
   }
 
-  const MerchantID = '3002607' // 測試用商店代號
+  // ECPay 配置
+  const MerchantID = '3002607'
   const HashKey = 'pwFHCqoQZGmho4w6'
   const HashIV = 'EkRm7iFT261dpevs'
-  const APIURL = `https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5`
+  const isStage = true // 測試環境
+  const TotalAmount = Number(amount) // 總金額
+  const TradeDesc = '商店線上付款' // 訂單描述
+  const ItemName = itemName // 商品名稱
+  const ReturnURL = 'https://www.ecpay.com.tw'
+  const OrderResultURL =
+    ' https://f675-122-121-210-118.ngrok-free.app/donate/flow/result' // 完成支付後回來的頁面
 
-  const MerchantTradeNo = `od${Date.now()}`
-  const MerchantTradeDate = new Date()
-    .toLocaleString('zh-TW', { hour12: false })
-    .replace(/\/| /g, (match) => (match === '/' ? '-' : '')) // 將日期中的斜線 / 替換成 -
+  const stage = isStage ? '-stage' : ''
+  const algorithm = 'sha256'
+  const digest = 'hex'
+  const APIURL = `https://payment${stage}.ecpay.com.tw//Cashier/AioCheckOut/V5`
+
+  const MerchantTradeNo = `od${new Date().getFullYear()}${(
+    new Date().getMonth() + 1
+  )
+    .toString()
+    .padStart(2, '0')}${new Date()
+    .getDate()
+    .toString()
+    .padStart(2, '0')}${new Date()
+    .getHours()
+    .toString()
+    .padStart(2, '0')}${new Date()
+    .getMinutes()
+    .toString()
+    .padStart(2, '0')}${new Date()
+    .getSeconds()
+    .toString()
+    .padStart(2, '0')}${new Date().getMilliseconds().toString().padStart(2)}`
+
+  const MerchantTradeDate = new Date().toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
 
   const ParamsBeforeCMV = {
     MerchantID,
     MerchantTradeNo,
-    MerchantTradeDate,
+    MerchantTradeDate: MerchantTradeDate.toString(),
     PaymentType: 'aio',
     EncryptType: 1,
-    TotalAmount: parsedAmount,
-    TradeDesc: '商店線上付款',
-    ItemName: items ? items.split(',').join('#') : '線上商店購買一批',
-    ReturnURL: 'https://www.ecpay.com.tw',
-    OrderResultURL: 'http://localhost:3000/ecpay/result',
+    TotalAmount,
+    TradeDesc,
+    ItemName,
+    ReturnURL,
     ChoosePayment: 'ALL',
+    OrderResultURL,
   }
 
-  const CheckMacValue = generateCheckMacValue(ParamsBeforeCMV, HashKey, HashIV)
+  function CheckMacValueGen(parameters, algorithm, digest) {
+    let Step0 = Object.entries(parameters)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&')
 
-  return new Response(
-    JSON.stringify({
-      success: true,
-      data: {
-        action: APIURL,
-        params: { ...ParamsBeforeCMV, CheckMacValue },
-      },
-    }),
-    { status: 200 }
-  )
-}
+    function DotNETURLEncode(string) {
+      const list = {
+        '%2D': '-',
+        '%5F': '_',
+        '%2E': '.',
+        '%21': '!',
+        '%2A': '*',
+        '%28': '(',
+        '%29': ')',
+        '%20': '+',
+      }
+      Object.entries(list).forEach(([encoded, decoded]) => {
+        const regex = new RegExp(encoded, 'g')
+        string = string.replace(regex, decoded)
+      })
+      return string
+    }
 
-export async function POST(req) {
-  const data = await req.json()
-  const { CheckMacValue, ...params } = data
+    const Step1 = Step0.split('&')
+      .sort((a, b) => {
+        const keyA = a.split('=')[0]
+        const keyB = b.split('=')[0]
+        return keyA.localeCompare(keyB)
+      })
+      .join('&')
 
-  const HashKey = 'pwFHCqoQZGmho4w6'
-  const HashIV = 'EkRm7iFT261dpevs'
-
-  if (CheckMacValue === generateCheckMacValue(params, HashKey, HashIV)) {
-    return new Response(
-      JSON.stringify({ success: true, message: '支付成功' }),
-      { status: 200 }
-    )
-  } else {
-    return new Response(
-      JSON.stringify({ success: false, message: '支付失敗' }),
-      { status: 400 }
-    )
+    const Step2 = `HashKey=${HashKey}&${Step1}&HashIV=${HashIV}`
+    const Step3 = DotNETURLEncode(encodeURIComponent(Step2))
+    const Step4 = Step3.toLowerCase()
+    const Step5 = crypto.createHash(algorithm).update(Step4).digest(digest)
+    return Step5.toUpperCase()
   }
+
+  const CheckMacValue = CheckMacValueGen(ParamsBeforeCMV, algorithm, digest)
+
+  const AllParams = { ...ParamsBeforeCMV, CheckMacValue }
+
+  return new Response(JSON.stringify({ action: APIURL, params: AllParams }), {
+    status: 200,
+  })
 }
