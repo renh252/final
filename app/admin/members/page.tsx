@@ -1,11 +1,16 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { Button } from 'react-bootstrap'
-import { Eye, Edit, Trash2 } from 'lucide-react'
+import { Button, Alert, Badge } from 'react-bootstrap'
+import { Eye, Edit, Trash2, UserX, UserCheck } from 'lucide-react'
 import DataTable from '../_components/DataTable'
 import type { Column } from '../_components/DataTable'
 import { useToast } from '@/app/admin/_components/Toast'
+import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
+import AdminPageLayout, {
+  AdminSection,
+  AdminCard,
+} from '@/app/admin/_components/AdminPageLayout'
 import Cookies from 'js-cookie'
 
 interface Member {
@@ -33,7 +38,12 @@ const LEVEL_OPTIONS = [
 const MembersPage = () => {
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const { showToast } = useToast()
+  const { confirm } = useConfirm()
+  const [isImporting, setIsImporting] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+  const [importResult, setImportResult] = useState<any | null>(null)
 
   useEffect(() => {
     fetchMembers()
@@ -41,6 +51,9 @@ const MembersPage = () => {
 
   const fetchMembers = async () => {
     try {
+      setLoading(true)
+      setError(null)
+
       const token = Cookies.get('admin_token')
       console.log('使用的 token:', token)
 
@@ -85,138 +98,450 @@ const MembersPage = () => {
       }
     } catch (error) {
       console.error('獲取會員列表時發生錯誤:', error)
+      setError(error instanceof Error ? error.message : '獲取會員列表失敗')
       showToast('error', '錯誤', '獲取會員列表失敗')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleView = (member: Member): React.ReactNode => {
+  // 獲取 token
+  const getToken = () => Cookies.get('admin_token') || ''
+
+  // 處理查看會員詳情
+  const handleView = (member: Member) => {
     // TODO: 實作查看會員詳情
-    return null
+    showToast('info', '功能開發中', '會員詳情功能正在開發中')
   }
 
-  const handleEdit = (member: Member): React.ReactNode => {
+  // 處理編輯會員
+  const handleEdit = (member: Member) => {
     // TODO: 實作編輯會員資料
-    return null
+    showToast('info', '功能開發中', '編輯會員功能正在開發中')
   }
 
-  const handleDelete = async (member: Member): Promise<void> => {
+  // 處理刪除會員
+  const handleDelete = (member: Member) => {
+    confirm({
+      title: '刪除會員',
+      message: `確定要刪除會員「${member.user_name}」嗎？此操作無法撤銷。`,
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin/members/${member.user_id}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+            },
+          })
+
+          if (!response.ok) {
+            throw new Error('刪除會員失敗')
+          }
+
+          // 更新會員列表
+          setMembers(members.filter((m) => m.user_id !== member.user_id))
+          showToast(
+            'success',
+            '刪除成功',
+            `會員 ${member.user_name} 已成功刪除`
+          )
+        } catch (error) {
+          console.error('刪除會員時發生錯誤:', error)
+          showToast('error', '刪除失敗', '無法刪除會員，請稍後再試')
+        }
+      },
+    })
+  }
+
+  // 處理變更會員狀態
+  const handleToggleStatus = (member: Member) => {
+    const newStatus = member.user_status === '正常' ? '禁言' : '正常'
+    const action = newStatus === '禁言' ? '禁言' : '解除禁言'
+
+    confirm({
+      title: `${action}會員`,
+      message: `確定要${action}會員「${member.user_name}」嗎？`,
+      onConfirm: async () => {
+        try {
+          const response = await fetch(
+            `/api/admin/members/${member.user_id}/status`,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getToken()}`,
+              },
+              body: JSON.stringify({ status: newStatus }),
+            }
+          )
+
+          if (!response.ok) {
+            throw new Error(`${action}會員失敗`)
+          }
+
+          // 更新會員列表
+          setMembers(
+            members.map((m) =>
+              m.user_id === member.user_id
+                ? { ...m, user_status: newStatus }
+                : m
+            )
+          )
+
+          showToast(
+            'success',
+            `${action}成功`,
+            `會員 ${member.user_name} 已${action}`
+          )
+        } catch (error) {
+          console.error(`${action}會員時發生錯誤:`, error)
+          showToast('error', `${action}失敗`, `無法${action}會員，請稍後再試`)
+        }
+      },
+    })
+  }
+
+  // 處理導出
+  const handleExport = async (format: 'csv' | 'excel' | 'json') => {
     try {
-      const response = await fetch(`/api/admin/members/${member.user_id}`, {
-        method: 'DELETE',
+      // 顯示加載中提示
+      showToast('info', '導出中', '正在準備導出數據...')
+
+      // 構建導出 URL
+      const exportUrl = `/api/admin/members/export?format=${format}`
+
+      // 創建一個臨時鏈接並點擊它來下載文件
+      const link = document.createElement('a')
+      link.href = exportUrl
+      link.setAttribute('download', `members_export.${format}`)
+
+      // 添加 token 到請求頭
+      const token = getToken()
+      fetch(exportUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
-
-      if (!response.ok) {
-        throw new Error('刪除失敗')
-      }
-
-      showToast('success', '成功', '會員已刪除')
-      setMembers((prev) => prev.filter((m) => m.user_id !== member.user_id))
+        .then((response) => response.blob())
+        .then((blob) => {
+          const url = window.URL.createObjectURL(blob)
+          link.href = url
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+          showToast(
+            'success',
+            '導出成功',
+            `已成功導出 ${members.length} 條會員記錄`
+          )
+        })
+        .catch((error) => {
+          console.error('導出失敗:', error)
+          showToast('error', '導出失敗', '無法導出數據，請稍後再試')
+        })
     } catch (error) {
-      console.error('刪除會員時發生錯誤:', error)
-      showToast('error', '錯誤', '刪除會員失敗')
+      console.error('導出時發生錯誤:', error)
+      showToast('error', '導出失敗', '無法導出數據，請稍後再試')
     }
   }
 
-  const columns = useMemo<Column[]>(
-    () => [
-      {
-        key: 'user_id',
-        label: 'ID',
-        sortable: true,
+  // 處理導入
+  const handleImport = async (file: File) => {
+    try {
+      setIsImporting(true)
+      setImportError(null)
+      setImportResult(null)
+
+      // 創建 FormData
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // 發送請求
+      const response = await fetch('/api/admin/members/import', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: formData,
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || '導入失敗')
+      }
+
+      // 設置導入結果
+      setImportResult(result)
+
+      // 如果導入成功，重新獲取會員列表
+      if (result.success) {
+        showToast('success', '導入成功', result.message)
+        fetchMembers()
+      } else {
+        setImportError(result.error || '導入過程中發生錯誤')
+      }
+    } catch (error) {
+      console.error('導入時發生錯誤:', error)
+      setImportError(
+        error instanceof Error ? error.message : '導入失敗，請稍後再試'
+      )
+      showToast(
+        'error',
+        '導入失敗',
+        error instanceof Error ? error.message : '導入失敗，請稍後再試'
+      )
+    } finally {
+      setIsImporting(false)
+    }
+  }
+
+  // 處理批量刪除
+  const handleBatchDelete = (selectedRows: Member[]) => {
+    if (selectedRows.length === 0) return
+
+    confirm({
+      title: '批量刪除會員',
+      message: `確定要刪除選中的 ${selectedRows.length} 個會員嗎？此操作無法撤銷。`,
+      onConfirm: async () => {
+        try {
+          showToast('info', '處理中', '正在刪除選中的會員...')
+
+          // 創建一個包含所有刪除操作的 Promise 數組
+          const deletePromises = selectedRows.map((member) =>
+            fetch(`/api/admin/members/${member.user_id}`, {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${getToken()}`,
+              },
+            })
+          )
+
+          // 等待所有刪除操作完成
+          const results = await Promise.allSettled(deletePromises)
+
+          // 計算成功和失敗的數量
+          const succeeded = results.filter(
+            (r) => r.status === 'fulfilled'
+          ).length
+          const failed = results.length - succeeded
+
+          // 更新會員列表
+          if (succeeded > 0) {
+            // 從列表中移除已刪除的會員
+            const deletedIds = selectedRows.map((member) => member.user_id)
+            setMembers(
+              members.filter((member) => !deletedIds.includes(member.user_id))
+            )
+
+            showToast(
+              'success',
+              '批量刪除完成',
+              `成功刪除 ${succeeded} 個會員${
+                failed > 0 ? `，${failed} 個刪除失敗` : ''
+              }`
+            )
+          } else {
+            showToast('error', '批量刪除失敗', '所有會員刪除操作均失敗')
+          }
+        } catch (error) {
+          console.error('批量刪除時發生錯誤:', error)
+          showToast('error', '批量刪除失敗', '無法完成批量刪除操作')
+        }
       },
-      {
-        key: 'user_name',
-        label: '姓名',
-        sortable: true,
-      },
-      {
-        key: 'user_email',
-        label: '電子郵件',
-        sortable: true,
-      },
-      {
-        key: 'user_number',
-        label: '電話',
-        sortable: true,
-      },
-      {
-        key: 'user_address',
-        label: '地址',
-        sortable: true,
-      },
-      {
-        key: 'user_birthday',
-        label: '生日',
-        sortable: true,
-      },
-      {
-        key: 'user_level',
-        label: '等級',
-        sortable: true,
-        render: (value: string) => (
-          <span
-            className={`badge ${
-              value === '乾爹乾媽' ? 'bg-success' : 'bg-primary'
-            }`}
-          >
-            {value || '-'}
-          </span>
-        ),
-      },
-      {
-        key: 'user_status',
-        label: '狀態',
-        sortable: true,
-        render: (value: string) => (
-          <span
-            className={`badge ${value === '正常' ? 'bg-success' : 'bg-danger'}`}
-          >
-            {value || '-'}
-          </span>
-        ),
-      },
-      {
-        key: 'actions',
-        label: '操作',
-        render: (_, member: Member) => (
-          <div className="d-flex gap-2">
-            <Button variant="info" size="sm" onClick={() => handleView(member)}>
-              <Eye size={16} />
-            </Button>
-            <Button
-              variant="warning"
-              size="sm"
-              onClick={() => handleEdit(member)}
-            >
-              <Edit size={16} />
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => handleDelete(member)}
-            >
-              <Trash2 size={16} />
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    []
+    })
+  }
+
+  // 批量操作定義
+  const batchActions = [
+    {
+      label: '批量刪除',
+      icon: <Trash2 size={16} />,
+      onClick: handleBatchDelete,
+      variant: 'outline-danger',
+    },
+  ]
+
+  // 渲染操作按鈕
+  const renderActions = (member: Member) => (
+    <div className="d-flex gap-2">
+      <Button
+        variant="outline-primary"
+        size="sm"
+        onClick={() => handleView(member)}
+        title="查看詳情"
+      >
+        <Eye size={16} />
+      </Button>
+      <Button
+        variant="outline-secondary"
+        size="sm"
+        onClick={() => handleEdit(member)}
+        title="編輯會員"
+      >
+        <Edit size={16} />
+      </Button>
+      <Button
+        variant="outline-danger"
+        size="sm"
+        onClick={() => handleDelete(member)}
+        title="刪除會員"
+      >
+        <Trash2 size={16} />
+      </Button>
+      <Button
+        variant={
+          member.user_status === '正常' ? 'outline-warning' : 'outline-success'
+        }
+        size="sm"
+        onClick={() => handleToggleStatus(member)}
+        title={member.user_status === '正常' ? '禁言會員' : '解除禁言'}
+      >
+        {member.user_status === '正常' ? (
+          <UserX size={16} />
+        ) : (
+          <UserCheck size={16} />
+        )}
+      </Button>
+    </div>
   )
 
+  // 會員表格列定義
+  const columns: Column[] = [
+    {
+      key: 'user_id',
+      label: 'ID',
+      sortable: true,
+    },
+    {
+      key: 'user_name',
+      label: '姓名',
+      sortable: true,
+    },
+    {
+      key: 'user_email',
+      label: '電子郵件',
+      sortable: true,
+    },
+    {
+      key: 'user_number',
+      label: '電話',
+    },
+    {
+      key: 'user_level',
+      label: '等級',
+      filterable: true,
+      filterOptions: LEVEL_OPTIONS,
+      render: (value) => value || '愛心小天使',
+    },
+    {
+      key: 'user_status',
+      label: '狀態',
+      filterable: true,
+      filterOptions: STATUS_OPTIONS,
+      render: (value) => (
+        <Badge bg={value === '正常' ? 'success' : 'danger'}>
+          {value || '正常'}
+        </Badge>
+      ),
+    },
+  ]
+
+  // 會員統計數據
+  const memberStats = [
+    {
+      title: '總會員數',
+      count: members.length,
+      color: 'primary',
+      icon: <Eye size={24} />,
+    },
+    {
+      title: '正常會員',
+      count: members.filter((m) => m.user_status === '正常' || !m.user_status)
+        .length,
+      color: 'success',
+      icon: <UserCheck size={24} />,
+    },
+    {
+      title: '禁言會員',
+      count: members.filter((m) => m.user_status === '禁言').length,
+      color: 'danger',
+      icon: <UserX size={24} />,
+    },
+  ]
+
   return (
-    <div className="container-fluid">
-      <h1 className="h3 mb-4">會員管理</h1>
-      <DataTable
-        data={members}
-        columns={columns}
-        loading={loading}
-        searchable
-        pageSizeOptions={[10, 20, 50, 100]}
-      />
-    </div>
+    <AdminPageLayout title="會員管理" stats={memberStats}>
+      <AdminSection title="會員列表">
+        <AdminCard>
+          {error && (
+            <Alert variant="danger" className="mb-3">
+              <Alert.Heading>獲取資料失敗</Alert.Heading>
+              <p>{error}</p>
+              <div className="d-flex justify-content-end">
+                <Button variant="outline-danger" onClick={fetchMembers}>
+                  重試
+                </Button>
+              </div>
+            </Alert>
+          )}
+
+          {importResult && importResult.success && (
+            <Alert
+              variant="success"
+              className="mb-3"
+              dismissible
+              onClose={() => setImportResult(null)}
+            >
+              <Alert.Heading>導入成功</Alert.Heading>
+              <p>{importResult.message}</p>
+              {importResult.errors && importResult.errors.length > 0 && (
+                <>
+                  <hr />
+                  <p>以下記錄導入失敗：</p>
+                  <ul>
+                    {importResult.errors.map((err: any, index: number) => (
+                      <li key={index}>
+                        {err.email}: {err.error}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </Alert>
+          )}
+
+          {importError && (
+            <Alert
+              variant="danger"
+              className="mb-3"
+              dismissible
+              onClose={() => setImportError(null)}
+            >
+              <Alert.Heading>導入失敗</Alert.Heading>
+              <p>{importError}</p>
+            </Alert>
+          )}
+
+          <DataTable
+            data={members}
+            columns={columns}
+            loading={loading}
+            searchable={true}
+            searchKeys={['user_name', 'user_email', 'user_number']}
+            actions={renderActions}
+            selectable={true}
+            batchActions={batchActions}
+            exportable={true}
+            onExport={handleExport}
+            importable={true}
+            onImport={handleImport}
+            advancedFiltering={true}
+          />
+        </AdminCard>
+      </AdminSection>
+    </AdminPageLayout>
   )
 }
 
