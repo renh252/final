@@ -4,15 +4,19 @@ import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 // product_menu
-import ProductMenu from '../../../_components/productMenu'
-// card
-import Card from '../../../_components/card'
-import { FaRegHeart,FaHeart } from "react-icons/fa";
-// data
-import Products from '../../../_data/data.json'
+import ProductMenu from '@/app/shop/_components/productMenu'
 // style
-import styles from '../../../shop.module.css'
-import cid_styles from './cid.module.css'
+import styles from '@/app/shop/shop.module.css'
+import cid_styles  from './cid.module.css'
+// card
+import Card from '@/app/_components/ui/Card'
+import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
+import { FaRegHeart,FaHeart } from "react-icons/fa";
+
+// 連接資料庫
+import useSWR from 'swr'
+const fetcher = (url) => fetch(url).then((res) => res.json())
+
 
 
 export default function CidPage(props) {
@@ -22,7 +26,7 @@ export default function CidPage(props) {
 
   
   // card愛心狀態
-  const initState = Products.map((v) => {
+  /*const initState = Products.map((v) => {
     return { ...v, fav: false }
   })
   const [products, setproducts] = useState(initState)  
@@ -36,6 +40,25 @@ export default function CidPage(props) {
     })
     setproducts(nextProduct)
   }
+*/
+
+
+   // ----------------------------
+
+  // 使用 SWR 獲取資料 - 使用整合的 API 路由
+  const { data, error } = useSWR('/api/shop', fetcher)
+// 处理加载状态
+  if (!data) return <div>Loading...</div>
+    
+  // 处理错误状态
+  if (error) return <div>Failed to load</div>
+
+  const categories = data.categories
+  const products = data.products
+  
+  // const product_like = data.product_like
+
+  // -----------------
 
   return (
     <>
@@ -58,16 +81,27 @@ export default function CidPage(props) {
               <div className={cid_styles.cardGroup}>
                 {products.filter((product) => product.category_id == cid).map((product) => {
                   return(
-                    <Card
-                      key={product.id}
-                      image={product.image}
-                      title={product.title}
-                      text1= {`$${product.price}`}
-                      text1_del={`$${product.price}`}
-                      btn_text={product.fav ? <FaHeart/> : <FaRegHeart/>}
-                      btn_color='red'
-                      btn_onclick={() => {onToggleFav(product.id)}}
-                    />
+                    <>
+                      <Link href={``}>
+                        <Card
+                          key={product.	product_id}
+                          image={product.image_url ||
+                          '/images/default_no_pet.jpg'}
+                          title={product.product_name}
+                        >
+                          <div className={styles.cardText}>
+                            <p>${product.price} <del>${product.price}</del></p>
+                            <button className={styles.likeButton} onClick={(event)=>{     
+                              event.preventDefault();
+                              event.stopPropagation();
+                              // onToggleFav(product.id)
+                              }}>
+                              {product.fav ? <FaHeart/> : <FaRegHeart/>}
+                            </button>
+                          </div>
+                        </Card>
+                      </Link>
+                    </>
                   )
                 })}
               </div>
