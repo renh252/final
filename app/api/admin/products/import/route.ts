@@ -32,9 +32,9 @@ export async function POST(request: NextRequest) {
       'product_stock',
     ])
 
-    if (!validationResult.success) {
+    if (!validationResult.valid) {
       return NextResponse.json(
-        { error: validationResult.error },
+        { error: validationResult.errors.join(', ') },
         { status: 400 }
       )
     }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     // 獲取所有商品類別
     const categories = await executeQuery(
-      'SELECT category_id, category_name FROM product_categories'
+      'SELECT category_id, category_name FROM categories'
     )
     const categoryMap = new Map(
       categories.map((cat: any) => [cat.category_name, cat.category_id])
@@ -81,8 +81,11 @@ export async function POST(request: NextRequest) {
           // 如果找不到類別，創建新類別
           if (!categoryId && product.product_category.trim() !== '') {
             const newCategory = await executeQuery(
-              'INSERT INTO product_categories (category_name) VALUES (?)',
-              [product.product_category]
+              'INSERT INTO categories (category_name, category_tag) VALUES (?, ?)',
+              [
+                product.product_category,
+                product.product_category.toLowerCase().replace(/\s+/g, '_'),
+              ]
             )
             categoryId = newCategory[0].insertId
             // 更新類別映射
@@ -90,9 +93,17 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        // 轉換狀態值
+        let productStatus = product.product_status
+        if (product.product_status === 'active') {
+          productStatus = '上架'
+        } else if (product.product_status === 'inactive') {
+          productStatus = '下架'
+        }
+
         // 檢查商品是否已存在（根據名稱）
         const existingProduct = await executeQuery(
-          'SELECT product_id FROM products WHERE product_name = ?',
+          'SELECT product_id FROM products WHERE product_name = ? AND is_deleted = 0',
           [product.product_name]
         )
 
@@ -102,12 +113,12 @@ export async function POST(request: NextRequest) {
           productId = existingProduct[0].product_id
           await executeQuery(
             `UPDATE products SET
-              product_price = ?,
+              price = ?,
               product_description = ?,
-              product_image = ?,
-              product_stock = ?,
+              image_url = ?,
+              stock_quantity = ?,
               product_status = ?,
-              product_category = ?,
+              category_id = ?,
               updated_at = NOW()
             WHERE product_id = ?`,
             [
@@ -115,7 +126,7 @@ export async function POST(request: NextRequest) {
               product.product_description || '',
               product.product_image || '',
               Number(product.product_stock),
-              product.product_status || 'active',
+              productStatus,
               categoryId,
               productId,
             ]
@@ -125,21 +136,23 @@ export async function POST(request: NextRequest) {
           const newProduct = await executeQuery(
             `INSERT INTO products (
               product_name,
-              product_price,
+              price,
               product_description,
-              product_image,
-              product_stock,
+              image_url,
+              stock_quantity,
               product_status,
-              product_category
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+              category_id,
+              is_deleted
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               product.product_name,
               Number(product.product_price),
               product.product_description || '',
               product.product_image || '',
               Number(product.product_stock),
-              product.product_status || 'active',
+              productStatus,
               categoryId,
+              0, // 默認未刪除
             ]
           )
           productId = newProduct[0].insertId
@@ -163,8 +176,8 @@ export async function POST(request: NextRequest) {
                     `INSERT INTO product_variants (
                       product_id,
                       variant_name,
-                      variant_price,
-                      variant_stock
+                      price,
+                      stock_quantity
                     ) VALUES (?, ?, ?, ?)`,
                     [
                       productId,

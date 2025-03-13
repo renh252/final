@@ -17,11 +17,11 @@ export async function GET(request: NextRequest) {
         category_id,
         category_name,
         category_description,
-        parent_category_id,
+        parent_id as parent_category_id,
         created_at,
         updated_at,
-        (SELECT COUNT(*) FROM products WHERE product_category = category_id) as product_count
-      FROM product_categories
+        (SELECT COUNT(*) FROM products WHERE category_id = c.category_id) as product_count
+      FROM categories c
       ORDER BY category_name ASC
     `)
 
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // 檢查分類名稱是否已存在
     const existingCategory = await executeQuery(
-      `SELECT * FROM product_categories WHERE category_name = ?`,
+      `SELECT * FROM categories WHERE category_name = ?`,
       [data.category_name]
     )
 
@@ -60,22 +60,25 @@ export async function POST(request: NextRequest) {
 
     // 創建新分類
     const result = await executeQuery(
-      `INSERT INTO product_categories (
+      `INSERT INTO categories (
         category_name, 
         category_description, 
-        parent_category_id
-      ) VALUES (?, ?, ?)`,
+        parent_id,
+        category_tag
+      ) VALUES (?, ?, ?, ?)`,
       [
         data.category_name,
         data.category_description || '',
         data.parent_category_id || null,
+        data.category_tag ||
+          data.category_name.toLowerCase().replace(/\s+/g, '_'),
       ]
     )
 
     // 獲取新創建的分類
     const categoryId = result[0].insertId
     const newCategory = await executeQuery(
-      `SELECT * FROM product_categories WHERE category_id = ?`,
+      `SELECT * FROM categories WHERE category_id = ?`,
       [categoryId]
     )
 

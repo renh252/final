@@ -310,3 +310,279 @@ function Button({ children }) {
 ```
 
 這種方式使得樣式管理更加模組化和可維護，同時保持了樣式的隔離性和可重用性。
+
+## 商品管理相關組件
+
+### 商品資料表格 (`DataTable`)
+
+商品管理頁面使用 `DataTable` 組件顯示商品列表，該組件位於 `app/admin/_components/DataTable.tsx`。
+
+#### 欄位定義
+
+```typescript
+const columns = [
+  {
+    key: 'product_id',
+    label: 'ID',
+    sortable: true,
+  },
+  {
+    key: 'product_image',
+    label: '圖片',
+    render: (value, row) => (
+      <Image
+        src={row.main_image || '/images/default_product.jpg'}
+        alt="商品照片"
+        width={50}
+        height={50}
+        className="rounded"
+      />
+    ),
+  },
+  {
+    key: 'product_name',
+    label: '名稱',
+    sortable: true,
+  },
+  {
+    key: 'category_name',
+    label: '分類',
+    sortable: true,
+    filterable: true,
+    filterOptions: categories.map((c) => ({
+      value: c.category_name,
+      label: c.category_name,
+    })),
+  },
+  {
+    key: 'price',
+    label: '價格',
+    sortable: true,
+    render: (value) => `NT$ ${value || 0}`,
+  },
+  {
+    key: 'stock',
+    label: '庫存',
+    sortable: true,
+    render: (value) => value || 0,
+  },
+  {
+    key: 'product_status',
+    label: '狀態',
+    sortable: true,
+    filterable: true,
+    filterOptions: STATUS_OPTIONS,
+    render: (value, row) => {
+      if (row.is_deleted === 1) {
+        return <Badge bg="danger">已刪除</Badge>
+      } else if (value === '上架' || value === 'active') {
+        return <Badge bg="success">上架中</Badge>
+      } else if (value === '下架' || value === 'inactive') {
+        return <Badge bg="secondary">已下架</Badge>
+      } else if (value === 'out_of_stock') {
+        return <Badge bg="danger">缺貨中</Badge>
+      }
+      return <Badge bg="light">未知</Badge>
+    },
+  },
+  {
+    key: 'created_at',
+    label: '新增日期',
+    sortable: true,
+    render: (value) => {
+      if (!value) return '-'
+      try {
+        const date = new Date(value)
+        return date.toLocaleString('zh-TW', {
+          timeZone: 'Asia/Taipei',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        })
+      } catch (error) {
+        return value
+      }
+    },
+  },
+]
+```
+
+### 商品編輯表單 (`ModalForm`)
+
+商品編輯使用 `ModalForm` 組件，該組件位於 `app/admin/_components/ModalForm.tsx`。
+
+#### 欄位定義
+
+```typescript
+const formFields = [
+  {
+    name: 'product_name',
+    label: '商品名稱',
+    type: 'text',
+    required: true,
+  },
+  {
+    name: 'product_price',
+    label: '價格',
+    type: 'number',
+    required: true,
+  },
+  {
+    name: 'product_description',
+    label: '商品描述',
+    type: 'textarea',
+    required: false,
+  },
+  {
+    name: 'product_category',
+    label: '商品分類',
+    type: 'select',
+    options: categories.map((c) => ({
+      value: c.category_id,
+      label: c.category_name,
+    })),
+    required: true,
+  },
+  {
+    name: 'product_stock',
+    label: '庫存數量',
+    type: 'number',
+    required: false,
+    defaultValue: 0,
+  },
+  {
+    name: 'product_status',
+    label: '商品狀態',
+    type: 'select',
+    options: STATUS_OPTIONS.filter((option) => option.value !== 'deleted'),
+    required: true,
+    defaultValue: 'active',
+  },
+  {
+    name: 'product_image',
+    label: '商品圖片URL',
+    type: 'text',
+    required: false,
+  },
+]
+```
+
+### 商品狀態處理
+
+前端使用一組狀態選項常量定義商品的可能狀態：
+
+```typescript
+const STATUS_OPTIONS = [
+  { value: 'active', label: '上架中' },
+  { value: 'inactive', label: '已下架' },
+  { value: 'out_of_stock', label: '缺貨中' },
+  { value: 'deleted', label: '已刪除' },
+]
+```
+
+#### 前後端狀態映射
+
+前端與後端之間的狀態值映射如下：
+
+| 前端狀態 (status) | 後端狀態 (product_status) | 說明                   |
+| ----------------- | ------------------------- | ---------------------- |
+| 'active'          | '上架'                    | 商品上架中，可被購買   |
+| 'inactive'        | '下架'                    | 商品已下架，不可被購買 |
+| 'out_of_stock'    | '上架'                    | 商品已缺貨但仍顯示     |
+| 'deleted'         | 任意 (由 is_deleted 決定) | 商品已被軟刪除         |
+
+### 商品刪除處理
+
+商品使用軟刪除機制，通過 `is_deleted` 欄位標記刪除狀態：
+
+1. 在資料庫中，`is_deleted = 1` 表示商品已刪除
+2. 預設情況下，前端只顯示 `is_deleted = 0` 的商品
+3. 用戶可以通過篩選選項選擇顯示已刪除商品
+
+```typescript
+// 過濾出未刪除的商品作為預設顯示
+const nonDeletedProducts = (data.products || []).filter(p => p.is_deleted !== 1)
+setFilteredProducts(nonDeletedProducts)
+
+// 切換是否顯示已刪除商品
+<Form.Check
+  key="filter-deleted"
+  type="checkbox"
+  id="filter-deleted"
+  label="已刪除"
+  onChange={(e) => {
+    if (e.target.checked) {
+      setFilteredProducts(products) // 顯示全部商品，包括已刪除
+    } else {
+      setFilteredProducts(products.filter(p => p.is_deleted !== 1)) // 僅顯示未刪除商品
+    }
+  }}
+  defaultChecked={false}
+/>
+```
+
+### 編輯商品時的欄位映射
+
+當編輯商品時，需要處理前後端欄位命名不一致的問題：
+
+```typescript
+// 處理編輯商品
+const handleEditProduct = (product) => {
+  // 設置當前商品和模態框模式
+  const productWithCorrectFields = {
+    ...product,
+    product_stock: product.stock, // 確保庫存欄位正確映射
+    product_price: product.price, // 同樣確保價格欄位正確映射
+    product_image: product.main_image, // 確保圖片欄位正確映射
+    product_category: product.category_id, // 確保分類欄位正確映射
+  }
+  setCurrentProduct(productWithCorrectFields)
+  setModalMode('edit')
+  setShowModal(true)
+}
+```
+
+### 商品儀錶板統計
+
+商品管理頁面上方顯示商品統計儀錶板，統計不同狀態的商品數量：
+
+```typescript
+// 統計數據
+const productStats = [
+  {
+    title: '總商品數',
+    count: products.filter((p) => p.is_deleted !== 1).length,
+    color: 'primary',
+    icon: <Package size={24} />,
+  },
+  {
+    title: '上架中',
+    count: products.filter(
+      (p) =>
+        (p.product_status === '上架' || p.product_status === 'active') &&
+        p.is_deleted !== 1
+    ).length,
+    color: 'success',
+    icon: <Package size={24} />,
+  },
+  {
+    title: '已下架',
+    count: products.filter(
+      (p) =>
+        (p.product_status === '下架' || p.product_status === 'inactive') &&
+        p.is_deleted !== 1
+    ).length,
+    color: 'secondary',
+    icon: <Package size={24} />,
+  },
+  {
+    title: '已刪除',
+    count: products.filter((p) => p.is_deleted === 1).length,
+    color: 'dark',
+    icon: <Trash2 size={24} />,
+  },
+]
+```

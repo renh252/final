@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Button, Form, Badge, Image, Alert } from 'react-bootstrap'
 import {
   Plus,
@@ -29,10 +29,12 @@ const STATUS_OPTIONS = [
   { value: 'active', label: '上架中' },
   { value: 'inactive', label: '已下架' },
   { value: 'out_of_stock', label: '缺貨中' },
+  { value: 'deleted', label: '已刪除' },
 ]
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([])
+  const [filteredProducts, setFilteredProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [currentProduct, setCurrentProduct] = useState<any>(null)
@@ -74,6 +76,12 @@ export default function ProductsPage() {
 
       const data = await response.json()
       setProducts(data.products || [])
+
+      // 過濾出未刪除的商品作為預設顯示
+      const nonDeletedProducts = (data.products || []).filter(
+        (p) => p.is_deleted !== 1
+      )
+      setFilteredProducts(nonDeletedProducts)
     } catch (error) {
       console.error('獲取商品資料時發生錯誤:', error)
       setError(
@@ -133,9 +141,9 @@ export default function ProductsPage() {
     {
       key: 'product_image',
       label: '圖片',
-      render: (value) => (
+      render: (value, row) => (
         <Image
-          src={value || '/images/default_product.jpg'}
+          src={row.main_image || '/images/default_product.jpg'}
           alt="商品照片"
           width={50}
           height={50}
@@ -159,15 +167,16 @@ export default function ProductsPage() {
       })),
     },
     {
-      key: 'product_price',
+      key: 'price',
       label: '價格',
       sortable: true,
-      render: (value) => `NT$ ${value}`,
+      render: (value) => `NT$ ${value || 0}`,
     },
     {
-      key: 'product_stock',
+      key: 'stock',
       label: '庫存',
       sortable: true,
+      render: (value) => value || 0,
     },
     {
       key: 'product_status',
@@ -175,10 +184,12 @@ export default function ProductsPage() {
       sortable: true,
       filterable: true,
       filterOptions: STATUS_OPTIONS,
-      render: (value) => {
-        if (value === 'active') {
+      render: (value, row) => {
+        if (row.is_deleted === 1) {
+          return <Badge bg="danger">已刪除</Badge>
+        } else if (value === '上架' || value === 'active') {
           return <Badge bg="success">上架中</Badge>
-        } else if (value === 'inactive') {
+        } else if (value === '下架' || value === 'inactive') {
           return <Badge bg="secondary">已下架</Badge>
         } else if (value === 'out_of_stock') {
           return <Badge bg="danger">缺貨中</Badge>
@@ -263,7 +274,14 @@ export default function ProductsPage() {
   // 處理編輯商品
   const handleEditProduct = (product) => {
     // 設置當前商品和模態框模式
-    setCurrentProduct(product)
+    const productWithCorrectFields = {
+      ...product,
+      product_stock: product.stock, // 確保庫存欄位正確映射
+      product_price: product.price, // 同樣確保價格欄位正確映射
+      product_image: product.main_image, // 確保圖片欄位正確映射
+      product_category: product.category_id, // 確保分類欄位正確映射
+    }
+    setCurrentProduct(productWithCorrectFields)
     setModalMode('edit')
     setShowModal(true)
   }
@@ -289,10 +307,18 @@ export default function ProductsPage() {
             throw new Error('刪除商品失敗')
           }
 
-          // 更新商品列表
+          // 更新全部商品列表 - 刪除的商品應該標記為已刪除，而不是從列表移除
           setProducts(
-            products.filter((p) => p.product_id !== product.product_id)
+            products.map((p) =>
+              p.product_id === product.product_id ? { ...p, is_deleted: 1 } : p
+            )
           )
+
+          // 更新過濾後的商品列表 - 如果用戶選擇不顯示已刪除商品，則需要從列表中移除
+          setFilteredProducts(
+            filteredProducts.filter((p) => p.product_id !== product.product_id)
+          )
+
           showToast(
             'success',
             '刪除成功',
@@ -342,7 +368,13 @@ export default function ProductsPage() {
 
         // 直接將新商品添加到列表中，而不是重新獲取整個列表
         if (result.product) {
-          setProducts((prev) => [result.product, ...prev])
+          const newProduct = result.product
+          setProducts((prev) => [newProduct, ...prev])
+
+          // 如果不是刪除的產品，也添加到過濾列表中
+          if (newProduct.is_deleted !== 1) {
+            setFilteredProducts((prev) => [newProduct, ...prev])
+          }
         } else {
           // 如果 API 沒有返回新商品數據，才重新獲取
           fetchProducts()
@@ -383,6 +415,24 @@ export default function ProductsPage() {
               ? {
                   ...p,
                   ...processedData,
+                  stock: processedData.product_stock, // 映射回stock欄位以便在表格中顯示
+                  price: processedData.product_price, // 映射回price欄位
+                  main_image: processedData.product_image, // 映射回main_image欄位
+                }
+              : p
+          )
+        )
+
+        // 同時更新過濾後的產品列表
+        setFilteredProducts((prev) =>
+          prev.map((p) =>
+            p.product_id === currentProduct.product_id
+              ? {
+                  ...p,
+                  ...processedData,
+                  stock: processedData.product_stock,
+                  price: processedData.product_price,
+                  main_image: processedData.product_image,
                 }
               : p
           )
@@ -535,10 +585,19 @@ export default function ProductsPage() {
 
           // 更新商品列表
           if (succeeded > 0) {
-            // 從列表中移除已刪除的商品
+            // 獲取已刪除的產品ID
             const deletedIds = selectedRows.map((product) => product.product_id)
+
+            // 更新全部商品列表 - 將刪除的商品標記為已刪除，而不是從列表移除
             setProducts(
-              products.filter(
+              products.map((p) =>
+                deletedIds.includes(p.product_id) ? { ...p, is_deleted: 1 } : p
+              )
+            )
+
+            // 更新過濾後的商品列表 - 移除已刪除的商品
+            setFilteredProducts(
+              filteredProducts.filter(
                 (product) => !deletedIds.includes(product.product_id)
               )
             )
@@ -613,7 +672,7 @@ export default function ProductsPage() {
         name: 'product_status',
         label: '商品狀態',
         type: 'select' as const,
-        options: STATUS_OPTIONS,
+        options: STATUS_OPTIONS.filter((option) => option.value !== 'deleted'),
         required: true,
         defaultValue: 'active',
       },
@@ -631,39 +690,49 @@ export default function ProductsPage() {
   const productStats = [
     {
       title: '總商品數',
-      count: products.length,
+      count: products.filter((p) => p.is_deleted !== 1).length,
       color: 'primary',
       icon: <Package size={24} />,
     },
     {
       title: '上架中',
-      count: products.filter((p) => p.product_status === 'active').length,
+      count: products.filter(
+        (p) =>
+          (p.product_status === '上架' || p.product_status === 'active') &&
+          p.is_deleted !== 1
+      ).length,
       color: 'success',
       icon: <Package size={24} />,
     },
     {
       title: '已下架',
-      count: products.filter((p) => p.product_status === 'inactive').length,
+      count: products.filter(
+        (p) =>
+          (p.product_status === '下架' || p.product_status === 'inactive') &&
+          p.is_deleted !== 1
+      ).length,
       color: 'secondary',
       icon: <Package size={24} />,
     },
     {
       title: '缺貨中',
-      count: products.filter((p) => p.product_status === 'out_of_stock').length,
+      count: products.filter(
+        (p) => p.product_status === 'out_of_stock' && p.is_deleted !== 1
+      ).length,
       color: 'danger',
       icon: <Package size={24} />,
+    },
+    {
+      title: '已刪除',
+      count: products.filter((p) => p.is_deleted === 1).length,
+      color: 'dark',
+      icon: <Trash2 size={24} />,
     },
   ]
 
   return (
     <AdminPageLayout
       title="商品管理"
-      description="管理所有商品，包括新增、編輯、刪除商品"
-      breadcrumbs={[
-        { label: '管理區', href: '/admin' },
-        { label: '商城管理', href: '/admin/shop' },
-        { label: '商品管理', href: '/admin/shop/products' },
-      ]}
       actions={
         <Button
           variant="primary"
@@ -676,6 +745,24 @@ export default function ProductsPage() {
       }
       stats={productStats}
     >
+      {/* 管理說明 */}
+      <div className="mb-4">
+        <p>管理所有商品，包括新增、編輯、刪除商品</p>
+        <nav aria-label="breadcrumb">
+          <ol className="breadcrumb">
+            <li className="breadcrumb-item">
+              <a href="/admin">管理區</a>
+            </li>
+            <li className="breadcrumb-item">
+              <a href="/admin/shop">商城管理</a>
+            </li>
+            <li className="breadcrumb-item active" aria-current="page">
+              商品管理
+            </li>
+          </ol>
+        </nav>
+      </div>
+
       <AdminSection title="商品列表">
         <AdminCard>
           {error && (
@@ -727,6 +814,38 @@ export default function ProductsPage() {
             </Alert>
           )}
 
+          {/* 篩選控制 */}
+          <div className="mb-3">
+            <Form>
+              <Form.Group>
+                <Form.Label>顯示商品狀態</Form.Label>
+                <div className="d-flex flex-wrap gap-2">
+                  {STATUS_OPTIONS.map((option) => (
+                    <Form.Check
+                      key={option.value}
+                      type="checkbox"
+                      id={`filter-${option.value}`}
+                      label={option.label}
+                      onChange={(e) => {
+                        if (option.value === 'deleted') {
+                          // 切換是否顯示已刪除商品
+                          if (e.target.checked) {
+                            setFilteredProducts(products)
+                          } else {
+                            setFilteredProducts(
+                              products.filter((p) => p.is_deleted !== 1)
+                            )
+                          }
+                        }
+                      }}
+                      defaultChecked={option.value !== 'deleted'}
+                    />
+                  ))}
+                </div>
+              </Form.Group>
+            </Form>
+          </div>
+
           {loading ? (
             <div className="text-center py-5">
               <div className="spinner-border text-primary" role="status">
@@ -736,7 +855,7 @@ export default function ProductsPage() {
             </div>
           ) : (
             <DataTable
-              data={products}
+              data={filteredProducts}
               columns={columns}
               actions={renderActions}
               itemsPerPage={10}
