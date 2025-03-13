@@ -9,10 +9,12 @@ export default function MemberPage(props) {
   
   return (
     <>
-  <main classname={styles.profile_page}>
-  <header>
-      <img src="./images\member\Frame 312.jpg" 
-      style={{ width: '1340px', height: '600px'}} />
+
+  <header className={styles.header_container}>
+      <img src=".\images\member\memb.jpg"  />
+<div className={styles.text_overlay}>
+  會員中心
+</div>
   </header>
 
 
@@ -104,7 +106,7 @@ export default function MemberPage(props) {
               
 </section>
 </div>
-</main>
+
 
 
     </>
