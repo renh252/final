@@ -104,8 +104,6 @@ export default function PidPage() {
     categories,
   } = data
 
-  /*Number(product.price) * (1 - Number(promotion.discount_percentage))/100 */
-  console.log(Number(product.price) * (1-Number(promotion[0].discount_percentage)/100));
   
   // ------------------------
 
@@ -219,7 +217,7 @@ export default function PidPage() {
               {promotion.length > 0
               ?
                 <>
-                <p className={styles.h3}>${Number(product.price) * (1-Number(promotion[0].discount_percentage)/100)}</p>
+                <p className={styles.h3}>${Number(product.price) * (1-Number(promotion[0]?.discount_percentage)/100)}</p>
                 <p className={styles.p2}>
                   <del>${product.price}</del>
                 </p>

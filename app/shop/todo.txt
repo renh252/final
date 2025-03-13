@@ -7,3 +7,4 @@ C:\Users\USER\ispan\final\app\shop\[pid]\page.js
 商品價格(活動/變體)
 加入購物車功能
 推薦商品(排除自己、新增其他)
+variant可能沒有圖片
