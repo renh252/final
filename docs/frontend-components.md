@@ -126,6 +126,8 @@
 
 後台管理元件位於 `app/admin/_components` 目錄下，這些元件專門用於後台管理系統：
 
+**注意**: 所有後台 API 都位於 `app/api/admin` 目錄下（標準的 Next.js API 路由結構），而不是 `app/admin/api` 目錄。前端元件應使用 `/api/admin/...` 格式的路徑調用這些 API。
+
 ### 佈局元件
 
 - `AdminPageLayout`：後台頁面佈局
@@ -586,3 +588,107 @@ const productStats = [
   },
 ]
 ```
+
+## DataTable 組件最佳實踐
+
+DataTable 是後台管理系統中最常用的組件之一，它提供了資料展示、搜尋、排序、過濾等功能。使用時需要特別注意以下幾點以避免常見的問題：
+
+### 避免無限循環渲染
+
+DataTable 組件內部使用了多個 `useEffect` 鉤子來處理數據過濾、排序和分頁等邏輯。為避免無限循環渲染，請遵循以下原則：
+
+1. **正確使用依賴項**：
+
+   ```jsx
+   // 錯誤示例 - 可能導致無限循環
+   useEffect(() => {
+     // 數據處理邏輯...
+     setFilteredData(result)
+   }, [filteredData]) // 依賴於 filteredData 但又在內部修改它
+
+   // 正確示例
+   useEffect(() => {
+     // 數據處理邏輯...
+     setFilteredData(result)
+   }, [data, searchTerm, filters]) // 只依賴不會在 effect 內部修改的狀態
+   ```
+
+2. **使用 useCallback 和 useMemo**：
+
+   ```jsx
+   // 使用 useCallback 緩存函數
+   const processDataFiltering = useCallback(() => {
+     // 數據處理邏輯...
+   }, [searchTerm, filters, sortKey])
+
+   // 使用 useMemo 計算派生狀態
+   const paginationData = useMemo(() => {
+     const totalPages = Math.ceil(filteredData.length / pageSize)
+     const startIndex = (currentPage - 1) * pageSize
+     const endIndex = Math.min(startIndex + pageSize, filteredData.length)
+     const currentData = filteredData.slice(startIndex, endIndex)
+
+     return { totalPages, startIndex, endIndex, currentData }
+   }, [filteredData, pageSize, currentPage])
+   ```
+
+3. **使用 ref 跟踪數據變化**：
+
+   ```jsx
+   const dataRef = useRef(data)
+
+   useEffect(() => {
+     // 只有當數據真正變化時才處理
+     if (JSON.stringify(dataRef.current) !== JSON.stringify(data)) {
+       dataRef.current = data
+       // 執行數據處理...
+     }
+   }, [data])
+   ```
+
+4. **拆分相互依賴的效果**：
+
+   ```jsx
+   // 處理數據過濾
+   useEffect(() => {
+     processDataFiltering()
+   }, [searchTerm, filters, processDataFiltering])
+
+   // 單獨處理頁碼邏輯
+   useEffect(() => {
+     setCurrentPage(1)
+   }, [searchTerm, filters])
+   ```
+
+### 性能優化建議
+
+1. **避免深比較大型數據**：
+
+   - 不要直接使用 JSON.stringify 比較大型數據集，這會導致性能問題
+   - 考慮使用資料的 ID 或其他唯一標識符進行比較
+
+2. **限制重新渲染範圍**：
+
+   - 使用記憶化技術（useMemo，useCallback）限制重新計算
+   - 考慮將大型表格拆分為更小的組件
+
+3. **虛擬滾動**：
+
+   - 對於大型數據集，考慮使用虛擬滾動技術（例如 react-window 或 react-virtualized）
+   - 這樣只渲染可見的行，大大提高性能
+
+4. **延遲搜索和過濾**：
+   - 對於搜索和過濾操作實施防抖或節流
+   - 避免在每次擊鍵時都重新過濾大型數據集
+
+```jsx
+// 延遲搜索示例
+const debouncedSearchTerm = useDebounce(searchTerm, 300)
+
+useEffect(() => {
+  // 使用 debouncedSearchTerm 而不是 searchTerm 進行過濾
+  // 這樣只有當用戶停止輸入 300ms 後才會觸發過濾
+}, [debouncedSearchTerm])
+```
+
+正確實施這些最佳實踐可以大幅提高 DataTable 組件的性能，並避免常見的無限循環渲染問題。

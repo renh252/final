@@ -196,6 +196,90 @@ CREATE TABLE `posts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ```
 
+### `categories` 表 - 商品分類資訊
+
+```sql
+CREATE TABLE `categories` (
+  `category_id` int NOT NULL AUTO_INCREMENT,
+  `category_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `category_tag` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `category_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `parent_id` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`category_id`),
+  KEY `fk_category_parent` (`parent_id`),
+  CONSTRAINT `fk_category_parent` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`category_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### 欄位說明
+
+| 欄位名稱             | 類型         | 說明      | 可能的值                    |
+| -------------------- | ------------ | --------- | --------------------------- |
+| category_id          | int          | 分類 ID   | 自動遞增                    |
+| category_name        | varchar(255) | 分類名稱  | 必填，如 '寵物飼料(乾糧)'   |
+| category_tag         | varchar(20)  | 分類標籤  | 必填，用於快速識別          |
+| category_description | text         | 分類描述  | 可為 NULL                   |
+| parent_id            | int          | 父分類 ID | 可為 NULL，用於建立分類層級 |
+| created_at           | timestamp    | 創建時間  | 自動生成                    |
+| updated_at           | timestamp    | 更新時間  | 自動更新                    |
+
+### 分類層級結構
+
+1. 主分類（parent_id 為 NULL）：
+
+   - 代表頂層分類，如 '寵物飼料'、'寵物用品'
+   - 作為子分類的父層級
+
+2. 子分類（parent_id 不為 NULL）：
+   - 對應到特定主分類
+   - parent_id 指向父分類的 category_id
+   - 例如：'狗乾糧' 是 '寵物飼料' 的子分類
+
+### 常見查詢模式
+
+```sql
+-- 獲取所有主分類
+SELECT * FROM categories WHERE parent_id IS NULL;
+
+-- 獲取特定主分類的所有子分類
+SELECT * FROM categories WHERE parent_id = ?;
+
+-- 獲取分類及其子分類的商品數量
+SELECT c.category_name,
+       COUNT(p.product_id) as product_count
+FROM categories c
+LEFT JOIN products p ON c.category_id = p.category_id
+GROUP BY c.category_id;
+
+-- 獲取完整的分類層級結構
+SELECT c1.category_name as main_category,
+       c2.category_name as sub_category
+FROM categories c1
+LEFT JOIN categories c2 ON c2.parent_id = c1.category_id
+WHERE c1.parent_id IS NULL;
+```
+
+### 注意事項
+
+1. 分類層級：
+
+   - 目前系統僅支援兩層分類結構（主分類和子分類）
+   - 主分類的 parent_id 必須為 NULL
+   - 子分類必須有對應的 parent_id
+
+2. 資料完整性：
+
+   - 刪除主分類時，相關子分類的 parent_id 會自動設為 NULL
+   - category_id 作為主鍵，確保唯一性
+   - 使用外鍵約束確保資料一致性
+
+3. 使用建議：
+   - 建立新分類時應先確認是否已存在類似分類
+   - 分類名稱應具描述性且易於理解
+   - 建議定期檢查並維護分類結構
+
 ### `products` 表 - 商品資訊
 
 ```sql
@@ -221,23 +305,125 @@ CREATE TABLE `products` (
 
 ```sql
 CREATE TABLE `orders` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `order_id` varchar(20) NOT NULL,
   `user_id` int NOT NULL,
-  `status` enum('pending','processing','shipped','delivered','cancelled') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'pending',
-  `total_amount` decimal(10,2) NOT NULL,
-  `shipping_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `shipping_city` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `shipping_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `shipping_fee` decimal(8,2) DEFAULT '0.00',
-  `payment_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `is_paid` tinyint(1) DEFAULT '0',
-  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `order_status` enum('待出貨','已出貨','已完成','已取消') NOT NULL DEFAULT '待出貨',
+  `payment_method` enum('信用卡','LINE Pay','貨到付款') NOT NULL,
+  `payment_status` enum('未付款','已付款','已退款') NOT NULL DEFAULT '未付款',
+  `recipient_name` varchar(50) NOT NULL,
+  `recipient_email` varchar(100) NOT NULL,
+  `recipient_phone` varchar(20) NOT NULL,
+  `shipping_address` text NOT NULL,
+  `note` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`order_id`),
   KEY `fk_orders_user` (`user_id`),
-  CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+  CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### `order_items` 表 - 訂單項目明細
+
+```sql
+CREATE TABLE `order_items` (
+  `order_item_id` int NOT NULL AUTO_INCREMENT,
+  `order_id` varchar(20) NOT NULL,
+  `product_id` int NOT NULL,
+  `product_name` varchar(255) NOT NULL,
+  `product_image` varchar(255) NOT NULL,
+  `variant` varchar(100),
+  `price` decimal(10,2) NOT NULL,
+  `quantity` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`order_item_id`),
+  KEY `fk_order_items_order` (`order_id`),
+  KEY `fk_order_items_product` (`product_id`),
+  CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### 欄位說明
+
+#### orders 表
+
+| 欄位名稱         | 類型         | 說明         | 可能的值                               |
+| ---------------- | ------------ | ------------ | -------------------------------------- |
+| order_id         | varchar(20)  | 訂單編號     | 必填，格式：ORD + 流水號               |
+| user_id          | int          | 使用者 ID    | 必填，關聯到 users 表                  |
+| order_status     | enum         | 訂單狀態     | '待出貨', '已出貨', '已完成', '已取消' |
+| payment_method   | enum         | 支付方式     | '信用卡', 'LINE Pay', '貨到付款'       |
+| payment_status   | enum         | 付款狀態     | '未付款', '已付款', '已退款'           |
+| recipient_name   | varchar(50)  | 收件人姓名   | 必填                                   |
+| recipient_email  | varchar(100) | 收件人 Email | 必填                                   |
+| recipient_phone  | varchar(20)  | 收件人電話   | 必填                                   |
+| shipping_address | text         | 收件地址     | 必填                                   |
+| note             | text         | 訂單備註     | 可為 NULL                              |
+| created_at       | timestamp    | 建立時間     | 自動生成                               |
+| updated_at       | timestamp    | 更新時間     | 自動更新                               |
+
+#### order_items 表
+
+| 欄位名稱      | 類型          | 說明        | 可能的值                 |
+| ------------- | ------------- | ----------- | ------------------------ |
+| order_item_id | int           | 訂單項目 ID | 自動遞增                 |
+| order_id      | varchar(20)   | 訂單編號    | 必填，關聯到 orders 表   |
+| product_id    | int           | 商品 ID     | 必填，關聯到 products 表 |
+| product_name  | varchar(255)  | 商品名稱    | 必填                     |
+| product_image | varchar(255)  | 商品圖片    | 必填                     |
+| variant       | varchar(100)  | 商品變體    | 可為 NULL                |
+| price         | decimal(10,2) | 商品單價    | 必填                     |
+| quantity      | int           | 購買數量    | 必填                     |
+| created_at    | timestamp     | 建立時間    | 自動生成                 |
+
+### 訂單總金額計算
+
+訂單總金額是根據 `order_items` 表中的商品明細計算得出：
+
+```sql
+SELECT
+  o.order_id,
+  SUM(oi.price * oi.quantity) as total_price
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY o.order_id;
+```
+
+計算邏輯：
+
+1. 每個訂單項目的金額 = 商品單價 × 購買數量
+2. 訂單總金額 = 所有訂單項目的金額總和
+
+注意事項：
+
+1. 訂單總金額不包含運費
+2. 優惠券折扣應在計算總金額後再進行扣除
+3. 所有金額計算都應考慮到可能的 NULL 值，使用 COALESCE 或 IFNULL 函數處理
+
+### 常見查詢模式
+
+```sql
+-- 獲取訂單及其商品明細
+SELECT o.*, oi.*
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+WHERE o.order_id = ?;
+
+-- 獲取訂單總金額
+SELECT
+  o.order_id,
+  SUM(oi.price * oi.quantity) as total_price
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+WHERE o.order_id = ?
+GROUP BY o.order_id;
+
+-- 獲取特定狀態的訂單
+SELECT * FROM orders WHERE order_status = ?;
+
+-- 獲取特定使用者的訂單
+SELECT * FROM orders WHERE user_id = ?;
 ```
 
 ### `donations` 表 - 捐款記錄
@@ -356,9 +542,9 @@ ORDER BY p.created_at DESC;
 -- 獲取訂單詳情和訂單項目
 SELECT o.*, oi.product_id, oi.quantity, oi.price, p.product_name
 FROM orders o
-JOIN order_items oi ON o.id = oi.order_id
+JOIN order_items oi ON o.order_id = oi.order_id
 JOIN products p ON oi.product_id = p.product_id
-WHERE o.user_id = ? AND o.id = ?;
+WHERE o.order_id = ?;
 ```
 
 # 資料庫結構說明
@@ -480,118 +666,3 @@ CREATE TABLE users (
   port: 3306
 }
 ```
-
-### 注意事項
-
-1. 使用環境變數配置敏感資訊
-2. 設置適當的連接池大小
-3. 處理連接錯誤和重試機制
-
-## 查詢最佳實踐
-
-### 1. 使用預處理語句
-
-```typescript
-const query = 'SELECT * FROM users WHERE user_id = ?'
-const results = await executeQuery(query, [id])
-```
-
-### 2. 正確處理 NULL 值
-
-```typescript
-const birthday = row.birthday ? new Date(row.birthday) : null
-```
-
-### 3. 使用適當的索引
-
-- 主鍵索引：user_id, id
-- 唯一索引：user_email, manager_account
-- 普通索引：user_status, user_level
-
-### 4. 日期時間處理
-
-```sql
-DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as formatted_date
-```
-
-### `product_variants` 表 - 商品變體
-
-```sql
-CREATE TABLE `product_variants` (
-  `variant_id` int NOT NULL AUTO_INCREMENT,
-  `product_id` int NOT NULL,
-  `variant_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `price` decimal(10,2) NOT NULL,
-  `stock_quantity` int DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`variant_id`),
-  KEY `fk_variants_product` (`product_id`),
-  CONSTRAINT `fk_variants_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-```
-
-### 欄位說明
-
-#### `products` 表欄位
-
-| 欄位名稱            | 類型          | 說明         | 可能的值               |
-| ------------------- | ------------- | ------------ | ---------------------- |
-| product_id          | int           | 商品 ID      | 自動遞增               |
-| product_name        | varchar(255)  | 商品名稱     | 必填                   |
-| product_description | text          | 商品描述     | 可為 NULL              |
-| category_id         | int           | 分類 ID      | 可為 NULL              |
-| price               | decimal(10,2) | 價格         | 必填                   |
-| stock_quantity      | int           | 庫存數量     | 默認值 0               |
-| image_url           | varchar(255)  | 商品主圖 URL | 可為 NULL              |
-| product_status      | enum          | 商品狀態     | '上架', '下架'         |
-| is_deleted          | tinyint(1)    | 是否刪除     | 0 (未刪除), 1 (已刪除) |
-| created_at          | timestamp     | 創建時間     | 自動生成               |
-| updated_at          | timestamp     | 更新時間     | 自動更新               |
-
-#### `product_variants` 表欄位
-
-| 欄位名稱       | 類型          | 說明         | 可能的值 |
-| -------------- | ------------- | ------------ | -------- |
-| variant_id     | int           | 變體 ID      | 自動遞增 |
-| product_id     | int           | 商品 ID      | 必填     |
-| variant_name   | varchar(255)  | 變體名稱     | 必填     |
-| price          | decimal(10,2) | 變體價格     | 必填     |
-| stock_quantity | int           | 變體庫存數量 | 默認值 0 |
-| created_at     | timestamp     | 創建時間     | 自動生成 |
-| updated_at     | timestamp     | 更新時間     | 自動更新 |
-
-### 常見查詢模式
-
-```sql
--- 獲取所有上架中且未刪除的商品
-SELECT * FROM products WHERE product_status = '上架' AND is_deleted = 0;
-
--- 獲取商品及其變體
-SELECT p.*, v.variant_id, v.variant_name, v.price as variant_price, v.stock_quantity as variant_stock
-FROM products p
-LEFT JOIN product_variants v ON p.product_id = v.product_id
-WHERE p.product_id = ? AND p.is_deleted = 0;
-
--- 更新商品狀態
-UPDATE products SET product_status = '上架' WHERE product_id = ?;
-
--- 軟刪除商品（設置is_deleted為1，而不是實際刪除）
-UPDATE products SET is_deleted = 1 WHERE product_id = ?;
-```
-
-### 注意事項
-
-1. 商品狀態：
-
-   - `product_status` 使用 enum 類型，有 '上架' 和 '下架' 兩種狀態
-   - `is_deleted` 用於軟刪除功能，值為 1 表示已刪除，值為 0 表示未刪除
-
-2. 前端顯示：
-
-   - 前端顯示時將 `product_status` 值 '上架' 映射為 'active'，'下架' 映射為 'inactive'
-   - `is_deleted` 為 1 的商品在前端顯示為 '已刪除' 狀態
-
-3. 商品變體：
-   - 商品變體表使用 `price` 和 `stock_quantity` 字段存儲價格和庫存
-   - 所有價格字段使用 decimal(10,2) 類型確保精確計算

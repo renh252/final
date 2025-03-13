@@ -24,6 +24,7 @@ import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
 import Cookies from 'js-cookie'
+import { fetchApi } from '@/app/admin/_lib/api'
 
 // 寵物類型選項
 const SPECIES_OPTIONS = [
@@ -90,48 +91,27 @@ export default function PetsPage() {
   // 獲取 token
   const getToken = () => Cookies.get('admin_token') || ''
 
-  // 載入寵物資料
-  const fetchPets = useCallback(async () => {
+  // 獲取寵物列表
+  const fetchPets = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('/api/admin/pets', {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          Pragma: 'no-cache',
-          Expires: '0',
-        },
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || `伺服器回應錯誤: ${response.status}`)
+      const response = await fetchApi('/api/admin/pets')
+      if (response.pets && Array.isArray(response.pets)) {
+        setPets(response.pets)
+      } else {
+        console.error('返回的數據格式不正確:', response)
+        showToast('error', '錯誤', '數據格式錯誤')
       }
-
-      const data = await response.json()
-      setPets(data.pets || [])
-
-      // 設置店鋪選項
-      if (data.stores) {
-        setStoreOptions(
-          data.stores.map((store: any) => ({
-            value: store.id,
-            label: store.name,
-          }))
-        )
-      }
-    } catch (error) {
-      console.error('獲取寵物資料時發生錯誤:', error)
-      setError(
-        error instanceof Error ? error.message : '獲取資料失敗，請稍後再試'
-      )
-      // 不顯示 toast，因為已經有錯誤訊息顯示在頁面上
+    } catch (error: any) {
+      console.error('獲取寵物列表時發生錯誤:', error)
+      setError(error.message || '獲取寵物列表失敗')
+      showToast('error', '錯誤', error.message || '獲取寵物列表失敗')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }
 
   useEffect(() => {
     // 只有在嘗試次數小於 3 次時才獲取資料
@@ -329,23 +309,24 @@ export default function PetsPage() {
       message: `確定要刪除寵物「${pet.name}」嗎？此操作無法撤銷。`,
       onConfirm: async () => {
         try {
-          const response = await fetch(`/api/admin/pets/${pet.id}`, {
+          const response = await fetchApi(`/api/admin/pets/${pet.id}`, {
             method: 'DELETE',
-            headers: {
-              Authorization: `Bearer ${getToken()}`,
-            },
           })
 
-          if (!response.ok) {
-            throw new Error('刪除寵物失敗')
+          if (response.success) {
+            // 更新寵物列表
+            setPets(pets.filter((p) => p.id !== pet.id))
+            showToast('success', '刪除成功', `寵物 ${pet.name} 已成功刪除`)
+          } else {
+            throw new Error(response.message || '刪除寵物失敗')
           }
-
-          // 更新寵物列表
-          setPets(pets.filter((p) => p.id !== pet.id))
-          showToast('success', '刪除成功', `寵物 ${pet.name} 已成功刪除`)
-        } catch (error) {
+        } catch (error: any) {
           console.error('刪除寵物時發生錯誤:', error)
-          showToast('error', '刪除失敗', '無法刪除寵物，請稍後再試')
+          showToast(
+            'error',
+            '刪除失敗',
+            error.message || '無法刪除寵物，請稍後再試'
+          )
         }
       },
     })
@@ -359,40 +340,26 @@ export default function PetsPage() {
       if (modalMode === 'add') {
         // 新增寵物
         console.log('執行新增寵物操作')
-        const response = await fetch('/api/admin/pets', {
+        const response = await fetchApi('/api/admin/pets', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getToken()}`,
-          },
           body: JSON.stringify(formData),
         })
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          console.error(
-            '新增寵物失敗，狀態碼:',
-            response.status,
-            '錯誤數據:',
-            errorData
-          )
-          throw new Error(
-            errorData.error || `新增寵物失敗 (${response.status})`
-          )
-        }
+        if (response.success) {
+          console.log('新增寵物成功，結果:', response)
 
-        const result = await response.json()
-        console.log('新增寵物成功，結果:', result)
+          // 直接將新寵物添加到列表中，而不是重新獲取整個列表
+          if (response.pet) {
+            setPets((prev) => [...prev, response.pet])
+          } else {
+            // 如果 API 沒有返回新寵物數據，才重新獲取
+            setFetchAttempt(0) // 重置嘗試次數，觸發重新獲取
+          }
 
-        // 直接將新寵物添加到列表中，而不是重新獲取整個列表
-        if (result.pet) {
-          setPets((prev) => [...prev, result.pet])
+          showToast('success', '新增成功', `寵物 ${formData.name} 已成功新增`)
         } else {
-          // 如果 API 沒有返回新寵物數據，才重新獲取
-          setFetchAttempt(0) // 重置嘗試次數，觸發重新獲取
+          throw new Error(response.message || '新增寵物失敗')
         }
-
-        showToast('success', '新增成功', `寵物 ${formData.name} 已成功新增`)
       } else {
         // 更新寵物
         console.log(`執行更新寵物操作，ID: ${currentPet.id}`)
@@ -414,49 +381,39 @@ export default function PetsPage() {
 
         console.log('處理後的更新數據:', processedData)
 
-        const response = await fetch(`/api/admin/pets/${currentPet.id}`, {
+        const response = await fetchApi(`/api/admin/pets/${currentPet.id}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getToken()}`,
-          },
           body: JSON.stringify(processedData),
         })
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          console.error(
-            '更新寵物失敗，狀態碼:',
-            response.status,
-            '錯誤數據:',
-            errorData
+        if (response.success) {
+          console.log('更新寵物成功，結果:', response)
+
+          // 更新寵物列表
+          setPets((prev) =>
+            prev.map((p) =>
+              p.id === currentPet.id
+                ? {
+                    ...p,
+                    ...processedData,
+                  }
+                : p
+            )
           )
-          throw new Error(
-            errorData.error || `更新寵物失敗 (${response.status})`
+
+          showToast(
+            'success',
+            '更新成功',
+            `寵物 ${formData.name} 資料已成功更新`
           )
+        } else {
+          throw new Error(response.message || '更新寵物失敗')
         }
-
-        const result = await response.json()
-        console.log('更新寵物成功，結果:', result)
-
-        // 更新寵物列表
-        setPets((prev) =>
-          prev.map((p) =>
-            p.id === currentPet.id
-              ? {
-                  ...p,
-                  ...processedData,
-                }
-              : p
-          )
-        )
-
-        showToast('success', '更新成功', `寵物 ${formData.name} 資料已成功更新`)
       }
 
       // 關閉模態框
       setShowModal(false)
-    } catch (error) {
+    } catch (error: any) {
       console.error('提交寵物資料時發生錯誤:', error)
       showToast(
         'error',
@@ -595,45 +552,34 @@ export default function PetsPage() {
   // 處理導出
   const handleExport = async (format: 'csv' | 'excel' | 'json') => {
     try {
-      // 顯示加載中提示
       showToast('info', '導出中', '正在準備導出數據...')
 
-      // 構建導出 URL
-      const exportUrl = `/api/admin/pets/export?format=${format}`
+      const response = await fetchApi(
+        `/api/admin/pets/export?format=${format}`,
+        {
+          method: 'GET',
+        }
+      )
 
-      // 創建一個臨時鏈接並點擊它來下載文件
-      const link = document.createElement('a')
-      link.href = exportUrl
-      link.setAttribute('download', `pets_export.${format}`)
-
-      // 添加 token 到請求頭
-      const token = getToken()
-      fetch(exportUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => response.blob())
-        .then((blob) => {
-          const url = window.URL.createObjectURL(blob)
-          link.href = url
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          window.URL.revokeObjectURL(url)
-          showToast(
-            'success',
-            '導出成功',
-            `已成功導出 ${pets.length} 條寵物記錄`
-          )
-        })
-        .catch((error) => {
-          console.error('導出失敗:', error)
-          showToast('error', '導出失敗', '無法導出數據，請稍後再試')
-        })
-    } catch (error) {
+      if (response.success) {
+        // 創建一個臨時鏈接並點擊它來下載文件
+        const link = document.createElement('a')
+        link.href = response.downloadUrl
+        link.setAttribute('download', `pets_export.${format}`)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        showToast('success', '導出成功', `已成功導出 ${pets.length} 條寵物記錄`)
+      } else {
+        throw new Error(response.message || '導出失敗')
+      }
+    } catch (error: any) {
       console.error('導出時發生錯誤:', error)
-      showToast('error', '導出失敗', '無法導出數據，請稍後再試')
+      showToast(
+        'error',
+        '導出失敗',
+        error.message || '無法導出數據，請稍後再試'
+      )
     }
   }
 
@@ -644,45 +590,26 @@ export default function PetsPage() {
       setImportError(null)
       setImportResult(null)
 
-      // 創建 FormData
       const formData = new FormData()
       formData.append('file', file)
 
-      // 發送請求
-      const response = await fetch('/api/admin/pets/import', {
+      const response = await fetchApi('/api/admin/pets/import', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
         body: formData,
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || '導入失敗')
-      }
-
-      // 設置導入結果
-      setImportResult(result)
-
-      // 如果導入成功，重新獲取寵物列表
-      if (result.success) {
-        showToast('success', '導入成功', result.message)
+      if (response.success) {
+        setImportResult(response)
+        showToast('success', '導入成功', response.message)
         fetchPets()
       } else {
-        setImportError(result.error || '導入過程中發生錯誤')
+        setImportError(response.message || '導入過程中發生錯誤')
+        throw new Error(response.message || '導入失敗')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('導入時發生錯誤:', error)
-      setImportError(
-        error instanceof Error ? error.message : '導入失敗，請稍後再試'
-      )
-      showToast(
-        'error',
-        '導入失敗',
-        error instanceof Error ? error.message : '導入失敗，請稍後再試'
-      )
+      setImportError(error.message || '導入失敗，請稍後再試')
+      showToast('error', '導入失敗', error.message || '導入失敗，請稍後再試')
     } finally {
       setIsImporting(false)
     }
@@ -701,11 +628,8 @@ export default function PetsPage() {
 
           // 創建一個包含所有刪除操作的 Promise 數組
           const deletePromises = selectedRows.map((pet) =>
-            fetch(`/api/admin/pets/${pet.id}`, {
+            fetchApi(`/api/admin/pets/${pet.id}`, {
               method: 'DELETE',
-              headers: {
-                Authorization: `Bearer ${getToken()}`,
-              },
             })
           )
 

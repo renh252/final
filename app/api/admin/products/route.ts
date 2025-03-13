@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         p.price,
         p.product_description,
         p.image_url as main_image,
-        p.stock_quantity as stock,
+        p.stock_quantity,
         p.product_status,
         p.category_id,
         p.created_at,
@@ -31,18 +31,7 @@ export async function GET(request: NextRequest) {
       ORDER BY p.product_id DESC
     `)
 
-    // 處理響應數據，轉換狀態值
-    const processedProducts = products.map((product) => ({
-      ...product,
-      product_status:
-        product.product_status === '上架'
-          ? 'active'
-          : product.product_status === '下架'
-          ? 'inactive'
-          : product.product_status,
-    }))
-
-    return NextResponse.json({ products: processedProducts })
+    return NextResponse.json({ products })
   } catch (error) {
     console.error('獲取商品列表時發生錯誤:', error)
     return NextResponse.json({ error: '獲取商品列表失敗' }, { status: 500 })
@@ -98,7 +87,7 @@ export async function POST(request: NextRequest) {
         data.product_price,
         data.product_description || '',
         data.product_image || '',
-        data.product_stock || 0,
+        data.stock_quantity || 0,
         productStatus,
         data.product_category,
         0, // 新建商品預設為未刪除

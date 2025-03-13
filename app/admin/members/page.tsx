@@ -1,8 +1,17 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { Button, Alert, Badge } from 'react-bootstrap'
-import { Eye, Edit, Trash2, UserX, UserCheck } from 'lucide-react'
+import { Button, Alert, Badge, Form } from 'react-bootstrap'
+import {
+  Eye,
+  Edit,
+  Trash2,
+  UserX,
+  UserCheck,
+  Plus,
+  Download,
+  Upload,
+} from 'lucide-react'
 import DataTable from '../_components/DataTable'
 import type { Column } from '../_components/DataTable'
 import { useToast } from '@/app/admin/_components/Toast'
@@ -12,6 +21,9 @@ import AdminPageLayout, {
   AdminCard,
 } from '@/app/admin/_components/AdminPageLayout'
 import Cookies from 'js-cookie'
+import { fetchApi } from '@/app/admin/_lib/api'
+import ModalForm from '@/app/admin/_components/ModalForm'
+import { useTheme } from '@/app/admin/ThemeContext'
 
 interface Member {
   user_id: number
@@ -54,52 +66,17 @@ const MembersPage = () => {
       setLoading(true)
       setError(null)
 
-      const token = Cookies.get('admin_token')
-      console.log('使用的 token:', token)
-
-      if (!token) {
-        console.error('未找到 token')
-        showToast('error', '錯誤', '請先登入')
-        window.location.href = '/admin/login'
-        return
-      }
-
-      const response = await fetch('/api/admin/members', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          console.error('認證失敗')
-          showToast('error', '錯誤', '認證失敗，請重新登入')
-          window.location.href = '/admin/login'
-          return
-        }
-        if (response.status === 403) {
-          console.error('沒有權限')
-          showToast('error', '錯誤', '沒有權限訪問此資源')
-          return
-        }
-        throw new Error('獲取會員列表失敗')
-      }
-
-      const data = await response.json()
-      console.log('獲取的會員數據:', data)
-
-      if (data.members && Array.isArray(data.members)) {
-        setMembers(data.members)
+      const response = await fetchApi('/api/admin/members')
+      if (response.members && Array.isArray(response.members)) {
+        setMembers(response.members)
       } else {
-        console.error('返回的數據格式不正確:', data)
+        console.error('返回的數據格式不正確:', response)
         showToast('error', '錯誤', '數據格式錯誤')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('獲取會員列表時發生錯誤:', error)
-      setError(error instanceof Error ? error.message : '獲取會員列表失敗')
-      showToast('error', '錯誤', '獲取會員列表失敗')
+      setError(error.message || '獲取會員列表失敗')
+      showToast('error', '錯誤', error.message || '獲取會員列表失敗')
     } finally {
       setLoading(false)
     }
@@ -127,27 +104,31 @@ const MembersPage = () => {
       message: `確定要刪除會員「${member.user_name}」嗎？此操作無法撤銷。`,
       onConfirm: async () => {
         try {
-          const response = await fetch(`/api/admin/members/${member.user_id}`, {
-            method: 'DELETE',
-            headers: {
-              Authorization: `Bearer ${getToken()}`,
-            },
-          })
-
-          if (!response.ok) {
-            throw new Error('刪除會員失敗')
-          }
-
-          // 更新會員列表
-          setMembers(members.filter((m) => m.user_id !== member.user_id))
-          showToast(
-            'success',
-            '刪除成功',
-            `會員 ${member.user_name} 已成功刪除`
+          const response = await fetchApi(
+            `/api/admin/members/${member.user_id}`,
+            {
+              method: 'DELETE',
+            }
           )
-        } catch (error) {
+
+          if (response.success) {
+            // 更新會員列表
+            setMembers(members.filter((m) => m.user_id !== member.user_id))
+            showToast(
+              'success',
+              '刪除成功',
+              `會員 ${member.user_name} 已成功刪除`
+            )
+          } else {
+            throw new Error(response.message || '刪除會員失敗')
+          }
+        } catch (error: any) {
           console.error('刪除會員時發生錯誤:', error)
-          showToast('error', '刪除失敗', '無法刪除會員，請稍後再試')
+          showToast(
+            'error',
+            '刪除失敗',
+            error.message || '無法刪除會員，請稍後再試'
+          )
         }
       },
     })
@@ -163,39 +144,39 @@ const MembersPage = () => {
       message: `確定要${action}會員「${member.user_name}」嗎？`,
       onConfirm: async () => {
         try {
-          const response = await fetch(
+          const response = await fetchApi(
             `/api/admin/members/${member.user_id}/status`,
             {
               method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${getToken()}`,
-              },
               body: JSON.stringify({ status: newStatus }),
             }
           )
 
-          if (!response.ok) {
-            throw new Error(`${action}會員失敗`)
-          }
-
-          // 更新會員列表
-          setMembers(
-            members.map((m) =>
-              m.user_id === member.user_id
-                ? { ...m, user_status: newStatus }
-                : m
+          if (response.success) {
+            // 更新會員列表
+            setMembers(
+              members.map((m) =>
+                m.user_id === member.user_id
+                  ? { ...m, user_status: newStatus }
+                  : m
+              )
             )
-          )
 
-          showToast(
-            'success',
-            `${action}成功`,
-            `會員 ${member.user_name} 已${action}`
-          )
-        } catch (error) {
+            showToast(
+              'success',
+              `${action}成功`,
+              `會員 ${member.user_name} 已${action}`
+            )
+          } else {
+            throw new Error(response.message || `${action}會員失敗`)
+          }
+        } catch (error: any) {
           console.error(`${action}會員時發生錯誤:`, error)
-          showToast('error', `${action}失敗`, `無法${action}會員，請稍後再試`)
+          showToast(
+            'error',
+            `${action}失敗`,
+            error.message || `無法${action}會員，請稍後再試`
+          )
         }
       },
     })
@@ -204,45 +185,38 @@ const MembersPage = () => {
   // 處理導出
   const handleExport = async (format: 'csv' | 'excel' | 'json') => {
     try {
-      // 顯示加載中提示
       showToast('info', '導出中', '正在準備導出數據...')
 
-      // 構建導出 URL
-      const exportUrl = `/api/admin/members/export?format=${format}`
+      const response = await fetchApi(
+        `/api/admin/members/export?format=${format}`,
+        {
+          method: 'GET',
+        }
+      )
 
-      // 創建一個臨時鏈接並點擊它來下載文件
-      const link = document.createElement('a')
-      link.href = exportUrl
-      link.setAttribute('download', `members_export.${format}`)
-
-      // 添加 token 到請求頭
-      const token = getToken()
-      fetch(exportUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => response.blob())
-        .then((blob) => {
-          const url = window.URL.createObjectURL(blob)
-          link.href = url
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          window.URL.revokeObjectURL(url)
-          showToast(
-            'success',
-            '導出成功',
-            `已成功導出 ${members.length} 條會員記錄`
-          )
-        })
-        .catch((error) => {
-          console.error('導出失敗:', error)
-          showToast('error', '導出失敗', '無法導出數據，請稍後再試')
-        })
-    } catch (error) {
+      if (response.success) {
+        // 創建一個臨時鏈接並點擊它來下載文件
+        const link = document.createElement('a')
+        link.href = response.downloadUrl
+        link.setAttribute('download', `members_export.${format}`)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        showToast(
+          'success',
+          '導出成功',
+          `已成功導出 ${members.length} 條會員記錄`
+        )
+      } else {
+        throw new Error(response.message || '導出失敗')
+      }
+    } catch (error: any) {
       console.error('導出時發生錯誤:', error)
-      showToast('error', '導出失敗', '無法導出數據，請稍後再試')
+      showToast(
+        'error',
+        '導出失敗',
+        error.message || '無法導出數據，請稍後再試'
+      )
     }
   }
 
@@ -253,45 +227,26 @@ const MembersPage = () => {
       setImportError(null)
       setImportResult(null)
 
-      // 創建 FormData
       const formData = new FormData()
       formData.append('file', file)
 
-      // 發送請求
-      const response = await fetch('/api/admin/members/import', {
+      const response = await fetchApi('/api/admin/members/import', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
         body: formData,
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || '導入失敗')
-      }
-
-      // 設置導入結果
-      setImportResult(result)
-
-      // 如果導入成功，重新獲取會員列表
-      if (result.success) {
-        showToast('success', '導入成功', result.message)
+      if (response.success) {
+        setImportResult(response)
+        showToast('success', '導入成功', response.message)
         fetchMembers()
       } else {
-        setImportError(result.error || '導入過程中發生錯誤')
+        setImportError(response.message || '導入過程中發生錯誤')
+        throw new Error(response.message || '導入失敗')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('導入時發生錯誤:', error)
-      setImportError(
-        error instanceof Error ? error.message : '導入失敗，請稍後再試'
-      )
-      showToast(
-        'error',
-        '導入失敗',
-        error instanceof Error ? error.message : '導入失敗，請稍後再試'
-      )
+      setImportError(error.message || '導入失敗，請稍後再試')
+      showToast('error', '導入失敗', error.message || '導入失敗，請稍後再試')
     } finally {
       setIsImporting(false)
     }
@@ -310,11 +265,8 @@ const MembersPage = () => {
 
           // 創建一個包含所有刪除操作的 Promise 數組
           const deletePromises = selectedRows.map((member) =>
-            fetch(`/api/admin/members/${member.user_id}`, {
+            fetchApi(`/api/admin/members/${member.user_id}`, {
               method: 'DELETE',
-              headers: {
-                Authorization: `Bearer ${getToken()}`,
-              },
             })
           )
 

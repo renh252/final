@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button, Badge, Form } from 'react-bootstrap'
 import { Plus, Edit, Trash, Tag, FolderTree } from 'lucide-react'
+import { fetchApi } from '@/app/admin/_lib/api'
 import AdminPageLayout, {
   AdminSection,
   AdminCard,
@@ -13,78 +14,22 @@ import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
 
-// 模擬分類數據
-const MOCK_CATEGORIES = [
-  {
-    id: 1,
-    name: '飼料與食品',
-    description: '各種寵物飼料和食品',
-    parent_id: null,
-    product_count: 25,
-    created_at: '2023-01-10',
-  },
-  {
-    id: 2,
-    name: '貓咪飼料',
-    description: '專為貓咪設計的各種飼料',
-    parent_id: 1,
-    product_count: 12,
-    created_at: '2023-01-12',
-  },
-  {
-    id: 3,
-    name: '狗狗飼料',
-    description: '專為狗狗設計的各種飼料',
-    parent_id: 1,
-    product_count: 13,
-    created_at: '2023-01-15',
-  },
-  {
-    id: 4,
-    name: '玩具',
-    description: '各種寵物玩具',
-    parent_id: null,
-    product_count: 18,
-    created_at: '2023-01-20',
-  },
-  {
-    id: 5,
-    name: '貓咪玩具',
-    description: '專為貓咪設計的玩具',
-    parent_id: 4,
-    product_count: 8,
-    created_at: '2023-01-22',
-  },
-  {
-    id: 6,
-    name: '狗狗玩具',
-    description: '專為狗狗設計的玩具',
-    parent_id: 4,
-    product_count: 10,
-    created_at: '2023-01-25',
-  },
-  {
-    id: 7,
-    name: '美容與清潔',
-    description: '寵物美容和清潔用品',
-    parent_id: null,
-    product_count: 15,
-    created_at: '2023-02-01',
-  },
-  {
-    id: 8,
-    name: '配件',
-    description: '各種寵物配件',
-    parent_id: null,
-    product_count: 20,
-    created_at: '2023-02-10',
-  },
-]
+// 分類介面定義
+interface Category {
+  category_id: number
+  category_name: string
+  category_tag: string
+  category_description: string | null
+  parent_id: number | null
+  created_at: string
+  updated_at: string
+  product_count: number
+}
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState(MOCK_CATEGORIES)
+  const [categories, setCategories] = useState<Category[]>([])
   const [showModal, setShowModal] = useState(false)
-  const [currentCategory, setCurrentCategory] = useState<any>(null)
+  const [currentCategory, setCurrentCategory] = useState<Category | null>(null)
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
   const { showToast } = useToast()
   const { confirm } = useConfirm()
@@ -92,9 +37,24 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(false)
 
   // 獲取分類數據
+  const fetchCategories = async () => {
+    try {
+      setLoading(true)
+      const response = await fetchApi('/api/admin/categories')
+      if (response.success) {
+        setCategories(response.data)
+      } else {
+        showToast('error', '獲取分類失敗', response.message)
+      }
+    } catch (error: any) {
+      showToast('error', '獲取分類失敗', error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    // 這裡可以實現從API獲取分類數據的邏輯
-    // 目前使用模擬數據
+    fetchCategories()
   }, [])
 
   // 處理新增分類
@@ -105,117 +65,151 @@ export default function CategoriesPage() {
   }
 
   // 處理編輯分類
-  const handleEditCategory = (category: any) => {
+  const handleEditCategory = (category: Category) => {
     setCurrentCategory(category)
     setModalMode('edit')
     setShowModal(true)
   }
 
   // 處理刪除分類
-  const handleDeleteCategory = (category: any) => {
-    // 檢查是否有子分類
-    const hasChildren = categories.some((c) => c.parent_id === category.id)
+  const handleDeleteCategory = async (category: Category) => {
+    try {
+      const hasChildren = categories.some(
+        (c) => c.parent_id === category.category_id
+      )
+      if (hasChildren) {
+        showToast('error', '無法刪除', '此分類包含子分類，請先刪除子分類')
+        return
+      }
 
-    if (hasChildren) {
-      showToast('error', '無法刪除', '此分類包含子分類，請先刪除子分類')
-      return
+      if (category.product_count > 0) {
+        showToast(
+          'error',
+          '無法刪除',
+          '此分類包含商品，請先移除或更改商品的分類'
+        )
+        return
+      }
+
+      const confirmed = await confirm({
+        title: '刪除分類',
+        message: `確定要刪除分類 ${category.category_name} 嗎？此操作無法撤銷。`,
+        type: 'danger',
+        confirmText: '刪除',
+      })
+
+      if (confirmed) {
+        const response = await fetchApi(
+          `/api/admin/categories/${category.category_id}`,
+          {
+            method: 'DELETE',
+          }
+        )
+
+        if (response.success) {
+          showToast(
+            'success',
+            '刪除成功',
+            `分類 ${category.category_name} 已成功刪除`
+          )
+          fetchCategories()
+        } else {
+          showToast('error', '刪除失敗', response.message)
+        }
+      }
+    } catch (error: any) {
+      showToast('error', '刪除失敗', error.message)
     }
-
-    // 檢查是否有商品
-    if (category.product_count > 0) {
-      showToast('error', '無法刪除', '此分類包含商品，請先移除或更改商品的分類')
-      return
-    }
-
-    confirm({
-      title: '刪除分類',
-      message: `確定要刪除分類 ${category.name} 嗎？此操作無法撤銷。`,
-      type: 'danger',
-      confirmText: '刪除',
-      onConfirm: () => {
-        // 模擬刪除操作
-        setCategories((prev) => prev.filter((c) => c.id !== category.id))
-        showToast('success', '刪除成功', `分類 ${category.name} 已成功刪除`)
-      },
-    })
   }
 
   // 處理表單提交
   const handleSubmit = async (formData: Record<string, any>) => {
-    // 模擬API請求延遲
-    setLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setLoading(false)
+    try {
+      setLoading(true)
 
-    // 檢查循環引用
-    if (formData.parent_id) {
-      // 不能將自己設為父分類
-      if (modalMode === 'edit' && formData.parent_id === currentCategory.id) {
-        showToast('error', '無效的父分類', '不能將自己設為父分類')
-        return
+      // 檢查循環引用
+      if (formData.parent_id) {
+        if (
+          modalMode === 'edit' &&
+          formData.parent_id === currentCategory?.category_id
+        ) {
+          showToast('error', '無效的父分類', '不能將自己設為父分類')
+          return
+        }
+
+        const checkCircular = (parentId: number, targetId: number): boolean => {
+          if (parentId === targetId) return true
+          const children = categories.filter((c) => c.parent_id === parentId)
+          return children.some((child) =>
+            checkCircular(child.category_id, targetId)
+          )
+        }
+
+        if (
+          modalMode === 'edit' &&
+          currentCategory &&
+          checkCircular(currentCategory.category_id, formData.parent_id)
+        ) {
+          showToast('error', '無效的父分類', '不能選擇子分類作為父分類')
+          return
+        }
       }
 
-      // 檢查是否形成循環引用
-      const checkCircular = (parentId: number, targetId: number): boolean => {
-        if (parentId === targetId) return true
+      const apiUrl =
+        modalMode === 'add'
+          ? '/api/admin/categories'
+          : `/api/admin/categories/${currentCategory?.category_id}`
 
-        const children = categories.filter((c) => c.parent_id === parentId)
-        return children.some((child) => checkCircular(child.id, targetId))
-      }
+      const response = await fetchApi(apiUrl, {
+        method: modalMode === 'add' ? 'POST' : 'PUT',
+        body: JSON.stringify({
+          category_name: formData.name,
+          category_tag: formData.name.toLowerCase().replace(/\s+/g, '-'),
+          category_description: formData.description || '',
+          parent_id: formData.parent_id || null,
+        }),
+      })
 
-      if (
-        modalMode === 'edit' &&
-        checkCircular(currentCategory.id, formData.parent_id)
-      ) {
-        showToast('error', '無效的父分類', '不能選擇子分類作為父分類')
-        return
-      }
-    }
-
-    if (modalMode === 'add') {
-      // 模擬新增分類
-      const newCategory = {
-        id: Math.max(...categories.map((c) => c.id)) + 1,
-        name: formData.name,
-        description: formData.description || '',
-        parent_id: formData.parent_id || null,
-        product_count: 0,
-        created_at: new Date().toISOString().split('T')[0],
-      }
-      setCategories((prev) => [...prev, newCategory])
-      showToast('success', '新增成功', `分類 ${formData.name} 已成功新增`)
-    } else {
-      // 模擬更新分類
-      setCategories((prev) =>
-        prev.map((c) =>
-          c.id === currentCategory.id
-            ? {
-                ...c,
-                name: formData.name,
-                description: formData.description || '',
-                parent_id: formData.parent_id || null,
-              }
-            : c
+      if (response.success) {
+        showToast(
+          'success',
+          modalMode === 'add' ? '新增成功' : '更新成功',
+          `分類 ${formData.name} ${
+            modalMode === 'add' ? '已成功新增' : '資料已成功更新'
+          }`
         )
+        setShowModal(false)
+        fetchCategories()
+      } else {
+        showToast(
+          'error',
+          modalMode === 'add' ? '新增失敗' : '更新失敗',
+          response.message
+        )
+      }
+    } catch (error: any) {
+      showToast(
+        'error',
+        modalMode === 'add' ? '新增失敗' : '更新失敗',
+        error.message
       )
-      showToast('success', '更新成功', `分類 ${formData.name} 資料已成功更新`)
+    } finally {
+      setLoading(false)
     }
-
-    setShowModal(false)
   }
 
   // 表格列定義
   const columns = [
-    { key: 'name', label: '分類名稱', sortable: true },
-    { key: 'description', label: '描述', sortable: true },
+    { key: 'category_name', label: '分類名稱', sortable: true },
+    { key: 'category_description', label: '描述', sortable: true },
     {
       key: 'parent_id',
       label: '父分類',
       sortable: true,
       render: (value: number | null) => {
         if (value === null) return <Badge bg="secondary">無</Badge>
-        const parent = categories.find((c) => c.id === value)
-        return parent ? parent.name : <Badge bg="danger">未知</Badge>
+        const parent = categories.find((c) => c.category_id === value)
+        return parent ? parent.category_name : <Badge bg="danger">未知</Badge>
       },
     },
     {
@@ -255,17 +249,24 @@ export default function CategoriesPage() {
       type: 'select' as const,
       options: [
         { value: '', label: '無' },
-        ...categories.map((c) => ({
-          value: c.id,
-          label: c.name,
-        })),
+        ...categories
+          .filter(
+            (c) =>
+              modalMode === 'add' ||
+              (modalMode === 'edit' &&
+                c.category_id !== currentCategory?.category_id)
+          )
+          .map((c) => ({
+            value: c.category_id,
+            label: c.category_name,
+          })),
       ],
       placeholder: '選擇父分類',
     },
   ]
 
   // 渲染操作按鈕
-  const renderActions = (category: any) => (
+  const renderActions = (category: Category) => (
     <div className="d-flex gap-2">
       <Button
         variant="outline-secondary"
@@ -336,7 +337,7 @@ export default function CategoriesPage() {
             data={categories}
             loading={loading}
             searchable={true}
-            searchKeys={['name', 'description']}
+            searchKeys={['category_name', 'category_description']}
             actions={renderActions}
           />
         </AdminCard>
@@ -349,7 +350,15 @@ export default function CategoriesPage() {
         title={modalMode === 'add' ? '新增分類' : '編輯分類'}
         fields={formFields}
         onSubmit={handleSubmit}
-        initialData={currentCategory}
+        initialData={
+          currentCategory
+            ? {
+                name: currentCategory.category_name,
+                description: currentCategory.category_description,
+                parent_id: currentCategory.parent_id,
+              }
+            : undefined
+        }
         submitText={modalMode === 'add' ? '新增' : '更新'}
       />
     </AdminPageLayout>
