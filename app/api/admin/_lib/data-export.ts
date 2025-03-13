@@ -112,11 +112,25 @@ export async function verifyAdmin(request: Request): Promise<{
 
   try {
     const decoded = await verifyToken(token)
-    if (!decoded || decoded.role !== 'admin') {
+    if (!decoded) {
+      return {
+        success: false,
+        response: NextResponse.json({ error: '無效的令牌' }, { status: 401 }),
+      }
+    }
+
+    // 檢查是否為超級管理員
+    if (decoded.privileges === '111') {
+      return { success: true }
+    }
+
+    // 檢查是否有訂單管理權限
+    const adminPrivileges = decoded.privileges.split(',')
+    if (!adminPrivileges.includes('shop')) {
       return {
         success: false,
         response: NextResponse.json(
-          { error: '沒有權限訪問此資源' },
+          { error: '沒有訂單管理權限' },
           { status: 403 }
         ),
       }

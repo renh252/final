@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Button, Badge, Form } from 'react-bootstrap'
+import { Button, Badge, Form, Alert } from 'react-bootstrap'
 import { Eye, FileText, Package, DollarSign, Truck } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import AdminPageLayout, {
@@ -11,23 +11,21 @@ import AdminPageLayout, {
 import DataTable from '@/app/admin/_components/DataTable'
 import { useToast } from '@/app/admin/_components/Toast'
 import { useTheme } from '@/app/admin/ThemeContext'
+import { useAdmin } from '@/app/admin/AdminContext'
+import Cookies from 'js-cookie'
 
 // 訂單狀態選項
 const ORDER_STATUS_OPTIONS = [
-  { value: 'pending', label: '待處理', color: 'warning' },
-  { value: 'processing', label: '處理中', color: 'info' },
-  { value: 'shipped', label: '已出貨', color: 'primary' },
-  { value: 'delivered', label: '已送達', color: 'success' },
-  { value: 'cancelled', label: '已取消', color: 'danger' },
-  { value: 'refunded', label: '已退款', color: 'secondary' },
+  { value: '待出貨', label: '待出貨', color: 'warning' },
+  { value: '已出貨', label: '已出貨', color: 'primary' },
+  { value: '已完成', label: '已完成', color: 'success' },
+  { value: '已取消', label: '已取消', color: 'danger' },
 ]
 
 // 付款狀態選項
 const PAYMENT_STATUS_OPTIONS = [
-  { value: 'pending', label: '待付款', color: 'warning' },
-  { value: 'paid', label: '已付款', color: 'success' },
-  { value: 'failed', label: '付款失敗', color: 'danger' },
-  { value: 'refunded', label: '已退款', color: 'info' },
+  { value: '未付款', label: '未付款', color: 'warning' },
+  { value: '已付款', label: '已付款', color: 'success' },
 ]
 
 // 模擬訂單數據
@@ -85,52 +83,86 @@ const MOCK_ORDERS = [
 ]
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState(MOCK_ORDERS)
-  const [loading, setLoading] = useState(false)
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const { showToast } = useToast()
   const { isDarkMode } = useTheme()
+  const { admin, hasPermission, checkAuth } = useAdmin()
   const router = useRouter()
+
+  // 檢查權限
+  useEffect(() => {
+    const checkAccess = async () => {
+      const isAuthenticated = await checkAuth()
+      if (!isAuthenticated) {
+        router.push('/admin/login')
+        return
+      }
+
+      if (!hasPermission('orders.view')) {
+        showToast('error', '權限不足', '您沒有權限訪問訂單管理頁面')
+        router.push('/admin')
+        return
+      }
+    }
+
+    checkAccess()
+  }, [checkAuth, hasPermission, router, showToast])
 
   // 獲取訂單數據
   useEffect(() => {
-    // 這裡可以實現從API獲取訂單數據的邏輯
-    // 目前使用模擬數據
-  }, [])
+    if (admin && hasPermission('orders.view')) {
+      fetchOrders()
+    }
+  }, [admin, hasPermission])
 
-  // 處理查看訂單詳情
-  const handleViewOrder = (order: any) => {
-    router.push(`/admin/shop/orders/${order.id}`)
-  }
+  const fetchOrders = async () => {
+    try {
+      setLoading(true)
+      setError(null)
 
-  // 處理更新訂單狀態
-  const handleUpdateStatus = (order: any, newStatus: string) => {
-    // 這裡可以實現更新訂單狀態的API調用
-    // 目前使用模擬數據更新
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === order.id ? { ...o, status: newStatus } : o
-      )
-    )
-    
-    const statusLabel = ORDER_STATUS_OPTIONS.find(s => s.value === newStatus)?.label
-    showToast('success', '狀態更新', `訂單 ${order.id} 狀態已更新為 ${statusLabel}`)
+      const token = Cookies.get('admin_token')
+      if (!token) {
+        throw new Error('未登入或登入狀態已過期')
+      }
+
+      const response = await fetch('/api/admin/orders', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '獲取訂單列表失敗')
+      }
+
+      setOrders(data.orders)
+    } catch (err) {
+      console.error('獲取訂單列表失敗:', err)
+      setError(err instanceof Error ? err.message : '獲取訂單列表失敗')
+      showToast('error', '錯誤', '獲取訂單列表失敗，請稍後再試')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // 表格列定義
   const columns = useMemo(
     () => [
-      { key: 'id', label: '訂單編號', sortable: true },
-      { key: 'customer_name', label: '客戶姓名', sortable: true },
-      { key: 'order_date', label: '訂單日期', sortable: true },
-      { 
-        key: 'total_amount', 
-        label: '訂單金額', 
+      { key: 'order_id', label: '訂單編號', sortable: true },
+      { key: 'recipient_name', label: '收件人姓名', sortable: true },
+      { key: 'created_at', label: '訂單日期', sortable: true },
+      {
+        key: 'total_price',
+        label: '訂單金額',
         sortable: true,
-        render: (value: number) => `NT$ ${value.toLocaleString()}`
+        render: (value: number) => `NT$ ${value.toLocaleString()}`,
       },
       { key: 'items_count', label: '商品數量', sortable: true },
       {
-        key: 'status',
+        key: 'order_status',
         label: '訂單狀態',
         sortable: true,
         filterable: true,
@@ -166,20 +198,20 @@ export default function OrdersPage() {
   // 訂單統計數據
   const orderStats = [
     {
-      title: '待處理訂單',
-      count: orders.filter((o) => o.status === 'pending').length,
+      title: '待出貨訂單',
+      count: orders.filter((o) => o.order_status === '待出貨').length,
       color: 'warning',
       icon: <FileText size={24} />,
     },
     {
-      title: '處理中訂單',
-      count: orders.filter((o) => o.status === 'processing').length,
+      title: '已出貨訂單',
+      count: orders.filter((o) => o.order_status === '已出貨').length,
       color: 'info',
       icon: <Package size={24} />,
     },
     {
-      title: '已出貨訂單',
-      count: orders.filter((o) => o.status === 'shipped').length,
+      title: '已完成訂單',
+      count: orders.filter((o) => o.order_status === '已完成').length,
       color: 'primary',
       icon: <Truck size={24} />,
     },
@@ -188,15 +220,73 @@ export default function OrdersPage() {
       count: `NT$ ${orders
         .filter(
           (o) =>
-            new Date(o.order_date).getMonth() === new Date().getMonth() &&
-            o.payment_status === 'paid'
+            new Date(o.created_at).getMonth() === new Date().getMonth() &&
+            o.payment_status === '已付款'
         )
-        .reduce((sum, o) => sum + o.total_amount, 0)
+        .reduce((sum, o) => sum + o.total_price, 0)
         .toLocaleString()}`,
       color: 'success',
       icon: <DollarSign size={24} />,
     },
   ]
+
+  // 處理查看訂單詳情
+  const handleViewOrder = (order: any) => {
+    if (!hasPermission('orders.view')) {
+      showToast('error', '權限不足', '您沒有權限查看訂單詳情')
+      return
+    }
+    router.push(`/admin/shop/orders/${order.order_id}`)
+  }
+
+  // 處理更新訂單狀態
+  const handleUpdateStatus = async (order: any, newStatus: string) => {
+    if (!hasPermission('orders.edit')) {
+      showToast('error', '權限不足', '您沒有權限更新訂單狀態')
+      return
+    }
+
+    try {
+      const token = Cookies.get('admin_token')
+      if (!token) {
+        throw new Error('未登入或登入狀態已過期')
+      }
+
+      const response = await fetch(`/api/admin/orders/${order.order_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ order_status: newStatus }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '更新訂單狀態失敗')
+      }
+
+      // 更新本地狀態
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.order_id === order.order_id ? { ...o, order_status: newStatus } : o
+        )
+      )
+
+      const statusLabel = ORDER_STATUS_OPTIONS.find(
+        (s) => s.value === newStatus
+      )?.label
+      showToast(
+        'success',
+        '狀態更新',
+        `訂單 ${order.order_id} 狀態已更新為 ${statusLabel}`
+      )
+    } catch (err) {
+      console.error('更新訂單狀態失敗:', err)
+      showToast('error', '錯誤', '更新訂單狀態失敗，請稍後再試')
+    }
+  }
 
   // 渲染操作按鈕
   const renderActions = (order: any) => (
@@ -212,7 +302,7 @@ export default function OrdersPage() {
       <Form.Select
         size="sm"
         style={{ width: '120px' }}
-        value={order.status}
+        value={order.order_status}
         onChange={(e) => handleUpdateStatus(order, e.target.value)}
       >
         {ORDER_STATUS_OPTIONS.map((option) => (
@@ -237,16 +327,21 @@ export default function OrdersPage() {
     >
       <AdminSection title="訂單列表">
         <AdminCard>
-          <DataTable
-            columns={columns}
-            data={orders}
-            loading={loading}
-            searchable={true}
-            searchKeys={['id', 'customer_name', 'customer_email']}
-            actions={renderActions}
-            onRowClick={handleViewOrder}
-            advancedFiltering={true}
-          />
+          {error ? (
+            <Alert variant="danger">{error}</Alert>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={orders}
+              loading={loading}
+              searchable={true}
+              searchKeys={['order_id', 'recipient_name', 'recipient_email']}
+              actions={renderActions}
+              onRowClick={handleViewOrder}
+              advancedFiltering={true}
+              isDarkMode={isDarkMode}
+            />
+          )}
         </AdminCard>
       </AdminSection>
     </AdminPageLayout>

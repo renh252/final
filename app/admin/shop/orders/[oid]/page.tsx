@@ -43,8 +43,7 @@ import Cookies from 'js-cookie'
 
 // 訂單狀態定義
 const ORDER_STATUS = {
-  PENDING: { value: '待處理', color: 'warning', icon: <Clock size={16} /> },
-  PROCESSING: { value: '處理中', color: 'info', icon: <Package size={16} /> },
+  PENDING: { value: '待出貨', color: 'warning', icon: <Clock size={16} /> },
   SHIPPED: { value: '已出貨', color: 'primary', icon: <Truck size={16} /> },
   COMPLETED: {
     value: '已完成',
@@ -52,21 +51,14 @@ const ORDER_STATUS = {
     icon: <DollarSign size={16} />,
   },
   CANCELLED: { value: '已取消', color: 'danger', icon: <Clock size={16} /> },
-  REFUNDED: {
-    value: '已退款',
-    color: 'secondary',
-    icon: <DollarSign size={16} />,
-  },
 }
 
 // 訂單狀態流程
 const ORDER_WORKFLOW = {
-  待處理: ['處理中', '已取消'],
-  處理中: ['已出貨', '已取消'],
-  已出貨: ['已完成', '已退款'],
-  已完成: ['已退款'],
+  待出貨: ['已出貨', '已取消'],
+  已出貨: ['已完成', '已取消'],
+  已完成: [],
   已取消: [],
-  已退款: [],
 }
 
 // 支付方式
@@ -103,109 +95,25 @@ export default function OrderDetailPage() {
       setError(null)
 
       const token = Cookies.get('admin_token')
-      if (!token) {
-        setError('未登入或登入狀態已過期')
-        setLoading(false)
-        return
+      const response = await fetch(`/api/admin/orders/${oid}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '獲取訂單詳情失敗')
       }
 
-      // 模擬 API 請求
-      // 實際開發中請替換為真實的 API 呼叫
-      setTimeout(() => {
-        // 模擬訂單資料
-        const mockOrder = {
-          order_id: oid,
-          order_number: `ORD-${oid.padStart(6, '0')}`,
-          order_date: '2023-08-15 14:30:25',
-          order_status: '已出貨',
-          payment_method: 'CREDIT_CARD',
-          payment_status: '已付款',
-          user_id: 1023,
-          user_name: '王小明',
-          user_email: 'wang@example.com',
-          user_phone: '0912-345-678',
-          shipping_address: '台北市信義區松高路123號7樓',
-          billing_address: '台北市信義區松高路123號7樓',
-          subtotal: 2580,
-          shipping_fee: 60,
-          discount: 200,
-          total: 2440,
-          coupon_code: 'SUMMER200',
-          note: '請在下午時段配送，謝謝!',
-          items: [
-            {
-              product_id: 101,
-              product_name: '寵物潔牙骨 - 大型犬專用',
-              variant: '大型包裝',
-              price: 850,
-              quantity: 2,
-              subtotal: 1700,
-              image_url: '/products/dental-bone.jpg',
-            },
-            {
-              product_id: 205,
-              product_name: '貓咪抓板玩具',
-              variant: '標準版',
-              price: 880,
-              quantity: 1,
-              subtotal: 880,
-              image_url: '/products/cat-scratcher.jpg',
-            },
-          ],
-          shipping: {
-            tracking_number: 'TN123456789TW',
-            carrier: '黑貓宅急便',
-            shipped_date: '2023-08-16 10:15:00',
-            estimated_delivery: '2023-08-18',
-          },
-          timeline: [
-            {
-              status: '訂單建立',
-              timestamp: '2023-08-15 14:30:25',
-              user: '系統',
-            },
-            {
-              status: '付款完成',
-              timestamp: '2023-08-15 14:35:12',
-              user: '系統',
-            },
-            {
-              status: '處理中',
-              timestamp: '2023-08-15 16:20:05',
-              user: '管理員 - 陳小姐',
-            },
-            {
-              status: '已出貨',
-              timestamp: '2023-08-16 10:15:00',
-              user: '管理員 - 李先生',
-            },
-          ],
-        }
-
-        // 模擬管理員留言
-        const mockMessages = [
-          {
-            id: 1,
-            content: '客戶要求週六配送，已通知物流',
-            admin_name: '李先生',
-            created_at: '2023-08-15 16:25:10',
-          },
-          {
-            id: 2,
-            content: '已確認付款完成，準備出貨',
-            admin_name: '陳小姐',
-            created_at: '2023-08-15 15:05:22',
-          },
-        ]
-
-        setOrder(mockOrder)
-        setShipping(mockOrder.shipping)
-        setAdminMessages(mockMessages)
-        setLoading(false)
-      }, 800)
+      setOrder(data.order)
+      setShipping(data.shipping)
+      setAdminMessages(data.messages)
     } catch (err) {
       console.error('獲取訂單詳情失敗:', err)
-      setError('獲取訂單詳情失敗，請稍後再試')
+      setError(err instanceof Error ? err.message : '獲取訂單詳情失敗')
+      showToast('error', '錯誤', '獲取訂單詳情失敗，請稍後再試')
+    } finally {
       setLoading(false)
     }
   }
@@ -228,32 +136,31 @@ export default function OrderDetailPage() {
 
       if (!confirmResult) return
 
-      // 這裡應該呼叫真實的 API 更新訂單狀態
-      // 模擬 API 請求和響應
       setLoading(true)
 
-      setTimeout(() => {
-        setOrder({
-          ...order,
-          order_status: newStatus,
-          timeline: [
-            ...order.timeline,
-            {
-              status: newStatus,
-              timestamp: new Date()
-                .toISOString()
-                .replace('T', ' ')
-                .substring(0, 19),
-              user: '管理員 - 目前登入者',
-            },
-          ],
-        })
-        setLoading(false)
-        showToast('success', '操作成功', `訂單狀態已更新為「${newStatus}」`)
-      }, 500)
+      const token = Cookies.get('admin_token')
+      const response = await fetch(`/api/admin/orders/${oid}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '更新訂單狀態失敗')
+      }
+
+      // 重新獲取訂單詳情以更新時間軸
+      await fetchOrderDetails()
+      showToast('success', '操作成功', `訂單狀態已更新為「${newStatus}」`)
     } catch (err) {
       console.error('更新訂單狀態失敗:', err)
       showToast('error', '操作失敗', '更新訂單狀態失敗，請稍後再試')
+    } finally {
       setLoading(false)
     }
   }
@@ -263,23 +170,35 @@ export default function OrderDetailPage() {
     try {
       if (!order) return
 
-      // 這裡應該呼叫真實的 API 更新出貨資訊
-      // 模擬 API 請求和響應
       setLoading(true)
 
-      setTimeout(() => {
-        setOrder({
-          ...order,
-          shipping: {
-            ...shipping,
-          },
-        })
-        setLoading(false)
-        showToast('success', '操作成功', '出貨資訊已更新')
-      }, 500)
+      const token = Cookies.get('admin_token')
+      const response = await fetch(`/api/admin/orders/${oid}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          carrier: shipping.carrier,
+          tracking_number: trackingInput,
+          estimated_delivery: shipping.estimated_delivery,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '更新出貨資訊失敗')
+      }
+
+      // 重新獲取訂單詳情
+      await fetchOrderDetails()
+      showToast('success', '操作成功', '出貨資訊已更新')
     } catch (err) {
       console.error('更新出貨資訊失敗:', err)
       showToast('error', '操作失敗', '更新出貨資訊失敗，請稍後再試')
+    } finally {
       setLoading(false)
     }
   }
@@ -289,29 +208,32 @@ export default function OrderDetailPage() {
     if (!commentInput.trim()) return
 
     try {
-      // 這裡應該呼叫真實的 API 新增留言
-      // 模擬 API 請求和響應
       setLoading(true)
 
-      setTimeout(() => {
-        const newComment = {
-          id: Date.now(),
-          content: commentInput,
-          admin_name: '目前登入者',
-          created_at: new Date()
-            .toISOString()
-            .replace('T', ' ')
-            .substring(0, 19),
-        }
+      const token = Cookies.get('admin_token')
+      const response = await fetch(`/api/admin/orders/${oid}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ content: commentInput }),
+      })
 
-        setAdminMessages([newComment, ...adminMessages])
-        setCommentInput('')
-        setLoading(false)
-        showToast('success', '操作成功', '留言已新增')
-      }, 300)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '新增管理員留言失敗')
+      }
+
+      // 重新獲取訂單詳情
+      await fetchOrderDetails()
+      setCommentInput('')
+      showToast('success', '操作成功', '留言已新增')
     } catch (err) {
-      console.error('新增留言失敗:', err)
-      showToast('error', '操作失敗', '新增留言失敗，請稍後再試')
+      console.error('新增管理員留言失敗:', err)
+      showToast('error', '操作失敗', '新增管理員留言失敗，請稍後再試')
+    } finally {
       setLoading(false)
     }
   }
@@ -344,17 +266,27 @@ export default function OrderDetailPage() {
 
       if (!confirmResult) return
 
-      // 這裡應該呼叫真實的 API 發送郵件
-      // 模擬 API 請求和響應
       setLoading(true)
 
-      setTimeout(() => {
-        setLoading(false)
-        showToast('success', '操作成功', '通知郵件已發送')
-      }, 800)
+      const token = Cookies.get('admin_token')
+      const response = await fetch(`/api/admin/orders/${oid}/notify`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '發送通知郵件失敗')
+      }
+
+      showToast('success', '操作成功', '通知郵件已發送')
     } catch (err) {
       console.error('發送通知郵件失敗:', err)
       showToast('error', '操作失敗', '發送通知郵件失敗，請稍後再試')
+    } finally {
       setLoading(false)
     }
   }
@@ -409,33 +341,28 @@ export default function OrderDetailPage() {
     )
   }
 
-  // 渲染加載中狀態
-  if (loading && !order) {
+  if (loading) {
     return (
       <AdminPageLayout title="訂單詳情">
         <div className="text-center py-5">
           <Spinner animation="border" variant="primary" />
-          <p className="mt-3">載入訂單資料中...</p>
+          <p className="mt-2">載入中...</p>
         </div>
       </AdminPageLayout>
     )
   }
 
-  // 渲染錯誤狀態
-  if (error) {
+  if (error || !order) {
     return (
       <AdminPageLayout title="訂單詳情">
-        <Alert variant="danger">{error}</Alert>
-        <Button variant="secondary" onClick={handleBackToList}>
-          <ArrowLeft size={16} className="me-1" /> 返回訂單列表
-        </Button>
+        <Alert variant="danger">{error || '無法載入訂單資料'}</Alert>
       </AdminPageLayout>
     )
   }
 
   // 渲染主要內容
   return (
-    <AdminPageLayout title={`訂單詳情: ${order?.order_number}`}>
+    <AdminPageLayout title={`訂單詳情: ${order?.order_id}`}>
       {/* 頂部操作按鈕 */}
       <AdminSection>
         <div className="d-flex justify-content-between mb-3">
@@ -471,10 +398,10 @@ export default function OrderDetailPage() {
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <div>
                       <p className="mb-0">
-                        <strong>訂單號:</strong> {order?.order_number}
+                        <strong>訂單編號:</strong> {order?.order_id}
                       </p>
                       <p className="mb-0">
-                        <strong>訂單日期:</strong> {order?.order_date}
+                        <strong>訂單日期:</strong> {order?.created_at}
                       </p>
                       <p className="mb-0">
                         <strong>訂單狀態:</strong>{' '}
@@ -483,7 +410,7 @@ export default function OrderDetailPage() {
                     </div>
                     <div className="text-end">
                       <h5 className="mb-0">
-                        NT$ {order?.total.toLocaleString()}
+                        NT$ {order?.total_price.toLocaleString()}
                       </h5>
                       <p className="text-muted mb-0">
                         {
@@ -515,15 +442,15 @@ export default function OrderDetailPage() {
                   <h5 className="mb-3">客戶資訊</h5>
                   <p className="mb-0">
                     <User size={16} className="me-1" /> <strong>姓名:</strong>{' '}
-                    {order?.user_name}
+                    {order?.recipient_name}
                   </p>
                   <p className="mb-0">
                     <Mail size={16} className="me-1" /> <strong>Email:</strong>{' '}
-                    {order?.user_email}
+                    {order?.recipient_email}
                   </p>
                   <p className="mb-0">
                     <Phone size={16} className="me-1" /> <strong>電話:</strong>{' '}
-                    {order?.user_phone}
+                    {order?.recipient_phone}
                   </p>
                   <div className="mt-3">
                     <h6>
@@ -555,8 +482,8 @@ export default function OrderDetailPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {order?.items.map((item: any) => (
-                          <tr key={`${item.product_id}-${item.variant}`}>
+                        {(order?.items || [])?.map((item: any) => (
+                          <tr key={item.order_item_id}>
                             <td>
                               <div className="d-flex align-items-center">
                                 <div
@@ -564,7 +491,7 @@ export default function OrderDetailPage() {
                                   style={{
                                     width: '40px',
                                     height: '40px',
-                                    backgroundImage: `url('https://via.placeholder.com/80')`,
+                                    backgroundImage: `url('${item.image_url}')`,
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center',
                                     borderRadius: '4px',
@@ -586,7 +513,7 @@ export default function OrderDetailPage() {
                               {item.quantity}
                             </td>
                             <td className="text-end align-middle">
-                              NT$ {item.subtotal.toLocaleString()}
+                              NT$ {Number(item.subtotal).toLocaleString()}
                             </td>
                           </tr>
                         ))}
@@ -597,7 +524,7 @@ export default function OrderDetailPage() {
                             小計:
                           </td>
                           <td className="text-end">
-                            NT$ {order?.subtotal.toLocaleString()}
+                            NT$ {Number(order?.subtotal).toLocaleString()}
                           </td>
                         </tr>
                         <tr>
@@ -605,16 +532,16 @@ export default function OrderDetailPage() {
                             運費:
                           </td>
                           <td className="text-end">
-                            NT$ {order?.shipping_fee.toLocaleString()}
+                            NT$ {Number(order?.shipping_fee).toLocaleString()}
                           </td>
                         </tr>
-                        {order?.discount > 0 && (
+                        {Number(order?.discount) > 0 && (
                           <tr>
                             <td colSpan={2} className="text-end">
                               優惠折抵:
                             </td>
                             <td className="text-end">
-                              -NT$ {order?.discount.toLocaleString()}
+                              -NT$ {Number(order?.discount).toLocaleString()}
                             </td>
                           </tr>
                         )}
@@ -623,7 +550,7 @@ export default function OrderDetailPage() {
                             總計:
                           </td>
                           <td className="text-end fw-bold">
-                            NT$ {order?.total.toLocaleString()}
+                            NT$ {Number(order?.total_price).toLocaleString()}
                           </td>
                         </tr>
                       </tfoot>
@@ -661,7 +588,11 @@ export default function OrderDetailPage() {
                       </div>
 
                       <div className="d-flex gap-2">
-                        <Button variant="outline-primary" size="sm">
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={handleUpdateShipping}
+                        >
                           更新出貨資訊
                         </Button>
                         <Button variant="outline-secondary" size="sm">
@@ -670,43 +601,7 @@ export default function OrderDetailPage() {
                       </div>
                     </>
                   ) : (
-                    <div className="mb-3">
-                      <p className="text-muted mb-3">
-                        此訂單尚未出貨，請更新出貨資訊
-                      </p>
-                      <Form.Group className="mb-3">
-                        <Form.Label>物流公司</Form.Label>
-                        <Form.Select>
-                          <option>請選擇物流公司</option>
-                          <option value="黑貓宅急便">黑貓宅急便</option>
-                          <option value="統一速達">統一速達</option>
-                          <option value="中華郵政">中華郵政</option>
-                        </Form.Select>
-                      </Form.Group>
-
-                      <Form.Group className="mb-3">
-                        <Form.Label>追蹤號碼</Form.Label>
-                        <Form.Control
-                          type="text"
-                          value={trackingInput}
-                          onChange={(e) => setTrackingInput(e.target.value)}
-                          placeholder="輸入追蹤號碼"
-                        />
-                      </Form.Group>
-
-                      <Form.Group className="mb-3">
-                        <Form.Label>預計到貨日期</Form.Label>
-                        <Form.Control type="date" />
-                      </Form.Group>
-
-                      <Button
-                        variant="primary"
-                        onClick={handleUpdateShipping}
-                        disabled={!trackingInput.trim()}
-                      >
-                        <Truck size={16} className="me-1" /> 更新出貨資訊
-                      </Button>
-                    </div>
+                    <p className="text-muted mb-0">尚未填寫出貨資訊</p>
                   )}
                 </AdminCard>
               </Col>
@@ -717,15 +612,21 @@ export default function OrderDetailPage() {
           <Tab eventKey="timeline" title="訂單時間軸">
             <AdminCard>
               <div className="timeline">
-                {order?.timeline.map((event: any, index: number) => (
-                  <div key={index} className="timeline-item">
-                    <div className="timeline-dot"></div>
+                {(order?.timeline || [])?.map((event: any) => (
+                  <div key={event.id} className="timeline-item">
+                    <div className="timeline-date">
+                      {new Date(event.created_at).toLocaleString()}
+                    </div>
                     <div className="timeline-content">
-                      <div className="d-flex justify-content-between">
-                        <h6 className="mb-1">{event.status}</h6>
-                        <span className="text-muted">{event.timestamp}</span>
+                      <div className="d-flex align-items-center mb-1">
+                        <Badge bg="primary" className="me-2">
+                          {event.status}
+                        </Badge>
+                        <small className="text-muted">
+                          操作人: {event.admin_name}
+                        </small>
                       </div>
-                      <p className="mb-0 text-muted">{event.user}</p>
+                      {event.note && <p className="mb-0">{event.note}</p>}
                     </div>
                   </div>
                 ))}
@@ -733,50 +634,42 @@ export default function OrderDetailPage() {
             </AdminCard>
           </Tab>
 
-          {/* 內部備註頁籤 */}
-          <Tab eventKey="notes" title="內部備註">
+          {/* 管理員留言頁籤 */}
+          <Tab eventKey="messages" title="管理員留言">
             <AdminCard>
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label>新增內部備註</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    value={commentInput}
-                    onChange={(e) => setCommentInput(e.target.value)}
-                    placeholder="輸入內部備註（僅管理員可見）"
-                  />
-                </Form.Group>
-                <Button
-                  variant="primary"
-                  onClick={handleAddComment}
-                  disabled={!commentInput.trim() || loading}
-                >
-                  新增備註
-                </Button>
-              </Form>
-
-              <hr />
-
-              <h6>備註歷史</h6>
-              {adminMessages.length > 0 ? (
-                <div className="comments-section">
-                  {adminMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className="comment-item p-3 border rounded mb-2"
+              <div className="mb-3">
+                <Form>
+                  <InputGroup>
+                    <Form.Control
+                      type="text"
+                      placeholder="輸入留言內容..."
+                      value={commentInput}
+                      onChange={(e) => setCommentInput(e.target.value)}
+                    />
+                    <Button
+                      variant="primary"
+                      onClick={handleAddComment}
+                      disabled={!commentInput.trim() || loading}
                     >
-                      <div className="d-flex justify-content-between">
-                        <h6 className="mb-1">{msg.admin_name}</h6>
-                        <small className="text-muted">{msg.created_at}</small>
-                      </div>
-                      <p className="mb-0">{msg.content}</p>
+                      新增留言
+                    </Button>
+                  </InputGroup>
+                </Form>
+              </div>
+
+              <div className="messages">
+                {(adminMessages || []).map((message) => (
+                  <div key={message.id} className="message-item">
+                    <div className="message-header">
+                      <strong>{message.admin_name}</strong>
+                      <small className="text-muted ms-2">
+                        {new Date(message.created_at).toLocaleString()}
+                      </small>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted">暫無內部備註</p>
-              )}
+                    <div className="message-content">{message.content}</div>
+                  </div>
+                ))}
+              </div>
             </AdminCard>
           </Tab>
         </Tabs>
