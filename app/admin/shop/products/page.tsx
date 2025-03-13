@@ -41,6 +41,7 @@ import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
 import Cookies from 'js-cookie'
+import { fetchApi } from '@/app/admin/_lib/api'
 
 // 商品狀態選項
 const STATUS_OPTIONS = [
@@ -80,59 +81,41 @@ export default function ProductsPage() {
   // 獲取 token
   const getToken = () => Cookies.get('admin_token') || ''
 
-  // 載入商品資料
+  // 獲取商品列表
   const fetchProducts = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('/api/admin/products', {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          Pragma: 'no-cache',
-          Expires: '0',
-        },
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || `伺服器回應錯誤: ${response.status}`)
+      const response = await fetchApi('/api/admin/products')
+      if (response.products && Array.isArray(response.products)) {
+        setProducts(response.products)
+      } else {
+        console.error('返回的數據格式不正確:', response)
+        showToast('error', '錯誤', '數據格式錯誤')
       }
-
-      const data = await response.json()
-      setProducts(data.products || [])
-    } catch (error) {
-      console.error('獲取商品資料時發生錯誤:', error)
-      setError(
-        error instanceof Error ? error.message : '獲取資料失敗，請稍後再試'
-      )
+    } catch (error: any) {
+      console.error('獲取商品列表時發生錯誤:', error)
+      setError(error.message || '獲取商品列表失敗')
+      showToast('error', '錯誤', error.message || '獲取商品列表失敗')
     } finally {
       setLoading(false)
     }
   }
 
-  // 載入分類資料
+  // 獲取分類列表
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/admin/products/categories', {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          Pragma: 'no-cache',
-          Expires: '0',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('獲取分類失敗')
+      const response = await fetchApi('/api/admin/products/categories')
+      if (response.categories && Array.isArray(response.categories)) {
+        setCategories(response.categories)
+      } else {
+        console.error('返回的數據格式不正確:', response)
+        showToast('error', '錯誤', '數據格式錯誤')
       }
-
-      const data = await response.json()
-      setCategories(data.categories || [])
-    } catch (error) {
-      console.error('獲取分類資料時發生錯誤:', error)
-      showToast('error', '錯誤', '無法獲取商品分類')
+    } catch (error: any) {
+      console.error('獲取分類列表時發生錯誤:', error)
+      showToast('error', '錯誤', error.message || '獲取分類列表失敗')
     }
   }
 
@@ -183,11 +166,8 @@ export default function ProductsPage() {
 
       if (!confirmResult) return
 
-      const response = await fetch('/api/admin/products/bulk', {
+      const response = await fetchApi('/api/admin/products/bulk', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           action,
           productIds: selectedIds,
@@ -357,7 +337,7 @@ export default function ProductsPage() {
 
       if (!confirmResult) return
 
-      const response = await fetch(`/api/admin/products/${productId}`, {
+      const response = await fetchApi(`/api/admin/products/${productId}`, {
         method: 'DELETE',
       })
 
@@ -451,20 +431,13 @@ export default function ProductsPage() {
 
       if (modalMode === 'add') {
         // 新增商品
-        const response = await fetch('/api/admin/products', {
+        const response = await fetchApi('/api/admin/products', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getToken()}`,
-          },
           body: JSON.stringify(processedData),
         })
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(
-            errorData.error || `新增商品失敗 (${response.status})`
-          )
+        if (!response.success) {
+          throw new Error(response.message || '新增商品失敗')
         }
 
         const result = await response.json()
@@ -485,23 +458,16 @@ export default function ProductsPage() {
         )
       } else {
         // 更新商品
-        const response = await fetch(
+        const response = await fetchApi(
           `/api/admin/products/${currentProduct.product_id}`,
           {
             method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${getToken()}`,
-            },
             body: JSON.stringify(processedData),
           }
         )
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(
-            errorData.error || `更新商品失敗 (${response.status})`
-          )
+        if (!response.success) {
+          throw new Error(response.message || '更新商品失敗')
         }
 
         const result = await response.json()
@@ -541,13 +507,73 @@ export default function ProductsPage() {
   }
 
   // 處理導出
-  const handleExport = async (format: string) => {
-    showToast('error', '錯誤', '導出功能已停用')
+  const handleExport = async (format: 'csv' | 'excel' | 'json') => {
+    try {
+      showToast('info', '導出中', '正在準備導出數據...')
+
+      const response = await fetchApi(
+        `/api/admin/products/export?format=${format}`,
+        {
+          method: 'GET',
+        }
+      )
+
+      if (response.success) {
+        // 創建一個臨時鏈接並點擊它來下載文件
+        const link = document.createElement('a')
+        link.href = response.downloadUrl
+        link.setAttribute('download', `products_export.${format}`)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        showToast(
+          'success',
+          '導出成功',
+          `已成功導出 ${products.length} 條商品記錄`
+        )
+      } else {
+        throw new Error(response.message || '導出失敗')
+      }
+    } catch (error: any) {
+      console.error('導出時發生錯誤:', error)
+      showToast(
+        'error',
+        '導出失敗',
+        error.message || '無法導出數據，請稍後再試'
+      )
+    }
   }
 
   // 處理導入
   const handleImport = async (file: File) => {
-    showToast('error', '錯誤', '導入功能已停用')
+    try {
+      setIsImporting(true)
+      setImportError(null)
+      setImportResult(null)
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetchApi('/api/admin/products/import', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (response.success) {
+        setImportResult(response)
+        showToast('success', '導入成功', response.message)
+        fetchProducts()
+      } else {
+        setImportError(response.message || '導入過程中發生錯誤')
+        throw new Error(response.message || '導入失敗')
+      }
+    } catch (error: any) {
+      console.error('導入時發生錯誤:', error)
+      setImportError(error.message || '導入失敗，請稍後再試')
+      showToast('error', '導入失敗', error.message || '導入失敗，請稍後再試')
+    } finally {
+      setIsImporting(false)
+    }
   }
 
   // 統計數據
@@ -586,23 +612,20 @@ export default function ProductsPage() {
     productId: string,
     status: '上架' | '下架'
   ) => {
-    const response = await fetch(`/api/admin/products/${productId}/status`, {
+    const response = await fetchApi(`/api/admin/products/${productId}/status`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ status }),
     })
-    if (!response.ok) {
+    if (!response.success) {
       throw new Error('更新商品狀態失敗')
     }
   }
 
   const deleteProduct = async (productId: string) => {
-    const response = await fetch(`/api/admin/products/${productId}`, {
+    const response = await fetchApi(`/api/admin/products/${productId}`, {
       method: 'DELETE',
     })
-    if (!response.ok) {
+    if (!response.success) {
       throw new Error('刪除商品失敗')
     }
   }
@@ -772,7 +795,6 @@ export default function ProductsPage() {
       }
       stats={productStats}
     >
-
       <AdminSection title="商品列表">
         <AdminCard>
           {error && (
