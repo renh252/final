@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect ,useRef} from 'react'
+import React, {useRef} from 'react'
 import Link from 'next/link'
 // product_menu
 import ProductMenu from '@/app/shop/_components/productMenu'
