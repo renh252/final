@@ -40,6 +40,7 @@ import AdminPageLayout, {
 import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import Cookies from 'js-cookie'
+import { fetchApi } from '@/app/admin/_lib/api'
 
 // 訂單狀態定義
 const ORDER_STATUS = {
@@ -65,7 +66,6 @@ const ORDER_WORKFLOW = {
 const PAYMENT_METHODS = {
   CREDIT_CARD: '信用卡',
   LINE_PAY: 'LINE Pay',
-  ATOME: 'Atome分期',
   CASH_ON_DELIVERY: '貨到付款',
 }
 
@@ -83,6 +83,27 @@ export default function OrderDetailPage() {
   const [commentInput, setCommentInput] = useState('')
   const [adminMessages, setAdminMessages] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState('details')
+  const [orderItems, setOrderItems] = useState<any[]>([])
+  const [timeline, setTimeline] = useState<any[]>([])
+
+  // 計算訂單總金額
+  const calculateTotalPrice = () => {
+    if (!orderItems || orderItems.length === 0) return 0
+    return orderItems.reduce((sum: number, item: any) => {
+      const itemTotal = (item.price || 0) * (item.quantity || 0)
+      return sum + itemTotal
+    }, 0)
+  }
+
+  // 計算商品小計
+  const calculateItemSubtotal = (item: any) => {
+    return (item.price || 0) * (item.quantity || 0)
+  }
+
+  // 格式化金額
+  const formatPrice = (price: number) => {
+    return price.toLocaleString()
+  }
 
   // 獲取訂單詳情
   useEffect(() => {
@@ -94,21 +115,17 @@ export default function OrderDetailPage() {
       setLoading(true)
       setError(null)
 
-      const token = Cookies.get('admin_token')
-      const response = await fetch(`/api/admin/orders/${oid}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || '獲取訂單詳情失敗')
+      const response = await fetchApi(`/api/admin/orders/${oid}`)
+      if (response.success && response.order) {
+        setOrder(response.order)
+        setOrderItems(response.order.items || [])
+        setShipping(response.shipping || {})
+        setAdminMessages(response.messages || [])
+        setTimeline(response.timeline || [])
+        setTrackingInput(response.shipping?.tracking_number || '')
+      } else {
+        throw new Error(response.message || '獲取訂單詳情失敗')
       }
-
-      setOrder(data.order)
-      setShipping(data.shipping)
-      setAdminMessages(data.messages)
     } catch (err) {
       console.error('獲取訂單詳情失敗:', err)
       setError(err instanceof Error ? err.message : '獲取訂單詳情失敗')
@@ -138,25 +155,18 @@ export default function OrderDetailPage() {
 
       setLoading(true)
 
-      const token = Cookies.get('admin_token')
-      const response = await fetch(`/api/admin/orders/${oid}`, {
+      const response = await fetchApi(`/api/admin/orders/${oid}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ status: newStatus }),
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || '更新訂單狀態失敗')
+      if (response.success) {
+        // 重新獲取訂單詳情以更新時間軸
+        await fetchOrderDetails()
+        showToast('success', '操作成功', `訂單狀態已更新為「${newStatus}」`)
+      } else {
+        throw new Error(response.message || '更新訂單狀態失敗')
       }
-
-      // 重新獲取訂單詳情以更新時間軸
-      await fetchOrderDetails()
-      showToast('success', '操作成功', `訂單狀態已更新為「${newStatus}」`)
     } catch (err) {
       console.error('更新訂單狀態失敗:', err)
       showToast('error', '操作失敗', '更新訂單狀態失敗，請稍後再試')
@@ -172,29 +182,24 @@ export default function OrderDetailPage() {
 
       setLoading(true)
 
-      const token = Cookies.get('admin_token')
-      const response = await fetch(`/api/admin/orders/${oid}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          carrier: shipping.carrier,
-          tracking_number: trackingInput,
-          estimated_delivery: shipping.estimated_delivery,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || '更新出貨資訊失敗')
+      const shippingData = {
+        carrier: shipping?.carrier || '',
+        tracking_number: trackingInput || '',
+        estimated_delivery: shipping?.estimated_delivery || '',
       }
 
-      // 重新獲取訂單詳情
-      await fetchOrderDetails()
-      showToast('success', '操作成功', '出貨資訊已更新')
+      const response = await fetchApi(`/api/admin/orders/${oid}`, {
+        method: 'PATCH',
+        body: JSON.stringify(shippingData),
+      })
+
+      if (response.success) {
+        // 重新獲取訂單詳情
+        await fetchOrderDetails()
+        showToast('success', '操作成功', '出貨資訊已更新')
+      } else {
+        throw new Error(response.message || '更新出貨資訊失敗')
+      }
     } catch (err) {
       console.error('更新出貨資訊失敗:', err)
       showToast('error', '操作失敗', '更新出貨資訊失敗，請稍後再試')
@@ -210,26 +215,19 @@ export default function OrderDetailPage() {
     try {
       setLoading(true)
 
-      const token = Cookies.get('admin_token')
-      const response = await fetch(`/api/admin/orders/${oid}`, {
+      const response = await fetchApi(`/api/admin/orders/${oid}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ content: commentInput }),
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || '新增管理員留言失敗')
+      if (response.success) {
+        // 重新獲取訂單詳情
+        await fetchOrderDetails()
+        setCommentInput('')
+        showToast('success', '操作成功', '留言已新增')
+      } else {
+        throw new Error(response.message || '新增管理員留言失敗')
       }
-
-      // 重新獲取訂單詳情
-      await fetchOrderDetails()
-      setCommentInput('')
-      showToast('success', '操作成功', '留言已新增')
     } catch (err) {
       console.error('新增管理員留言失敗:', err)
       showToast('error', '操作失敗', '新增管理員留言失敗，請稍後再試')
@@ -268,21 +266,15 @@ export default function OrderDetailPage() {
 
       setLoading(true)
 
-      const token = Cookies.get('admin_token')
-      const response = await fetch(`/api/admin/orders/${oid}/notify`, {
+      const response = await fetchApi(`/api/admin/orders/${oid}/notify`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || '發送通知郵件失敗')
+      if (response.success) {
+        showToast('success', '操作成功', '通知郵件已發送')
+      } else {
+        throw new Error(response.message || '發送通知郵件失敗')
       }
-
-      showToast('success', '操作成功', '通知郵件已發送')
     } catch (err) {
       console.error('發送通知郵件失敗:', err)
       showToast('error', '操作失敗', '發送通知郵件失敗，請稍後再試')
@@ -312,7 +304,7 @@ export default function OrderDetailPage() {
   const renderStatusActions = () => {
     if (!order) return null
 
-    const currentStatus = order.order_status
+    const currentStatus = order.order_status || ''
     const availableActions =
       ORDER_WORKFLOW[currentStatus as keyof typeof ORDER_WORKFLOW] || []
 
@@ -341,21 +333,26 @@ export default function OrderDetailPage() {
     )
   }
 
-  if (loading) {
+  // 渲染加載中狀態
+  if (loading && !order) {
     return (
       <AdminPageLayout title="訂單詳情">
         <div className="text-center py-5">
           <Spinner animation="border" variant="primary" />
-          <p className="mt-2">載入中...</p>
+          <p className="mt-3">載入訂單資料中...</p>
         </div>
       </AdminPageLayout>
     )
   }
 
-  if (error || !order) {
+  // 渲染錯誤狀態
+  if (error) {
     return (
       <AdminPageLayout title="訂單詳情">
-        <Alert variant="danger">{error || '無法載入訂單資料'}</Alert>
+        <Alert variant="danger">{error}</Alert>
+        <Button variant="secondary" onClick={handleBackToList}>
+          <ArrowLeft size={16} className="me-1" /> 返回訂單列表
+        </Button>
       </AdminPageLayout>
     )
   }
@@ -410,14 +407,10 @@ export default function OrderDetailPage() {
                     </div>
                     <div className="text-end">
                       <h5 className="mb-0">
-                        NT$ {order?.total_price.toLocaleString()}
+                        NT$ {formatPrice(calculateTotalPrice())}
                       </h5>
                       <p className="text-muted mb-0">
-                        {
-                          PAYMENT_METHODS[
-                            order?.payment_method as keyof typeof PAYMENT_METHODS
-                          ]
-                        }
+                        {order?.payment_method || '未知'}
                       </p>
                       <Badge
                         bg={
@@ -426,7 +419,7 @@ export default function OrderDetailPage() {
                             : 'warning'
                         }
                       >
-                        {order?.payment_status}
+                        {order?.payment_status || '未知'}
                       </Badge>
                     </div>
                   </div>
@@ -482,41 +475,49 @@ export default function OrderDetailPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {(order?.items || [])?.map((item: any) => (
-                          <tr key={item.order_item_id}>
-                            <td>
-                              <div className="d-flex align-items-center">
-                                <div
-                                  className="me-2 product-img-small"
-                                  style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    backgroundImage: `url('${item.image_url}')`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                    borderRadius: '4px',
-                                  }}
-                                ></div>
-                                <div>
-                                  <p className="mb-0 fw-medium">
-                                    {item.product_name}
-                                  </p>
-                                  {item.variant && (
-                                    <small className="text-muted">
-                                      {item.variant}
-                                    </small>
-                                  )}
+                        {orderItems.length > 0 ? (
+                          orderItems.map((item: any) => (
+                            <tr key={item.order_item_id}>
+                              <td>
+                                <div className="d-flex align-items-center">
+                                  <div
+                                    className="me-2 product-img-small"
+                                    style={{
+                                      width: '40px',
+                                      height: '40px',
+                                      backgroundImage: `url('${item.product_image}')`,
+                                      backgroundSize: 'cover',
+                                      backgroundPosition: 'center',
+                                      borderRadius: '4px',
+                                    }}
+                                  ></div>
+                                  <div>
+                                    <p className="mb-0 fw-medium">
+                                      {item.product_name}
+                                    </p>
+                                    {item.variant && (
+                                      <small className="text-muted">
+                                        {item.variant}
+                                      </small>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="text-center align-middle">
-                              {item.quantity}
-                            </td>
-                            <td className="text-end align-middle">
-                              NT$ {Number(item.subtotal).toLocaleString()}
+                              </td>
+                              <td className="text-center align-middle">
+                                {item.quantity}
+                              </td>
+                              <td className="text-end align-middle">
+                                NT$ {formatPrice(calculateItemSubtotal(item))}
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={3} className="text-center">
+                              無商品資料
                             </td>
                           </tr>
-                        ))}
+                        )}
                       </tbody>
                       <tfoot>
                         <tr>
@@ -524,33 +525,21 @@ export default function OrderDetailPage() {
                             小計:
                           </td>
                           <td className="text-end">
-                            NT$ {Number(order?.subtotal).toLocaleString()}
+                            NT$ {formatPrice(calculateTotalPrice())}
                           </td>
                         </tr>
                         <tr>
                           <td colSpan={2} className="text-end">
                             運費:
                           </td>
-                          <td className="text-end">
-                            NT$ {Number(order?.shipping_fee).toLocaleString()}
-                          </td>
+                          <td className="text-end">NT$ 0</td>
                         </tr>
-                        {Number(order?.discount) > 0 && (
-                          <tr>
-                            <td colSpan={2} className="text-end">
-                              優惠折抵:
-                            </td>
-                            <td className="text-end">
-                              -NT$ {Number(order?.discount).toLocaleString()}
-                            </td>
-                          </tr>
-                        )}
                         <tr>
                           <td colSpan={2} className="text-end fw-bold">
                             總計:
                           </td>
                           <td className="text-end fw-bold">
-                            NT$ {Number(order?.total_price).toLocaleString()}
+                            NT$ {formatPrice(calculateTotalPrice())}
                           </td>
                         </tr>
                       </tfoot>
@@ -612,24 +601,28 @@ export default function OrderDetailPage() {
           <Tab eventKey="timeline" title="訂單時間軸">
             <AdminCard>
               <div className="timeline">
-                {(order?.timeline || [])?.map((event: any) => (
-                  <div key={event.id} className="timeline-item">
-                    <div className="timeline-date">
-                      {new Date(event.created_at).toLocaleString()}
-                    </div>
-                    <div className="timeline-content">
-                      <div className="d-flex align-items-center mb-1">
-                        <Badge bg="primary" className="me-2">
-                          {event.status}
-                        </Badge>
-                        <small className="text-muted">
-                          操作人: {event.admin_name}
-                        </small>
+                {timeline.length > 0 ? (
+                  timeline.map((event: any) => (
+                    <div key={event.id} className="timeline-item">
+                      <div className="timeline-date">
+                        {new Date(event.created_at).toLocaleString()}
                       </div>
-                      {event.note && <p className="mb-0">{event.note}</p>}
+                      <div className="timeline-content">
+                        <div className="d-flex align-items-center mb-1">
+                          <Badge bg="primary" className="me-2">
+                            {event.status}
+                          </Badge>
+                          <small className="text-muted">
+                            操作人: {event.admin_name}
+                          </small>
+                        </div>
+                        {event.note && <p className="mb-0">{event.note}</p>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-center text-muted">無時間軸資料</div>
+                )}
               </div>
             </AdminCard>
           </Tab>
@@ -658,17 +651,21 @@ export default function OrderDetailPage() {
               </div>
 
               <div className="messages">
-                {(adminMessages || []).map((message) => (
-                  <div key={message.id} className="message-item">
-                    <div className="message-header">
-                      <strong>{message.admin_name}</strong>
-                      <small className="text-muted ms-2">
-                        {new Date(message.created_at).toLocaleString()}
-                      </small>
+                {adminMessages.length > 0 ? (
+                  adminMessages.map((message) => (
+                    <div key={message.id} className="message-item">
+                      <div className="message-header">
+                        <strong>{message.admin_name}</strong>
+                        <small className="text-muted ms-2">
+                          {new Date(message.created_at).toLocaleString()}
+                        </small>
+                      </div>
+                      <div className="message-content">{message.content}</div>
                     </div>
-                    <div className="message-content">{message.content}</div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-center text-muted">無留言資料</div>
+                )}
               </div>
             </AdminCard>
           </Tab>

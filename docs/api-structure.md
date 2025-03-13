@@ -6,6 +6,49 @@
 
 **注意**: 所有後台 API 都位於 `app/api/admin` 目錄下（標準的 Next.js API 路由結構），而不是 `app/admin/api` 目錄。請確保在開發時使用正確的路徑。
 
+## 前端 API 工具
+
+所有管理頁面都使用 `fetchApi` 工具函數來處理 API 請求。這個函數位於 `app/admin/_lib/api.ts`，提供以下功能：
+
+1. 自動處理認證 token
+2. 統一處理請求頭
+3. 統一錯誤處理
+4. 支援 JSON 和 FormData 格式的請求體
+
+### 使用方式
+
+```typescript
+import { fetchApi } from '@/app/admin/_lib/api'
+
+// GET 請求
+const response = await fetchApi('/api/admin/members')
+
+// POST 請求
+const response = await fetchApi('/api/admin/members', {
+  method: 'POST',
+  body: JSON.stringify(data),
+})
+
+// 上傳文件
+const formData = new FormData()
+formData.append('file', file)
+const response = await fetchApi('/api/admin/members/import', {
+  method: 'POST',
+  body: formData,
+})
+```
+
+### 錯誤處理
+
+`fetchApi` 會自動處理常見的錯誤情況：
+
+1. 認證失敗 (401)
+2. 權限不足 (403)
+3. 請求參數錯誤 (400)
+4. 伺服器錯誤 (500)
+
+所有錯誤都會拋出異常，並包含詳細的錯誤訊息。
+
 ## API 基本結構
 
 API 分為兩個主要部分：
@@ -804,3 +847,110 @@ GET /api/admin/products/export
 #### 響應
 
 文件下載，文件類型取決於請求的 format 參數。
+
+### 訂單 API 響應格式
+
+#### GET /api/admin/shop/orders/:id
+
+```typescript
+interface OrderResponse {
+  success: boolean
+  order: {
+    order_id: string
+    user_id: number
+    order_status: '待出貨' | '已出貨' | '已完成' | '已取消'
+    payment_method: '信用卡' | 'LINE Pay' | '貨到付款'
+    payment_status: '未付款' | '已付款' | '已退款'
+    recipient_name: string
+    recipient_email: string
+    recipient_phone: string
+    shipping_address: string
+    note?: string
+    created_at: string
+    updated_at: string
+    items: Array<{
+      order_item_id: number
+      product_id: number
+      product_name: string
+      product_image: string
+      variant?: string
+      price: number
+      quantity: number
+    }>
+    shipping?: {
+      carrier: string
+      tracking_number: string
+      shipped_date: string
+      estimated_delivery: string
+    }
+    messages: Array<{
+      id: number
+      admin_name: string
+      content: string
+      created_at: string
+    }>
+    timeline: Array<{
+      id: number
+      status: string
+      admin_name: string
+      note?: string
+      created_at: string
+    }>
+  }
+}
+```
+
+#### 訂單總金額計算
+
+訂單總金額是根據訂單項目（items）計算得出：
+
+```typescript
+const calculateTotalPrice = (items: OrderItem[]): number => {
+  if (!items || items.length === 0) return 0
+  return items.reduce((sum, item) => {
+    const itemTotal = (item.price || 0) * (item.quantity || 0)
+    return sum + itemTotal
+  }, 0)
+}
+```
+
+計算邏輯：
+
+1. 每個訂單項目的金額 = 商品單價 × 購買數量
+2. 訂單總金額 = 所有訂單項目的金額總和
+
+注意事項：
+
+1. 訂單總金額不包含運費
+2. 優惠券折扣應在計算總金額後再進行扣除
+3. 所有金額計算都應考慮到可能的 undefined 值，使用空值合併運算符（??）或邏輯或運算符（||）處理
+
+#### 預設值處理
+
+所有 API 響應中的陣列類型欄位都應有預設值：
+
+```typescript
+interface OrderResponse {
+  success: boolean
+  order: {
+    // ... 其他欄位 ...
+    items: OrderItem[] // 預設值：[]
+    shipping?: ShippingInfo // 預設值：{}
+    messages: Message[] // 預設值：[]
+    timeline: Timeline[] // 預設值：[]
+  }
+}
+```
+
+前端處理時應確保：
+
+```typescript
+const {
+  items = [],
+  shipping = {},
+  messages = [],
+  timeline = [],
+} = response.order
+```
+
+這樣可以避免在處理 undefined 或 null 值時出現錯誤。
