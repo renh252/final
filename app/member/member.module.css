@@ -12,305 +12,50 @@
   position:absolute;
 }
 
-.hero_section{width: 100%;
-  height: 850px;
+.hero_section{
+  width: 100%;
+  height: 800px;
   object-fit: cover;
 }
-  
-  .logos_section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 50px;
-    padding-bottom: 50px;
-    width: 100%;
-  }
-  
+
   .logos_grid {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    max-width: 1908px;
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-  
-  .partner_logo {
-    width: 278px;
-    height: 74px;
-  }
-  
-  .partner_logo_wide {
-    width: 228px;
-    height: 86px;
-  }
-  
-  .partner_logo_narrow {
-    width: 167px;
-    height: 86px;
-  }
-  
-  .profile_section {
-    display: flex;
-    justify-content: center;
-    padding: 50px 200px;
-  }
-  
-  .profile_card {
-    background-color: #ffffff;
-    border-radius: 30px;
-    width: 100%;
-    max-width: 1721px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 50px;
-    padding-bottom: 50px;
-    position: relative;
-  }
-  
-  .profile_header {
-    width: 100%;
-    max-width: 1350px;
-    background-color: #593e2f;
-    padding: 10px 268px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .profile_title {
-    color: #f4f0ec;
-    font-size: 40px;
-    font-weight: 400;
-    opacity: 0.54;
-    font-family: Iansui;
-  }
-  
-  .profile_form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 57px;
-    width: 100%;
-    max-width: 1429px;
-    margin-top: 27px;
-    margin-left: -4px;
-  }
-  
-  .form_group {
-    position: relative;
-    width: 679px;
-    height: 98px;
-  }
-  
-  .form_label {
-    position: absolute;
-    left: 0px;
-    top: 18px;
-    font-size: 32px;
-    font-weight: 400;
-    color: #000000;
-  }
-  
-  .form_input {
-    position: absolute;
-    right: 0px;
-    width: 532px;
-    height: 98px;
-    border-radius: 50px;
-    border: 2px solid #bdbdbd;
-  }
-  
-  .address_group {
-    position: relative;
-    width: 100%;
-    max-width: 1271px;
-    height: 220px;
-  }
-  
-  .address_container {
-    position: absolute;
-    left: 277px;
-    top: 0px;
-    width: 994px;
-    height: 98px;
-  }
-  
-  .address_input {
-    position: absolute;
-    right: 40.695px;
-    width: 847px;
-  }
-  
-  .profile_actions {
-    position: absolute;
-    right: 329px;
-    bottom: 69px;
-    width: 288px;
-    height: 96px;
-  }
-  
-  .edit_button_bg {
-    position: absolute;
+    justify-content: space-between;/* 控制按鈕之間的間距 */
+    align-items: center; /* 垂直居中對齊按鈕 */
+    gap: 1px; /* 控制按鈕之間的間隔 */
+    max-width: 1980px;}
+
+  .member_container{
     width: 100%;
     height: 100%;
-    border-radius: 50px;
-    background-color: #003459;
-    left: 98px;
-    top: -70px;
-  }
-  
-  .edit_button {
-    position: absolute;
-    left: 122px;
-    top: -24px;
-    color: #ffffff;
-    font-size: 36px;
-    font-weight: 400;
-    line-height: 15px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-  }
-  
-  .profile_photo {
-    position: absolute;
-    right: 149px;
-    top: 180px;
-    width: 443px;
-    height: 443px;
-    border-radius: 62px 62px 0px 0px;
-    margin-left: -2px;
-  }
-  
-  .profile_nickname {
-    position: absolute;
-    right: 132px;
-    bottom: 526px;
-    color: #000000;
-    font-size: 36px;
-    font-weight: 400;
-    line-height: 15px;
-    font-family: Inter;
-  }
-  
-  .floating_menu {
-    position: fixed;
-    right: 8px;
-    bottom: 475px;
     display: flex;
+    flex-wrap: wrap;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
-    gap: 17px;
-    padding: 8px 6px;
-    width: 92px;
-    height: 197px;
-    border-radius: 44px;
-    background-color: #cda274;
+    margin: 30px auto;
+    padding: 50px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
+    padding: 20px 50px;
   }
-  
-  @media (max-width: 991px) {
-    .profile_section {
-      padding-left: 40px;
-      padding-right: 40px;
-    }
-  
-    .profile_header {
-      padding-left: 40px;
-      padding-right: 40px;
-    }
-  
-    .profile_form {
-      margin-top: 100px;
-    }
-  
-    .form_group {
-      width: 100%;
-    }
-  
-    .form_input {
-      width: 70%;
-    }
-  
-    .address_container {
-      width: 100%;
-      position: relative;
-      left: 0px;
-    }
-  
-    .profile_actions {
-      position: relative;
-      right: 0px;
-      bottom: 0px;
-    }
-  
-    .profile_photo {
-      position: relative;
-      right: 0px;
-      top: 0px;
-    }
-  
-    .profile_nickname {
-      position: relative;
-      right: 0px;
-      bottom: 0px;
-      text-align: center;
-      margin-top: 20px;
-    }
+
+  .profile_section{
+    display: flex;
+    justify-content: space-between; /* 兩個 div 分別靠左和靠右 */
   }
-  
-  @media (max-width: 640px) {
-    .profile_section {
-      padding-left: 20px;
-      padding-right: 20px;
-    }
-  
-    .profile_header {
-      padding-left: 20px;
-      padding-right: 20px;
-    }
-  
-    .profile_form {
-      margin-top: 50px;
-    }
-  
-    .form_group {
-      height: auto;
-    }
-  
-    .form_label {
-      position: relative;
-      top: 0px;
-    }
-  
-    .form_input {
-      width: 100%;
-      position: relative;
-      margin-top: 10px;
-    }
-  
-    .address_input {
-      width: 100%;
-      position: relative;
-      right: 0px;
-    }
-  
-    .edit_button {
-      text-align: center;
-      width: 100%;
-      left: 0px;
-    }
-  
-    .profile_photo {
-      width: 100%;
-      height: auto;
-    }
-  
-    .floating_menu {
-      display: none;
-    }
+
+  .profile_photos{
+    width: 50%; 
+    padding: 20px;
   }
-  
+
+  .profile_content{
+    width: 50%;
+    padding: 20px;
+  }
+
+  .edit_but{
+    position:relative;
+    left: 400px;  /* 設定按鈕為 absolute 以便定位 */        /* 距離右邊 10px */
+    bottom: -100px;        /* 距離下方 10px */
+  }
