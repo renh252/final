@@ -24,7 +24,7 @@ export async function GET(
         p.price,
         p.product_description,
         p.image_url as main_image,
-        p.stock_quantity as stock,
+        p.stock_quantity,
         p.product_status,
         p.category_id,
         p.created_at,
@@ -39,17 +39,6 @@ export async function GET(
 
     if (!product || product.length === 0) {
       return NextResponse.json({ error: '商品不存在' }, { status: 404 })
-    }
-
-    // 處理響應數據，轉換狀態值
-    const processedProduct = {
-      ...product[0],
-      product_status:
-        product[0].product_status === '上架'
-          ? 'active'
-          : product[0].product_status === '下架'
-          ? 'inactive'
-          : product[0].product_status,
     }
 
     // 獲取商品變體
@@ -82,7 +71,7 @@ export async function GET(
 
     return NextResponse.json({
       product: {
-        ...processedProduct,
+        ...product[0],
         variants,
         images,
         reviews,
@@ -128,6 +117,17 @@ export async function PUT(
         : data.product_status
 
     // 更新商品基本信息
+    const updateData = {
+      product_name: data.product_name,
+      product_description: data.product_description,
+      category_id: data.category_id,
+      price: data.product_price,
+      stock_quantity: data.stock_quantity,
+      product_status: productStatus,
+      image_url: data.product_image,
+      updated_at: new Date(),
+    }
+
     await executeQuery(
       `UPDATE products SET
         product_name = ?,
@@ -140,13 +140,13 @@ export async function PUT(
         updated_at = NOW()
       WHERE product_id = ?`,
       [
-        data.product_name,
-        data.product_price,
-        data.product_description,
-        data.product_image,
-        data.product_stock,
-        productStatus,
-        data.product_category,
+        updateData.product_name,
+        updateData.price,
+        updateData.product_description,
+        updateData.image_url,
+        updateData.stock_quantity,
+        updateData.product_status,
+        updateData.category_id,
         productId,
       ]
     )

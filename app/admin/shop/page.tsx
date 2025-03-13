@@ -109,7 +109,13 @@ export default function ShopDashboardPage() {
                 }`}
               >
                 <Card.Body>
-                  <h6 className="text-muted">{stat.title}</h6>
+                  <h6
+                    className={`${
+                      isDarkMode ? 'text-light opacity-75' : 'text-muted'
+                    }`}
+                  >
+                    {stat.title}
+                  </h6>
                   <h3>{stat.value}</h3>
                   <div
                     className={`small ${
@@ -145,14 +151,26 @@ export default function ShopDashboardPage() {
                     </div>
                     <h5 className="mb-0">{module.title}</h5>
                   </div>
-                  <p className="text-muted">{module.description}</p>
+                  <p
+                    className={`${
+                      isDarkMode ? 'text-light opacity-75' : 'text-muted'
+                    }`}
+                  >
+                    {module.description}
+                  </p>
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
-                      <small className="text-muted">{module.count}</small>
+                      <small
+                        className={`${
+                          isDarkMode ? 'text-light opacity-75' : 'text-muted'
+                        }`}
+                      >
+                        {module.count}
+                      </small>
                       <h6 className="mb-0">{module.value}</h6>
                     </div>
                     <Button
-                      variant="outline-primary"
+                      variant={isDarkMode ? 'outline-light' : 'outline-primary'}
                       onClick={() => navigateTo(module.path)}
                     >
                       進入管理

@@ -505,3 +505,13 @@ FACEBOOK_APP_SECRET=your_facebook_app_secret
 LINE_CLIENT_ID=your_line_client_id
 LINE_CLIENT_SECRET=your_line_client_secret
 ```
+
+## API 結構
+
+API 分為前台和後台兩部分，採用 RESTful 架構風格設計。
+
+### 後台 API
+
+**注意**: 所有後台 API 都位於 `app/api/admin` 目錄下（標準的 Next.js API 路由結構），而不是 `app/admin/api` 目錄。請始終使用 `/api/admin/...` 路徑格式。
+
+範例後台 API 端點：

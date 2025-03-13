@@ -189,3 +189,85 @@
 後台管理系統通過 API 與資料庫進行交互，主要使用 MySQL 資料庫。資料庫連接和查詢邏輯位於 `app/api/admin/_lib/database.ts` 文件中，提供了 `executeQuery` 函數用於執行 SQL 查詢。
 
 資料庫結構的詳細信息可以參考 `docs/database-structure.md` 文件。
+
+## API 路由
+
+後台 API 路由位於 `app/api/admin` 目錄下，而不是 `app/admin/api`。所有與後台功能相關的 API 都應該放在這個目錄下。
+
+請注意，使用標準的 Next.js API 路由結構是最佳實踐，因此我們將所有 API 整合到 `app/api/admin` 中。
+
+### API 路由結構
+
+```
+app/
+  api/
+    admin/
+      auth/
+        login/
+          route.ts
+        logout/
+          route.ts
+        verify/
+          route.ts
+      pets/
+        route.ts
+        [id]/
+          route.ts
+        photos/
+          route.ts
+        import/
+          route.ts
+        export/
+          route.ts
+      products/
+        route.ts
+        [id]/
+          route.ts
+        import/
+          route.ts
+        export/
+          route.ts
+      members/
+        route.ts
+        [id]/
+          route.ts
+        import/
+          route.ts
+        export/
+          route.ts
+      _lib/
+        database.ts
+        jwt.ts
+        auth.ts
+        pet-database.ts
+        member-database.ts
+        data-import.ts
+        data-export.ts
+```
+
+### API 使用示例
+
+```typescript
+// 使用 API 的示例（前端代碼）
+const login = async (account: string, password: string) => {
+  const response = await fetch('/api/admin/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ account, password }),
+  })
+  return await response.json()
+}
+
+// 獲取寵物列表
+const getPets = async () => {
+  const response = await fetch('/api/admin/pets', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  return await response.json()
+}
+```

@@ -71,6 +71,13 @@ export default function Sidebar({ collapsed = false, onToggle }) {
       label: '商城管理',
       path: '/admin/shop',
       requiredPrivilege: 'shop',
+      subItems: [
+        { label: '商城概覽', path: '/admin/shop' },
+        { label: '商品管理', path: '/admin/shop/products' },
+        { label: '訂單管理', path: '/admin/shop/orders' },
+        { label: '商品分類', path: '/admin/shop/categories' },
+        { label: '優惠券管理', path: '/admin/shop/coupons' },
+      ],
     },
     {
       icon: <PawPrint size={20} color={getIconColor()} />,
@@ -95,10 +102,11 @@ export default function Sidebar({ collapsed = false, onToggle }) {
       path: '/admin/finance',
       requiredPrivilege: 'donation',
       subItems: [
-        { label: '財務概覽', path: '/admin/finance/dashboard' },
-        { label: '交易記錄', path: '/admin/finance/transactions' },
+        { label: '金流概覽', path: '/admin/finance' },
+        { label: '財務儀表板', path: '/admin/finance/dashboard' },
+        { label: '交易管理', path: '/admin/finance/transactions' },
         { label: '捐款記錄', path: '/admin/finance/transactions/donations' },
-        { label: '支付管理', path: '/admin/finance/payments' },
+        { label: '支付設定', path: '/admin/finance/payments' },
       ],
     },
     {

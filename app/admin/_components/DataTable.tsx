@@ -23,6 +23,7 @@ import {
   Edit,
   FileText,
 } from 'lucide-react'
+import { useTheme } from '@/app/admin/ThemeContext'
 
 export interface Column {
   key: string
@@ -75,17 +76,117 @@ const DataTable = ({
   onImport,
   advancedFiltering = false,
 }: DataTableProps) => {
+  const { isDarkMode } = useTheme()
   const [sortKey, setSortKey] = useState<string>('')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [filteredData, setFilteredData] = useState(data)
+  const [filteredData, setFilteredData] = useState<any[]>([])
   const [pageSize, setPageSize] = useState(itemsPerPage)
   const [selectedRows, setSelectedRows] = useState<any[]>([])
   const [selectAll, setSelectAll] = useState(false)
   const [filters, setFilters] = useState<Record<string, any>>({})
   const [showFilters, setShowFilters] = useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  const dataRef = React.useRef(data)
+
+  useEffect(() => {
+    if (JSON.stringify(dataRef.current) !== JSON.stringify(data)) {
+      dataRef.current = data
+      setSelectedRows([])
+      setSelectAll(false)
+      processDataFiltering()
+    }
+  }, [data])
+
+  const processDataFiltering = React.useCallback(() => {
+    let result = [...dataRef.current]
+
+    if (searchTerm.trim()) {
+      const keys =
+        searchKeys.length > 0 ? searchKeys : columns.map((col) => col.key)
+
+      result = result.filter((item) => {
+        return keys.some((key) => {
+          const value = item[key]
+          if (value === null || value === undefined) return false
+          return String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        })
+      })
+    }
+
+    if (Object.keys(filters).length > 0) {
+      result = result.filter((item) => {
+        return Object.entries(filters).every(([key, value]) => {
+          if (!value || value === 'all') return true
+          return String(item[key]) === String(value)
+        })
+      })
+    }
+
+    if (sortKey) {
+      result = [...result].sort((a, b) => {
+        const aValue = a[sortKey]
+        const bValue = b[sortKey]
+
+        if (aValue === bValue) return 0
+
+        if (aValue === null || aValue === undefined)
+          return sortDirection === 'asc' ? -1 : 1
+        if (bValue === null || bValue === undefined)
+          return sortDirection === 'asc' ? 1 : -1
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === 'asc'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue)
+        }
+
+        return sortDirection === 'asc'
+          ? aValue > bValue
+            ? 1
+            : -1
+          : aValue > bValue
+          ? -1
+          : 1
+      })
+    }
+
+    setFilteredData(result)
+  }, [searchTerm, columns, searchKeys, filters, sortKey, sortDirection])
+
+  useEffect(() => {
+    processDataFiltering()
+    setCurrentPage(1)
+  }, [searchTerm, filters, sortKey, sortDirection])
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredData.length / pageSize))
+    if (currentPage > maxPage && maxPage > 0 && filteredData.length > 0) {
+      setCurrentPage(maxPage)
+    }
+  }, [filteredData.length, pageSize])
+
+  const paginationData = React.useMemo(() => {
+    const totalPages = Math.ceil(filteredData.length / pageSize)
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = Math.min(startIndex + pageSize, filteredData.length)
+    const currentData = filteredData.slice(startIndex, endIndex)
+
+    return {
+      totalPages,
+      startIndex,
+      endIndex,
+      currentData,
+    }
+  }, [filteredData, pageSize, currentPage])
+
+  useEffect(() => {
+    if (filteredData.length === 0 && data.length > 0) {
+      setFilteredData(data)
+    }
+  }, [])
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -96,74 +197,6 @@ const DataTable = ({
     }
   }
 
-  useEffect(() => {
-    let filtered = [...data]
-
-    if (searchTerm.trim()) {
-      const keys =
-        searchKeys.length > 0 ? searchKeys : columns.map((col) => col.key)
-
-      filtered = filtered.filter((item) => {
-        return keys.some((key) => {
-          const value = item[key]
-          if (value === null || value === undefined) return false
-          return String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        })
-      })
-    }
-
-    if (Object.keys(filters).length > 0) {
-      filtered = filtered.filter((item) => {
-        return Object.entries(filters).every(([key, value]) => {
-          if (!value || value === 'all') return true
-          return String(item[key]) === String(value)
-        })
-      })
-    }
-
-    setFilteredData(filtered)
-    setCurrentPage(1)
-  }, [searchTerm, data, columns, searchKeys, filters])
-
-  useEffect(() => {
-    const maxPage = Math.max(1, Math.ceil(filteredData.length / pageSize))
-    if (currentPage > maxPage) {
-      setCurrentPage(maxPage)
-    }
-  }, [filteredData, pageSize, currentPage])
-
-  useEffect(() => {
-    if (!sortKey) return
-
-    const sorted = [...filteredData].sort((a, b) => {
-      const aValue = a[sortKey]
-      const bValue = b[sortKey]
-
-      if (aValue === bValue) return 0
-
-      if (aValue === null || aValue === undefined)
-        return sortDirection === 'asc' ? -1 : 1
-      if (bValue === null || bValue === undefined)
-        return sortDirection === 'asc' ? 1 : -1
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue)
-      }
-
-      return sortDirection === 'asc'
-        ? aValue > bValue
-          ? 1
-          : -1
-        : aValue > bValue
-        ? -1
-        : 1
-    })
-
-    setFilteredData(sorted)
-  }, [sortKey, sortDirection])
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
   }
@@ -173,16 +206,11 @@ const DataTable = ({
     setCurrentPage(1)
   }
 
-  const totalPages = Math.ceil(filteredData.length / pageSize)
-  const startIndex = (currentPage - 1) * pageSize
-  const endIndex = Math.min(startIndex + pageSize, filteredData.length)
-  const currentData = filteredData.slice(startIndex, endIndex)
-
   const handleSelectAll = () => {
     if (selectAll) {
       setSelectedRows([])
     } else {
-      setSelectedRows([...currentData])
+      setSelectedRows([...paginationData.currentData])
     }
     setSelectAll(!selectAll)
   }
@@ -219,12 +247,15 @@ const DataTable = ({
   }
 
   const renderPagination = () => {
-    if (totalPages <= 1) return null
+    if (paginationData.totalPages <= 1) return null
 
     const pageItems = []
     const maxPageItems = 5
     let startPage = Math.max(1, currentPage - Math.floor(maxPageItems / 2))
-    let endPage = Math.min(totalPages, startPage + maxPageItems - 1)
+    let endPage = Math.min(
+      paginationData.totalPages,
+      startPage + maxPageItems - 1
+    )
 
     if (endPage - startPage + 1 < maxPageItems) {
       startPage = Math.max(1, endPage - maxPageItems + 1)
@@ -235,6 +266,7 @@ const DataTable = ({
         key="first"
         onClick={() => handlePageChange(1)}
         disabled={currentPage === 1}
+        className={isDarkMode ? 'bg-dark border-secondary' : ''}
       />
     )
 
@@ -243,6 +275,7 @@ const DataTable = ({
         key="prev"
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
+        className={isDarkMode ? 'bg-dark border-secondary' : ''}
       />
     )
 
@@ -252,6 +285,9 @@ const DataTable = ({
           key={i}
           active={i === currentPage}
           onClick={() => handlePageChange(i)}
+          className={
+            isDarkMode && i !== currentPage ? 'bg-dark border-secondary' : ''
+          }
         >
           {i}
         </Pagination.Item>
@@ -262,19 +298,25 @@ const DataTable = ({
       <Pagination.Next
         key="next"
         onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        disabled={currentPage === paginationData.totalPages}
+        className={isDarkMode ? 'bg-dark border-secondary' : ''}
       />
     )
 
     pageItems.push(
       <Pagination.Last
         key="last"
-        onClick={() => handlePageChange(totalPages)}
-        disabled={currentPage === totalPages}
+        onClick={() => handlePageChange(paginationData.totalPages)}
+        disabled={currentPage === paginationData.totalPages}
+        className={isDarkMode ? 'bg-dark border-secondary' : ''}
       />
     )
 
-    return <Pagination className="mb-0">{pageItems}</Pagination>
+    return (
+      <Pagination className={`mb-0 ${isDarkMode ? 'pagination-dark' : ''}`}>
+        {pageItems}
+      </Pagination>
+    )
   }
 
   const renderTableHeader = () => (
@@ -285,6 +327,15 @@ const DataTable = ({
             <div
               className="d-flex align-items-center justify-content-center cursor-pointer"
               onClick={handleSelectAll}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handleSelectAll()
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={selectAll ? '取消全選' : '全選'}
             >
               {selectAll ? (
                 <CheckSquare size={18} className="text-primary" />
@@ -297,7 +348,9 @@ const DataTable = ({
         {columns.map((column) => (
           <th
             key={column.key}
-            className={column.sortable ? 'sortable' : ''}
+            className={`${column.sortable ? 'sortable' : ''} ${
+              isDarkMode ? 'text-light' : ''
+            }`}
             onClick={() => column.sortable && handleSort(column.key)}
           >
             <div className="d-flex align-items-center">
@@ -309,6 +362,8 @@ const DataTable = ({
                     className={
                       sortKey === column.key && sortDirection === 'asc'
                         ? 'text-primary'
+                        : isDarkMode
+                        ? 'text-light opacity-50'
                         : 'text-muted'
                     }
                   />
@@ -317,6 +372,8 @@ const DataTable = ({
                     className={
                       sortKey === column.key && sortDirection === 'desc'
                         ? 'text-primary'
+                        : isDarkMode
+                        ? 'text-light opacity-50'
                         : 'text-muted'
                     }
                     style={{ marginTop: '-4px' }}
@@ -326,7 +383,9 @@ const DataTable = ({
             </div>
           </th>
         ))}
-        {actions && <th className="text-end">操作</th>}
+        {actions && (
+          <th className={`text-end ${isDarkMode ? 'text-light' : ''}`}>操作</th>
+        )}
       </tr>
       {showFilters && (
         <tr className="filter-row">
@@ -339,6 +398,9 @@ const DataTable = ({
                   value={filters[column.key] || ''}
                   onChange={(e) =>
                     handleFilterChange(column.key, e.target.value)
+                  }
+                  className={
+                    isDarkMode ? 'bg-dark border-secondary text-light' : ''
                   }
                 >
                   <option value="">全部</option>
@@ -376,7 +438,7 @@ const DataTable = ({
       )
     }
 
-    if (currentData.length === 0) {
+    if (paginationData.currentData.length === 0) {
       return (
         <tbody>
           <tr>
@@ -395,7 +457,7 @@ const DataTable = ({
 
     return (
       <tbody>
-        {currentData.map((row, index) => (
+        {paginationData.currentData.map((row, index) => (
           <tr
             key={index}
             className={onRowClick ? 'cursor-pointer' : ''}
@@ -425,10 +487,14 @@ const DataTable = ({
               </td>
             ))}
             {actions && (
-              <td className="text-end">
+              <td className={`text-end ${isDarkMode ? 'text-light' : ''}`}>
                 <div
                   onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
                   className="d-flex justify-content-end"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="操作按鈕"
                 >
                   {actions(row)}
                 </div>
@@ -446,7 +512,11 @@ const DataTable = ({
         {searchable && (
           <div className="me-3 mb-2 mb-md-0">
             <div className="input-group">
-              <span className="input-group-text">
+              <span
+                className={`input-group-text ${
+                  isDarkMode ? 'bg-dark border-secondary text-light' : ''
+                }`}
+              >
                 <Search size={16} />
               </span>
               <Form.Control
@@ -454,11 +524,15 @@ const DataTable = ({
                 placeholder="搜尋..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className={
+                  isDarkMode ? 'bg-dark border-secondary text-light' : ''
+                }
               />
               {searchTerm && (
                 <Button
-                  variant="outline-secondary"
+                  variant={isDarkMode ? 'dark' : 'outline-secondary'}
                   onClick={() => setSearchTerm('')}
+                  className={isDarkMode ? 'border-secondary' : ''}
                 >
                   清除
                 </Button>
@@ -469,8 +543,16 @@ const DataTable = ({
 
         {advancedFiltering && (
           <Button
-            variant={showFilters ? 'primary' : 'outline-secondary'}
-            className="me-2 mb-2 mb-md-0 d-flex align-items-center"
+            variant={
+              showFilters
+                ? 'primary'
+                : isDarkMode
+                ? 'dark'
+                : 'outline-secondary'
+            }
+            className={`me-2 mb-2 mb-md-0 d-flex align-items-center ${
+              isDarkMode ? 'border-secondary' : ''
+            }`}
             onClick={() => setShowFilters(!showFilters)}
           >
             <Filter size={16} className="me-1" />
@@ -485,8 +567,10 @@ const DataTable = ({
 
         {Object.keys(filters).length > 0 && (
           <Button
-            variant="outline-danger"
-            className="me-2 mb-2 mb-md-0"
+            variant={isDarkMode ? 'dark' : 'outline-danger'}
+            className={`me-2 mb-2 mb-md-0 ${
+              isDarkMode ? 'border-danger text-danger' : ''
+            }`}
             onClick={clearFilters}
           >
             清除篩選
@@ -497,12 +581,16 @@ const DataTable = ({
       <div className="d-flex flex-wrap align-items-center">
         {selectable && selectedRows.length > 0 && (
           <div className="me-3 mb-2 mb-md-0">
-            <span className="me-2">已選擇 {selectedRows.length} 項</span>
+            <span className={`me-2 text-${isDarkMode ? 'light' : 'muted'}`}>
+              已選擇 {selectedRows.length} 項
+            </span>
             {batchActions.map((action, index) => (
               <Button
                 key={index}
-                variant={action.variant || 'outline-primary'}
-                className="me-2"
+                variant={
+                  action.variant || (isDarkMode ? 'dark' : 'outline-primary')
+                }
+                className={`me-2 ${isDarkMode ? 'border-primary' : ''}`}
                 onClick={() => action.onClick(selectedRows)}
               >
                 {action.icon && <span className="me-1">{action.icon}</span>}
@@ -514,11 +602,15 @@ const DataTable = ({
 
         {exportable && (
           <Dropdown className="me-2 mb-2 mb-md-0">
-            <Dropdown.Toggle variant="outline-success" id="dropdown-export">
+            <Dropdown.Toggle
+              variant={isDarkMode ? 'dark' : 'outline-success'}
+              id="dropdown-export"
+              className={isDarkMode ? 'border-success text-success' : ''}
+            >
               <Download size={16} className="me-1" />
               導出
             </Dropdown.Toggle>
-            <Dropdown.Menu>
+            <Dropdown.Menu className={isDarkMode ? 'dropdown-menu-dark' : ''}>
               <Dropdown.Item onClick={() => onExport && onExport('csv')}>
                 CSV 格式
               </Dropdown.Item>
@@ -535,8 +627,10 @@ const DataTable = ({
         {importable && (
           <>
             <Button
-              variant="outline-primary"
-              className="me-2 mb-2 mb-md-0"
+              variant={isDarkMode ? 'dark' : 'outline-primary'}
+              className={`me-2 mb-2 mb-md-0 ${
+                isDarkMode ? 'border-primary text-primary' : ''
+              }`}
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload size={16} className="me-1" />
@@ -557,7 +651,9 @@ const DataTable = ({
             size="sm"
             value={pageSize}
             onChange={handlePageSizeChange}
-            className="me-2"
+            className={`me-2 ${
+              isDarkMode ? 'bg-dark border-secondary text-light' : ''
+            }`}
             style={{ width: 'auto' }}
           >
             {pageSizeOptions.map((size) => (
@@ -566,8 +662,9 @@ const DataTable = ({
               </option>
             ))}
           </Form.Select>
-          <span className="text-muted">
-            顯示 {startIndex + 1}-{endIndex} 筆，共 {filteredData.length} 筆
+          <span className={`text-${isDarkMode ? 'light' : 'muted'}`}>
+            顯示 {paginationData.startIndex + 1}-{paginationData.endIndex}{' '}
+            筆，共 {filteredData.length} 筆
           </span>
         </div>
       </div>
@@ -575,11 +672,11 @@ const DataTable = ({
   )
 
   return (
-    <div className="data-table-container">
+    <div className={`data-table-container ${isDarkMode ? 'table-dark' : ''}`}>
       {renderToolbar()}
 
       <div className="table-responsive">
-        <Table hover>
+        <Table hover variant={isDarkMode ? 'dark' : undefined}>
           {renderTableHeader()}
           {renderTableBody()}
         </Table>
@@ -588,8 +685,9 @@ const DataTable = ({
       <div className="d-flex justify-content-between align-items-center mt-3">
         <div>
           {filteredData.length > 0 && (
-            <span className="text-muted">
-              顯示 {startIndex + 1}-{endIndex} 筆，共 {filteredData.length} 筆
+            <span className={`text-${isDarkMode ? 'light' : 'muted'}`}>
+              顯示 {paginationData.startIndex + 1}-{paginationData.endIndex}{' '}
+              筆，共 {filteredData.length} 筆
             </span>
           )}
         </div>
