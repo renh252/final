@@ -1,26 +1,32 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 
-export default function ECPayResult() {
-  const [message, setMessage] = useState('處理中...')
-  const router = useRouter()
+export default function PaymentResultPage() {
+  const [paymentStatus, setPaymentStatus] = useState('loading')
 
   useEffect(() => {
-    async function checkPaymentResult() {
-      const response = await fetch('/api/ecpay/result', { method: 'POST' })
-      const data = await response.json()
-      setMessage(data.success ? '付款成功！' : '付款失敗')
-    }
+    try {
+      const urlParams = new URLSearchParams(window.location.search)
+      const status = urlParams.get('status')
 
-    checkPaymentResult()
+      if (status) {
+        setPaymentStatus(status)
+      } else {
+        setPaymentStatus('failed') // 如果找不到狀態參數，設為失敗
+      }
+    } catch (error) {
+      console.error('Error parsing URL parameters:', error)
+      setPaymentStatus('failed') // 如果出現錯誤，顯示失敗
+    }
   }, [])
 
   return (
     <div>
-      <h1>{message}</h1>
-      <button onClick={() => router.push('/')}>回到首頁</button>
+      <h1>Payment Result</h1>
+      {paymentStatus === 'loading' && <p>Loading...</p>}
+      {paymentStatus === 'success' && <p>Payment Successful!</p>}
+      {paymentStatus === 'failed' && <p>Payment Failed.</p>}
     </div>
   )
 }
