@@ -22,14 +22,15 @@ export async function POST(req) {
   const TotalAmount = Number(amount) // 總金額
   const TradeDesc = '商店線上付款' // 訂單描述
   const ItemName = itemName // 商品名稱
-  const ReturnURL = 'https://www.ecpay.com.tw'
+  const ReturnURL =
+    'https://08be-122-121-210-118.ngrok-free.app/api/ecpay/notify'
   const OrderResultURL =
-    ' https://f675-122-121-210-118.ngrok-free.app/donate/flow/result' // 完成支付後回來的頁面
+    'https://08be-122-121-210-118.ngrok-free.app/donate/flow/result' // 完成支付後回來的頁面
 
   const stage = isStage ? '-stage' : ''
   const algorithm = 'sha256'
   const digest = 'hex'
-  const APIURL = `https://payment${stage}.ecpay.com.tw//Cashier/AioCheckOut/V5`
+  const APIURL = `https://payment${stage}.ecpay.com.tw/Cashier/AioCheckOut/V5`
 
   const MerchantTradeNo = `od${new Date().getFullYear()}${(
     new Date().getMonth() + 1
