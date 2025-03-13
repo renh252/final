@@ -1,6 +1,6 @@
 /* 全域 */
 /* icon_line.js */
-.line{
+.line,.line_lg{
   width: 100%;
   display: flex;
   flex-direction: row;
@@ -11,7 +11,34 @@
     padding: 0;
     margin: 0;
   }
-}/* computer */
+}
+.line_lg{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  .imgs{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    svg{
+      width: 30px;
+      height: 30px;
+      transform: rotate(22deg);
+      color: rgba(199, 150, 80, 1);
+    }
+  }
+  p{
+    font-size: 36px;
+    text-shadow: #000 1px 0px 1px;
+    text-wrap: nowrap;
+  }
+}
+/* computer */
 @media screen and (min-width: 1081px) {
 
   /* icon_line.js */
@@ -24,6 +51,7 @@
     }
     img{
       display: none;
+      
     }
   }
   
