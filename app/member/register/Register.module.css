@@ -1,0 +1,48 @@
+/* 將樣式應用到 Google 和 Facebook 按鈕 */
+.google_btn {
+  background-color: #4285F4;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.facebook_btn {
+  background-color: #3b5998;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* 為註冊表單添加一些基本樣式 */
+.register_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.register_form {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  padding: 20px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.social_signup {
+  margin-top: 20px;
+}
+
+button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+}

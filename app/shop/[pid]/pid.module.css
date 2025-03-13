@@ -1,0 +1,56 @@
+.main{
+
+}
+.group{
+
+}
+.h3{
+  font-size: 24px;
+  margin: 0;
+  padding: 0;
+}
+
+.imgContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1/1;
+  border-radius: 12px;
+  overflow: hidden;
+  img {
+    object-fit: cover;
+    display: block;
+    transition: transform 0.1s ease; 
+    
+  }
+}
+.row{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  >div{
+    width: 40%;
+    
+  }
+}
+.productType{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items:flex-start;
+}
+.iconGroup{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  .comment{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    padding: 5px 8px;
+    border-radius: 8px;
+  }
+}
