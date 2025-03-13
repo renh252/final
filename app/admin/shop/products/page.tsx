@@ -1,7 +1,19 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
-import { Button, Form, Badge, Image, Alert } from 'react-bootstrap'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
+import {
+  Button,
+  Form,
+  Badge,
+  Image,
+  Alert,
+  Stack,
+  Row,
+  Col,
+  InputGroup,
+  OverlayTrigger,
+  Tooltip,
+} from 'react-bootstrap'
 import {
   Plus,
   Edit,
@@ -11,6 +23,12 @@ import {
   Download,
   Upload,
   Trash2,
+  Search,
+  Filter,
+  AlertTriangle,
+  Archive,
+  ArrowUpCircle,
+  ArrowDownCircle,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import AdminPageLayout, {
@@ -32,10 +50,15 @@ const STATUS_OPTIONS = [
   { value: 'deleted', label: '已刪除' },
 ]
 
+// 商品狀態定義
+const PRODUCT_STATUS = {
+  上架: { color: 'success', label: '上架中' },
+  下架: { color: 'secondary', label: '已下架' },
+}
+
 export default function ProductsPage() {
-  const [products, setProducts] = useState([])
-  const [filteredProducts, setFilteredProducts] = useState([])
-  const [categories, setCategories] = useState([])
+  const [products, setProducts] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
   const [showModal, setShowModal] = useState(false)
   const [currentProduct, setCurrentProduct] = useState<any>(null)
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
@@ -43,13 +66,16 @@ export default function ProductsPage() {
   const { confirm } = useConfirm()
   const { isDarkMode } = useTheme()
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fetchAttempt, setFetchAttempt] = useState(0)
   const [selectedProducts, setSelectedProducts] = useState<any[]>([])
-  const [isImporting, setIsImporting] = useState(false)
-  const [importError, setImportError] = useState<string | null>(null)
-  const [importResult, setImportResult] = useState<any | null>(null)
+  const [filters, setFilters] = useState({
+    keyword: '',
+    category: '',
+    status: '',
+    stockWarning: false,
+  })
 
   // 獲取 token
   const getToken = () => Cookies.get('admin_token') || ''
@@ -76,12 +102,6 @@ export default function ProductsPage() {
 
       const data = await response.json()
       setProducts(data.products || [])
-
-      // 過濾出未刪除的商品作為預設顯示
-      const nonDeletedProducts = (data.products || []).filter(
-        (p) => p.is_deleted !== 1
-      )
-      setFilteredProducts(nonDeletedProducts)
     } catch (error) {
       console.error('獲取商品資料時發生錯誤:', error)
       setError(
@@ -131,206 +151,233 @@ export default function ProductsPage() {
     setFetchAttempt(0) // 重置嘗試次數
   }
 
-  // 商品表格列定義
+  // 處理批量操作
+  const handleBulkAction = async (action: string, selectedIds: number[]) => {
+    if (!selectedIds.length) {
+      showToast('error', '操作失敗', '請先選擇商品')
+      return
+    }
+
+    const actionMap = {
+      publish: '上架',
+      unpublish: '下架',
+      delete: '刪除',
+    }
+
+    try {
+      const confirmResult = await new Promise<boolean>((resolve) => {
+        confirm({
+          title: `確認${actionMap[action as keyof typeof actionMap]}`,
+          message: `確定要${
+            actionMap[action as keyof typeof actionMap]
+          }所選商品嗎？`,
+          confirmText: '確認',
+          cancelText: '取消',
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false),
+        })
+      })
+
+      if (!confirmResult) return
+
+      const response = await fetch('/api/admin/products/bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action,
+          productIds: selectedIds,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        showToast('success', '操作成功', data.message)
+        fetchProducts()
+      } else {
+        showToast('error', '操作失敗', data.message)
+      }
+    } catch (error) {
+      console.error('批量操作失敗:', error)
+      showToast('error', '操作失敗', '批量操作失敗，請稍後再試')
+    }
+  }
+
+  // 表格列定義
   const columns = [
     {
-      key: 'product_id',
-      label: 'ID',
-      sortable: true,
-    },
-    {
-      key: 'product_image',
-      label: '圖片',
-      render: (value, row) => (
-        <Image
-          src={row.main_image || '/images/default_product.jpg'}
-          alt="商品照片"
-          width={50}
-          height={50}
-          className="rounded"
-        />
-      ),
-    },
-    {
       key: 'product_name',
-      label: '名稱',
+      label: '商品名稱',
       sortable: true,
     },
     {
       key: 'category_name',
       label: '分類',
       sortable: true,
-      filterable: true,
-      filterOptions: categories.map((c) => ({
-        value: c.category_name,
-        label: c.category_name,
-      })),
     },
     {
       key: 'price',
       label: '價格',
       sortable: true,
-      render: (value) => `NT$ ${value || 0}`,
+      render: (value: number) => `NT$ ${value.toLocaleString()}`,
     },
     {
-      key: 'stock',
+      key: 'stock_quantity',
       label: '庫存',
       sortable: true,
-      render: (value) => value || 0,
+      render: (value: number) => (
+        <div className="d-flex align-items-center">
+          {value}
+          {value < 30 && (
+            <OverlayTrigger
+              placement="top"
+              overlay={<Tooltip>庫存過低</Tooltip>}
+            >
+              <AlertTriangle size={16} className="ms-2 text-warning" />
+            </OverlayTrigger>
+          )}
+        </div>
+      ),
     },
     {
       key: 'product_status',
       label: '狀態',
       sortable: true,
-      filterable: true,
-      filterOptions: STATUS_OPTIONS,
-      render: (value, row) => {
-        if (row.is_deleted === 1) {
-          return <Badge bg="danger">已刪除</Badge>
-        } else if (value === '上架' || value === 'active') {
-          return <Badge bg="success">上架中</Badge>
-        } else if (value === '下架' || value === 'inactive') {
-          return <Badge bg="secondary">已下架</Badge>
-        } else if (value === 'out_of_stock') {
-          return <Badge bg="danger">缺貨中</Badge>
-        }
-        return <Badge bg="light">未知</Badge>
-      },
-    },
-    {
-      key: 'created_at',
-      label: '新增日期',
-      sortable: true,
-      render: (value) => {
-        if (!value) return '-'
-        try {
-          // 將 UTC 日期轉換為 GMT+8 (台灣時間)
-          const date = new Date(value)
-
-          // 使用 toLocaleString 方法，指定台灣時區和格式
-          return date.toLocaleString('zh-TW', {
-            timeZone: 'Asia/Taipei',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          })
-        } catch (error) {
-          console.error('日期格式轉換錯誤:', error)
-          return value
-        }
-      },
+      render: (value: string) => (
+        <Badge bg={value === '上架' ? 'success' : 'secondary'}>
+          {value === '上架' ? '上架中' : '已下架'}
+        </Badge>
+      ),
     },
   ]
 
-  // 渲染操作按鈕
-  const renderActions = (product) => (
-    <div className="d-flex gap-2">
+  const renderActions = (row: any) => (
+    <div className="d-flex gap-2 justify-content-end">
       <Button
         variant="outline-primary"
         size="sm"
-        onClick={(e) => {
-          e.stopPropagation()
-          router.push(`/admin/shop/products/${product.product_id}`)
-        }}
-        title="查看詳情"
-      >
-        <Eye size={16} />
-      </Button>
-      <Button
-        variant="outline-secondary"
-        size="sm"
-        onClick={(e) => {
-          e.stopPropagation()
-          handleEditProduct(product)
-        }}
-        title="編輯商品"
+        onClick={() => router.push(`/admin/shop/products/${row.id}`)}
       >
         <Edit size={16} />
       </Button>
       <Button
         variant="outline-danger"
         size="sm"
-        onClick={(e) => {
-          e.stopPropagation()
-          handleDeleteProduct(product)
+        onClick={async () => {
+          const confirmResult = await new Promise<boolean>((resolve) => {
+            confirm({
+              title: '確認刪除',
+              message: '確定要刪除此商品嗎？此操作不可恢復！',
+              confirmText: '確定',
+              cancelText: '取消',
+              type: 'danger',
+              onConfirm: () => resolve(true),
+              onCancel: () => resolve(false),
+            })
+          })
+
+          if (confirmResult) {
+            try {
+              await deleteProduct(row.id)
+              showToast('success', '成功', '刪除商品成功')
+              fetchProducts()
+            } catch (error) {
+              showToast('error', '錯誤', '刪除商品失敗')
+            }
+          }
         }}
-        title="刪除商品"
       >
-        <Trash size={16} />
+        <Trash2 size={16} />
       </Button>
     </div>
   )
 
-  // 處理新增商品
-  const handleAddProduct = () => {
-    setCurrentProduct(null)
-    setModalMode('add')
-    setShowModal(true)
+  // 處理篩選
+  const handleFilterChange = (field: string, value: any) => {
+    setFilters((prev) => ({ ...prev, [field]: value }))
   }
 
-  // 處理編輯商品
-  const handleEditProduct = (product) => {
-    // 設置當前商品和模態框模式
-    const productWithCorrectFields = {
-      ...product,
-      product_stock: product.stock, // 確保庫存欄位正確映射
-      product_price: product.price, // 同樣確保價格欄位正確映射
-      product_image: product.main_image, // 確保圖片欄位正確映射
-      product_category: product.category_id, // 確保分類欄位正確映射
+  // 處理編輯
+  const handleEdit = (productId: number) => {
+    router.push(`/admin/shop/products/${productId}`)
+  }
+
+  // 處理刪除
+  const handleDelete = async (productId: number) => {
+    try {
+      const confirmResult = await new Promise<boolean>((resolve) => {
+        confirm({
+          title: '確認刪除',
+          message: '確定要刪除此商品嗎？此操作無法復原。',
+          confirmText: '確認刪除',
+          cancelText: '取消',
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false),
+        })
+      })
+
+      if (!confirmResult) return
+
+      const response = await fetch(`/api/admin/products/${productId}`, {
+        method: 'DELETE',
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        showToast('success', '刪除成功', '商品已刪除')
+        fetchProducts()
+      } else {
+        showToast('error', '刪除失敗', data.message)
+      }
+    } catch (error) {
+      console.error('刪除商品失敗:', error)
+      showToast('error', '刪除失敗', '刪除商品失敗，請稍後再試')
     }
-    setCurrentProduct(productWithCorrectFields)
-    setModalMode('edit')
-    setShowModal(true)
   }
 
-  // 處理刪除商品
-  const handleDeleteProduct = (product) => {
-    confirm({
-      title: '刪除商品',
-      message: `確定要刪除商品「${product.product_name}」嗎？此操作無法撤銷。`,
-      onConfirm: async () => {
-        try {
-          const response = await fetch(
-            `/api/admin/products/${product.product_id}`,
-            {
-              method: 'DELETE',
-              headers: {
-                Authorization: `Bearer ${getToken()}`,
-              },
-            }
-          )
+  // 修改篩選商品的邏輯
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      // 關鍵字搜尋（商品名稱）
+      const matchKeyword =
+        !filters.keyword ||
+        product.product_name
+          .toLowerCase()
+          .includes(filters.keyword.toLowerCase())
 
-          if (!response.ok) {
-            throw new Error('刪除商品失敗')
+      // 分類篩選 - 使用 category_id 進行比對
+      const matchCategory =
+        !filters.category ||
+        (product.category_id !== null &&
+          product.category_id.toString() === filters.category.toString())
+
+      // 狀態篩選 - 根據資料庫中的狀態進行映射
+      const matchStatus =
+        !filters.status ||
+        (() => {
+          switch (filters.status) {
+            case 'active':
+              return product.product_status === '上架'
+            case 'inactive':
+              return product.product_status === '下架'
+            case 'out_of_stock':
+              return product.stock_quantity === 0
+            case 'deleted':
+              return product.is_deleted === 1
+            default:
+              return true
           }
+        })()
 
-          // 更新全部商品列表 - 刪除的商品應該標記為已刪除，而不是從列表移除
-          setProducts(
-            products.map((p) =>
-              p.product_id === product.product_id ? { ...p, is_deleted: 1 } : p
-            )
-          )
+      // 庫存警告
+      const matchStockWarning =
+        !filters.stockWarning ||
+        (product.stock_quantity !== null && product.stock_quantity < 30)
 
-          // 更新過濾後的商品列表 - 如果用戶選擇不顯示已刪除商品，則需要從列表中移除
-          setFilteredProducts(
-            filteredProducts.filter((p) => p.product_id !== product.product_id)
-          )
-
-          showToast(
-            'success',
-            '刪除成功',
-            `商品 ${product.product_name} 已成功刪除`
-          )
-        } catch (error) {
-          console.error('刪除商品時發生錯誤:', error)
-          showToast('error', '刪除失敗', '無法刪除商品，請稍後再試')
-        }
-      },
+      return matchKeyword && matchCategory && matchStatus && matchStockWarning
     })
-  }
+  }, [products, filters])
 
   // 處理表單提交
   const handleSubmit = async (formData: Record<string, any>) => {
@@ -342,8 +389,8 @@ export default function ProductsPage() {
       if (processedData.product_price !== undefined) {
         processedData.product_price = Number(processedData.product_price)
       }
-      if (processedData.product_stock !== undefined) {
-        processedData.product_stock = Number(processedData.product_stock)
+      if (processedData.stock_quantity !== undefined) {
+        processedData.stock_quantity = Number(processedData.stock_quantity)
       }
 
       if (modalMode === 'add') {
@@ -370,11 +417,6 @@ export default function ProductsPage() {
         if (result.product) {
           const newProduct = result.product
           setProducts((prev) => [newProduct, ...prev])
-
-          // 如果不是刪除的產品，也添加到過濾列表中
-          if (newProduct.is_deleted !== 1) {
-            setFilteredProducts((prev) => [newProduct, ...prev])
-          }
         } else {
           // 如果 API 沒有返回新商品數據，才重新獲取
           fetchProducts()
@@ -415,22 +457,7 @@ export default function ProductsPage() {
               ? {
                   ...p,
                   ...processedData,
-                  stock: processedData.product_stock, // 映射回stock欄位以便在表格中顯示
-                  price: processedData.product_price, // 映射回price欄位
-                  main_image: processedData.product_image, // 映射回main_image欄位
-                }
-              : p
-          )
-        )
-
-        // 同時更新過濾後的產品列表
-        setFilteredProducts((prev) =>
-          prev.map((p) =>
-            p.product_id === currentProduct.product_id
-              ? {
-                  ...p,
-                  ...processedData,
-                  stock: processedData.product_stock,
+                  stock_quantity: processedData.stock_quantity,
                   price: processedData.product_price,
                   main_image: processedData.product_image,
                 }
@@ -458,233 +485,14 @@ export default function ProductsPage() {
   }
 
   // 處理導出
-  const handleExport = async (format: 'csv' | 'excel' | 'json') => {
-    try {
-      // 顯示加載中提示
-      showToast('info', '導出中', '正在準備導出數據...')
-
-      // 構建導出 URL
-      const exportUrl = `/api/admin/products/export?format=${format}`
-
-      // 創建一個臨時鏈接並點擊它來下載文件
-      const link = document.createElement('a')
-      link.href = exportUrl
-      link.setAttribute('download', `products_export.${format}`)
-
-      // 添加 token 到請求頭
-      const token = getToken()
-      fetch(exportUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => response.blob())
-        .then((blob) => {
-          const url = window.URL.createObjectURL(blob)
-          link.href = url
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          window.URL.revokeObjectURL(url)
-          showToast(
-            'success',
-            '導出成功',
-            `已成功導出 ${products.length} 條商品記錄`
-          )
-        })
-        .catch((error) => {
-          console.error('導出失敗:', error)
-          showToast('error', '導出失敗', '無法導出數據，請稍後再試')
-        })
-    } catch (error) {
-      console.error('導出時發生錯誤:', error)
-      showToast('error', '導出失敗', '無法導出數據，請稍後再試')
-    }
+  const handleExport = async (format: string) => {
+    showToast('error', '錯誤', '導出功能已停用')
   }
 
   // 處理導入
   const handleImport = async (file: File) => {
-    try {
-      setIsImporting(true)
-      setImportError(null)
-      setImportResult(null)
-
-      // 創建 FormData
-      const formData = new FormData()
-      formData.append('file', file)
-
-      // 發送請求
-      const response = await fetch('/api/admin/products/import', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
-        body: formData,
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || '導入失敗')
-      }
-
-      // 設置導入結果
-      setImportResult(result)
-
-      // 如果導入成功，重新獲取商品列表
-      if (result.success) {
-        showToast('success', '導入成功', result.message)
-        fetchProducts()
-      } else {
-        setImportError(result.error || '導入過程中發生錯誤')
-      }
-    } catch (error) {
-      console.error('導入時發生錯誤:', error)
-      setImportError(
-        error instanceof Error ? error.message : '導入失敗，請稍後再試'
-      )
-      showToast(
-        'error',
-        '導入失敗',
-        error instanceof Error ? error.message : '導入失敗，請稍後再試'
-      )
-    } finally {
-      setIsImporting(false)
-    }
+    showToast('error', '錯誤', '導入功能已停用')
   }
-
-  // 處理批量刪除
-  const handleBatchDelete = (selectedRows: any[]) => {
-    if (selectedRows.length === 0) return
-
-    confirm({
-      title: '批量刪除商品',
-      message: `確定要刪除選中的 ${selectedRows.length} 個商品嗎？此操作無法撤銷。`,
-      onConfirm: async () => {
-        try {
-          showToast('info', '處理中', '正在刪除選中的商品...')
-
-          // 創建一個包含所有刪除操作的 Promise 數組
-          const deletePromises = selectedRows.map((product) =>
-            fetch(`/api/admin/products/${product.product_id}`, {
-              method: 'DELETE',
-              headers: {
-                Authorization: `Bearer ${getToken()}`,
-              },
-            })
-          )
-
-          // 等待所有刪除操作完成
-          const results = await Promise.allSettled(deletePromises)
-
-          // 計算成功和失敗的數量
-          const succeeded = results.filter(
-            (r) => r.status === 'fulfilled'
-          ).length
-          const failed = results.length - succeeded
-
-          // 更新商品列表
-          if (succeeded > 0) {
-            // 獲取已刪除的產品ID
-            const deletedIds = selectedRows.map((product) => product.product_id)
-
-            // 更新全部商品列表 - 將刪除的商品標記為已刪除，而不是從列表移除
-            setProducts(
-              products.map((p) =>
-                deletedIds.includes(p.product_id) ? { ...p, is_deleted: 1 } : p
-              )
-            )
-
-            // 更新過濾後的商品列表 - 移除已刪除的商品
-            setFilteredProducts(
-              filteredProducts.filter(
-                (product) => !deletedIds.includes(product.product_id)
-              )
-            )
-
-            showToast(
-              'success',
-              '批量刪除完成',
-              `成功刪除 ${succeeded} 個商品${
-                failed > 0 ? `，${failed} 個刪除失敗` : ''
-              }`
-            )
-          } else {
-            showToast('error', '批量刪除失敗', '所有商品刪除操作均失敗')
-          }
-        } catch (error) {
-          console.error('批量刪除時發生錯誤:', error)
-          showToast('error', '批量刪除失敗', '無法完成批量刪除操作')
-        }
-      },
-    })
-  }
-
-  // 批量操作定義
-  const batchActions = [
-    {
-      label: '批量刪除',
-      icon: <Trash2 size={16} />,
-      onClick: handleBatchDelete,
-      variant: 'outline-danger',
-    },
-  ]
-
-  // 使用 useMemo 包裝 formFields，避免每次渲染時都創建新的數組
-  const formFields = useMemo(
-    () => [
-      {
-        name: 'product_name',
-        label: '商品名稱',
-        type: 'text' as const,
-        required: true,
-      },
-      {
-        name: 'product_price',
-        label: '價格',
-        type: 'number' as const,
-        required: true,
-      },
-      {
-        name: 'product_description',
-        label: '商品描述',
-        type: 'textarea' as const,
-        required: false,
-      },
-      {
-        name: 'product_category',
-        label: '商品分類',
-        type: 'select' as const,
-        options: categories.map((c) => ({
-          value: c.category_id,
-          label: c.category_name,
-        })),
-        required: true,
-      },
-      {
-        name: 'product_stock',
-        label: '庫存數量',
-        type: 'number' as const,
-        required: false,
-        defaultValue: 0,
-      },
-      {
-        name: 'product_status',
-        label: '商品狀態',
-        type: 'select' as const,
-        options: STATUS_OPTIONS.filter((option) => option.value !== 'deleted'),
-        required: true,
-        defaultValue: 'active',
-      },
-      {
-        name: 'product_image',
-        label: '商品圖片URL',
-        type: 'text' as const,
-        required: false,
-      },
-    ],
-    [categories]
-  )
 
   // 統計數據
   const productStats = [
@@ -730,18 +538,193 @@ export default function ProductsPage() {
     },
   ]
 
+  const updateProductStatus = async (
+    productId: string,
+    status: '上架' | '下架'
+  ) => {
+    const response = await fetch(`/api/admin/products/${productId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    })
+    if (!response.ok) {
+      throw new Error('更新商品狀態失敗')
+    }
+  }
+
+  const deleteProduct = async (productId: string) => {
+    const response = await fetch(`/api/admin/products/${productId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error('刪除商品失敗')
+    }
+  }
+
+  const refreshProducts = () => {
+    fetchProducts()
+  }
+
+  const batchActions = [
+    {
+      label: '批量上架',
+      icon: <ArrowUpCircle size={16} />,
+      onClick: async (selectedRows) => {
+        const confirmResult = await new Promise<boolean>((resolve) => {
+          confirm({
+            title: '確認上架',
+            message: `確定要上架選中的 ${selectedRows.length} 個商品嗎？`,
+            confirmText: '確定',
+            cancelText: '取消',
+            onConfirm: () => resolve(true),
+            onCancel: () => resolve(false),
+          })
+        })
+
+        if (confirmResult) {
+          try {
+            await Promise.all(
+              selectedRows.map((product) =>
+                updateProductStatus(product.id, '上架')
+              )
+            )
+            showToast('success', '成功', '批量上架成功')
+            refreshProducts()
+          } catch (error) {
+            showToast('error', '錯誤', '批量上架失敗')
+          }
+        }
+      },
+      variant: 'success',
+    },
+    {
+      label: '批量下架',
+      icon: <ArrowDownCircle size={16} />,
+      onClick: async (selectedRows) => {
+        const confirmResult = await new Promise<boolean>((resolve) => {
+          confirm({
+            title: '確認下架',
+            message: `確定要下架選中的 ${selectedRows.length} 個商品嗎？`,
+            confirmText: '確定',
+            cancelText: '取消',
+            onConfirm: () => resolve(true),
+            onCancel: () => resolve(false),
+          })
+        })
+
+        if (confirmResult) {
+          try {
+            await Promise.all(
+              selectedRows.map((product) =>
+                updateProductStatus(product.id, '下架')
+              )
+            )
+            showToast('success', '成功', '批量下架成功')
+            refreshProducts()
+          } catch (error) {
+            showToast('error', '錯誤', '批量下架失敗')
+          }
+        }
+      },
+      variant: 'warning',
+    },
+  ]
+
+  // 修改表單欄位定義
+  const formFields = useMemo(
+    () => [
+      {
+        name: 'product_name',
+        label: '商品名稱',
+        type: 'text' as const,
+        required: true,
+      },
+      {
+        name: 'product_price',
+        label: '價格',
+        type: 'number' as const,
+        required: true,
+      },
+      {
+        name: 'product_description',
+        label: '商品描述',
+        type: 'textarea' as const,
+        required: false,
+      },
+      {
+        name: 'product_category',
+        label: '商品分類',
+        type: 'select' as const,
+        options: categories.map((c) => ({
+          value: c.category_id,
+          label: c.category_name,
+        })),
+        required: true,
+      },
+      {
+        name: 'stock_quantity',
+        label: '庫存數量',
+        type: 'number' as const,
+        required: false,
+        defaultValue: 0,
+      },
+      {
+        name: 'product_status',
+        label: '商品狀態',
+        type: 'select' as const,
+        options: [
+          { value: '上架', label: '上架中' },
+          { value: '下架', label: '已下架' },
+        ],
+        required: true,
+        defaultValue: '上架',
+      },
+      {
+        name: 'product_image',
+        label: '商品圖片URL',
+        type: 'text' as const,
+        required: false,
+      },
+    ],
+    [categories]
+  )
+
   return (
     <AdminPageLayout
       title="商品管理"
       actions={
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleAddProduct}
-          className="d-flex align-items-center"
-        >
-          <Plus size={16} className="me-1" /> 新增商品
-        </Button>
+        <div className="d-flex justify-content-between mb-3">
+          <Button
+            variant="primary"
+            size="sm"
+            href="/admin/shop/products/new"
+            className="d-flex align-items-center"
+          >
+            <Plus size={16} className="me-1" /> 新增商品
+          </Button>
+          <div className="d-flex gap-2">
+            <Button
+              variant="outline-secondary"
+              onClick={() => handleBulkAction('publish', [])}
+            >
+              <Package size={16} className="me-1" /> 批量上架
+            </Button>
+            <Button
+              variant="outline-secondary"
+              onClick={() => handleBulkAction('unpublish', [])}
+            >
+              <Archive size={16} className="me-1" /> 批量下架
+            </Button>
+            <Button
+              variant="outline-danger"
+              onClick={() => handleBulkAction('delete', [])}
+            >
+              <Trash2 size={16} className="me-1" /> 批量刪除
+            </Button>
+          </div>
+        </div>
       }
       stats={productStats}
     >
@@ -777,72 +760,96 @@ export default function ProductsPage() {
             </Alert>
           )}
 
-          {importResult && importResult.success && (
-            <Alert
-              variant="success"
-              className="mb-3"
-              dismissible
-              onClose={() => setImportResult(null)}
-            >
-              <Alert.Heading>導入成功</Alert.Heading>
-              <p>{importResult.message}</p>
-              {importResult.errors && importResult.errors.length > 0 && (
-                <>
-                  <hr />
-                  <p>以下記錄導入失敗：</p>
-                  <ul>
-                    {importResult.errors.map((err: any, index: number) => (
-                      <li key={index}>
-                        {err.name}: {err.error}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </Alert>
-          )}
-
-          {importError && (
-            <Alert
-              variant="danger"
-              className="mb-3"
-              dismissible
-              onClose={() => setImportError(null)}
-            >
-              <Alert.Heading>導入失敗</Alert.Heading>
-              <p>{importError}</p>
-            </Alert>
-          )}
-
           {/* 篩選控制 */}
           <div className="mb-3">
             <Form>
-              <Form.Group>
-                <Form.Label>顯示商品狀態</Form.Label>
-                <div className="d-flex flex-wrap gap-2">
-                  {STATUS_OPTIONS.map((option) => (
-                    <Form.Check
-                      key={option.value}
-                      type="checkbox"
-                      id={`filter-${option.value}`}
-                      label={option.label}
-                      onChange={(e) => {
-                        if (option.value === 'deleted') {
-                          // 切換是否顯示已刪除商品
-                          if (e.target.checked) {
-                            setFilteredProducts(products)
-                          } else {
-                            setFilteredProducts(
-                              products.filter((p) => p.is_deleted !== 1)
-                            )
-                          }
-                        }
-                      }}
-                      defaultChecked={option.value !== 'deleted'}
+              <Row>
+                <Col md={4}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>搜尋商品</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="輸入商品名稱"
+                      value={filters.keyword}
+                      onChange={(e) =>
+                        handleFilterChange('keyword', e.target.value)
+                      }
                     />
-                  ))}
-                </div>
-              </Form.Group>
+                  </Form.Group>
+                </Col>
+                <Col md={3}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>商品分類</Form.Label>
+                    <Form.Select
+                      value={filters.category}
+                      onChange={(e) =>
+                        handleFilterChange('category', e.target.value)
+                      }
+                    >
+                      <option value="">全部分類</option>
+                      {categories
+                        .filter((category) => category.parent_id === null)
+                        .map((mainCategory) => (
+                          <React.Fragment key={mainCategory.category_id}>
+                            <option
+                              value={mainCategory.category_id}
+                              style={{ fontWeight: 'bold' }}
+                            >
+                              {mainCategory.category_name}
+                            </option>
+                            {categories
+                              .filter(
+                                (subCategory) =>
+                                  subCategory.parent_id ===
+                                  mainCategory.category_id
+                              )
+                              .map((subCategory) => (
+                                <option
+                                  key={subCategory.category_id}
+                                  value={subCategory.category_id}
+                                >
+                                  ∟ {subCategory.category_name}
+                                </option>
+                              ))}
+                          </React.Fragment>
+                        ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={3}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>商品狀態</Form.Label>
+                    <Form.Select
+                      value={filters.status}
+                      onChange={(e) =>
+                        handleFilterChange('status', e.target.value)
+                      }
+                    >
+                      <option value="">全部狀態</option>
+                      {STATUS_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={2}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>&nbsp;</Form.Label>
+                    <Form.Check
+                      type="switch"
+                      id="stock-warning"
+                      label="庫存警告"
+                      checked={filters.stockWarning}
+                      onChange={(e) =>
+                        handleFilterChange('stockWarning', e.target.checked)
+                      }
+                      className="mt-2"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
             </Form>
           </div>
 
@@ -857,21 +864,11 @@ export default function ProductsPage() {
             <DataTable
               data={filteredProducts}
               columns={columns}
+              loading={loading}
+              searchable={false}
               actions={renderActions}
-              itemsPerPage={10}
-              searchable={true}
-              searchKeys={['product_name', 'product_id', 'category_name']}
-              onRowClick={(product) =>
-                router.push(`/admin/shop/products/${product.product_id}`)
-              }
-              pageSizeOptions={[10, 20, 50, 100]}
               selectable={true}
               batchActions={batchActions}
-              exportable={true}
-              onExport={handleExport}
-              importable={true}
-              onImport={handleImport}
-              advancedFiltering={true}
             />
           )}
         </AdminCard>
