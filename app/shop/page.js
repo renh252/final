@@ -2,22 +2,17 @@
 'use client'
 
 import React, {  useRef, useState} from 'react'
-import IconLine from './_components/icon_line'
+import IconLine from '@/app/shop/_components/icon_line'
 import Link from 'next/link'
 // style
-import styles from './shop.module.css'
-// data
-// import Products from './_data/data.json'
-// import Category from './_data/category.json'
+import styles from '@/app/shop/shop.module.css'
 // card
-import Card from '../_components/ui/Card'
-import CardSwitchButton from '../_components/ui/CardSwitchButton'
-// import Card from './_components/card'
-import { FaAngleLeft,FaAngleRight } from "react-icons/fa6";
+import Card from '@/app/_components/ui/Card'
+import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import { FaRegHeart,FaHeart } from "react-icons/fa";
 
 //firstPageNav 
-import FirstPageNav from './_components/firstPageNav'
+import FirstPageNav from '@/app/shop/_components/firstPageNav'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -85,26 +80,7 @@ export default function PetsPage() {
     setproducts(nextProduct)
   }
 */
-   // ----------------------------
 
-  // 使用 SWR 獲取資料 - 使用整合的 API 路由
-  const { data, error } = useSWR('/api/shop', fetcher)
-// 处理加载状态
-  if (!data) return <div>Loading...</div>
-    
-  // 处理错误状态
-  if (error) return <div>Failed to load</div>
-
-  // 获取 promotions 数据
-  const promotions = data.promotions
-  const promotion_products = data.promotion_products
-  const categories = data.categories
-  const products = data.products
-  
-  // const product_like = data.product_like
-
-  console.log(promotions)
-  // -----------------
 
   // 處理喜愛商品數據
   // const toggleLike = async (productId) => {
@@ -130,7 +106,46 @@ export default function PetsPage() {
   //   }
   // }
 
+     // ----------------------------
 
+  // 使用 SWR 獲取資料 - 使用整合的 API 路由
+  const { data, error } = useSWR('/api/shop', fetcher)
+// 处理加载状态
+  if (!data) return <div>Loading...</div>
+    
+  // 处理错误状态
+  if (error) return <div>Failed to load</div>
+
+  // 获取 promotions 数据
+  const promotions = data.promotions
+  const promotion_products = data.promotion_products
+  const categories = data.categories
+  const products = data.products
+  
+  // const product_like = data.product_like
+
+ 
+  // 创建一个Set来存储所有有商品的分类ID
+  const categoriesWithProducts = new Set(products.map(product => product.category_id));
+  // 检查父类别是否有至少一个包含商品的子类别
+  const parentHasProductsInChildren = (parentId) => {
+    return categories.some(category => 
+      category.parent_id === parentId && categoriesWithProducts.has(category.category_id)
+    );
+  };
+
+  // 过滤出有商品的子类别
+  const getChildrenWithProducts = (parentId) => {
+    return categories.filter(category => 
+      category.parent_id === parentId && categoriesWithProducts.has(category.category_id)
+    );
+  };
+
+  // 过滤出有商品子类别的父类别
+  const parentsWithProducts = categories.filter(category => 
+    category.parent_id == null && parentHasProductsInChildren(category.category_id)
+  );
+ // -----------------
   return (
     <>
       {/* main */}
@@ -140,8 +155,7 @@ export default function PetsPage() {
           {/* contain */}
           {promotions.map((promotion) => {
             return(
-            <>
-              <div className={styles.contain}>
+              <div key={promotion.promotion_id} className={styles.contain}>
                 <div className={styles.contain_title}>
                   <IconLine key={promotion.promotion_id} title={promotion.promotion_name}/>
                 </div>
@@ -153,14 +167,14 @@ export default function PetsPage() {
                           onClick={() =>scroll(-1, promotionRef.current[promotion.promotion_id])}
                           aria-label="向左滑動"
                         />
-                          <div className={styles.cardGroup} ref={(el) => (promotionRef.current[promotion.promotion_id] = { current: el })}>
+                          <div  className={styles.cardGroup} ref={(el) => (promotionRef.current[promotion.promotion_id] = { current: el })}>
                             {promotion_products.filter((product) => product.promotion_id == promotion.promotion_id).map((product) => {
                               return(
-                                <>
-                                <Link href={`/shop/${product.product_id}`}>
+                                <Link
+                                key={`${promotion.promotion_name}${product.product_id}`}
+                                 href={`/shop/${product.product_id}`}>
                                   <Card
-                                    key={product.product_id }
-                                    image={product.image_url}
+                                    image={product.image_url || '/images/default_no_pet.jpg'}
                                     title={product.product_name}
                                   >
                                     <div className={styles.cardText}>
@@ -176,7 +190,6 @@ export default function PetsPage() {
                                     </div>
                                   </Card>
                                 </Link>
-                                </>
                               )
                             })}
                           </div>
@@ -194,20 +207,18 @@ export default function PetsPage() {
                   </div>
                 </div>
               </div>
-            </>
             )
           })}
 
           {/* contain */}
-          {categories.filter((category) => category.parent_id == null).map((parent) => (
-          <>
-          <div className={styles.contain}>
+          {parentsWithProducts.map((parent) => (
+          <div key={parent.category_id}  className={styles.contain}>
             <div className={styles.contain_title}>
               <IconLine key={parent.category_id} title={parent.category_name}/>
             </div>
             <div className={styles.contain_body}>
               {/* subTitle */}
-              {categories.filter((category) => category.parent_id == parent.category_id).map((category) => (
+              {getChildrenWithProducts(parent.category_id).map((category) => (
                 <div className={styles.group} key={category.category_id}>
                   <div className={styles.groupTitle}>
                     <p>{category.category_name}</p>
@@ -221,11 +232,10 @@ export default function PetsPage() {
                     <div className={styles.cardGroup} ref={(el) => (categoryRefs.current[category.category_id] = { current: el })}>
                       {products.filter((product) => product.category_id == category.category_id).map((product) => {
                         return(
-                            <>
-                            <Link href={``}>
+                            <Link key={product.	product_id} href={`/shop/${product.product_id}`}>
                               <Card
                                 key={product.	product_id}
-                                image={product.image_url}
+                                image={product.image_url || '/images/default_no_pet.jpg'}
                                 title={product.product_name}
                               >
                                 <div className={styles.cardText}>
@@ -240,7 +250,6 @@ export default function PetsPage() {
                                 </div>
                               </Card>
                             </Link>
-                            </>
                         )
                       })}
                     </div>
@@ -257,7 +266,6 @@ export default function PetsPage() {
               
             </div>
           </div>
-          </>
           ))}
         </div>
       </main>
