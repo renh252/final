@@ -24,7 +24,6 @@ import {
   FileText,
 } from 'lucide-react'
 import { useTheme } from '@/app/admin/ThemeContext'
-import styles from './DataTable.module.css'
 
 export interface Column {
   key: string
@@ -77,6 +76,7 @@ const DataTable = ({
   onImport,
   advancedFiltering = false,
 }: DataTableProps) => {
+  const { isDarkMode } = useTheme()
   const [sortKey, setSortKey] = useState<string>('')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [searchTerm, setSearchTerm] = useState('')
@@ -266,6 +266,7 @@ const DataTable = ({
         key="first"
         onClick={() => handlePageChange(1)}
         disabled={currentPage === 1}
+        className={isDarkMode ? 'bg-dark border-secondary' : ''}
       />
     )
 
@@ -274,6 +275,7 @@ const DataTable = ({
         key="prev"
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
+        className={isDarkMode ? 'bg-dark border-secondary' : ''}
       />
     )
 
@@ -283,6 +285,9 @@ const DataTable = ({
           key={i}
           active={i === currentPage}
           onClick={() => handlePageChange(i)}
+          className={
+            isDarkMode && i !== currentPage ? 'bg-dark border-secondary' : ''
+          }
         >
           {i}
         </Pagination.Item>
@@ -294,6 +299,7 @@ const DataTable = ({
         key="next"
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === paginationData.totalPages}
+        className={isDarkMode ? 'bg-dark border-secondary' : ''}
       />
     )
 
@@ -302,10 +308,15 @@ const DataTable = ({
         key="last"
         onClick={() => handlePageChange(paginationData.totalPages)}
         disabled={currentPage === paginationData.totalPages}
+        className={isDarkMode ? 'bg-dark border-secondary' : ''}
       />
     )
 
-    return <Pagination className="mb-0">{pageItems}</Pagination>
+    return (
+      <Pagination className={`mb-0 ${isDarkMode ? 'pagination-dark' : ''}`}>
+        {pageItems}
+      </Pagination>
+    )
   }
 
   const renderTableHeader = () => (
@@ -316,6 +327,15 @@ const DataTable = ({
             <div
               className="d-flex align-items-center justify-content-center cursor-pointer"
               onClick={handleSelectAll}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handleSelectAll()
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={selectAll ? '取消全選' : '全選'}
             >
               {selectAll ? (
                 <CheckSquare size={18} className="text-primary" />
@@ -328,7 +348,9 @@ const DataTable = ({
         {columns.map((column) => (
           <th
             key={column.key}
-            className={column.sortable ? 'sortable' : ''}
+            className={`${column.sortable ? 'sortable' : ''} ${
+              isDarkMode ? 'text-light' : ''
+            }`}
             onClick={() => column.sortable && handleSort(column.key)}
           >
             <div className="d-flex align-items-center">
@@ -340,6 +362,8 @@ const DataTable = ({
                     className={
                       sortKey === column.key && sortDirection === 'asc'
                         ? 'text-primary'
+                        : isDarkMode
+                        ? 'text-light opacity-50'
                         : 'text-muted'
                     }
                   />
@@ -348,6 +372,8 @@ const DataTable = ({
                     className={
                       sortKey === column.key && sortDirection === 'desc'
                         ? 'text-primary'
+                        : isDarkMode
+                        ? 'text-light opacity-50'
                         : 'text-muted'
                     }
                     style={{ marginTop: '-4px' }}
@@ -357,7 +383,9 @@ const DataTable = ({
             </div>
           </th>
         ))}
-        {actions && <th className="text-end">操作</th>}
+        {actions && (
+          <th className={`text-end ${isDarkMode ? 'text-light' : ''}`}>操作</th>
+        )}
       </tr>
       {showFilters && (
         <tr className="filter-row">
@@ -370,6 +398,9 @@ const DataTable = ({
                   value={filters[column.key] || ''}
                   onChange={(e) =>
                     handleFilterChange(column.key, e.target.value)
+                  }
+                  className={
+                    isDarkMode ? 'bg-dark border-secondary text-light' : ''
                   }
                 >
                   <option value="">全部</option>
@@ -456,13 +487,16 @@ const DataTable = ({
               </td>
             ))}
             {actions && (
-              <td className="text-end">
-                <div
+              <td className={`text-end ${isDarkMode ? 'text-light' : ''}`}>
+                <button
+                  type="button"
                   onClick={(e) => e.stopPropagation()}
-                  className="d-flex justify-content-end"
+                  onKeyDown={(e) => e.stopPropagation()}
+                  className="btn btn-link p-0 d-flex justify-content-end"
+                  aria-label="操作按鈕"
                 >
                   {actions(row)}
-                </div>
+                </button>
               </td>
             )}
           </tr>
@@ -477,7 +511,11 @@ const DataTable = ({
         {searchable && (
           <div className="me-3 mb-2 mb-md-0">
             <div className="input-group">
-              <span className="input-group-text">
+              <span
+                className={`input-group-text ${
+                  isDarkMode ? 'bg-dark border-secondary text-light' : ''
+                }`}
+              >
                 <Search size={16} />
               </span>
               <Form.Control
@@ -485,11 +523,15 @@ const DataTable = ({
                 placeholder="搜尋..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className={
+                  isDarkMode ? 'bg-dark border-secondary text-light' : ''
+                }
               />
               {searchTerm && (
                 <Button
-                  variant="outline-secondary"
+                  variant={isDarkMode ? 'dark' : 'outline-secondary'}
                   onClick={() => setSearchTerm('')}
+                  className={isDarkMode ? 'border-secondary' : ''}
                 >
                   清除
                 </Button>
@@ -500,8 +542,16 @@ const DataTable = ({
 
         {advancedFiltering && (
           <Button
-            variant={showFilters ? 'primary' : 'outline-secondary'}
-            className="me-2 mb-2 mb-md-0 d-flex align-items-center"
+            variant={
+              showFilters
+                ? 'primary'
+                : isDarkMode
+                ? 'dark'
+                : 'outline-secondary'
+            }
+            className={`me-2 mb-2 mb-md-0 d-flex align-items-center ${
+              isDarkMode ? 'border-secondary' : ''
+            }`}
             onClick={() => setShowFilters(!showFilters)}
           >
             <Filter size={16} className="me-1" />
@@ -516,8 +566,10 @@ const DataTable = ({
 
         {Object.keys(filters).length > 0 && (
           <Button
-            variant="outline-danger"
-            className="me-2 mb-2 mb-md-0"
+            variant={isDarkMode ? 'dark' : 'outline-danger'}
+            className={`me-2 mb-2 mb-md-0 ${
+              isDarkMode ? 'border-danger text-danger' : ''
+            }`}
             onClick={clearFilters}
           >
             清除篩選
@@ -528,12 +580,16 @@ const DataTable = ({
       <div className="d-flex flex-wrap align-items-center">
         {selectable && selectedRows.length > 0 && (
           <div className="me-3 mb-2 mb-md-0">
-            <span className="me-2">已選擇 {selectedRows.length} 項</span>
+            <span className={`me-2 text-${isDarkMode ? 'light' : 'muted'}`}>
+              已選擇 {selectedRows.length} 項
+            </span>
             {batchActions.map((action, index) => (
               <Button
                 key={index}
-                variant={action.variant || 'outline-primary'}
-                className="me-2"
+                variant={
+                  action.variant || (isDarkMode ? 'dark' : 'outline-primary')
+                }
+                className={`me-2 ${isDarkMode ? 'border-primary' : ''}`}
                 onClick={() => action.onClick(selectedRows)}
               >
                 {action.icon && <span className="me-1">{action.icon}</span>}
@@ -545,11 +601,15 @@ const DataTable = ({
 
         {exportable && (
           <Dropdown className="me-2 mb-2 mb-md-0">
-            <Dropdown.Toggle variant="outline-success" id="dropdown-export">
+            <Dropdown.Toggle
+              variant={isDarkMode ? 'dark' : 'outline-success'}
+              id="dropdown-export"
+              className={isDarkMode ? 'border-success text-success' : ''}
+            >
               <Download size={16} className="me-1" />
               導出
             </Dropdown.Toggle>
-            <Dropdown.Menu>
+            <Dropdown.Menu className={isDarkMode ? 'dropdown-menu-dark' : ''}>
               <Dropdown.Item onClick={() => onExport && onExport('csv')}>
                 CSV 格式
               </Dropdown.Item>
@@ -566,8 +626,10 @@ const DataTable = ({
         {importable && (
           <>
             <Button
-              variant="outline-primary"
-              className="me-2 mb-2 mb-md-0"
+              variant={isDarkMode ? 'dark' : 'outline-primary'}
+              className={`me-2 mb-2 mb-md-0 ${
+                isDarkMode ? 'border-primary text-primary' : ''
+              }`}
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload size={16} className="me-1" />
@@ -588,7 +650,9 @@ const DataTable = ({
             size="sm"
             value={pageSize}
             onChange={handlePageSizeChange}
-            className="me-2"
+            className={`me-2 ${
+              isDarkMode ? 'bg-dark border-secondary text-light' : ''
+            }`}
             style={{ width: 'auto' }}
           >
             {pageSizeOptions.map((size) => (
@@ -597,7 +661,7 @@ const DataTable = ({
               </option>
             ))}
           </Form.Select>
-          <span className="text-muted">
+          <span className={`text-${isDarkMode ? 'light' : 'muted'}`}>
             顯示 {paginationData.startIndex + 1}-{paginationData.endIndex}{' '}
             筆，共 {filteredData.length} 筆
           </span>
@@ -607,11 +671,11 @@ const DataTable = ({
   )
 
   return (
-    <div className="data-table-container">
+    <div className={`data-table-container ${isDarkMode ? 'table-dark' : ''}`}>
       {renderToolbar()}
 
       <div className="table-responsive">
-        <Table hover>
+        <Table hover variant={isDarkMode ? 'dark' : undefined}>
           {renderTableHeader()}
           {renderTableBody()}
         </Table>
@@ -620,7 +684,7 @@ const DataTable = ({
       <div className="d-flex justify-content-between align-items-center mt-3">
         <div>
           {filteredData.length > 0 && (
-            <span className="text-muted">
+            <span className={`text-${isDarkMode ? 'light' : 'muted'}`}>
               顯示 {paginationData.startIndex + 1}-{paginationData.endIndex}{' '}
               筆，共 {filteredData.length} 筆
             </span>
