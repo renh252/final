@@ -44,9 +44,8 @@ import Cookies from 'js-cookie'
 
 // 商品狀態選項
 const STATUS_OPTIONS = [
-  { value: 'active', label: '上架中' },
-  { value: 'inactive', label: '已下架' },
-  { value: 'out_of_stock', label: '缺貨中' },
+  { value: '上架', label: '上架中' },
+  { value: '下架', label: '已下架' },
   { value: 'deleted', label: '已刪除' },
 ]
 
@@ -75,6 +74,7 @@ export default function ProductsPage() {
     category: '',
     status: '',
     stockWarning: false,
+    showDeleted: false,
   })
 
   // 獲取 token
@@ -118,6 +118,9 @@ export default function ProductsPage() {
       const response = await fetch('/api/admin/products/categories', {
         headers: {
           Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
         },
       })
 
@@ -215,6 +218,28 @@ export default function ProductsPage() {
       key: 'category_name',
       label: '分類',
       sortable: true,
+      render: (value: string, row: any) => {
+        const category = categories.find(
+          (c) => c.category_id === row.category_id
+        )
+        if (!category) return value
+
+        if (!category.parent_category_id) {
+          return <strong>{value}</strong>
+        }
+
+        const parentCategory = categories.find(
+          (c) => c.category_id === category.parent_category_id
+        )
+        return (
+          <div>
+            <small className="text-muted">
+              {parentCategory?.category_name} /{' '}
+            </small>
+            {value}
+          </div>
+        )
+      },
     },
     {
       key: 'price',
@@ -244,20 +269,33 @@ export default function ProductsPage() {
       key: 'product_status',
       label: '狀態',
       sortable: true,
-      render: (value: string) => (
-        <Badge bg={value === '上架' ? 'success' : 'secondary'}>
-          {value === '上架' ? '上架中' : '已下架'}
-        </Badge>
-      ),
+      render: (value: string, row: any) => {
+        if (row.is_deleted === 1) {
+          return <Badge bg="dark">已刪除</Badge>
+        }
+        const status = PRODUCT_STATUS[value as keyof typeof PRODUCT_STATUS]
+        return (
+          <Badge bg={status?.color || 'secondary'}>
+            {status?.label || '未知狀態'}
+          </Badge>
+        )
+      },
     },
   ]
 
   const renderActions = (row: any) => (
     <div className="d-flex gap-2 justify-content-end">
       <Button
+        variant="outline-info"
+        size="sm"
+        onClick={() => router.push(`/admin/shop/products/${row.product_id}`)}
+      >
+        <Eye size={16} />
+      </Button>
+      <Button
         variant="outline-primary"
         size="sm"
-        onClick={() => router.push(`/admin/shop/products/${row.id}`)}
+        onClick={() => router.push(`/admin/shop/products/${row.product_id}`)}
       >
         <Edit size={16} />
       </Button>
@@ -279,7 +317,7 @@ export default function ProductsPage() {
 
           if (confirmResult) {
             try {
-              await deleteProduct(row.id)
+              await deleteProduct(row.product_id)
               showToast('success', '成功', '刪除商品成功')
               fetchProducts()
             } catch (error) {
@@ -347,28 +385,46 @@ export default function ProductsPage() {
           .includes(filters.keyword.toLowerCase())
 
       // 分類篩選 - 使用 category_id 進行比對
-      const matchCategory =
-        !filters.category ||
-        (product.category_id !== null &&
-          product.category_id.toString() === filters.category.toString())
+      const matchCategory = (() => {
+        if (!filters.category) return true
+
+        const selectedCategory = categories.find(
+          (c) => c.category_id.toString() === filters.category
+        )
+        if (!selectedCategory) return false
+
+        if (!selectedCategory.parent_category_id) {
+          // 如果選擇的是主分類，顯示該主分類下的所有商品（包括次分類）
+          return (
+            product.category_id === selectedCategory.category_id ||
+            categories.some(
+              (c) =>
+                c.parent_category_id === selectedCategory.category_id &&
+                c.category_id === product.category_id
+            )
+          )
+        } else {
+          // 如果選擇的是次分類，只顯示該次分類的商品
+          return product.category_id === selectedCategory.category_id
+        }
+      })()
 
       // 狀態篩選 - 根據資料庫中的狀態進行映射
-      const matchStatus =
-        !filters.status ||
-        (() => {
-          switch (filters.status) {
-            case 'active':
-              return product.product_status === '上架'
-            case 'inactive':
-              return product.product_status === '下架'
-            case 'out_of_stock':
-              return product.stock_quantity === 0
-            case 'deleted':
-              return product.is_deleted === 1
-            default:
-              return true
-          }
-        })()
+      const matchStatus = (() => {
+        if (!filters.status) {
+          return !product.is_deleted // 預設只顯示未刪除的商品
+        }
+        switch (filters.status) {
+          case '上架':
+            return product.product_status === '上架' && !product.is_deleted
+          case '下架':
+            return product.product_status === '下架' && !product.is_deleted
+          case 'deleted':
+            return product.is_deleted === 1
+          default:
+            return !product.is_deleted
+        }
+      })()
 
       // 庫存警告
       const matchStockWarning =
@@ -505,9 +561,7 @@ export default function ProductsPage() {
     {
       title: '上架中',
       count: products.filter(
-        (p) =>
-          (p.product_status === '上架' || p.product_status === 'active') &&
-          p.is_deleted !== 1
+        (p) => p.product_status === '上架' && p.is_deleted !== 1
       ).length,
       color: 'success',
       icon: <Package size={24} />,
@@ -515,19 +569,9 @@ export default function ProductsPage() {
     {
       title: '已下架',
       count: products.filter(
-        (p) =>
-          (p.product_status === '下架' || p.product_status === 'inactive') &&
-          p.is_deleted !== 1
+        (p) => p.product_status === '下架' && p.is_deleted !== 1
       ).length,
       color: 'secondary',
-      icon: <Package size={24} />,
-    },
-    {
-      title: '缺貨中',
-      count: products.filter(
-        (p) => p.product_status === 'out_of_stock' && p.is_deleted !== 1
-      ).length,
-      color: 'danger',
       icon: <Package size={24} />,
     },
     {
@@ -679,7 +723,7 @@ export default function ProductsPage() {
           { value: '下架', label: '已下架' },
         ],
         required: true,
-        defaultValue: '上架',
+        defaultValue: '下架',
       },
       {
         name: 'product_image',
@@ -696,15 +740,15 @@ export default function ProductsPage() {
       title="商品管理"
       actions={
         <div className="d-flex justify-content-between mb-3">
-          <Button
-            variant="primary"
-            size="sm"
-            href="/admin/shop/products/new"
-            className="d-flex align-items-center"
-          >
-            <Plus size={16} className="me-1" /> 新增商品
-          </Button>
           <div className="d-flex gap-2">
+            <Button
+              variant="primary"
+              size="sm"
+              href="/admin/shop/products/new"
+              className="d-flex align-items-center"
+            >
+              <Plus size={16} className="me-1" /> 新增商品
+            </Button>
             <Button
               variant="outline-secondary"
               onClick={() => handleBulkAction('publish', [])}
@@ -728,23 +772,6 @@ export default function ProductsPage() {
       }
       stats={productStats}
     >
-      {/* 管理說明 */}
-      <div className="mb-4">
-        <p>管理所有商品，包括新增、編輯、刪除商品</p>
-        <nav aria-label="breadcrumb">
-          <ol className="breadcrumb">
-            <li className="breadcrumb-item">
-              <a href="/admin">管理區</a>
-            </li>
-            <li className="breadcrumb-item">
-              <a href="/admin/shop">商城管理</a>
-            </li>
-            <li className="breadcrumb-item active" aria-current="page">
-              商品管理
-            </li>
-          </ol>
-        </nav>
-      </div>
 
       <AdminSection title="商品列表">
         <AdminCard>
@@ -788,7 +815,7 @@ export default function ProductsPage() {
                     >
                       <option value="">全部分類</option>
                       {categories
-                        .filter((category) => category.parent_id === null)
+                        .filter((category) => !category.parent_category_id)
                         .map((mainCategory) => (
                           <React.Fragment key={mainCategory.category_id}>
                             <option
@@ -800,7 +827,7 @@ export default function ProductsPage() {
                             {categories
                               .filter(
                                 (subCategory) =>
-                                  subCategory.parent_id ===
+                                  subCategory.parent_category_id ===
                                   mainCategory.category_id
                               )
                               .map((subCategory) => (
@@ -861,15 +888,17 @@ export default function ProductsPage() {
               <p className="mt-2">載入商品資料中...</p>
             </div>
           ) : (
-            <DataTable
-              data={filteredProducts}
-              columns={columns}
-              loading={loading}
-              searchable={false}
-              actions={renderActions}
-              selectable={true}
-              batchActions={batchActions}
-            />
+            <div>
+              <DataTable
+                columns={columns}
+                data={filteredProducts}
+                loading={loading}
+                searchable={false}
+                selectable
+                batchActions={batchActions}
+                actions={renderActions}
+              />
+            </div>
           )}
         </AdminCard>
       </AdminSection>

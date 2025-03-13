@@ -41,17 +41,6 @@ export async function GET(
       return NextResponse.json({ error: '商品不存在' }, { status: 404 })
     }
 
-    // 處理響應數據，轉換狀態值
-    const processedProduct = {
-      ...product[0],
-      product_status:
-        product[0].product_status === '上架'
-          ? 'active'
-          : product[0].product_status === '下架'
-          ? 'inactive'
-          : product[0].product_status,
-    }
-
     // 獲取商品變體
     const variants = await executeQuery(
       `SELECT * FROM product_variants WHERE product_id = ?`,
@@ -82,7 +71,7 @@ export async function GET(
 
     return NextResponse.json({
       product: {
-        ...processedProduct,
+        ...product[0],
         variants,
         images,
         reviews,

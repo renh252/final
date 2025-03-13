@@ -1,0 +1,49 @@
+.table-dark {
+  --bs-table-bg: #1a1a1a;
+  --bs-table-color: #ffffff;
+  --bs-table-hover-bg: #2c2c2c;
+  --bs-table-hover-color: #ffffff;
+  --bs-table-striped-bg: #252525;
+  --bs-table-striped-color: #ffffff;
+  --bs-table-border-color: #404040;
+}
+
+.table-dark th {
+  color: #ffffff;
+  background-color: #2c2c2c;
+}
+
+.table-dark .form-control,
+.table-dark .form-select {
+  background-color: #2c2c2c;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+.table-dark .form-control::placeholder {
+  color: #a0a0a0;
+}
+
+.table-dark .input-group-text {
+  background-color: #2c2c2c;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+.table-dark .pagination .page-link {
+  background-color: #2c2c2c;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+.table-dark .pagination .page-item.active .page-link {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: #ffffff;
+}
+
+.table-dark .pagination .page-item.disabled .page-link {
+  background-color: #1a1a1a;
+  border-color: #404040;
+  color: #6c757d;
+}
