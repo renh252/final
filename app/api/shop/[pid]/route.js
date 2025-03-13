@@ -40,7 +40,7 @@ export async function GET(request, { params }) {
       SELECT * FROM promotion_products
       JOIN promotions
       ON promotion_products.promotion_id = promotions.promotion_id
-      WHERE product_id =?`
+      WHERE product_id =? AND start_date <= CURDATE() AND (end_date IS NULL OR end_date >= CURDATE())`
     , [id]
     )
     responseData.promotion = promotion
@@ -68,6 +68,18 @@ export async function GET(request, { params }) {
     , [id]
     )
     responseData.reviews = reviews
+
+    // 獲取評價數量/分數
+    const [reviewCount] = await connection.execute(`
+      SELECT
+      COUNT(*) AS total_reviews,
+      AVG(rating) AS avg_rating
+      FROM product_reviews
+      WHERE product_id =?
+      GROUP BY product_id
+      `
+    , [id])
+    responseData.reviewCount = reviewCount[0]
 
     // 產品類別
     const [categories] = await connection.execute(`
