@@ -10,7 +10,6 @@ import categories_styles from '../categories.module.css'
 // card
 import Card from '@/app/_components/ui/Card'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
-import { FaAngleLeft,FaAngleRight } from "react-icons/fa6";
 import { FaRegHeart,FaHeart } from "react-icons/fa";
 import { useParams } from 'next/navigation'
 
@@ -111,7 +110,7 @@ export default function PagesProductTitle() {
                       {products.filter((product) => product.category_id == category.category_id).map((product) => {
                         return(
                             <>
-                            <Link href={``}>
+                            <Link href={`/shop/${product.product_id}`}>
                               <Card
                                 key={product.	product_id}
                                 image={product.image_url || '/images/default_no_pet.jpg'}
