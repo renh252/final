@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         p.price,
         p.product_description,
         p.image_url as main_image,
-        p.stock_quantity as stock,
+        p.stock_quantity,
         p.product_status,
         p.category_id,
         p.created_at,
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
         data.product_price,
         data.product_description || '',
         data.product_image || '',
-        data.product_stock || 0,
+        data.stock_quantity || 0,
         productStatus,
         data.product_category,
         0, // 新建商品預設為未刪除

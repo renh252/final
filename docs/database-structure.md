@@ -196,6 +196,90 @@ CREATE TABLE `posts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ```
 
+### `categories` 表 - 商品分類資訊
+
+```sql
+CREATE TABLE `categories` (
+  `category_id` int NOT NULL AUTO_INCREMENT,
+  `category_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `category_tag` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `category_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `parent_id` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`category_id`),
+  KEY `fk_category_parent` (`parent_id`),
+  CONSTRAINT `fk_category_parent` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`category_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### 欄位說明
+
+| 欄位名稱             | 類型         | 說明      | 可能的值                    |
+| -------------------- | ------------ | --------- | --------------------------- |
+| category_id          | int          | 分類 ID   | 自動遞增                    |
+| category_name        | varchar(255) | 分類名稱  | 必填，如 '寵物飼料(乾糧)'   |
+| category_tag         | varchar(20)  | 分類標籤  | 必填，用於快速識別          |
+| category_description | text         | 分類描述  | 可為 NULL                   |
+| parent_id            | int          | 父分類 ID | 可為 NULL，用於建立分類層級 |
+| created_at           | timestamp    | 創建時間  | 自動生成                    |
+| updated_at           | timestamp    | 更新時間  | 自動更新                    |
+
+### 分類層級結構
+
+1. 主分類（parent_id 為 NULL）：
+
+   - 代表頂層分類，如 '寵物飼料'、'寵物用品'
+   - 作為子分類的父層級
+
+2. 子分類（parent_id 不為 NULL）：
+   - 對應到特定主分類
+   - parent_id 指向父分類的 category_id
+   - 例如：'狗乾糧' 是 '寵物飼料' 的子分類
+
+### 常見查詢模式
+
+```sql
+-- 獲取所有主分類
+SELECT * FROM categories WHERE parent_id IS NULL;
+
+-- 獲取特定主分類的所有子分類
+SELECT * FROM categories WHERE parent_id = ?;
+
+-- 獲取分類及其子分類的商品數量
+SELECT c.category_name,
+       COUNT(p.product_id) as product_count
+FROM categories c
+LEFT JOIN products p ON c.category_id = p.category_id
+GROUP BY c.category_id;
+
+-- 獲取完整的分類層級結構
+SELECT c1.category_name as main_category,
+       c2.category_name as sub_category
+FROM categories c1
+LEFT JOIN categories c2 ON c2.parent_id = c1.category_id
+WHERE c1.parent_id IS NULL;
+```
+
+### 注意事項
+
+1. 分類層級：
+
+   - 目前系統僅支援兩層分類結構（主分類和子分類）
+   - 主分類的 parent_id 必須為 NULL
+   - 子分類必須有對應的 parent_id
+
+2. 資料完整性：
+
+   - 刪除主分類時，相關子分類的 parent_id 會自動設為 NULL
+   - category_id 作為主鍵，確保唯一性
+   - 使用外鍵約束確保資料一致性
+
+3. 使用建議：
+   - 建立新分類時應先確認是否已存在類似分類
+   - 分類名稱應具描述性且易於理解
+   - 建議定期檢查並維護分類結構
+
 ### `products` 表 - 商品資訊
 
 ```sql
