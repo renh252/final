@@ -1,14 +1,36 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Table, Form, Button, Pagination } from 'react-bootstrap'
-import { ChevronUp, ChevronDown, Search, Filter } from 'lucide-react'
+import {
+  Table,
+  Form,
+  Button,
+  Pagination,
+  Dropdown,
+  Badge,
+  Spinner,
+} from 'react-bootstrap'
+import {
+  ChevronUp,
+  ChevronDown,
+  Search,
+  Filter,
+  Download,
+  Upload,
+  CheckSquare,
+  Square,
+  Trash,
+  Edit,
+  FileText,
+} from 'lucide-react'
 
 export interface Column {
   key: string
   label: string
   sortable?: boolean
   render?: (value: any, row: any) => React.ReactNode
+  filterable?: boolean
+  filterOptions?: { value: string | number; label: string }[]
 }
 
 interface DataTableProps {
@@ -21,6 +43,18 @@ interface DataTableProps {
   onRowClick?: (row: any) => void
   actions?: (row: any) => React.ReactNode
   pageSizeOptions?: number[]
+  selectable?: boolean
+  batchActions?: {
+    label: string
+    icon?: React.ReactNode
+    onClick: (selectedRows: any[]) => void
+    variant?: string
+  }[]
+  exportable?: boolean
+  onExport?: (format: 'csv' | 'excel' | 'json') => void
+  importable?: boolean
+  onImport?: (file: File) => void
+  advancedFiltering?: boolean
 }
 
 const DataTable = ({
@@ -33,6 +67,13 @@ const DataTable = ({
   onRowClick,
   actions,
   pageSizeOptions = [10, 20, 50, 100],
+  selectable = false,
+  batchActions = [],
+  exportable = false,
+  onExport,
+  importable = false,
+  onImport,
+  advancedFiltering = false,
 }: DataTableProps) => {
   const [sortKey, setSortKey] = useState<string>('')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
@@ -40,8 +81,12 @@ const DataTable = ({
   const [currentPage, setCurrentPage] = useState(1)
   const [filteredData, setFilteredData] = useState(data)
   const [pageSize, setPageSize] = useState(itemsPerPage)
+  const [selectedRows, setSelectedRows] = useState<any[]>([])
+  const [selectAll, setSelectAll] = useState(false)
+  const [filters, setFilters] = useState<Record<string, any>>({})
+  const [showFilters, setShowFilters] = useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
-  // 處理排序
   const handleSort = (key: string) => {
     if (sortKey === key) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
@@ -51,30 +96,35 @@ const DataTable = ({
     }
   }
 
-  // 處理搜尋
   useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredData(data)
-      setCurrentPage(1)
-      return
+    let filtered = [...data]
+
+    if (searchTerm.trim()) {
+      const keys =
+        searchKeys.length > 0 ? searchKeys : columns.map((col) => col.key)
+
+      filtered = filtered.filter((item) => {
+        return keys.some((key) => {
+          const value = item[key]
+          if (value === null || value === undefined) return false
+          return String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        })
+      })
     }
 
-    const keys =
-      searchKeys.length > 0 ? searchKeys : columns.map((col) => col.key)
-
-    const filtered = data.filter((item) => {
-      return keys.some((key) => {
-        const value = item[key]
-        if (value === null || value === undefined) return false
-        return String(value).toLowerCase().includes(searchTerm.toLowerCase())
+    if (Object.keys(filters).length > 0) {
+      filtered = filtered.filter((item) => {
+        return Object.entries(filters).every(([key, value]) => {
+          if (!value || value === 'all') return true
+          return String(item[key]) === String(value)
+        })
       })
-    })
+    }
 
     setFilteredData(filtered)
     setCurrentPage(1)
-  }, [searchTerm, data, columns, searchKeys])
+  }, [searchTerm, data, columns, searchKeys, filters])
 
-  // 當數據或頁面大小變化時，確保當前頁面有效
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredData.length / pageSize))
     if (currentPage > maxPage) {
@@ -82,7 +132,6 @@ const DataTable = ({
     }
   }, [filteredData, pageSize, currentPage])
 
-  // 處理排序後的數據
   useEffect(() => {
     if (!sortKey) return
 
@@ -92,218 +141,459 @@ const DataTable = ({
 
       if (aValue === bValue) return 0
 
-      // 處理空值
       if (aValue === null || aValue === undefined)
         return sortDirection === 'asc' ? -1 : 1
       if (bValue === null || bValue === undefined)
         return sortDirection === 'asc' ? 1 : -1
 
-      // 數字比較
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue)
       }
 
-      // 字串比較
-      const aString = String(aValue).toLowerCase()
-      const bString = String(bValue).toLowerCase()
-
-      if (sortDirection === 'asc') {
-        return aString.localeCompare(bString, 'zh-TW')
-      } else {
-        return bString.localeCompare(aString, 'zh-TW')
-      }
+      return sortDirection === 'asc'
+        ? aValue > bValue
+          ? 1
+          : -1
+        : aValue > bValue
+        ? -1
+        : 1
     })
 
     setFilteredData(sorted)
   }, [sortKey, sortDirection])
 
-  // 計算分頁
-  const totalPages = Math.ceil(filteredData.length / pageSize)
-  const startIndex = (currentPage - 1) * pageSize
-  const paginatedData = filteredData.slice(startIndex, startIndex + pageSize)
-
-  // 處理分頁變更
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
   }
 
-  return (
-    <div className="data-table-container">
-      {searchable && (
-        <div className="mb-3 d-flex">
-          <Form.Group className="flex-grow-1 me-2">
-            <div className="position-relative">
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPageSize(Number(e.target.value))
+    setCurrentPage(1)
+  }
+
+  const totalPages = Math.ceil(filteredData.length / pageSize)
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, filteredData.length)
+  const currentData = filteredData.slice(startIndex, endIndex)
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedRows([])
+    } else {
+      setSelectedRows([...currentData])
+    }
+    setSelectAll(!selectAll)
+  }
+
+  const handleSelectRow = (row: any) => {
+    const isSelected = selectedRows.some((r) => r === row)
+    if (isSelected) {
+      setSelectedRows(selectedRows.filter((r) => r !== row))
+    } else {
+      setSelectedRows([...selectedRows, row])
+    }
+  }
+
+  const handleFilterChange = (key: string, value: any) => {
+    setFilters({
+      ...filters,
+      [key]: value,
+    })
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && onImport) {
+      onImport(file)
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const clearFilters = () => {
+    setFilters({})
+    setSearchTerm('')
+  }
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null
+
+    const pageItems = []
+    const maxPageItems = 5
+    let startPage = Math.max(1, currentPage - Math.floor(maxPageItems / 2))
+    let endPage = Math.min(totalPages, startPage + maxPageItems - 1)
+
+    if (endPage - startPage + 1 < maxPageItems) {
+      startPage = Math.max(1, endPage - maxPageItems + 1)
+    }
+
+    pageItems.push(
+      <Pagination.First
+        key="first"
+        onClick={() => handlePageChange(1)}
+        disabled={currentPage === 1}
+      />
+    )
+
+    pageItems.push(
+      <Pagination.Prev
+        key="prev"
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      />
+    )
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageItems.push(
+        <Pagination.Item
+          key={i}
+          active={i === currentPage}
+          onClick={() => handlePageChange(i)}
+        >
+          {i}
+        </Pagination.Item>
+      )
+    }
+
+    pageItems.push(
+      <Pagination.Next
+        key="next"
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      />
+    )
+
+    pageItems.push(
+      <Pagination.Last
+        key="last"
+        onClick={() => handlePageChange(totalPages)}
+        disabled={currentPage === totalPages}
+      />
+    )
+
+    return <Pagination className="mb-0">{pageItems}</Pagination>
+  }
+
+  const renderTableHeader = () => (
+    <thead>
+      <tr>
+        {selectable && (
+          <th style={{ width: '40px' }}>
+            <div
+              className="d-flex align-items-center justify-content-center cursor-pointer"
+              onClick={handleSelectAll}
+            >
+              {selectAll ? (
+                <CheckSquare size={18} className="text-primary" />
+              ) : (
+                <Square size={18} />
+              )}
+            </div>
+          </th>
+        )}
+        {columns.map((column) => (
+          <th
+            key={column.key}
+            className={column.sortable ? 'sortable' : ''}
+            onClick={() => column.sortable && handleSort(column.key)}
+          >
+            <div className="d-flex align-items-center">
+              {column.label}
+              {column.sortable && (
+                <div className="ms-1 d-flex flex-column">
+                  <ChevronUp
+                    size={12}
+                    className={
+                      sortKey === column.key && sortDirection === 'asc'
+                        ? 'text-primary'
+                        : 'text-muted'
+                    }
+                  />
+                  <ChevronDown
+                    size={12}
+                    className={
+                      sortKey === column.key && sortDirection === 'desc'
+                        ? 'text-primary'
+                        : 'text-muted'
+                    }
+                    style={{ marginTop: '-4px' }}
+                  />
+                </div>
+              )}
+            </div>
+          </th>
+        ))}
+        {actions && <th className="text-end">操作</th>}
+      </tr>
+      {showFilters && (
+        <tr className="filter-row">
+          {selectable && <th></th>}
+          {columns.map((column) => (
+            <th key={`filter-${column.key}`}>
+              {column.filterable && column.filterOptions ? (
+                <Form.Select
+                  size="sm"
+                  value={filters[column.key] || ''}
+                  onChange={(e) =>
+                    handleFilterChange(column.key, e.target.value)
+                  }
+                >
+                  <option value="">全部</option>
+                  {column.filterOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Form.Select>
+              ) : null}
+            </th>
+          ))}
+          {actions && <th></th>}
+        </tr>
+      )}
+    </thead>
+  )
+
+  const renderTableBody = () => {
+    if (loading) {
+      return (
+        <tbody>
+          <tr>
+            <td
+              colSpan={
+                columns.length + (actions ? 1 : 0) + (selectable ? 1 : 0)
+              }
+              className="text-center py-4"
+            >
+              <Spinner animation="border" variant="primary" />
+              <p className="mt-2 mb-0">載入中...</p>
+            </td>
+          </tr>
+        </tbody>
+      )
+    }
+
+    if (currentData.length === 0) {
+      return (
+        <tbody>
+          <tr>
+            <td
+              colSpan={
+                columns.length + (actions ? 1 : 0) + (selectable ? 1 : 0)
+              }
+              className="text-center py-4"
+            >
+              <p className="mb-0">沒有找到符合條件的數據</p>
+            </td>
+          </tr>
+        </tbody>
+      )
+    }
+
+    return (
+      <tbody>
+        {currentData.map((row, index) => (
+          <tr
+            key={index}
+            className={onRowClick ? 'cursor-pointer' : ''}
+            onClick={() => onRowClick && onRowClick(row)}
+          >
+            {selectable && (
+              <td
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleSelectRow(row)
+                }}
+              >
+                <div className="d-flex align-items-center justify-content-center">
+                  {selectedRows.some((r) => r === row) ? (
+                    <CheckSquare size={18} className="text-primary" />
+                  ) : (
+                    <Square size={18} />
+                  )}
+                </div>
+              </td>
+            )}
+            {columns.map((column) => (
+              <td key={`${index}-${column.key}`}>
+                {column.render
+                  ? column.render(row[column.key], row)
+                  : row[column.key]}
+              </td>
+            ))}
+            {actions && (
+              <td className="text-end">
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="d-flex justify-content-end"
+                >
+                  {actions(row)}
+                </div>
+              </td>
+            )}
+          </tr>
+        ))}
+      </tbody>
+    )
+  }
+
+  const renderToolbar = () => (
+    <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
+      <div className="d-flex flex-wrap align-items-center">
+        {searchable && (
+          <div className="me-3 mb-2 mb-md-0">
+            <div className="input-group">
+              <span className="input-group-text">
+                <Search size={16} />
+              </span>
               <Form.Control
                 type="text"
                 placeholder="搜尋..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
               />
-              <Search
-                size={18}
-                className="search-icon position-absolute"
-                style={{
-                  right: '10px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                }}
-              />
-            </div>
-          </Form.Group>
-          <Button
-            variant="outline-secondary"
-            className="d-flex align-items-center filter-button"
-          >
-            <Filter size={18} className="me-1" /> 篩選
-          </Button>
-        </div>
-      )}
-
-      <div className="table-responsive">
-        {loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">載入中...</span>
-            </div>
-            <p className="mt-2">載入資料中...</p>
-          </div>
-        ) : (
-          <Table hover striped className="data-table">
-            <thead>
-              <tr>
-                {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    onClick={() => column.sortable && handleSort(column.key)}
-                    style={{ cursor: column.sortable ? 'pointer' : 'default' }}
-                    className={column.sortable ? 'sortable-column' : ''}
-                  >
-                    <div className="d-flex align-items-center">
-                      {column.label}
-                      {column.sortable && sortKey === column.key && (
-                        <span className="ms-1">
-                          {sortDirection === 'asc' ? (
-                            <ChevronUp size={16} />
-                          ) : (
-                            <ChevronDown size={16} />
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                ))}
-                {actions && <th>操作</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedData.length > 0 ? (
-                paginatedData.map((row, index) => (
-                  <tr
-                    key={index}
-                    onClick={() => onRowClick && onRowClick(row)}
-                    style={{ cursor: onRowClick ? 'pointer' : 'default' }}
-                  >
-                    {columns.map((column) => (
-                      <td key={`${index}-${column.key}`}>
-                        {column.render
-                          ? column.render(row[column.key], row)
-                          : row[column.key] !== undefined &&
-                            row[column.key] !== null
-                          ? String(row[column.key])
-                          : '-'}
-                      </td>
-                    ))}
-                    {actions && (
-                      <td onClick={(e) => e.stopPropagation()}>
-                        {actions(row)}
-                      </td>
-                    )}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={columns.length + (actions ? 1 : 0)}
-                    className="text-center py-4"
-                  >
-                    沒有找到符合的資料
-                  </td>
-                </tr>
+              {searchTerm && (
+                <Button
+                  variant="outline-secondary"
+                  onClick={() => setSearchTerm('')}
+                >
+                  清除
+                </Button>
               )}
-            </tbody>
-          </Table>
+            </div>
+          </div>
+        )}
+
+        {advancedFiltering && (
+          <Button
+            variant={showFilters ? 'primary' : 'outline-secondary'}
+            className="me-2 mb-2 mb-md-0 d-flex align-items-center"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter size={16} className="me-1" />
+            篩選
+            {Object.keys(filters).length > 0 && (
+              <Badge bg="danger" className="ms-1">
+                {Object.keys(filters).length}
+              </Badge>
+            )}
+          </Button>
+        )}
+
+        {Object.keys(filters).length > 0 && (
+          <Button
+            variant="outline-danger"
+            className="me-2 mb-2 mb-md-0"
+            onClick={clearFilters}
+          >
+            清除篩選
+          </Button>
         )}
       </div>
 
-      {/* 分頁控制 */}
-      <div className="d-flex justify-content-between align-items-center mt-3">
+      <div className="d-flex flex-wrap align-items-center">
+        {selectable && selectedRows.length > 0 && (
+          <div className="me-3 mb-2 mb-md-0">
+            <span className="me-2">已選擇 {selectedRows.length} 項</span>
+            {batchActions.map((action, index) => (
+              <Button
+                key={index}
+                variant={action.variant || 'outline-primary'}
+                className="me-2"
+                onClick={() => action.onClick(selectedRows)}
+              >
+                {action.icon && <span className="me-1">{action.icon}</span>}
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        )}
+
+        {exportable && (
+          <Dropdown className="me-2 mb-2 mb-md-0">
+            <Dropdown.Toggle variant="outline-success" id="dropdown-export">
+              <Download size={16} className="me-1" />
+              導出
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => onExport && onExport('csv')}>
+                CSV 格式
+              </Dropdown.Item>
+              <Dropdown.Item onClick={() => onExport && onExport('excel')}>
+                Excel 格式
+              </Dropdown.Item>
+              <Dropdown.Item onClick={() => onExport && onExport('json')}>
+                JSON 格式
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        )}
+
+        {importable && (
+          <>
+            <Button
+              variant="outline-primary"
+              className="me-2 mb-2 mb-md-0"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload size={16} className="me-1" />
+              導入
+            </Button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              accept=".csv,.xlsx,.xls,.json"
+              onChange={handleFileChange}
+            />
+          </>
+        )}
+
         <div className="d-flex align-items-center">
-          <span className="me-2">
-            顯示 {filteredData.length > 0 ? startIndex + 1 : 0}-
-            {Math.min(startIndex + pageSize, filteredData.length)} 筆，共{' '}
-            {filteredData.length} 筆
-          </span>
           <Form.Select
             size="sm"
-            style={{ width: '80px' }}
             value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value))
-              setCurrentPage(1) // 重置到第一頁
-            }}
+            onChange={handlePageSizeChange}
+            className="me-2"
+            style={{ width: 'auto' }}
           >
             {pageSizeOptions.map((size) => (
               <option key={size} value={size}>
-                {size} 筆
+                {size} 筆/頁
               </option>
             ))}
           </Form.Select>
+          <span className="text-muted">
+            顯示 {startIndex + 1}-{endIndex} 筆，共 {filteredData.length} 筆
+          </span>
         </div>
-        {totalPages > 1 && (
-          <Pagination>
-            <Pagination.First
-              onClick={() => handlePageChange(1)}
-              disabled={currentPage === 1}
-            />
-            <Pagination.Prev
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            />
+      </div>
+    </div>
+  )
 
-            {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-              let pageNum
-              if (totalPages <= 5) {
-                pageNum = i + 1
-              } else if (currentPage <= 3) {
-                pageNum = i + 1
-              } else if (currentPage >= totalPages - 2) {
-                pageNum = totalPages - 4 + i
-              } else {
-                pageNum = currentPage - 2 + i
-              }
+  return (
+    <div className="data-table-container">
+      {renderToolbar()}
 
-              return (
-                <Pagination.Item
-                  key={pageNum}
-                  active={pageNum === currentPage}
-                  onClick={() => handlePageChange(pageNum)}
-                >
-                  {pageNum}
-                </Pagination.Item>
-              )
-            })}
+      <div className="table-responsive">
+        <Table hover>
+          {renderTableHeader()}
+          {renderTableBody()}
+        </Table>
+      </div>
 
-            <Pagination.Next
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            />
-            <Pagination.Last
-              onClick={() => handlePageChange(totalPages)}
-              disabled={currentPage === totalPages}
-            />
-          </Pagination>
-        )}
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div>
+          {filteredData.length > 0 && (
+            <span className="text-muted">
+              顯示 {startIndex + 1}-{endIndex} 筆，共 {filteredData.length} 筆
+            </span>
+          )}
+        </div>
+        {renderPagination()}
       </div>
     </div>
   )
