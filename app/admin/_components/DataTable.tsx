@@ -488,15 +488,16 @@ const DataTable = ({
             ))}
             {actions && (
               <td className={`text-end ${isDarkMode ? 'text-light' : ''}`}>
-                <button
-                  type="button"
+                <div
                   onClick={(e) => e.stopPropagation()}
                   onKeyDown={(e) => e.stopPropagation()}
-                  className="btn btn-link p-0 d-flex justify-content-end"
+                  className="d-flex justify-content-end"
+                  role="button"
+                  tabIndex={0}
                   aria-label="操作按鈕"
                 >
                   {actions(row)}
-                </button>
+                </div>
               </td>
             )}
           </tr>
