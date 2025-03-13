@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect ,useRef } from 'react'
+import React, { useState ,useRef } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
@@ -15,6 +15,8 @@ import { FaCartShopping } from "react-icons/fa6";
 import { FaPlus } from "react-icons/fa6";
 import { FaMinus } from "react-icons/fa6";
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
+import { FaUser } from "react-icons/fa";
+
 
 // components
 import {IconLine_lg} from '@/app/shop/_components/icon_line'
@@ -31,8 +33,11 @@ import useSWR from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 
-export default function PidPage(props) {
-  const [count, setCount] = useState(0)  
+export default function PidPage() {
+  const [count, setCount] = useState(1)  
+  if(count<1){
+    setCount(1)
+  }
 
   // 從網址上得到動態路由參數
   const params = useParams()
@@ -55,6 +60,13 @@ export default function PidPage(props) {
         behavior: 'smooth',
       })
     }
+
+// 選擇變體
+const [selectedVariantId, setSelectedVariantId] = useState(null);
+
+const handleVariantClick = (variantId) => {
+  setSelectedVariantId(variantId);
+};
 
 // ----------------------------
 
@@ -97,44 +109,55 @@ export default function PidPage(props) {
                     height={600}
                   />
                 </div>
-                <div className={styles.img_group}>
+                
                   {hasCustomImages 
                     ?(
-                    <div className={styles.imgs} key={pid}>
-                      <div className={styles.img} key={pid}>
+                <div className={styles.img_group}>
+                    <div className={styles.imgs_item} key={pid}>
+                      <Image 
+                      src={product.image_url}
+                      alt={product.product_name}
+                      width={100}
+                      height={100} />
+                    </div>
+                    {variants?.map((variant, index) => (
+                      <div className={styles.imgs_item} key={variant.variant_id}>
                         <Image 
-                        src={product.image_url}
-                        alt={product.product_name}
+                        key={`v${index}`}
+                        src={variant.image_url}
+                        alt={variant.variant_name}
+                        width={100}
+                        height={100} />
+                        {/* <p>{variant.variant_name}</p> */}
+                      </div>
+                      ))}
+                    {product_imgs?.map((img, index) => (
+                      <div className={styles.imgs_item} key={pid}>
+                        <Image 
+                        key={`imgs${index}`}
+                        src={img.image_url}
+                        alt={`image ${index + 1}`}
                         width={100}
                         height={100} />
                       </div>
-                      {product_imgs?.map((img, index) => (
-                        <div className={styles.img} key={pid}>
-                          <Image 
-                          key={index}
-                          src={img.image_url}
-                          alt={`Product image ${index + 1}`}
-                          width={100}
-                          height={100} />
-                        </div>
                       ))}
-                      </div>
+                  </div>
                     )
                     :(
-                      <div className={styles.imgs} key={pid}>
-                        <div className={styles.imgsContainer}>
-                          <Image 
-                          src='/images/default_no_pet.jpg'
-                          alt='Default product image'
-                          width={100}
-                          height={100}/>
+                      <div className={styles.img_group}>
+                        <div className={styles.imgs_item} key={pid}>
+                            <Image 
+                            src='/images/default_no_pet.jpg'
+                            alt='Default product image'
+                            width={100}
+                            height={100}/>
                         </div>
                       </div>
                     )}
-                </div>
+                
               </div>
-              <div className={styles.col}>
-                  <div className={styles.productType}>
+              <div className={styles.info}>
+                  <div>
                     <p className={styles.h3}>{product.product_name}</p>
                     <div className={styles.iconGroup}>
                       <div className={styles.comment}>
@@ -148,8 +171,9 @@ export default function PidPage(props) {
                       </div>
                     </div>
                   </div>
-                  <div className={styles.productType}>
-                    <div>
+                  <hr />
+                  <div>
+                    <div className={styles.priceGroup}>
                       <p className={styles.h3}>${product.price}</p>
                       <p className={styles.p2}><del>${product.price}</del></p>
                     </div>
@@ -163,46 +187,59 @@ export default function PidPage(props) {
                     </div>
                   </div>
                   {variants?.length > 0
-                  ?
-                  <div className={styles.productVariant}>
-                    <div>
-                      <p className={styles.p2}>款式</p>
-                    </div>
-                    <div>
-                      {variants.map(variant => {
-                        return(
-                          <div key={variant.variant_id} className={styles.comment}>
+                  ?(
+                    <>
+                    <hr/>
+                    <div className={styles.productVariant}>
+                      <div>
+                        <p className={styles.p2}>款式</p>
+                      </div>
+                      <div className={styles.variantGroup}>
+                        {variants.map(variant => (
+                          <button 
+                            key={variant.variant_id} 
+                            className={`${styles.comment} ${selectedVariantId === variant.variant_id ? styles.active : ''}`}
+                            onClick={() => handleVariantClick(variant.variant_id)}
+                          >
                             {variant.variant_name}
-                          </div>
-                        )
-                      }
-                      )}
+                          </button>
+                          
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                    </>
+                  )
                   :''}
-                  <div className={styles.productType}>
+                  <hr />
+                  <div className={styles.btnGroup}>
                     <div className={styles.countBtn}>
-                      <FaPlus onClick={()=>{}}/>
-                      {count}
-                      <FaMinus onClick={()=>{}}/>
+                      <button onClick={()=>{setCount(count-1)}}>
+                        <FaPlus/>
+                      </button>
+                      <input type="text" value={count} onChange={(event)=>{setCount(Number(event.target.value))}}/>
+                      <button onClick={()=>{setCount(count+1)}}>
+                        <FaMinus/>
+                      </button>
                     </div>
-                    <div className={styles.countBtn}>
+                    <button className={styles.addCartBtn}>
                     <FaCartShopping />
                     加入購物車
-                    </div>
+                    </button>
                   </div>
                   {promotion.length > 0
-                  ?
-                  promotion.map((p) => {
-                    return(
-                    <div key={p.promotion_id} className={styles.productPromotion}>
-                      <IoCheckmarkDoneSharp />
-                      {/* <Link href={'/'}> */}
-                        {p.promotion_name}
-                      {/* </Link> */}
-                    </div>
-                    )
-                  })
+                  ?(
+                  <div className={styles.promotions}>{
+                    promotion.map((p) => {
+                      return(
+                      <div key={p.promotion_id} className={styles.promotion}>
+                        <IoCheckmarkDoneSharp />
+                        {/* <Link href={'/'}> */}
+                          {p.promotion_name}
+                        {/* </Link> */}
+                      </div>
+                      )
+                    })}
+                  </div>)
                   :
                   ''
                   }
@@ -224,12 +261,22 @@ export default function PidPage(props) {
                 return (
                   <div key={r.review_id } className={styles.reviewItem}>
                     <div className={styles.reviewItemTitle}> 
-                      <div>
-                        <div>
-                          <div className={styles.user}>
-                            {r.user_name}
+                      <div className={styles.left}>
+                          <div className={styles.userImg}>
+                              {r.profile_picture?
+                                <Image
+                                src={r.profile_picture}
+                                alt={r.user_name}
+                                width={50}
+                                height={50}
+                                />
+                                :
+                                <FaUser />
+                              }
                           </div>
-                          <div>
+                        <div className={styles.top}>
+                            {r.user_name}
+                          <div className={styles.rating}>
                             <FaRegStar/>
                             {r.rating}
                           </div>
@@ -239,7 +286,7 @@ export default function PidPage(props) {
                           {r.variant_name? `( ${r.variant_name} )` : ''}
                         </div>
                       </div>
-                      <div>
+                      <div  className={styles.right}>
                         {new Date(r.created_at).toLocaleDateString()}
                       </div>
                     </div>
@@ -262,11 +309,10 @@ export default function PidPage(props) {
                       <div className={shopStyles.cardGroup} ref={categoryRefs}>
                         {categories.map((product) => {
                           return(
-                              <>
-                              <Link href={`/shop/${product.product_id}`}>
+                              
+                              <Link key={product.	product_id} href={`/shop/${product.product_id}`}>
                                 <Card
-                                  key={product.	product_id}
-                                  image={product.image_url || '/images/default_no_pet.jpg'}
+                                  image={product.image_url|| '/images/default_no_pet.jpg'}
                                   title={product.product_name}
                                 >
                                   <div className={shopStyles.cardText}>
@@ -281,7 +327,7 @@ export default function PidPage(props) {
                                   </div>
                                 </Card>
                               </Link>
-                              </>
+                              
                           )
                         })}
                       </div>
