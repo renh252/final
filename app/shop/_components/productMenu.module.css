@@ -27,4 +27,11 @@
       text-shadow: #fff 1px 0px 1px;
     }
   }
+  a.active{
+    background-color: rgba(199, 150, 80, 1);
+    color: #fff;
+    p{
+      text-shadow: #fff 1px 0px 1px;
+    }
+  }
 }

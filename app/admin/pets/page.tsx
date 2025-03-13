@@ -2,7 +2,17 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Button, Form, Badge, Image, Alert } from 'react-bootstrap'
-import { Plus, Edit, Trash, Eye, Heart, PawPrint } from 'lucide-react'
+import {
+  Plus,
+  Edit,
+  Trash,
+  Eye,
+  Heart,
+  PawPrint,
+  Download,
+  Upload,
+  Trash2,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import AdminPageLayout, {
   AdminSection,
@@ -72,6 +82,10 @@ export default function PetsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [fetchAttempt, setFetchAttempt] = useState(0)
+  const [selectedPets, setSelectedPets] = useState<any[]>([])
+  const [isImporting, setIsImporting] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+  const [importResult, setImportResult] = useState<any | null>(null)
 
   // 獲取 token
   const getToken = () => Cookies.get('admin_token') || ''
@@ -194,6 +208,8 @@ export default function PetsPage() {
       key: 'species',
       label: '種類',
       sortable: true,
+      filterable: true,
+      filterOptions: SPECIES_OPTIONS,
     },
     {
       key: 'variety',
@@ -203,11 +219,15 @@ export default function PetsPage() {
     {
       key: 'gender',
       label: '性別',
+      filterable: true,
+      filterOptions: GENDER_OPTIONS,
     },
     {
       key: 'is_adopted',
       label: '狀態',
       sortable: true,
+      filterable: true,
+      filterOptions: ADOPTED_OPTIONS,
       render: (value) => {
         if (value === 0) {
           return <Badge bg="success">待領養</Badge>
@@ -572,6 +592,166 @@ export default function PetsPage() {
     </Button>
   )
 
+  // 處理導出
+  const handleExport = async (format: 'csv' | 'excel' | 'json') => {
+    try {
+      // 顯示加載中提示
+      showToast('info', '導出中', '正在準備導出數據...')
+
+      // 構建導出 URL
+      const exportUrl = `/api/admin/pets/export?format=${format}`
+
+      // 創建一個臨時鏈接並點擊它來下載文件
+      const link = document.createElement('a')
+      link.href = exportUrl
+      link.setAttribute('download', `pets_export.${format}`)
+
+      // 添加 token 到請求頭
+      const token = getToken()
+      fetch(exportUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((response) => response.blob())
+        .then((blob) => {
+          const url = window.URL.createObjectURL(blob)
+          link.href = url
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+          showToast(
+            'success',
+            '導出成功',
+            `已成功導出 ${pets.length} 條寵物記錄`
+          )
+        })
+        .catch((error) => {
+          console.error('導出失敗:', error)
+          showToast('error', '導出失敗', '無法導出數據，請稍後再試')
+        })
+    } catch (error) {
+      console.error('導出時發生錯誤:', error)
+      showToast('error', '導出失敗', '無法導出數據，請稍後再試')
+    }
+  }
+
+  // 處理導入
+  const handleImport = async (file: File) => {
+    try {
+      setIsImporting(true)
+      setImportError(null)
+      setImportResult(null)
+
+      // 創建 FormData
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // 發送請求
+      const response = await fetch('/api/admin/pets/import', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: formData,
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || '導入失敗')
+      }
+
+      // 設置導入結果
+      setImportResult(result)
+
+      // 如果導入成功，重新獲取寵物列表
+      if (result.success) {
+        showToast('success', '導入成功', result.message)
+        fetchPets()
+      } else {
+        setImportError(result.error || '導入過程中發生錯誤')
+      }
+    } catch (error) {
+      console.error('導入時發生錯誤:', error)
+      setImportError(
+        error instanceof Error ? error.message : '導入失敗，請稍後再試'
+      )
+      showToast(
+        'error',
+        '導入失敗',
+        error instanceof Error ? error.message : '導入失敗，請稍後再試'
+      )
+    } finally {
+      setIsImporting(false)
+    }
+  }
+
+  // 處理批量刪除
+  const handleBatchDelete = (selectedRows: any[]) => {
+    if (selectedRows.length === 0) return
+
+    confirm({
+      title: '批量刪除寵物',
+      message: `確定要刪除選中的 ${selectedRows.length} 個寵物嗎？此操作無法撤銷。`,
+      onConfirm: async () => {
+        try {
+          showToast('info', '處理中', '正在刪除選中的寵物...')
+
+          // 創建一個包含所有刪除操作的 Promise 數組
+          const deletePromises = selectedRows.map((pet) =>
+            fetch(`/api/admin/pets/${pet.id}`, {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${getToken()}`,
+              },
+            })
+          )
+
+          // 等待所有刪除操作完成
+          const results = await Promise.allSettled(deletePromises)
+
+          // 計算成功和失敗的數量
+          const succeeded = results.filter(
+            (r) => r.status === 'fulfilled'
+          ).length
+          const failed = results.length - succeeded
+
+          // 更新寵物列表
+          if (succeeded > 0) {
+            // 從列表中移除已刪除的寵物
+            const deletedIds = selectedRows.map((pet) => pet.id)
+            setPets(pets.filter((pet) => !deletedIds.includes(pet.id)))
+
+            showToast(
+              'success',
+              '批量刪除完成',
+              `成功刪除 ${succeeded} 個寵物${
+                failed > 0 ? `，${failed} 個刪除失敗` : ''
+              }`
+            )
+          } else {
+            showToast('error', '批量刪除失敗', '所有寵物刪除操作均失敗')
+          }
+        } catch (error) {
+          console.error('批量刪除時發生錯誤:', error)
+          showToast('error', '批量刪除失敗', '無法完成批量刪除操作')
+        }
+      },
+    })
+  }
+
+  // 批量操作定義
+  const batchActions = [
+    {
+      label: '批量刪除',
+      icon: <Trash2 size={16} />,
+      onClick: handleBatchDelete,
+      variant: 'outline-danger',
+    },
+  ]
+
   return (
     <AdminPageLayout title="寵物管理" stats={petStats} actions={pageActions}>
       <AdminSection title="寵物列表">
@@ -585,6 +765,43 @@ export default function PetsPage() {
                   重試
                 </Button>
               </div>
+            </Alert>
+          )}
+
+          {importResult && importResult.success && (
+            <Alert
+              variant="success"
+              className="mb-3"
+              dismissible
+              onClose={() => setImportResult(null)}
+            >
+              <Alert.Heading>導入成功</Alert.Heading>
+              <p>{importResult.message}</p>
+              {importResult.errors && importResult.errors.length > 0 && (
+                <>
+                  <hr />
+                  <p>以下記錄導入失敗：</p>
+                  <ul>
+                    {importResult.errors.map((err: any, index: number) => (
+                      <li key={index}>
+                        {err.name}: {err.error}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </Alert>
+          )}
+
+          {importError && (
+            <Alert
+              variant="danger"
+              className="mb-3"
+              dismissible
+              onClose={() => setImportError(null)}
+            >
+              <Alert.Heading>導入失敗</Alert.Heading>
+              <p>{importError}</p>
             </Alert>
           )}
 
@@ -641,6 +858,13 @@ export default function PetsPage() {
               searchKeys={['name', 'species', 'variety', 'gender']}
               onRowClick={(pet) => router.push(`/admin/pets/${pet.id}`)}
               pageSizeOptions={[10, 20, 50, 100]}
+              selectable={true}
+              batchActions={batchActions}
+              exportable={true}
+              onExport={handleExport}
+              importable={true}
+              onImport={handleImport}
+              advancedFiltering={true}
             />
           )}
         </AdminCard>

@@ -82,7 +82,7 @@ export default function CidPage(props) {
                 {products.filter((product) => product.category_id == cid).map((product) => {
                   return(
                     <>
-                      <Link href={``}>
+                      <Link href={`/shop/${product.product_id}`}>
                         <Card
                           key={product.	product_id}
                           image={product.image_url ||
