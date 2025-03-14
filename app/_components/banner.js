@@ -41,8 +41,9 @@ export default function Banner() {
       image: '/images/Banner.jpg',
       title: '毛孩之家',
     }
-  if (!config.show) return null
-  if (config == bannerHome[pathname]) {
+  if (!config.show) {
+    return null
+  } else if (config == bannerHome[pathname]) {
     return (
       <div className={styles.banner}>
         <Image
