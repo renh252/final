@@ -1,67 +1,61 @@
-import mysql from 'mysql2/promise'
+import { createPool, createQueryHelper, type QueryResult } from '@/app/lib/db'
 
-// 創建後台專用數據庫連接池
-const adminPool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USERNAME || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_DATABASE || 'pet_proj',
-  port: Number(process.env.DB_PORT) || 3306,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-})
+// 創建管理員專用連接池
+export const adminPool = createPool(true)
 
-// 處理數據庫連接錯誤
-// 使用 as any 來繞過 TypeScript 的類型檢查
-// 因為 mysql2 的類型定義中沒有包含 on 方法
-;(adminPool as any).on('error', (err: any) => {
-  console.error('後台數據庫連接錯誤:', err)
-  if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-    console.error('數據庫連接被關閉')
-  } else if (err.code === 'ER_CON_COUNT_ERROR') {
-    console.error('數據庫有太多連接')
-  } else if (err.code === 'ECONNREFUSED') {
-    console.error('數據庫連接被拒絕')
-  }
-})
+// 創建管理員專用查詢輔助對象
+export const adminDb = createQueryHelper(adminPool)
 
-// 測試資料庫連接
-export async function testConnection() {
-  try {
-    const connection = await adminPool.getConnection()
-    const [rows] = await connection.query('SELECT 1 as connection_test')
-    connection.release()
-    console.log('後台數據庫連接成功:', rows)
-    return true
-  } catch (error) {
-    console.error('後台數據庫連接測試失敗:', error)
-    return false
-  }
-}
+// 擴展查詢輔助對象，添加管理員特定的功能
+export const adminDatabase = {
+  ...adminDb,
 
-// 提供查詢輔助函數
-export async function executeQuery<T = any>(
-  sql: string,
-  params: any[] = []
-): Promise<T[]> {
-  let connection
-  try {
-    connection = await adminPool.getConnection()
-    console.log('執行 SQL 查詢:', sql, '參數:', params)
-    const [results] = await connection.execute(sql, params)
-    console.log('SQL 查詢結果:', results)
-    if (!Array.isArray(results)) {
-      console.error('SQL 查詢返回值格式錯誤：', results)
-      throw new Error('SQL 查詢返回值格式錯誤')
+  // 記錄管理員操作日誌
+  async logAdminAction(
+    adminId: number,
+    action: string,
+    details: string
+  ): Promise<void> {
+    const [result, error] = await adminDb.execute(
+      'INSERT INTO admin_logs (admin_id, action, details) VALUES (?, ?, ?)',
+      [adminId, action, details]
+    )
+
+    if (error) {
+      console.error('記錄管理員操作失敗:', error)
+      throw error
     }
-    return results as T[]
-  } catch (error) {
-    console.error('SQL查詢錯誤:', error)
-    throw error
-  } finally {
-    if (connection) connection.release()
-  }
+  },
+
+  // 執行帶有管理員驗證的查詢
+  async executeSecureQuery<T = QueryResult>(
+    adminId: number,
+    sql: string,
+    params: any[] = []
+  ): Promise<T> {
+    // 檢查管理員權限
+    const [admin, error] = await adminDb.query(
+      'SELECT * FROM manager WHERE id = ?',
+      [adminId]
+    )
+
+    if (error || !admin || !admin[0]) {
+      throw new Error('管理員驗證失敗')
+    }
+
+    // 執行查詢
+    const [result, queryError] = await adminDb.execute<T>(sql, params)
+
+    if (queryError) {
+      throw queryError
+    }
+
+    // 記錄操作
+    await this.logAdminAction(adminId, 'database_query', `執行查詢: ${sql}`)
+
+    return result as T
+  },
 }
 
+// 為了保持向後兼容，提供預設導出
 export default adminPool
