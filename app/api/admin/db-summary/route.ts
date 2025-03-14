@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { query } from '@/app/lib/db'
 import { RowDataPacket } from 'mysql2/promise'
 import { verifyToken } from '@/app/api/admin/_lib/jwt'
+import { adminDatabase } from '@/app/api/admin/_lib/database'
 
 // 獲取資料庫摘要資訊 - 需要管理員權限
 export async function GET(request: Request) {
@@ -56,19 +56,12 @@ export async function GET(request: Request) {
       ORDER BY t.TABLE_NAME
     `
 
-    const tables = await query<RowDataPacket[]>(tablesQuery, [
-      dbName,
-      dbName,
-      dbName,
-      dbName,
-      dbName,
-    ])
+    const [tables, error] = await adminDatabase.executeSecureQuery<
+      RowDataPacket[]
+    >(tablesQuery, [dbName, dbName, dbName, dbName, dbName])
 
-    if (!Array.isArray(tables) || tables.length === 0) {
-      return NextResponse.json({
-        success: false,
-        message: '無法獲取資料表資訊或資料庫為空',
-      })
+    if (error || !tables) {
+      throw error || new Error('無法獲取資料表資訊')
     }
 
     // 計算統計資訊
