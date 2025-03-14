@@ -3,10 +3,10 @@ import pool from '@/app/lib/db'
 
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const connection = await pool.getConnection()
+    // const { searchParams } = new URL(request.url)
+    // const type = searchParams.get('type') 
     let responseData = {}
-    const type = searchParams.get('type') 
+    const connection = await pool.getConnection()
 
       // 獲取活動資料
       const [promotions]= await connection.execute(`
