@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { db } from '@/app/db'
-import { verifyAdmin } from '@/app/api/admin/_lib/auth'
+import { db } from '@/app/api/admin/_lib/db'
+import { auth } from '@/app/api/admin/_lib/auth'
+import { ResultSetHeader } from 'mysql2'
 
 // 請求體驗證 schema
 const categorySchema = z.object({
@@ -15,7 +16,7 @@ const categorySchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // 驗證管理員權限
-    const admin = await verifyAdmin(request)
+    const admin = await auth.fromRequest(request)
     if (!admin) {
       return NextResponse.json(
         { success: false, message: '未授權的訪問' },
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 獲取所有分類及其商品數量
-    const categories = await db.query(`
+    const [categories, error] = await db.query(`
       SELECT 
         c.*,
         COUNT(p.product_id) as product_count
@@ -33,6 +34,10 @@ export async function GET(request: NextRequest) {
       GROUP BY c.category_id
       ORDER BY c.created_at DESC
     `)
+
+    if (error) {
+      throw error
+    }
 
     return NextResponse.json({
       success: true,
@@ -51,7 +56,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // 驗證管理員權限
-    const admin = await verifyAdmin(request)
+    const admin = await auth.fromRequest(request)
     if (!admin) {
       return NextResponse.json(
         { success: false, message: '未授權的訪問' },
@@ -64,11 +69,16 @@ export async function POST(request: NextRequest) {
     const validatedData = categorySchema.parse(body)
 
     // 檢查分類標籤是否已存在
-    const existingCategory = await db.query(
+    const [existingCategory, error1] = await db.query(
       'SELECT * FROM categories WHERE category_tag = ?',
       [validatedData.category_tag]
     )
-    if (existingCategory.length > 0) {
+
+    if (error1) {
+      throw error1
+    }
+
+    if (existingCategory && existingCategory.length > 0) {
       return NextResponse.json(
         { success: false, message: '分類標籤已存在' },
         { status: 400 }
@@ -77,11 +87,16 @@ export async function POST(request: NextRequest) {
 
     // 如果有父分類，檢查父分類是否存在
     if (validatedData.parent_id) {
-      const parentCategory = await db.query(
+      const [parentCategory, error2] = await db.query(
         'SELECT * FROM categories WHERE category_id = ?',
         [validatedData.parent_id]
       )
-      if (parentCategory.length === 0) {
+
+      if (error2) {
+        throw error2
+      }
+
+      if (!parentCategory || parentCategory.length === 0) {
         return NextResponse.json(
           { success: false, message: '父分類不存在' },
           { status: 400 }
@@ -90,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 新增分類
-    const result = await db.query(
+    const [result, error3] = await db.query(
       `INSERT INTO categories 
       (category_name, category_tag, category_description, parent_id) 
       VALUES (?, ?, ?, ?)`,
@@ -102,11 +117,20 @@ export async function POST(request: NextRequest) {
       ]
     )
 
+    if (error3) {
+      throw error3
+    }
+
     // 獲取新增的分類資料
-    const newCategory = await db.query(
+    const insertId = (result as unknown as ResultSetHeader).insertId
+    const [newCategory, error4] = await db.query(
       'SELECT * FROM categories WHERE category_id = ?',
-      [result.insertId]
+      [insertId]
     )
+
+    if (error4) {
+      throw error4
+    }
 
     return NextResponse.json({
       success: true,

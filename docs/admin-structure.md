@@ -4,6 +4,26 @@
 >
 > 本文檔描述了寵物領養平台後台管理系統的結構和功能。完整的 API 路由列表請參考 [API 結構文檔](api-structure.md)，項目當前狀態請參考 [項目狀態文檔](current-status.md)。
 
+## 快速問題定位指引
+
+| 問題類型     | 查看章節                  | 範例代碼                          |
+| ------------ | ------------------------- | --------------------------------- |
+| 認證問題     | [認證機制](#認證機制)     | [認證檢查](#認證檢查)             |
+| 權限控制     | [權限控制](#權限控制)     | [API 路由保護](#api-路由保護)     |
+| 權限處理錯誤 | [權限最佳實踐](#最佳實踐) | [權限處理最佳實踐](#權限控制)     |
+| 資料庫交互   | [資料庫交互](#資料庫交互) | [資料庫查詢範例](#資料庫查詢範例) |
+| API 使用     | [API 路由](#api-路由)     | [API 使用示例](#api-使用示例)     |
+| 錯誤處理     | [錯誤處理](#錯誤處理)     | [錯誤處理範例](#錯誤處理)         |
+
+### 常見問題解決方法
+
+1. **驗證管理員身份**：使用 `auth.fromRequest(request)` 代替舊版的 `verifyAdmin(request)`
+2. **資料庫查詢**：使用 `const [results, error] = await db.query(...)` 並檢查錯誤
+3. **處理 INSERT 操作**：使用 `const insertId = (result as unknown as ResultSetHeader).insertId`
+4. **路由組件權限控制**：使用 `export default withAuth(Component, requiredPermission)`
+5. **API 路由權限**：使用 `export const GET = guard.api(async (request) => { ... })`
+6. **避免 `privileges` 相關錯誤**：使用 `const privileges = admin.privileges || ''; const perms = privileges ? privileges.split(',') : []` 防止 undefined 錯誤
+
 ## 目錄
 
 1. [概述](#概述)
@@ -173,6 +193,13 @@
 
 ### 認證機制
 
+> **⚠️ 重要提醒：**
+>
+> 1. 實際資料庫中的 `manager` 表**沒有** `is_active` 和 `last_login_at` 等欄位，請勿在代碼中使用這些欄位。
+> 2. 如遇到 `Unknown column 'is_active' in 'field list'` 錯誤，請檢查 SQL 查詢語句，確保不使用不存在的欄位。
+> 3. 請參考 `docs/database-structure.md` 中的實際資料庫結構說明。
+> 4. `manager_privileges` 欄位是必不可少的，它存儲管理員的權限信息，**絕對不可為 NULL 或 undefined**，否則會導致權限驗證失敗。
+
 後台管理系統使用 JWT (JSON Web Token) 進行認證，主要包含以下部分：
 
 1. **登入流程**
@@ -226,112 +253,108 @@
 
 ### 權限控制
 
-1. **權限定義**
+### 權限基本原則
+
+- 所有需要權限控制的操作都應在 API 層面和頁面層面進行雙重驗證
+- 使用統一的權限代碼系統，確保 API 和頁面使用相同的權限標識
+- 超級管理員具有所有權限
+- **重要**：`manager_privileges` 欄位在 `manager` 資料表中不得為 NULL 或 undefined，否則將導致權限驗證失敗
+
+### 權限處理最佳實踐
+
+為防止 `manager_privileges` 相關錯誤，請遵循以下最佳實踐：
+
+1. **資料庫層面**：
+
+   - 確保 `manager` 表中的 `manager_privileges` 欄位設為 NOT NULL
+   - 插入或更新管理員記錄時，務必提供至少一個權限值（例如：'member_view'）
+
+2. **程式碼層面**：
+
+   - 讀取 `manager_privileges` 時，使用防禦性編程技巧：
 
    ```typescript
-   // 在 permissions.ts 中
-   export const PERMISSIONS = {
-     MEMBERS: {
-       READ: 'members.read',
-       WRITE: 'members.write',
-       DELETE: 'members.delete',
-     },
-     PETS: {
-       READ: 'pets.read',
-       WRITE: 'pets.write',
-       DELETE: 'pets.delete',
-     },
-     // ... 其他權限
+   // 正確處理方式
+   const privileges = admin.privileges || '' // 確保不是 undefined
+   const perms = privileges ? privileges.split(',') : [] // 安全地使用 split
+
+   // 權限檢查
+   const hasPermission = (requiredPerm) => {
+     if (!admin) return false
+     const privileges = admin.privileges || ''
+     return privileges.split(',').includes(requiredPerm)
    }
    ```
 
-2. **API 路由保護**
+3. **權限驗證一致性**：
+   - API 層面和頁面層面使用相同的權限檢查邏輯
+   - 使用 `hasPermission` 函數統一處理權限檢查
 
-   ```typescript
-   // 在 API 路由中
-   export const GET = guard.api(async (request: NextRequest, authData) => {
-     // 檢查權限
-     if (!auth.can(authData, PERMISSIONS.MEMBERS.READ)) {
-       return NextResponse.json(
-         { success: false, message: '權限不足' },
-         { status: 403 }
-       )
-     }
+### 權限代碼定義
 
-     // 處理請求
-     // ...
-   })
-   ```
+管理員權限在 `manager_privileges` 欄位中以逗號分隔的字符串儲存，包含以下許可權：
 
-3. **頁面組件保護**
-   ```typescript
-   // 在頁面組件中
-   export default withAuth(MembersPage, PERMISSIONS.MEMBERS.READ)
-   ```
+```
+會員相關：
+- member_view：檢視會員列表與詳情
+- member_edit：編輯會員資料
+- member_delete：刪除會員
 
-### 權限檢查工具
+寵物相關：
+- pet_view：檢視寵物列表與詳情
+- pet_add：新增寵物資料
+- pet_edit：編輯寵物資訊
+- pet_delete：刪除寵物資料
 
-1. **API 路由保護工具**
+...其他權限...
+```
 
-   ```typescript
-   // 在 guard.ts 中
-   export const guard = {
-     api: (handler: ApiHandler) => {
-       return async (request: NextRequest) => {
-         try {
-           // 驗證授權
-           const authData = await auth.fromRequest(request)
-           if (!authData) {
-             return NextResponse.json(
-               { success: false, message: '未授權的請求' },
-               { status: 401 }
-             )
-           }
+### API 路由保護
 
-           // 執行處理器
-           return handler(request, authData)
-         } catch (error) {
-           console.error('API 錯誤:', error)
-           return NextResponse.json(
-             { success: false, message: '伺服器錯誤' },
-             { status: 500 }
-           )
-         }
-       }
-     },
-   }
-   ```
+```typescript
+// 在 API 路由中
+export const GET = guard.api(async (request: NextRequest, authData) => {
+  // 檢查權限
+  if (!auth.can(authData, PERMISSIONS.MEMBERS.READ)) {
+    return NextResponse.json(
+      { success: false, message: '權限不足' },
+      { status: 403 }
+    )
+  }
 
-2. **頁面組件保護工具**
-
-   ```typescript
-   // 在 useAuth.tsx 中
-   export function withAuth<
-     P extends { auth?: Auth; can?: (perm: string) => boolean }
-   >(Component: React.ComponentType<P>, requiredPerm?: string) {
-     return function AuthComponent(props: Omit<P, 'auth' | 'can'>) {
-       const { auth, loading, can } = useAuth(requiredPerm)
-
-       if (loading) {
-         return <LoadingSpinner />
-       }
-
-       if (!auth) {
-         return null
-       }
-
-       return <Component {...(props as P)} auth={auth} can={can} />
-     }
-   }
-   ```
+  // 處理請求
+  // ...
+})
+```
 
 ### 錯誤處理
 
-1. **認證錯誤**
+#### 認證和權限錯誤
 
-   - 401 未授權：Token 無效或過期
-   - 403 權限不足：無權訪問特定資源
-   - 重定向到登入頁面：`/admin/login`
+1. **認證錯誤 (401, 403)**
+
+   - 認證失敗或權限不足時，重定向到登錄頁面或顯示權限不足提示
+   - 前端接收到 401/403 錯誤時，可清除本地 token 並重定向
+
+2. **權限相關錯誤處理**
+   - 當遇到 `TypeError: Cannot read properties of undefined (reading 'split')` 錯誤時，通常是因為 `manager_privileges` 欄位為 `undefined`
+   - 解決方案：
+
+     ```typescript
+     // 使用防禦性編程
+     const privileges = admin?.privileges || ''
+     const permList = privileges ? privileges.split(',') : []
+
+     // 或使用可選鏈和空值合併運算符
+     const permList = admin?.privileges?.split(',') ?? []
+     ```
+
+   - 確保資料庫中 `manager_privileges` 欄位不為 NULL，可執行以下 SQL 修復:
+     ```sql
+     UPDATE manager SET manager_privileges = 'member_view' WHERE manager_privileges IS NULL;
+     ```
+
+#### API 錯誤
 
 2. **API 錯誤處理**
 
@@ -373,6 +396,8 @@
    - 在 API 和頁面層級都進行權限檢查
    - 使用統一的權限代碼
    - 超級管理員擁有所有權限
+   - **始終預防 manager_privileges 為 undefined 的情況，使用空值合併運算符**
+   - **使用防禦性編程方式處理權限字串：`const perms = privileges ? privileges.split(',') : []`**
 
 3. **錯誤處理**
    - 統一的錯誤處理機制
@@ -384,6 +409,216 @@
 後台管理系統通過 API 與資料庫進行交互，主要使用 MySQL 資料庫。資料庫連接和查詢邏輯位於 `app/api/admin/_lib/database.ts` 文件中，提供了 `executeQuery` 函數用於執行 SQL 查詢。
 
 資料庫結構的詳細信息可以參考 `docs/database-structure.md` 文件。
+
+### 資料庫查詢範例
+
+以下是在 API 路由中使用資料庫的範例：
+
+```typescript
+import { db } from '@/app/api/admin/_lib/db'
+import { ResultSetHeader } from 'mysql2'
+
+// 查詢資料
+export async function getCategories() {
+  try {
+    // 使用解構賦值獲取查詢結果和可能的錯誤
+    const [categories, error] = await db.query(`
+      SELECT * FROM categories ORDER BY created_at DESC
+    `)
+
+    // 務必檢查錯誤
+    if (error) {
+      throw error
+    }
+
+    return categories
+  } catch (error) {
+    console.error('查詢分類失敗:', error)
+    throw error
+  }
+}
+
+// 新增資料
+export async function createCategory(data) {
+  try {
+    // 插入資料並獲取結果
+    const [result, error] = await db.query(
+      `INSERT INTO categories (name, description) VALUES (?, ?)`,
+      [data.name, data.description]
+    )
+
+    if (error) {
+      throw error
+    }
+
+    // 安全獲取insertId
+    const insertId = (result as unknown as ResultSetHeader).insertId
+
+    // 獲取新增的資料
+    const [newCategory, fetchError] = await db.query(
+      'SELECT * FROM categories WHERE id = ?',
+      [insertId]
+    )
+
+    if (fetchError) {
+      throw fetchError
+    }
+
+    return newCategory[0]
+  } catch (error) {
+    console.error('新增分類失敗:', error)
+    throw error
+  }
+}
+
+// 更新資料
+export async function updateCategory(id, data) {
+  try {
+    const [result, error] = await db.query(
+      `UPDATE categories SET name = ?, description = ? WHERE id = ?`,
+      [data.name, data.description, id]
+    )
+
+    if (error) {
+      throw error
+    }
+
+    return (result as unknown as ResultSetHeader).affectedRows > 0
+  } catch (error) {
+    console.error('更新分類失敗:', error)
+    throw error
+  }
+}
+
+// 刪除資料
+export async function deleteCategory(id) {
+  try {
+    const [result, error] = await db.query(
+      `DELETE FROM categories WHERE id = ?`,
+      [id]
+    )
+
+    if (error) {
+      throw error
+    }
+
+    return (result as unknown as ResultSetHeader).affectedRows > 0
+  } catch (error) {
+    console.error('刪除分類失敗:', error)
+    throw error
+  }
+}
+```
+
+### 管理員相關資料庫操作範例
+
+以下是與管理員表 (`manager`) 相關的資料庫操作示例：
+
+```typescript
+import { db } from '@/app/api/admin/_lib/db'
+import { ResultSetHeader } from 'mysql2'
+import { hashPassword, comparePassword } from '@/app/api/admin/_lib/password'
+
+// 管理員資料類型
+interface Manager {
+  id: number
+  manager_account: string
+  manager_privileges: string
+}
+
+// 查詢管理員
+export async function getManager(id: number): Promise<Manager | null> {
+  try {
+    // 注意：manager表只有id, manager_account, manager_password, manager_privileges欄位
+    const [managers, error] = await db.query<Manager[]>(
+      `SELECT id, manager_account, manager_privileges FROM manager WHERE id = ?`,
+      [id]
+    )
+
+    if (error) {
+      throw error
+    }
+
+    return managers?.[0] || null
+  } catch (error) {
+    console.error('查詢管理員失敗:', error)
+    throw error
+  }
+}
+
+// 驗證管理員登入
+export async function verifyManagerLogin(
+  account: string,
+  password: string
+): Promise<Manager | null> {
+  try {
+    // 查詢管理員資料
+    const [managers, error] = await db.query(
+      `SELECT id, manager_account, manager_password, manager_privileges FROM manager WHERE manager_account = ?`,
+      [account]
+    )
+
+    if (error || !managers || managers.length === 0) {
+      return null
+    }
+
+    const manager = managers[0]
+
+    // 驗證密碼
+    const isValid = await comparePassword(password, manager.manager_password)
+
+    if (!isValid) {
+      return null
+    }
+
+    // 返回管理員資料（不包含密碼）
+    const { manager_password, ...managerData } = manager
+    return managerData as Manager
+  } catch (error) {
+    console.error('驗證管理員登入失敗:', error)
+    return null
+  }
+}
+
+// 創建管理員
+export async function createManager(data: {
+  account: string
+  password: string
+  privileges: string
+}): Promise<Manager | null> {
+  try {
+    // 加密密碼
+    const hashedPassword = await hashPassword(data.password)
+
+    // 插入管理員資料
+    const [result, error] = await db.query(
+      `INSERT INTO manager (manager_account, manager_password, manager_privileges) VALUES (?, ?, ?)`,
+      [data.account, hashedPassword, data.privileges]
+    )
+
+    if (error) {
+      throw error
+    }
+
+    const insertId = (result as unknown as ResultSetHeader).insertId
+
+    // 查詢新建的管理員
+    const [managers, fetchError] = await db.query<Manager[]>(
+      `SELECT id, manager_account, manager_privileges FROM manager WHERE id = ?`,
+      [insertId]
+    )
+
+    if (fetchError) {
+      throw fetchError
+    }
+
+    return managers?.[0] || null
+  } catch (error) {
+    console.error('創建管理員失敗:', error)
+    throw error
+  }
+}
+```
 
 ## API 路由
 

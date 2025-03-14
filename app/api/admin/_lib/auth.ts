@@ -14,7 +14,8 @@ interface Admin {
   id: number
   manager_account: string
   manager_privileges: string
-  is_active: number
+  // is_active 欄位在實際資料庫中不存在，已移除
+  // is_active: number
 }
 
 // 授權工具
@@ -26,18 +27,23 @@ export const auth = {
       if (!payload) return null
 
       // 從資料庫獲取管理員資訊
+      // 注意：移除了 is_active 欄位和條件，因為該欄位在實際資料庫中不存在
       const [admins] = await db.query<Admin[]>(
-        'SELECT id, manager_account, manager_privileges, is_active FROM manager WHERE id = ? AND is_active = 1',
+        'SELECT id, manager_account, manager_privileges FROM manager WHERE id = ?',
         [payload.id]
       )
 
       const admin = admins?.[0]
       if (!admin) return null
 
+      // 防止 manager_privileges 為 undefined 或 null
+      const privileges = admin.manager_privileges || ''
+      const isSuperAdmin = privileges === '111'
+
       return {
         id: admin.id,
-        role: admin.manager_privileges === '111' ? 'super' : 'admin',
-        perms: admin.manager_privileges.split(','),
+        role: isSuperAdmin ? 'super' : 'admin',
+        perms: privileges ? privileges.split(',') : [],
       }
     } catch (error) {
       console.error('Token 驗證失敗:', error)
@@ -54,8 +60,9 @@ export const auth = {
 
   // 取得管理員
   getAdmin: async (id: number): Promise<Admin | null> => {
+    // 注意：移除了 is_active 欄位和條件，因為該欄位在實際資料庫中不存在
     const [admins] = await db.query<Admin[]>(
-      'SELECT id, manager_account, manager_privileges, is_active FROM manager WHERE id = ? AND is_active = 1',
+      'SELECT id, manager_account, manager_privileges FROM manager WHERE id = ?',
       [id]
     )
     return admins?.[0] || null
@@ -70,10 +77,16 @@ export const auth = {
 
   // 更新最後登入時間
   updateLoginTime: async (id: number): Promise<void> => {
-    await db.exec(
-      'UPDATE manager SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [id]
+    // 注意：實際資料庫中不存在 last_login_at 欄位，這個方法將不起作用
+    // 實際應用中，應該考慮在其他地方記錄登入時間，或者添加這個欄位
+    console.warn(
+      '警告: 嘗試更新last_login_at欄位，但該欄位在實際資料庫中不存在'
     )
+    // 原始實現保留為注釋
+    // await db.exec(
+    //   'UPDATE manager SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?',
+    //   [id]
+    // )
   },
 }
 
@@ -87,8 +100,11 @@ export function hasPermission(
   // 超級管理員權限
   if (admin.privileges === '111') return true
 
+  // 防止 privileges 為 undefined 或 null
+  const privileges = admin.privileges || ''
+
   // 處理可能的複合權限（用逗號分隔）
-  const adminPrivileges = admin.privileges.split(',')
+  const adminPrivileges = privileges ? privileges.split(',') : []
 
   // 檢查是否有該權限區域的存取權
   if (Array.isArray(requiredArea)) {
