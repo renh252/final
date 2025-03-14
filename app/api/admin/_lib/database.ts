@@ -1,4 +1,5 @@
-import { createPool, createQueryHelper, type QueryResult } from '@/app/lib/db'
+import { createPool, createQueryHelper } from '@/app/lib/db'
+import { RowDataPacket } from 'mysql2/promise'
 
 // 創建管理員專用連接池
 export const adminPool = createPool(true)
@@ -6,54 +7,55 @@ export const adminPool = createPool(true)
 // 創建管理員專用查詢輔助對象
 export const adminDb = createQueryHelper(adminPool)
 
-// 擴展查詢輔助對象，添加管理員特定的功能
+// 創建管理員資料庫操作對象
 export const adminDatabase = {
-  ...adminDb,
-
-  // 記錄管理員操作日誌
-  async logAdminAction(
-    adminId: number,
-    action: string,
-    details: string
-  ): Promise<void> {
-    const [result, error] = await adminDb.execute(
-      'INSERT INTO admin_logs (admin_id, action, details) VALUES (?, ?, ?)',
-      [adminId, action, details]
-    )
-
-    if (error) {
-      console.error('記錄管理員操作失敗:', error)
-      throw error
+  // 測試連接
+  testConnection: async (): Promise<boolean> => {
+    try {
+      const [result] = await adminPool.query('SELECT 1 as connection_test')
+      return Array.isArray(result) && result.length > 0
+    } catch (error) {
+      console.error('資料庫連接測試失敗:', error)
+      return false
     }
   },
 
-  // 執行帶有管理員驗證的查詢
-  async executeSecureQuery<T = QueryResult>(
-    adminId: number,
+  // 執行安全查詢（需要管理員驗證）
+  executeSecureQuery: async <T extends RowDataPacket[]>(
     sql: string,
     params: any[] = []
-  ): Promise<T> {
-    // 檢查管理員權限
-    const [admin, error] = await adminDb.query(
-      'SELECT * FROM manager WHERE id = ?',
-      [adminId]
+  ): Promise<[T | null, Error | null]> => {
+    try {
+      // 執行查詢
+      const [results] = await adminPool.query<T>(sql, params)
+      return [results, null]
+    } catch (error) {
+      console.error('SQL查詢錯誤:', error)
+      return [null, error as Error]
+    }
+  },
+
+  // 執行一般查詢
+  execute: async <T extends RowDataPacket[]>(
+    sql: string,
+    params: any[] = []
+  ): Promise<[T | null, Error | null]> => {
+    try {
+      const [results] = await adminPool.execute<T>(sql, params)
+      return [results, null]
+    } catch (error) {
+      console.error('SQL執行錯誤:', error)
+      return [null, error as Error]
+    }
+  },
+
+  // 查詢管理員資訊
+  findAdminById: async (id: number): Promise<any> => {
+    const [results] = await adminPool.query(
+      'SELECT id, manager_account, manager_privileges FROM manager WHERE id = ? LIMIT 1',
+      [id]
     )
-
-    if (error || !admin || !admin[0]) {
-      throw new Error('管理員驗證失敗')
-    }
-
-    // 執行查詢
-    const [result, queryError] = await adminDb.execute<T>(sql, params)
-
-    if (queryError) {
-      throw queryError
-    }
-
-    // 記錄操作
-    await this.logAdminAction(adminId, 'database_query', `執行查詢: ${sql}`)
-
-    return result as T
+    return Array.isArray(results) && results.length > 0 ? results[0] : null
   },
 }
 

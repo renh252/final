@@ -7,6 +7,11 @@ import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '../../ThemeContext'
 import Link from 'next/link'
+import { withAuth } from '@/app/admin/_hooks/useAuth'
+import { PERMISSIONS } from '@/app/api/admin/_lib/permissions'
+import { useParams, useRouter } from 'next/navigation'
+import ModalForm from '@/app/admin/_components/ModalForm'
+import LoadingSpinner from '@/app/admin/_components/LoadingSpinner'
 
 // 模擬會員數據
 const MOCK_MEMBER = {
@@ -37,355 +42,340 @@ const MOCK_MEMBER = {
   ],
 }
 
-export default function MemberDetailPage({
-  params,
-}: {
-  params: { mid: string }
-}) {
-  const [member, setMember] = useState(MOCK_MEMBER)
-  const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState(MOCK_MEMBER)
+interface Member {
+  id: number
+  user_name: string
+  user_email: string
+  user_number: string
+  user_level: number
+  user_status: number
+  created_at: string
+  last_login_at: string
+}
+
+interface MemberDetailPageProps {
+  auth: {
+    id: number
+    role: string
+    perms: string[]
+  }
+  can: (perm: string) => boolean
+}
+
+function MemberDetailPage({ auth, can }: MemberDetailPageProps) {
+  const router = useRouter()
+  const params = useParams()
   const { showToast } = useToast()
   const { confirm } = useConfirm()
   const { isDarkMode } = useTheme()
+  const [member, setMember] = useState<Member | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
 
-  // 模擬從API獲取會員數據
   useEffect(() => {
-    // 這裡可以根據params.mid從API獲取會員數據
-    console.log(`獲取會員ID: ${params.mid}的數據`)
+    fetchMember()
   }, [params.mid])
 
-  // 處理表單變更
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+  const fetchMember = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await fetch(`/api/admin/members/${params.mid}`)
+      const data = await response.json()
+      if (!data.success) {
+        throw new Error(data.message)
+      }
+      setMember(data.data)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '獲取會員資料失敗')
+      showToast(
+        'error',
+        '錯誤',
+        error instanceof Error ? error.message : '獲取會員資料失敗'
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // 處理表單提交
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // 模擬API請求
-    setTimeout(() => {
-      setMember(formData)
-      setIsEditing(false)
-      showToast('success', '更新成功', '會員資料已成功更新')
-    }, 500)
+  const handleEdit = async (formData: any) => {
+    try {
+      const response = await fetch(`/api/admin/members/${params.mid}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+      const data = await response.json()
+      if (!data.success) {
+        throw new Error(data.message)
+      }
+      showToast('success', '成功', '會員資料更新成功')
+      setShowEditModal(false)
+      fetchMember()
+    } catch (error) {
+      showToast(
+        'error',
+        '錯誤',
+        error instanceof Error ? error.message : '更新會員資料失敗'
+      )
+    }
   }
 
-  // 處理會員停權
-  const handleBanMember = () => {
+  const handleDelete = () => {
+    if (!member) return
+
     confirm({
-      title: '停權會員',
-      message: `確定要停權會員 ${member.name} 嗎？停權後該會員將無法登入系統。`,
-      type: 'danger',
-      confirmText: '停權',
-      onConfirm: () => {
-        // 模擬API請求
-        setTimeout(() => {
-          setMember((prev) => ({ ...prev, status: 'banned' }))
-          showToast('success', '操作成功', `會員 ${member.name} 已被停權`)
-        }, 500)
+      title: '刪除會員',
+      message: `確定要刪除會員「${member.user_name}」嗎？此操作無法撤銷。`,
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin/members/${params.mid}`, {
+            method: 'DELETE',
+          })
+          const data = await response.json()
+          if (!data.success) {
+            throw new Error(data.message)
+          }
+          showToast('success', '成功', '會員已成功刪除')
+          router.push('/admin/members')
+        } catch (error) {
+          showToast(
+            'error',
+            '錯誤',
+            error instanceof Error ? error.message : '刪除會員失敗'
+          )
+        }
       },
     })
   }
 
+  const handleToggleStatus = () => {
+    if (!member) return
+
+    const newStatus = member.user_status === 1 ? 0 : 1
+    const action = newStatus === 1 ? '啟用' : '停用'
+
+    confirm({
+      title: `${action}會員`,
+      message: `確定要${action}會員「${member.user_name}」嗎？`,
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin/members/${params.mid}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_status: newStatus }),
+          })
+          const data = await response.json()
+          if (!data.success) {
+            throw new Error(data.message)
+          }
+          showToast('success', '成功', `會員已成功${action}`)
+          fetchMember()
+        } catch (error) {
+          showToast(
+            'error',
+            '錯誤',
+            error instanceof Error ? error.message : `${action}會員失敗`
+          )
+        }
+      },
+    })
+  }
+
+  if (loading) {
+    return <LoadingSpinner />
+  }
+
+  if (error) {
+    return (
+      <div className="alert alert-danger">
+        <h4>錯誤</h4>
+        <p>{error}</p>
+        <Button variant="outline-danger" onClick={() => router.back()}>
+          返回
+        </Button>
+      </div>
+    )
+  }
+
+  if (!member) {
+    return (
+      <div className="alert alert-warning">
+        <h4>找不到會員</h4>
+        <Button variant="outline-primary" onClick={() => router.back()}>
+          返回
+        </Button>
+      </div>
+    )
+  }
+
+  const editFormFields = [
+    {
+      name: 'user_name',
+      label: '姓名',
+      type: 'text',
+      required: true,
+      defaultValue: member.user_name,
+    },
+    {
+      name: 'user_email',
+      label: 'Email',
+      type: 'email',
+      required: true,
+      defaultValue: member.user_email,
+    },
+    {
+      name: 'user_number',
+      label: '電話',
+      type: 'text',
+      required: true,
+      defaultValue: member.user_number,
+    },
+    {
+      name: 'user_level',
+      label: '會員等級',
+      type: 'select',
+      required: true,
+      defaultValue: member.user_level,
+      options: [
+        { value: 1, label: '一般會員' },
+        { value: 2, label: 'VIP會員' },
+      ],
+    },
+  ]
+
   return (
-    <div className="member-detail-page">
+    <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="d-flex align-items-center">
-          <Link href="/admin/members" className="btn btn-link p-0 me-3">
-            <ArrowLeft size={24} />
-          </Link>
-          <h2 className="mb-0">會員詳情</h2>
-        </div>
-        <div>
-          {isEditing ? (
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              className="d-flex align-items-center"
-            >
-              <Save size={18} className="me-2" /> 儲存變更
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant="outline-primary"
-                onClick={() => setIsEditing(true)}
-                className="me-2"
-              >
-                編輯資料
-              </Button>
-              <Button
-                variant="outline-danger"
-                onClick={handleBanMember}
-                className="d-flex align-items-center"
-              >
-                <UserX size={18} className="me-2" /> 停權會員
-              </Button>
-            </>
-          )}
-        </div>
+        <h1>會員詳情</h1>
+        <Button variant="outline-secondary" onClick={() => router.back()}>
+          返回列表
+        </Button>
       </div>
 
       <Row>
-        <Col lg={4} className="mb-4">
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
+        <Col md={8}>
+          <Card className="mb-4">
+            <Card.Header>基本資料</Card.Header>
             <Card.Body>
-              <div className="text-center mb-4">
-                <img
-                  src={member.avatar}
-                  alt={member.name}
-                  className="rounded-circle mb-3"
-                  style={{
-                    width: '120px',
-                    height: '120px',
-                    objectFit: 'cover',
-                  }}
-                />
-                <h4>{member.name}</h4>
-                <span
-                  className={`badge ${
-                    member.status === 'active' ? 'bg-success' : 'bg-danger'
-                  }`}
-                >
-                  {member.status === 'active' ? '正常' : '已停權'}
-                </span>
-              </div>
+              <Row>
+                <Col sm={3} className="text-muted">
+                  ID
+                </Col>
+                <Col sm={9}>{member.id}</Col>
+              </Row>
+              <hr />
+              <Row>
+                <Col sm={3} className="text-muted">
+                  姓名
+                </Col>
+                <Col sm={9}>{member.user_name}</Col>
+              </Row>
+              <hr />
+              <Row>
+                <Col sm={3} className="text-muted">
+                  Email
+                </Col>
+                <Col sm={9}>{member.user_email}</Col>
+              </Row>
+              <hr />
+              <Row>
+                <Col sm={3} className="text-muted">
+                  電話
+                </Col>
+                <Col sm={9}>{member.user_number}</Col>
+              </Row>
+            </Card.Body>
+          </Card>
 
-              {isEditing ? (
-                <Form>
-                  <Form.Group className="mb-3">
-                    <Form.Label>姓名</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>電子郵件</Form.Label>
-                    <Form.Control
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>電話</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>地址</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-                </Form>
-              ) : (
-                <div>
-                  <p>
-                    <strong>電子郵件：</strong> {member.email}
-                  </p>
-                  <p>
-                    <strong>電話：</strong> {member.phone}
-                  </p>
-                  <p>
-                    <strong>地址：</strong> {member.address}
-                  </p>
-                  <p>
-                    <strong>註冊日期：</strong>{' '}
-                    {new Date(member.registeredAt).toLocaleDateString('zh-TW')}
-                  </p>
-                  <p>
-                    <strong>最後登入：</strong>{' '}
-                    {new Date(member.lastLogin).toLocaleDateString('zh-TW')}
-                  </p>
-                </div>
-              )}
+          <Card>
+            <Card.Header>帳號狀態</Card.Header>
+            <Card.Body>
+              <Row>
+                <Col sm={3} className="text-muted">
+                  會員等級
+                </Col>
+                <Col sm={9}>
+                  <Badge bg={member.user_level === 1 ? 'primary' : 'success'}>
+                    {member.user_level === 1 ? '一般會員' : 'VIP會員'}
+                  </Badge>
+                </Col>
+              </Row>
+              <hr />
+              <Row>
+                <Col sm={3} className="text-muted">
+                  帳號狀態
+                </Col>
+                <Col sm={9}>
+                  <Badge bg={member.user_status === 1 ? 'success' : 'danger'}>
+                    {member.user_status === 1 ? '正常' : '停用'}
+                  </Badge>
+                </Col>
+              </Row>
+              <hr />
+              <Row>
+                <Col sm={3} className="text-muted">
+                  註冊時間
+                </Col>
+                <Col sm={9}>{new Date(member.created_at).toLocaleString()}</Col>
+              </Row>
+              <hr />
+              <Row>
+                <Col sm={3} className="text-muted">
+                  最後登入
+                </Col>
+                <Col sm={9}>
+                  {member.last_login_at
+                    ? new Date(member.last_login_at).toLocaleString()
+                    : '尚未登入'}
+                </Col>
+              </Row>
             </Card.Body>
           </Card>
         </Col>
 
-        <Col lg={8}>
-          <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
-            <Card.Body>
-              <Tab.Container defaultActiveKey="orders">
-                <Nav variant="tabs" className="mb-3">
-                  <Nav.Item>
-                    <Nav.Link eventKey="orders">訂單記錄</Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="pets">寵物資料</Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="donations">捐款記錄</Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="posts">發文記錄</Nav.Link>
-                  </Nav.Item>
-                </Nav>
-
-                <Tab.Content>
-                  <Tab.Pane eventKey="orders">
-                    <h5 className="mb-3">訂單記錄</h5>
-                    {member.orders.length > 0 ? (
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th>訂單編號</th>
-                            <th>日期</th>
-                            <th>金額</th>
-                            <th>狀態</th>
-                            <th>操作</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {member.orders.map((order) => (
-                            <tr key={order.id}>
-                              <td>{order.id}</td>
-                              <td>{order.date}</td>
-                              <td>${order.total}</td>
-                              <td>{order.status}</td>
-                              <td>
-                                <Link
-                                  href={`/admin/shop/orders/${order.id}`}
-                                  className="btn btn-sm btn-outline-primary"
-                                >
-                                  查看
-                                </Link>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <p className="text-muted">無訂單記錄</p>
-                    )}
-                  </Tab.Pane>
-
-                  <Tab.Pane eventKey="pets">
-                    <h5 className="mb-3">寵物資料</h5>
-                    {member.pets.length > 0 ? (
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th>ID</th>
-                            <th>名稱</th>
-                            <th>類型</th>
-                            <th>品種</th>
-                            <th>操作</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {member.pets.map((pet) => (
-                            <tr key={pet.id}>
-                              <td>{pet.id}</td>
-                              <td>{pet.name}</td>
-                              <td>{pet.species}</td>
-                              <td>{pet.variety}</td>
-                              <td>
-                                <Link
-                                  href={`/admin/pets/${pet.id}`}
-                                  className="btn btn-sm btn-outline-primary"
-                                >
-                                  查看
-                                </Link>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <p className="text-muted">無寵物資料</p>
-                    )}
-                  </Tab.Pane>
-
-                  <Tab.Pane eventKey="donations">
-                    <h5 className="mb-3">捐款記錄</h5>
-                    {member.donations.length > 0 ? (
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th>ID</th>
-                            <th>日期</th>
-                            <th>金額</th>
-                            <th>操作</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {member.donations.map((donation) => (
-                            <tr key={donation.id}>
-                              <td>{donation.id}</td>
-                              <td>{donation.date}</td>
-                              <td>${donation.amount}</td>
-                              <td>
-                                <Link
-                                  href={`/admin/finance/transactions/donations/${donation.id}`}
-                                  className="btn btn-sm btn-outline-primary"
-                                >
-                                  查看
-                                </Link>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <p className="text-muted">無捐款記錄</p>
-                    )}
-                  </Tab.Pane>
-
-                  <Tab.Pane eventKey="posts">
-                    <h5 className="mb-3">發文記錄</h5>
-                    {member.posts.length > 0 ? (
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th>ID</th>
-                            <th>標題</th>
-                            <th>日期</th>
-                            <th>操作</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {member.posts.map((post) => (
-                            <tr key={post.id}>
-                              <td>{post.id}</td>
-                              <td>{post.title}</td>
-                              <td>{post.date}</td>
-                              <td>
-                                <Link
-                                  href={`/admin/forum/articles/${post.id}`}
-                                  className="btn btn-sm btn-outline-primary"
-                                >
-                                  查看
-                                </Link>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <p className="text-muted">無發文記錄</p>
-                    )}
-                  </Tab.Pane>
-                </Tab.Content>
-              </Tab.Container>
-            </Card.Body>
-          </Card>
+        <Col md={4}>
+          {can(PERMISSIONS.MEMBERS.WRITE) && (
+            <Card className="mb-4">
+              <Card.Header>操作</Card.Header>
+              <Card.Body>
+                <div className="d-grid gap-2">
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowEditModal(true)}
+                  >
+                    編輯資料
+                  </Button>
+                  <Button
+                    variant={member.user_status === 1 ? 'danger' : 'success'}
+                    onClick={handleToggleStatus}
+                  >
+                    {member.user_status === 1 ? '停用帳號' : '啟用帳號'}
+                  </Button>
+                  <Button variant="danger" onClick={handleDelete}>
+                    刪除會員
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          )}
         </Col>
       </Row>
+
+      <ModalForm
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
+        title="編輯會員資料"
+        fields={editFormFields}
+        onSubmit={handleEdit}
+      />
     </div>
   )
 }
+
+export default withAuth(MemberDetailPage, PERMISSIONS.MEMBERS.READ)
