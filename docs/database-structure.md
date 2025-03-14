@@ -666,3 +666,119 @@ CREATE TABLE users (
   port: 3306
 }
 ```
+
+### 注意事項
+
+1. 使用環境變數配置敏感資訊
+2. 設置適當的連接池大小
+3. 處理連接錯誤和重試機制
+
+## 查詢最佳實踐
+
+### 1. 使用預處理語句
+
+```typescript
+const query = 'SELECT * FROM users WHERE user_id = ?'
+const results = await executeQuery(query, [id])
+```
+
+### 2. 正確處理 NULL 值
+
+```typescript
+const birthday = row.birthday ? new Date(row.birthday) : null
+```
+
+### 3. 使用適當的索引
+
+- 主鍵索引：user_id, id
+- 唯一索引：user_email, manager_account
+- 普通索引：user_status, user_level
+
+### 4. 日期時間處理
+
+```sql
+DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as formatted_date
+```
+
+### `product_variants` 表 - 商品變體
+
+```sql
+CREATE TABLE `product_variants` (
+  `variant_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `variant_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `stock_quantity` int DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`variant_id`),
+  KEY `fk_variants_product` (`product_id`),
+  CONSTRAINT `fk_variants_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### 欄位說明
+
+#### `products` 表欄位
+
+| 欄位名稱            | 類型          | 說明         | 可能的值               |
+| ------------------- | ------------- | ------------ | ---------------------- |
+| product_id          | int           | 商品 ID      | 自動遞增               |
+| product_name        | varchar(255)  | 商品名稱     | 必填                   |
+| product_description | text          | 商品描述     | 可為 NULL              |
+| category_id         | int           | 分類 ID      | 可為 NULL              |
+| price               | decimal(10,2) | 價格         | 必填                   |
+| stock_quantity      | int           | 庫存數量     | 默認值 0               |
+| image_url           | varchar(255)  | 商品主圖 URL | 可為 NULL              |
+| product_status      | enum          | 商品狀態     | '上架', '下架'         |
+| is_deleted          | tinyint(1)    | 是否刪除     | 0 (未刪除), 1 (已刪除) |
+| created_at          | timestamp     | 創建時間     | 自動生成               |
+| updated_at          | timestamp     | 更新時間     | 自動更新               |
+
+#### `product_variants` 表欄位
+
+| 欄位名稱       | 類型          | 說明         | 可能的值 |
+| -------------- | ------------- | ------------ | -------- |
+| variant_id     | int           | 變體 ID      | 自動遞增 |
+| product_id     | int           | 商品 ID      | 必填     |
+| variant_name   | varchar(255)  | 變體名稱     | 必填     |
+| price          | decimal(10,2) | 變體價格     | 必填     |
+| stock_quantity | int           | 變體庫存數量 | 默認值 0 |
+| created_at     | timestamp     | 創建時間     | 自動生成 |
+| updated_at     | timestamp     | 更新時間     | 自動更新 |
+
+### 常見查詢模式
+
+```sql
+-- 獲取所有上架中且未刪除的商品
+SELECT * FROM products WHERE product_status = '上架' AND is_deleted = 0;
+
+-- 獲取商品及其變體
+SELECT p.*, v.variant_id, v.variant_name, v.price as variant_price, v.stock_quantity as variant_stock
+FROM products p
+LEFT JOIN product_variants v ON p.product_id = v.product_id
+WHERE p.product_id = ? AND p.is_deleted = 0;
+
+-- 更新商品狀態
+UPDATE products SET product_status = '上架' WHERE product_id = ?;
+
+-- 軟刪除商品（設置is_deleted為1，而不是實際刪除）
+UPDATE products SET is_deleted = 1 WHERE product_id = ?;
+```
+
+### 注意事項
+
+1. 商品狀態：
+
+   - `product_status` 使用 enum 類型，有 '上架' 和 '下架' 兩種狀態
+   - `is_deleted` 用於軟刪除功能，值為 1 表示已刪除，值為 0 表示未刪除
+
+2. 前端顯示：
+
+   - 前端顯示時將 `product_status` 值 '上架' 映射為 'active'，'下架' 映射為 'inactive'
+   - `is_deleted` 為 1 的商品在前端顯示為 '已刪除' 狀態
+
+3. 商品變體：
+   - 商品變體表使用 `price` 和 `stock_quantity` 字段存儲價格和庫存
+   - 所有價格字段使用 decimal(10,2) 類型確保精確計算
+
