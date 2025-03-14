@@ -1,6 +1,8 @@
 # API 結構與規範
 
-本文檔描述寵物領養平台 API 的結構、命名規範和使用方法。
+> 最後更新時間：2024-03-14
+>
+> 本文檔描述寵物領養平台 API 的結構、命名規範和使用方法。認證與授權的具體實現細節請參考 [後台管理系統結構文檔](admin-structure.md)。
 
 ## 重要說明
 
@@ -295,31 +297,124 @@ API 路由結構遵循 Next.js 的 App Router API 路由結構，位於 `app/api
 
 ## 認證與授權
 
-API 使用 JWT（JSON Web Token）進行認證和授權，包括以下機制：
+### 認證機制
 
-### 認證流程
+後台管理系統使用 JWT (JSON Web Token) 進行認證，主要包含以下部分：
 
-1. 用戶登入：用戶提供帳號和密碼，API 驗證後返回 Access Token 和 Refresh Token。
-2. 請求驗證：用戶在請求頭中加入 `Authorization: Bearer {Access Token}` 進行身份驗證。
-3. Token 刷新：Access Token 過期後，用戶使用 Refresh Token 獲取新的 Access Token。
-4. 用戶登出：用戶登出時，API 將 Refresh Token 加入黑名單，使其失效。
+1. **Token 存儲**：
 
-### 授權機制
+   - 使用 `js-cookie` 存儲 token 在 Cookie 中
+   - Cookie 名稱：`admin_token`
+   - Cookie 配置：
+     ```typescript
+     {
+       expires: 1, // 1 天
+       path: '/',
+       secure: process.env.NODE_ENV === 'production'
+     }
+     ```
 
-API 使用基於角色的訪問控制（RBAC）進行授權，包括以下角色：
+2. **認證流程**：
 
-- 訪客：未登入的用戶，只能訪問公開 API。
-- 會員：已登入的用戶，可以訪問會員 API。
-- 管理員：後台管理員，可以訪問後台 API。
-- 超級管理員：最高權限管理員，可以訪問所有 API。
+   - 登入：`POST /api/admin/auth/login`
+   - 登出：`POST /api/admin/auth/logout`
+   - 驗證：`GET /api/admin/auth/verify`
+   - 獲取當前管理員：`GET /api/admin/auth/me`
 
-### 認證與授權相關文件
+3. **Token 結構**：
 
-認證與授權相關的程式碼位於以下文件中：
+   ```typescript
+   interface AdminPayload {
+     id: number
+     account: string
+     privileges: string
+     role?: string
+   }
+   ```
 
-- `app/api/_lib/auth.ts`：認證相關函數
-- `app/api/_lib/jwt.ts`：JWT 相關函數
-- `app/api/admin/_lib/auth.ts`：後台認證相關函數
+4. **權限驗證**：
+   - 使用 `guard.api()` 包裝 API 路由
+   - 使用 `withAuth()` HOC 包裝頁面組件
+   - 權限檢查：`auth.can(authData, PERMISSION)`
+
+### 授權管理
+
+1. **權限層級**：
+
+   - 超級管理員：`privileges === '111'`
+   - 一般管理員：根據 `privileges` 中的權限代碼
+
+2. **權限檢查工具**：
+
+   ```typescript
+   // API 路由保護
+   export const guard = {
+     api: (handler: ApiHandler) => async (req: NextRequest) => {
+       const authData = await auth.fromRequest(req)
+       if (!authData) return unauthorized()
+       return handler(req, authData)
+     },
+   }
+
+   // 頁面組件保護
+   export function withAuth<P>(
+     Component: React.ComponentType<P>,
+     requiredPerm?: string
+   ) {
+     return function AuthComponent(props: P) {
+       const { auth, loading } = useAuth(requiredPerm)
+       if (loading) return <LoadingSpinner />
+       if (!auth) return null
+       return <Component {...props} auth={auth} />
+     }
+   }
+   ```
+
+3. **錯誤處理**：
+   - 401 未授權：Token 無效或過期
+   - 403 權限不足：無權訪問特定資源
+   - 重定向到登入頁面：`/admin/login`
+
+### 最佳實踐
+
+1. **API 請求**：
+
+   ```typescript
+   // 使用 fetchApi 工具函數
+   const response = await fetchApi('/api/admin/members', {
+     headers: {
+       Authorization: `Bearer ${Cookies.get('admin_token')}`,
+     },
+   })
+   ```
+
+2. **權限檢查**：
+
+   ```typescript
+   // 在 API 路由中
+   export const GET = guard.api(async (req: NextRequest, authData) => {
+     if (!auth.can(authData, PERMISSIONS.MEMBERS.READ)) {
+       return forbidden()
+     }
+     // ... 處理請求
+   })
+
+   // 在頁面組件中
+   export default withAuth(MembersPage, PERMISSIONS.MEMBERS.READ)
+   ```
+
+3. **錯誤處理**：
+   ```typescript
+   try {
+     const response = await fetchApi('/api/admin/members')
+     if (!response.success) {
+       throw new Error(response.message)
+     }
+     // ... 處理成功響應
+   } catch (error) {
+     // ... 處理錯誤
+   }
+   ```
 
 ## 錯誤處理
 

@@ -15,7 +15,7 @@ import { FaCartShopping } from 'react-icons/fa6'
 import { FaPlus } from 'react-icons/fa6'
 import { FaMinus } from 'react-icons/fa6'
 import { IoCheckmarkDoneSharp } from 'react-icons/io5'
-import { FaUser } from 'react-icons/fa'
+import { FaUser } from 'react-icons/fa' 
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 
 // components
@@ -60,12 +60,32 @@ export default function PidPage() {
     })
   }
 
-  // 選擇商品規格
-  const [selectedVariantId, setSelectedVariantId] = useState(null)
+// 选择商品规格
+const [selectedVariant, setSelectedVariant] = useState(null)
 
-  const handleVariantClick = (variantId) => {
-    setSelectedVariantId(variantId)
+useEffect(() => {
+  if (data?.variants && data.variants.length > 0) {
+    setSelectedVariant(data.variants[0])
   }
+}, [data])
+
+const handleVariantClick = (variant) => {
+  setSelectedVariant(variant)}
+
+// 商品價格
+const calculateDisplayPrice = () => {
+  let basePrice = selectedVariant ? selectedVariant.price : product.price
+  let discountedPrice = basePrice
+
+  if (promotion && promotion.length > 0) {
+    discountedPrice = Math.floor(basePrice * (1 - Number(promotion[0]?.discount_percentage) / 100))
+  }
+
+  return { 
+    basePrice: Math.floor(basePrice), 
+    discountedPrice: Math.floor(discountedPrice) 
+  }
+}
 
   // 新增一個 state 來存儲當前顯示的圖片 URL  
   const [currentImage, setCurrentImage] = useState('/images/default_no_pet.jpg')
@@ -102,6 +122,7 @@ export default function PidPage() {
     reviews,
     reviewCount,
     categories,
+    similarProducts
   } = data
 
   
@@ -115,10 +136,15 @@ export default function PidPage() {
       (variants && variants.some((variant) => variant.image_url))
   )
 
-  // 計算金額
-  const price=(price)=>{
+  // 创建一个数组来存储所有有效的图片 URL
+  const productImages = [
+    product.image_url, // 主图片
+    product_imgs?.product_img1,
+    product_imgs?.product_img2,
+    product_imgs?.product_img3,
+    product_imgs?.product_img4
+  ].filter(Boolean); // 过滤掉 null, undefined 或空字符串
 
-  }
 
   return (
     <main className={styles.main}>
@@ -126,11 +152,8 @@ export default function PidPage() {
         <div className={styles.imgs}>
           <div className={styles.imgContainer}>
             <Image
-              src={
-                currentImage
-              }
-              alt={pid}
-              // className={styles.image}
+              src={currentImage}
+              alt='Product Image'
               width={600}
               height={600}
             />
@@ -143,18 +166,22 @@ export default function PidPage() {
               <FaAngleLeft />
             </button>
               <div className={styles.img_group}>
-                <button className={styles.imgs_item} key={pid} 
-                onClick={() => handleImageClick(product.image_url)}
+              {productImages.map((imgUrl, index) => (
+                <button 
+                  className={styles.imgs_item} 
+                  key={`product-img-${index}`}
+                  onClick={() => handleImageClick(imgUrl)}
                 >
                   <Image
-                    src={product.image_url}
-                    alt={product.product_name}
+                    src={imgUrl}
+                    alt={`Product image ${index + 1}`}
                     width={100}
                     height={100}
                   />
                 </button>
-                {variants?.map((variant, index) => (
-                  <button className={styles.imgs_item} key={variant.variant_id}
+              ))}
+                {variants?.map((variant, index) => (variant.image_url && 
+                  (<button className={styles.imgs_item} key={variant.variant_id}
                   onClick={() => handleImageClick(variant.image_url)}>
                     <Image
                       key={`v${index}`}
@@ -164,7 +191,7 @@ export default function PidPage() {
                       height={100}
                     />
                     {/* <p>{variant.variant_name}</p> */}
-                  </button>
+                  </button>)
                 ))}
                 {product_imgs?.map((img, index) => (
                   <button className={styles.imgs_item} key={pid}
@@ -214,15 +241,33 @@ export default function PidPage() {
           <hr />
           <div>
             <div className={styles.priceGroup}>
-              {promotion.length > 0
-              ?
+              {variants && variants.length > 0 ? (
                 <>
-                <p className={styles.h3}>${Number(product.price) * (1-Number(promotion[0]?.discount_percentage)/100)}</p>
-                <p className={styles.p2}>
-                  <del>${product.price}</del>
-                </p>
+                  {promotion && promotion.length > 0 ? (
+                    <>
+                      <p className={styles.h3}>${calculateDisplayPrice().discountedPrice}</p>
+                      <p className={styles.p2}>
+                        <del>${calculateDisplayPrice().basePrice}</del>
+                      </p>
+                    </>
+                  ) : (
+                    <p className={styles.h3}>${calculateDisplayPrice().basePrice}</p>
+                  )}
                 </>
-              :<p className={styles.h3}>${product.price}</p>}
+              ) : (
+                <>
+                  {promotion && promotion.length > 0 ? (
+                    <>
+                      <p className={styles.h3}>${calculateDisplayPrice().discountedPrice}</p>
+                      <p className={styles.p2}>
+                        <del>${calculateDisplayPrice().basePrice}</del>
+                      </p>
+                    </>
+                  ) : (
+                    <p className={styles.h3}>${calculateDisplayPrice().basePrice}</p>
+                  )}
+                </>
+              )}
             </div>
             <div className={styles.iconGroup}>
               <div className={styles.comment}>
@@ -248,11 +293,11 @@ export default function PidPage() {
                     <button
                       key={variant.variant_id}
                       className={`${styles.comment} ${
-                        selectedVariantId === variant.variant_id
+                        selectedVariant?.variant_id === variant.variant_id
                           ? styles.active
                           : ''
                       }`}
-                      onClick={() => handleVariantClick(variant.variant_id)}
+                      onClick={() => handleVariantClick(variant)}
                     >
                       {variant.variant_name}
                     </button>
@@ -271,7 +316,7 @@ export default function PidPage() {
                   setCount(count - 1)
                 }}
               >
-                <FaPlus />
+                <FaMinus />
               </button>
               <input
                 type="text"
@@ -285,7 +330,7 @@ export default function PidPage() {
                   setCount(count + 1)
                 }}
               >
-                <FaMinus />
+                <FaPlus />
               </button>
             </div>
             <button className={styles.addCartBtn}>
@@ -376,7 +421,7 @@ export default function PidPage() {
           aria-label="向左滑動"
         />
         <div className={shopStyles.cardGroup} ref={categoryRefs}>
-          {categories.map((product) => {
+          {similarProducts.map((product) => {
             return (
               <Link
                 key={product.product_id}
