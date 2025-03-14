@@ -1,0 +1,12 @@
+//待辦
+
+收藏功能
+
+C:\Users\USER\ispan\final\app\shop\[pid]\page.js
+-----todo
+圖片滑動
+加入購物車功能
+推薦商品(排除自己、新增其他)
+-----完成
+商品價格(活動/變體)
+variant可能沒有圖片

@@ -3,8 +3,8 @@ import pool from '@/app/lib/db'
 
 export async function GET(request, { params }) {
   try {
+    // const { searchParams } = new URL(request.url)
     const id = params.pid
-    const { searchParams } = new URL(request.url)
     const connection = await pool.getConnection()
     let responseData = {}
 
@@ -26,7 +26,7 @@ export async function GET(request, { params }) {
     `, [id])
     
     if (product_imgs.length > 0) {
-      responseData.product_imgs = product_imgs
+      responseData.product_imgs = product_imgs[0]
     }
 
     // 獲取變體資訊
@@ -40,7 +40,7 @@ export async function GET(request, { params }) {
       SELECT * FROM promotion_products
       JOIN promotions
       ON promotion_products.promotion_id = promotions.promotion_id
-      WHERE product_id =?`
+      WHERE product_id =? AND start_date <= CURDATE() AND (end_date IS NULL OR end_date >= CURDATE())`
     , [id]
     )
     responseData.promotion = promotion
@@ -69,6 +69,18 @@ export async function GET(request, { params }) {
     )
     responseData.reviews = reviews
 
+    // 獲取評價數量/分數
+    const [reviewCount] = await connection.execute(`
+      SELECT
+      COUNT(*) AS total_reviews,
+      AVG(rating) AS avg_rating
+      FROM product_reviews
+      WHERE product_id =?
+      GROUP BY product_id
+      `
+    , [id])
+    responseData.reviewCount = reviewCount[0]
+
     // 產品類別
     const [categories] = await connection.execute(`
     SELECT 
@@ -82,6 +94,41 @@ export async function GET(request, { params }) {
       p.product_id = ?
       `, [id])
     responseData.categories = categories
+
+// 獲取類似商品
+const productName = (responseData.product?.product_name || '').replace(/\s+/g, '');
+const minMatchLength = 2; // 最小匹配字符数
+
+let similarProducts = [];
+
+if (productName.length >= minMatchLength) {
+  const likeConditions = [];
+  const params = [];
+
+  for (let i = 0; i <= productName.length - minMatchLength; i++) {
+    likeConditions.push('product_name LIKE ?');
+    params.push(`%${productName.substr(i, minMatchLength)}%`);
+  }
+  params.push(id);
+
+  [similarProducts] = await connection.execute(`
+    SELECT product_id, product_name, price, image_url
+    FROM products
+    WHERE (${likeConditions.join(' OR ')}) AND product_id != ?
+    LIMIT 5
+  `, params);
+} else {
+  // 如果商品名称太短，使用简单的 LIKE 查询
+  [similarProducts] = await connection.execute(`
+    SELECT product_id, product_name, price, image_url
+    FROM products
+    WHERE product_name LIKE ? AND product_id != ?
+    LIMIT 5
+  `, [`%${productName}%`, id]);
+}
+
+responseData.similarProducts = similarProducts;
+
 
 
     // 释放连接
