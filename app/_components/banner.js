@@ -54,7 +54,7 @@ export default function Banner() {
           priority
           style={{
             width: '100%',
-            height: 'auto',
+            height: '100vh',
           }}
         />
         <div className={styles.banner_title}>{config.title}</div>
