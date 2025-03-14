@@ -60,22 +60,22 @@ export default function Banner() {
         <div className={styles.banner_title}>{config.title}</div>
       </div>
     )
+  } else {
+    return (
+      <div className={styles.banner}>
+        <Image
+          src={config.image}
+          alt={config.title}
+          width={1920}
+          height={600}
+          priority
+          style={{
+            width: '100%',
+            height: '50vh',
+          }}
+        />
+        <div className={styles.banner_title}>{config.title}</div>
+      </div>
+    )
   }
-
-  return (
-    <div className={styles.banner}>
-      <Image
-        src={config.image}
-        alt={config.title}
-        width={1920}
-        height={600}
-        priority
-        style={{
-          width: '100%',
-          height: '250px',
-        }}
-      />
-      <div className={styles.banner_title}>{config.title}</div>
-    </div>
-  )
 }
