@@ -2,6 +2,32 @@
 
 此目錄包含用於提高專案開發效率和 AI 對話質量的文檔。通過提供這些文檔給 AI，可以大幅減少幻覺情況，讓 AI 更準確地了解專案結構和設計細節。
 
+## 按需求快速索引
+
+### 尋找特定功能的文檔
+
+| 如果您需要了解...    | 請參考這些文檔                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 專案整體架構和技術棧 | [project-overview.md](./project-overview.md)                                                                     |
+| 資料庫結構和關係     | [database-structure.md](./database-structure.md), [db-structure-usage.md](./db-structure-usage.md)               |
+| API 路由和使用方式   | [api-structure.md](./api-structure.md)                                                                           |
+| 後台管理系統         | [admin-structure.md](./admin-structure.md), [admin-implementation-plan.md](./admin-implementation-plan.md)       |
+| 前端元件和 UI        | [frontend-components.md](./frontend-components.md), [datatable-best-practices.md](./datatable-best-practices.md) |
+| 認證和授權機制       | [admin-structure.md](./admin-structure.md)（授權邏輯部分）, [api-structure.md](./api-structure.md)（認證部分）   |
+| 目錄結構和代碼組織   | [directory-structure.md](./directory-structure.md)                                                               |
+| 目前進度和未來計劃   | [current-status.md](./current-status.md)                                                                         |
+| 工具函數使用指南     | [utils-guide.md](./utils-guide.md)                                                                               |
+
+### 常見問題索引
+
+| 問題類型               | 相關文檔                                                     |
+| ---------------------- | ------------------------------------------------------------ |
+| 認證問題（Token 相關） | [admin-structure.md](./admin-structure.md)（授權功能邏輯）   |
+| API 請求失敗           | [api-structure.md](./api-structure.md)（錯誤處理部分）       |
+| DataTable 渲染問題     | [datatable-best-practices.md](./datatable-best-practices.md) |
+| 資料庫查詢問題         | [db-structure-usage.md](./db-structure-usage.md)             |
+| 項目進度和已知問題     | [current-status.md](./current-status.md)                     |
+
 ## 文檔列表及功能
 
 ### 1. README.md
@@ -75,6 +101,39 @@
 - 提供 cn（Class Name Utility）函數的使用指南
 - 列出使用場景建議和重構建議
 - 提供未來擴展方向
+
+### 11. database-structure.md
+
+- 詳細說明所有資料庫表格結構
+- 提供表格間關係和外鍵說明
+- 說明各欄位的資料類型和約束條件
+- 包含資料庫索引和優化策略
+
+### 12. frontend-components.md
+
+- 說明前端組件的結構和使用方式
+- 提供組件 props 和狀態管理說明
+- 說明重要 UI 元件的樣式和布局設計
+- 提供組件之間的交互和資料流說明
+
+## 文檔目錄結構
+
+```
+docs/
+├── README.md                   # 您正在閱讀的文檔指南
+├── project-overview.md         # 專案整體架構和技術棧
+├── database-structure.md       # 資料庫表格結構和關聯
+├── db-structure-usage.md       # 資料庫使用指南
+├── admin-structure.md          # 後台系統結構
+├── admin-implementation-plan.md # 後台系統實施計劃
+├── frontend-components.md      # 前端元件說明
+├── api-structure.md            # API 結構和使用方法
+├── current-status.md           # 當前進度和計劃
+├── datatable-best-practices.md # DataTable 使用最佳實踐
+├── directory-structure.md      # 專案目錄結構說明
+├── utils-guide.md              # 工具函數使用指南
+└── templates/                  # 模板文件目錄
+```
 
 ## 如何在 AI 對話中使用這些文檔
 

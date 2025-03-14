@@ -365,17 +365,17 @@ CREATE TABLE `order_items` (
 
 #### order_items 表
 
-| 欄位名稱      | 類型          | 說明        | 可能的值                 |
-| ------------- | ------------- | ----------- | ------------------------ |
-| order_item_id | int           | 訂單項目 ID | 自動遞增                 |
-| order_id      | varchar(20)   | 訂單編號    | 必填，關聯到 orders 表   |
-| product_id    | int           | 商品 ID     | 必填，關聯到 products 表 |
-| product_name  | varchar(255)  | 商品名稱    | 必填                     |
-| product_image | varchar(255)  | 商品圖片    | 必填                     |
-| variant       | varchar(100)  | 商品變體    | 可為 NULL                |
-| price         | decimal(10,2) | 商品單價    | 必填                     |
-| quantity      | int           | 購買數量    | 必填                     |
-| created_at    | timestamp     | 建立時間    | 自動生成                 |
+| 欄位名稱      | 類型          | 說明        | 可能的值               |
+| ------------- | ------------- | ----------- | ---------------------- |
+| order_item_id | int           | 訂單項目 ID | 自動遞增               |
+| order_id      | varchar(20)   | 訂單編號    | 必填，關聯到 orders 表 |
+| product_id    | int           | 商品 ID     | 必填關聯到 products 表 |
+| product_name  | varchar(255)  | 商品名稱    | 必填                   |
+| product_image | varchar(255)  | 商品圖片    | 必填                   |
+| variant       | varchar(100)  | 商品變體    | 可為 NULL              |
+| price         | decimal(10,2) | 商品單價    | 必填                   |
+| quantity      | int           | 購買數量    | 必填                   |
+| created_at    | timestamp     | 建立時間    | 自動生成               |
 
 ### 訂單總金額計算
 
@@ -450,17 +450,10 @@ CREATE TABLE `donations` (
 ```sql
 CREATE TABLE `manager` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `role` enum('admin','editor','viewer') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'editor',
-  `last_login` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `manager_account` varchar(255) DEFAULT NULL,
+  `manager_password` varchar(255) DEFAULT NULL,
+  `manager_privileges` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 ```
 
 ## 表格關聯圖
@@ -554,36 +547,89 @@ WHERE o.order_id = ?;
 ### 表結構
 
 ```sql
+-- 注意：此處顯示的是設計結構，實際部署的資料表結構請參考下方說明
 CREATE TABLE manager (
   id INT PRIMARY KEY AUTO_INCREMENT,
   manager_account VARCHAR(50) NOT NULL UNIQUE,
   manager_password VARCHAR(255) NOT NULL,
   manager_privileges VARCHAR(50) NOT NULL,
-  is_active TINYINT(1) DEFAULT 1,
-  last_login_at DATETIME,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  is_active TINYINT(1) DEFAULT 1,  -- 【注意】實際資料庫中不存在此欄位
+  last_login_at DATETIME,          -- 【注意】實際資料庫中不存在此欄位
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 【注意】實際資料庫中不存在此欄位
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP  -- 【注意】實際資料庫中不存在此欄位
 );
 ```
+
+### 實際資料庫中的結構 (重要)
+
+```sql
+-- 這是目前實際部署在資料庫中的結構
+CREATE TABLE `manager` (
+  `id` int NOT NULL,
+  `manager_account` varchar(255) DEFAULT NULL,
+  `manager_password` varchar(255) DEFAULT NULL,
+  `manager_privileges` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+```
+
+> **⚠️ 重要提醒：** `manager_privileges` 是關鍵欄位，表示管理員的權限，絕對不能為 NULL 或空值。此欄位在程式碼中廣泛用於權限判斷，如果為 NULL 將導致系統錯誤。
 
 ### 欄位說明
 
 - `id`: 管理員唯一識別碼
 - `manager_account`: 管理員帳號
 - `manager_password`: 加密後的密碼（使用 bcrypt）
-- `manager_privileges`: 權限代碼
-  - `111`: 超級管理員
-  - 其他權限代碼待定義
-- `is_active`: 帳號狀態（1: 啟用, 0: 停用）
-- `last_login_at`: 最後登入時間
-- `created_at`: 創建時間
-- `updated_at`: 更新時間
+- `manager_privileges`: 權限代碼（**必填，不可為 NULL**）
+  - `111`: 超級管理員（具有所有權限）
+  - `member`: 會員管理權限
+  - `pet`: 寵物管理權限
+  - `shop`: 商品管理權限
+  - `donation`: 捐款管理權限
+  - `post`: 文章管理權限
+  - 可以使用逗號分隔組合多個權限，例如：`member,pet,shop`
+- ~~`is_active`: 帳號狀態（1: 啟用, 0: 停用）~~ **【注意】實際資料庫中不存在此欄位**
+- ~~`last_login_at`: 最後登入時間~~ **【注意】實際資料庫中不存在此欄位**
+- ~~`created_at`: 創建時間~~ **【注意】實際資料庫中不存在此欄位**
+- ~~`updated_at`: 更新時間~~ **【注意】實際資料庫中不存在此欄位**
 
 ### 注意事項
 
 1. 密碼加密使用 bcrypt，需要處理 PHP 和 Node.js 的兼容性
 2. 權限代碼使用逗號分隔的字串格式
 3. 超級管理員（111）擁有所有權限
+4. **重要：代碼中不應使用 `is_active`、`last_login_at`、`created_at` 和 `updated_at` 欄位，因為這些欄位在實際資料庫中不存在**
+5. **相關程式碼需要修改，以適應實際資料庫結構**
+
+### 防止 manager_privileges 為 undefined 的最佳做法
+
+在處理 `manager_privileges` 欄位時，應遵循以下最佳實踐：
+
+1. **資料庫層面**：
+
+   - 在 INSERT 或 UPDATE 操作時，應確保 `manager_privileges` 欄位有值，不要插入 NULL
+   - 推薦為此欄位設置一個預設值（如 'viewer'），確保即使忘記設置也不會有問題
+
+2. **應用程式層面**：
+
+   - 在讀取 `manager_privileges` 時始終使用空值合併運算符：`const privileges = admin.manager_privileges || ''`
+   - 在使用 `split` 方法前檢查值是否存在：`const perms = privileges ? privileges.split(',') : []`
+   - 在登入流程中驗證此欄位是否存在，如不存在應拒絕登入或設置最低權限
+
+3. **代碼示例**：
+
+   ```typescript
+   // 安全處理 manager_privileges
+   const privileges = admin.manager_privileges || ''
+   const isSuperAdmin = privileges === '111'
+   const permissionArray = privileges ? privileges.split(',') : []
+
+   // 檢查特定權限
+   const hasPermission = isSuperAdmin || permissionArray.includes('member')
+   ```
+
+4. **管理員新增或編輯**：
+   - 新增管理員時必須指定 `manager_privileges` 欄位
+   - 對於現有記錄中 `manager_privileges` 為 NULL 的，應儘快更新為有效值
 
 ## 會員表 (users)
 
@@ -781,4 +827,3 @@ UPDATE products SET is_deleted = 1 WHERE product_id = ?;
 3. 商品變體：
    - 商品變體表使用 `price` 和 `stock_quantity` 字段存儲價格和庫存
    - 所有價格字段使用 decimal(10,2) 類型確保精確計算
-

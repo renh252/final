@@ -124,8 +124,11 @@ export async function verifyAdmin(request: Request): Promise<{
       return { success: true }
     }
 
+    // 確保 privileges 有值
+    const privileges = decoded.privileges || ''
+
     // 檢查是否有訂單管理權限
-    const adminPrivileges = decoded.privileges.split(',')
+    const adminPrivileges = privileges ? privileges.split(',') : []
     if (!adminPrivileges.includes('shop')) {
       return {
         success: false,

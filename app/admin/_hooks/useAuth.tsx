@@ -33,18 +33,29 @@ export function useAuth(requiredPerm?: string) {
           return
         }
 
+        // 確保 privileges 有值
+        const privileges = admin.privileges || ''
+        const isSuperAdmin = privileges === '111'
+
         // 設置授權資訊
         setAuth({
           id: admin.id,
-          role: admin.privileges === '111' ? 'super' : 'admin',
-          perms: admin.privileges.split(','),
+          role: isSuperAdmin ? 'super' : 'admin',
+          perms: privileges ? privileges.split(',') : [],
         })
 
-        // 檢查權限
+        // 檢查權限 - 超級管理員總是有權限，不需要檢查
         if (
           requiredPerm &&
-          !admin.privileges.split(',').includes(requiredPerm)
+          !isSuperAdmin && // 超級管理員跳過權限檢查
+          privileges &&
+          !privileges.split(',').includes(requiredPerm)
         ) {
+          console.log('權限檢查失敗：', {
+            需要權限: requiredPerm,
+            當前權限: privileges,
+            是否超級管理員: isSuperAdmin,
+          })
           router.push('/admin/403')
           return
         }
