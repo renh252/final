@@ -48,7 +48,7 @@ export default function Menubar() {
               <Nav.Link href="/forum">論壇</Nav.Link>
               <Nav.Link href="/donate">捐款</Nav.Link>
               <Nav.Link href="/member">會員</Nav.Link>
-              <Nav.Link href="/cart">購物車</Nav.Link>
+              <Nav.Link href="/shop/cart">購物車</Nav.Link>
               <Nav.Link href="/contact">聯絡我們</Nav.Link>
               <NavDropdown title="下拉式" id="basic-nav-dropdown">
                 <NavDropdown.Item href="/forum">論壇</NavDropdown.Item>
