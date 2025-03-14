@@ -2,7 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import styles from './Card.module.css'
 
-const CardSwitchButton = ({
+const Card = ({
   image,
   title,
   children,
@@ -49,4 +49,4 @@ const CardSwitchButton = ({
   )
 }
 
-export default CardSwitchButton
+export default Card

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { executeQuery } from '@/app/api/admin/_lib/database'
+import { adminDb } from '@/app/api/admin/_lib/database'
 import { generateToken, verifyPassword } from '@/app/api/admin/_lib/jwt'
 
 export async function POST(request: NextRequest) {
@@ -17,20 +17,15 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // 從資料庫查詢管理員 - 修正欄位名稱
-      // 首先檢查 is_active 欄位是否存在
-      const isActiveExists = await executeQuery(
-        "SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'manager' AND COLUMN_NAME = 'is_active'",
-        []
+      // 從資料庫查詢管理員
+      const [managers, queryError] = await adminDb.query(
+        'SELECT id, manager_account, manager_password, manager_privileges FROM manager WHERE manager_account = ? LIMIT 1',
+        [account]
       )
 
-      // 根據 is_active 欄位是否存在選擇不同的查詢語句
-      const query =
-        isActiveExists[0].count > 0
-          ? 'SELECT id, manager_account, manager_password, manager_privileges FROM manager WHERE manager_account = ? AND is_active = 1 LIMIT 1'
-          : 'SELECT id, manager_account, manager_password, manager_privileges FROM manager WHERE manager_account = ? LIMIT 1'
-
-      const managers = await executeQuery(query, [account])
+      if (queryError) {
+        throw queryError
+      }
 
       // 驗證管理員存在
       const manager = managers[0]
@@ -60,26 +55,6 @@ export async function POST(request: NextRequest) {
         privileges: manager.manager_privileges,
         role: 'admin',
       })
-
-      // 更新最後登入時間，確認表是否有 last_login_at 欄位
-      try {
-        // 先檢查欄位是否存在
-        const loginColumnExists = await executeQuery(
-          "SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'manager' AND COLUMN_NAME = 'last_login_at'",
-          []
-        )
-
-        // 如果欄位存在，則更新登入時間
-        if (loginColumnExists[0].count > 0) {
-          await executeQuery(
-            'UPDATE manager SET last_login_at = NOW() WHERE id = ?',
-            [manager.id]
-          )
-        }
-      } catch (updateError) {
-        console.warn('更新登入時間失敗:', updateError)
-        // 但繼續處理登入流程，不要因為更新時間失敗而阻止登入
-      }
 
       // 返回成功響應
       return NextResponse.json({

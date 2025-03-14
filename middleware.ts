@@ -10,27 +10,26 @@ const PUBLIC_PATHS = ['/admin/login', '/api/admin/auth/login']
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // 檢查是否為API請求
-  if (
-    pathname.startsWith('/api/admin') &&
-    !pathname.startsWith('/api/admin/auth/login')
-  ) {
-    // API 驗證由各自的路由處理，這裡只做簡單的檢查
-    return NextResponse.next()
-  }
-
   // 如果是公開路徑，允許直接訪問
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     return NextResponse.next()
   }
 
-  // 如果是受保護的路徑，檢查是否已認證
-  if (PROTECTED_PATHS.some((path) => pathname.startsWith(path))) {
-    // 從 cookie 獲取 token
-    const token = request.cookies.get('admin_token')?.value
+  // 檢查是否為API請求或受保護的路徑
+  if (
+    pathname.startsWith('/api/admin') ||
+    PROTECTED_PATHS.some((path) => pathname.startsWith(path))
+  ) {
+    // 從 cookie 或 header 獲取 token
+    const token =
+      request.cookies.get('admin_token')?.value ||
+      request.headers.get('Authorization')?.replace('Bearer ', '')
 
     if (!token) {
-      // 如果沒有 token，重定向到登入頁面
+      // 如果沒有 token，返回未授權錯誤或重定向到登入頁面
+      if (pathname.startsWith('/api/admin')) {
+        return NextResponse.json({ error: '未授權的訪問' }, { status: 401 })
+      }
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
 
@@ -38,15 +37,19 @@ export async function middleware(request: NextRequest) {
       // 驗證 token
       const payload = await verifyToken(token)
       if (!payload) {
-        // token 無效，重定向到登入頁面
+        if (pathname.startsWith('/api/admin')) {
+          return NextResponse.json({ error: '無效的認證' }, { status: 401 })
+        }
         return NextResponse.redirect(new URL('/admin/login', request.url))
       }
 
       // token 有效，繼續
       return NextResponse.next()
     } catch (error) {
-      // 驗證出錯，重定向到登入頁面
       console.error('Token 驗證錯誤:', error)
+      if (pathname.startsWith('/api/admin')) {
+        return NextResponse.json({ error: '認證錯誤' }, { status: 401 })
+      }
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
   }
