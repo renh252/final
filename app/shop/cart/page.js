@@ -7,21 +7,20 @@ import useSWR from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function CartPage() {
-
-  const fetcher = (url, data) => fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data)
-  }).then(res => res.json())
   
-  // 在组件中使用
-  const { data, error } = useSWR(['/api/shop/cart', { userId: 123 }], fetcher)
+  const { data, error } = useSWR('/api/shop/cart', fetcher)
+
+  if (error) return <div>獲取購物車時發生錯誤</div>
+  if (!data) return <div>加載中...</div>
+
+  const cart = data.data
+  console.log(cart);
+  
 
   return (
     <>
       <div>Cart Page</div>
+      
     </>
   )
 }
