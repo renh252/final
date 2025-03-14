@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 
 import styles from './donate.module.css'
 
-import Dropdown from './_components/options'
+import SelectBasicExample from './_components/options'
 import MethodItem from './_components/methodItem'
 
 import Contents from './_data/Contents'
@@ -28,6 +29,18 @@ export default function DonatePage() {
   // 解出所需資料
   const cases = data?.data?.cases
   const pets = petsData?.pets ? [...petsData.pets] : []
+
+  const router = useRouter()
+  const [donationType, setDonationType] = useState('')
+  const handleDonate = () => {
+    if (!donationType) {
+      alert('請選擇捐款類型！')
+      return
+    }
+
+    // 跳轉到 flow 頁面，並帶上選擇的捐款類型
+    router.push(`/donate/flow?donationType=${encodeURIComponent(donationType)}`)
+  }
 
   const [activeSection, setActiveSection] = useState('method') // 控制主選單（捐款方式/種類說明）
   const [selectedMethod, setSelectedMethod] = useState('credit_card') // 控制捐款方式內的按鈕
@@ -88,12 +101,16 @@ export default function DonatePage() {
             </li>
             <li style={{ display: 'flex', alignItems: 'center' }}>
               <h5 style={{ marginRight: '5px' }}>選擇捐款種類</h5>
-              <Dropdown />
+              <SelectBasicExample
+                value={donationType}
+                onChange={setDonationType}
+              />
             </li>
             <li style={{ display: 'flex', justifyContent: 'end' }}>
               <button
                 className="button"
                 style={{ width: '120px', height: '50px', fontSize: '28px' }}
+                onClick={handleDonate}
               >
                 <Link href="/donate/flow">捐款</Link>
               </button>
