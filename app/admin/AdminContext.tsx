@@ -83,11 +83,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const hasPermission = (area: string | string[]) => {
     if (!admin) return false
 
+    // 確保 privileges 有值
+    const privileges = admin.privileges || ''
+    
     // 超級管理員權限
-    if (admin.privileges === '111') return true
+    if (privileges === '111') return true
 
     // 處理可能的複合權限（用逗號分隔）
-    const adminPrivileges = admin.privileges.split(',')
+    const adminPrivileges = privileges ? privileges.split(',') : []
 
     // 檢查是否有該權限區域的存取權
     if (Array.isArray(area)) {

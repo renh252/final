@@ -1,48 +1,317 @@
-/* 將樣式應用到 Google 和 Facebook 按鈕 */
-.google_btn {
-  background-color: #4285F4;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.container {
+  padding-left: 60px;
+  padding-right: 60px;
+  font-family:
+    Iansui,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-weight: 400;
 }
 
-.facebook_btn {
-  background-color: #3b5998;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-/* 為註冊表單添加一些基本樣式 */
-.register_container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.register_form {
+.registrationWrapper {
+  background-color: #f0ecd6;
   display: flex;
   flex-direction: column;
-  width: 300px;
-  padding: 20px;
-  background-color: #f7f7f7;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.social_signup {
-  margin-top: 20px;
-}
-
-button {
-  margin-top: 10px;
+  justify-content: flex-start;
+  align-items: stretch;
   width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 4px;
+  min-height: 2764px;
+  position: relative;
+  overflow: hidden;
+}
+
+.decorativeImage {
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  width: 574px;
+  height: 576px;
+  position: absolute;
+  bottom: 295px;
+  right: -323px;
+  box-shadow: 0 9px 5px rgba(0, 0, 0, 0.25);
+  z-index: 0;
+}
+
+.headerSection {
+  color: #f4f0ec;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: center;
+  width: 1995px;
+  max-width: 100%;
+  min-height: 905px;
+  font-size: 120px;
+  position: relative;
+  overflow: hidden;
+  transform: rotate(0.305297deg);
+  z-index: 0;
+}
+
+.headerBackground {
+  aspect-ratio: 2.35;
+  object-fit: contain;
+  object-position: center;
+  align-self: center;
+  width: 100%;
+  z-index: 0;
+}
+
+.pageTitle {
+  text-shadow: 0 4px 10px #fff;
+  width: 481px;
+  height: 137px;
+  position: absolute;
+  bottom: 255px;
+  right: 753px;
+  z-index: 0;
+}
+
+.contentSection {
+  color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 1740px;
+  margin-top: 50px;
+  padding: 0 100px;
+  font-size: 40px;
+  position: relative;
+  z-index: 0;
+}
+
+.formContainer {
+  background-color: #fff;
+  border-radius: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 1720px;
+  min-width: 240px;
+  min-height: 1681px;
+  padding-bottom: 50px;
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.sectionTitle {
+  color: #f4f0ec;
+  text-align: center;
+  background-color: #593e2f;
+  align-self: center;
+  width: 1350px;
+  max-width: 100%;
+  padding: 10px 268px;
+  overflow: hidden;
+}
+
+.socialButtons {
+  color: #fff;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px 100px;
+  width: 1088px;
+  max-width: 100%;
+  height: 89px;
+  font-size: 36px;
+  position: absolute;
+  top: 130px;
+  right: 316px;
+  z-index: 0;
+}
+
+.googleButton,
+.facebookButton {
+  background-color: #cda274;
+  border: 6px solid #cda274;
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 55px;
+  color: #fff;
+  font-size: 36px;
+  cursor: pointer;
+}
+
+.socialIcon {
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+  width: 65px;
+}
+
+.buttonText {
+  flex: auto;
+  margin: auto 0;
+}
+
+.registrationForm {
+  display: flex;
+  flex-direction: column;
+  width: 1258px;
+  max-width: 100%;
+  height: 730px;
+  padding-left: 26px;
+  position: absolute;
+  bottom: 457px;
+  left: 183px;
+  text-align: center;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 40px;
+}
+
+.formLabel {
+  margin-bottom: 10px;
+}
+
+.formInput {
+  border: 2px solid #bdbdbd;
+  border-radius: 50px;
+  width: 100%;
+  height: 119px;
+}
+
+.loginLink {
+  text-align: center;
+  width: 335px;
+  font-family:
+    Inter,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 24px;
+  line-height: 1;
+  position: absolute;
+  bottom: 86px;
+  left: 692px;
+}
+
+.termsText {
+  text-align: center;
+  width: 646px;
+  font-family:
+    Inter,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 24px;
+  line-height: 15px;
+  position: absolute;
+  bottom: 163px;
+  right: 537px;
+}
+
+.link {
+  color: #4484ce;
+  text-decoration: none;
+}
+
+.registerButton {
+  color: #fff;
+  text-align: center;
+  width: 288px;
+  height: 96px;
+  font-family:
+    Inter,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 36px;
+  line-height: 0;
+  position: absolute;
+  bottom: 259px;
+  right: 716px;
+  background-color: #003459;
+  border: none;
+  border-radius: 50px;
+  padding: 42px 29px 21px;
+  cursor: pointer;
+}
+
+.decorativeIcon1,
+.decorativeIcon2 {
+  aspect-ratio: 1.24;
+  object-fit: contain;
+  object-position: center;
+  width: 68px;
+  height: 55px;
+  position: absolute;
+  right: 430px;
+  z-index: 0;
+}
+
+.decorativeIcon1 {
+  bottom: 820px;
+}
+
+.decorativeIcon2 {
+  bottom: 548px;
+}
+
+@media (width <= 991px) {
+  .container {
+    padding-left: 20px;
+  }
+
+  .registrationWrapper {
+    max-width: 100%;
+  }
+
+  .headerSection {
+    font-size: 40px;
+  }
+
+  .pageTitle {
+    max-width: 100%;
+    font-size: 40px;
+  }
+
+  .contentSection {
+    max-width: 100%;
+    margin-top: 40px;
+    padding: 0 20px;
+  }
+
+  .formContainer {
+    max-width: 100%;
+  }
+
+  .sectionTitle {
+    padding: 10px 20px;
+  }
+
+  .socialButtons {
+    white-space: initial;
+  }
+
+  .googleButton,
+  .facebookButton {
+    padding: 15px 20px;
+  }
+
+  .registrationForm {
+    padding-left: 20px;
+  }
+
+  .termsText {
+    max-width: 100%;
+  }
 }

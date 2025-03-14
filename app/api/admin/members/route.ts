@@ -1,95 +1,96 @@
-import { NextResponse } from 'next/server'
-import { verifyToken } from '@/app/api/admin/_lib/jwt'
-import {
-  getAllMembers,
-  createMember,
-  Member,
-  getMemberById,
-} from '@/app/api/admin/_lib/member-database'
+import { NextRequest } from 'next/server'
+import { db } from '../_lib/db'
+import { guard } from '../_lib/guard'
+import { PERMISSIONS } from '../_lib/permissions'
 
 // 獲取會員列表
-export async function GET(request: Request) {
+export const GET = guard.api(async (req: NextRequest, auth) => {
+  const url = new URL(req.url)
+  const search = url.searchParams.get('search') || ''
+  const page = parseInt(url.searchParams.get('page') || '1')
+  const limit = parseInt(url.searchParams.get('limit') || '10')
+  const offset = (page - 1) * limit
+
   try {
-    // 驗證管理員權限
-    const token = request.headers.get('Authorization')?.split(' ')[1]
-    if (!token) {
-      return NextResponse.json({ error: '未授權訪問' }, { status: 401 })
-    }
+    // 查詢會員總數
+    const [countResult] = await db.query<{ total: number }[]>(
+      'SELECT COUNT(*) as total FROM users WHERE user_name LIKE ? OR user_email LIKE ?',
+      [`%${search}%`, `%${search}%`]
+    )
+    const total = countResult[0].total
 
-    const decoded = await verifyToken(token)
-    if (!decoded || decoded.role !== 'admin') {
-      return NextResponse.json({ error: '沒有權限訪問此資源' }, { status: 403 })
-    }
+    // 查詢會員列表
+    const [members] = await db.query(
+      `SELECT 
+        id, user_name, user_email, user_number, 
+        user_level, user_status, created_at 
+      FROM users 
+      WHERE user_name LIKE ? OR user_email LIKE ? 
+      ORDER BY created_at DESC 
+      LIMIT ? OFFSET ?`,
+      [`%${search}%`, `%${search}%`, limit, offset]
+    )
 
-    // 獲取會員列表
-    const members = await getAllMembers()
-
-    return NextResponse.json(
-      {
+    return {
+      success: true,
+      data: {
         members,
-      },
-      {
-        headers: {
-          'Cache-Control':
-            'no-store, no-cache, must-revalidate, proxy-revalidate',
-          Pragma: 'no-cache',
-          Expires: '0',
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
         },
-      }
-    )
+      },
+    }
   } catch (error) {
-    console.error('獲取會員列表時發生錯誤：', error)
-    return NextResponse.json(
-      { error: '獲取會員列表時發生錯誤' },
-      { status: 500 }
-    )
+    console.error('獲取會員列表失敗:', error)
+    return {
+      success: false,
+      message: '獲取會員列表失敗',
+    }
   }
-}
+}, PERMISSIONS.MEMBERS.READ)
 
 // 新增會員
-export async function POST(request: Request) {
+export const POST = guard.api(async (req: NextRequest) => {
   try {
-    // 驗證管理員權限
-    const token = request.headers.get('Authorization')?.split(' ')[1]
-    if (!token) {
-      return NextResponse.json({ error: '未授權訪問' }, { status: 401 })
+    const body = await req.json()
+    const { user_name, user_email, user_number, user_level } = body
+
+    // 檢查 email 是否已存在
+    const [existing] = await db.query(
+      'SELECT id FROM users WHERE user_email = ?',
+      [user_email]
+    )
+    if (existing.length > 0) {
+      return {
+        success: false,
+        message: '此 Email 已被使用',
+      }
     }
 
-    const decoded = await verifyToken(token)
-    if (!decoded || decoded.role !== 'admin') {
-      return NextResponse.json({ error: '沒有權限訪問此資源' }, { status: 403 })
-    }
+    // 新增會員
+    const [result] = await db.query(
+      `INSERT INTO users (
+        user_name, user_email, user_number, 
+        user_level, user_status, created_at
+      ) VALUES (?, ?, ?, ?, 1, NOW())`,
+      [user_name, user_email, user_number, user_level]
+    )
 
-    // 解析請求體
-    const body = await request.json()
-
-    // 驗證必填欄位
-    if (!body.full_name || !body.email || !body.phone) {
-      return NextResponse.json(
-        { error: '缺少必要欄位：full_name, email, phone' },
-        { status: 400 }
-      )
-    }
-
-    // 確保 status 欄位存在
-    if (!body.status) {
-      body.status = 'active' // 預設為正常狀態
-    }
-
-    // 創建會員
-    const memberId = await createMember(body as Member)
-
-    // 獲取完整的會員數據
-    const member = await getMemberById(memberId)
-
-    return NextResponse.json({
+    return {
       success: true,
-      message: '會員新增成功',
-      member_id: memberId,
-      member: member,
-    })
+      data: {
+        id: result.insertId,
+      },
+      message: '新增會員成功',
+    }
   } catch (error) {
-    console.error('新增會員時發生錯誤：', error)
-    return NextResponse.json({ error: '新增會員時發生錯誤' }, { status: 500 })
+    console.error('新增會員失敗:', error)
+    return {
+      success: false,
+      message: '新增會員失敗',
+    }
   }
-}
+}, PERMISSIONS.MEMBERS.WRITE)

@@ -1,11 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import styles from './flow.module.css'
 
 export default function FlowPage() {
   // 狀態變數
-  const [amount, setAmount] = useState('') // 存儲捐款金額
+  const searchParams = useSearchParams()
   const [items, setItems] = useState('') // 存儲商品項目
+  const [amount, setAmount] = useState('0') // 存儲捐款金額
+  useEffect(() => {
+    const donationType = searchParams.get('donationType') || '一般捐款' // 預設為一般捐款
+    setItems(donationType)
+  }, [searchParams])
   const [paymentType, setPaymentType] = useState('') // 存儲選擇的付款方式
   const [paymentData, setPaymentData] = useState(null) // 儲存 API 回傳的支付資訊
   const [isLoading, setIsLoading] = useState(false) // 控制按鈕的載入狀態
@@ -88,58 +95,77 @@ export default function FlowPage() {
   }
 
   return (
-    <div>
-      <h1>捐款頁面</h1>
-
-      {/* 金額輸入欄位 */}
+    <>
+      <div className={styles.flow_container}>
+        <h1>線上捐款</h1>
+        <hr />
+      </div>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>金額:</label>
-          <input
-            type="number"
-            value={amount}
-            onChange={handleAmountChange}
-            placeholder="請輸入金額"
-            required
-          />
+        <div className={styles.order_container}>
+          <h2 className={styles.order_title}>捐款資訊</h2>
+          <table className={styles.order_table}>
+            <tbody>
+              <tr>
+                <td className={styles.order_label}>捐款項目</td>
+                <td className={styles.order_value}>{items}</td>
+              </tr>
+              <tr>
+                <td className={styles.order_label}>捐款金額</td>
+                <td className={styles.order_value}>
+                  <div>
+                    <input
+                      type="number"
+                      value={amount}
+                      onChange={handleAmountChange}
+                      placeholder="請輸入金額"
+                      required
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr className={styles.order_total_row}>
+                <td className={styles.order_total_label}>合計</td>
+                <td className={styles.order_total_value}>$ {amount} 元</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        {/* 商品輸入欄位 */}
-        <div>
-          <label>商品項目:</label>
-          <input
-            type="text"
-            value={items}
-            onChange={handleItemsChange}
-            placeholder="請輸入商品項目名稱（以逗號分隔）"
-            required
-          />
-        </div>
+        <div className={styles.order_container}>
+          {/* 付款方式選擇 */}
+          <div>
+            <h5>請選擇捐款方式</h5>
 
-        {/* 付款方式選擇 */}
-        <div>
-          <label>選擇付款方式:</label>
-          <button type="button" onClick={selectOneTimePayment}>
-            一次付清
+            <button
+              type="button"
+              className="button"
+              onClick={selectOneTimePayment}
+            >
+              一次付清
+            </button>
+            <button
+              type="button"
+              className="button"
+              onClick={selectRecurringPayment}
+            >
+              定期定額
+            </button>
+          </div>
+
+          {/* 付款按鈕 */}
+          <button type="submit" className="button" disabled={isLoading}>
+            {isLoading ? '處理中...' : '開始支付'}
           </button>
-          <button type="button" onClick={selectRecurringPayment}>
-            定期定額
-          </button>
-        </div>
 
-        {/* 付款按鈕 */}
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? '處理中...' : '開始支付'}
-        </button>
+          {/* 支付準備提示 */}
+          {paymentData && (
+            <div>
+              <h2>支付參數已準備好！</h2>
+              <p>即將進行支付，請稍候...</p>
+            </div>
+          )}
+        </div>
       </form>
-
-      {/* 支付準備提示 */}
-      {paymentData && (
-        <div>
-          <h2>支付參數已準備好！</h2>
-          <p>即將進行支付，請稍候...</p>
-        </div>
-      )}
-    </div>
+    </>
   )
 }

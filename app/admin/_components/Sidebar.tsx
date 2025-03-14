@@ -64,13 +64,13 @@ export default function Sidebar({ collapsed = false, onToggle }) {
       icon: <Users size={20} color={getIconColor()} />,
       label: '會員管理',
       path: '/admin/members',
-      requiredPrivilege: 'member',
+      requiredPrivilege: 'members:read',
     },
     {
       icon: <ShoppingBag size={20} color={getIconColor()} />,
       label: '商城管理',
       path: '/admin/shop',
-      requiredPrivilege: 'shop',
+      requiredPrivilege: 'shop:read',
       subItems: [
         { label: '商城概覽', path: '/admin/shop' },
         { label: '商品管理', path: '/admin/shop/products' },
@@ -83,13 +83,13 @@ export default function Sidebar({ collapsed = false, onToggle }) {
       icon: <PawPrint size={20} color={getIconColor()} />,
       label: '寵物管理',
       path: '/admin/pets',
-      requiredPrivilege: 'pet',
+      requiredPrivilege: 'pets:read',
     },
     {
       icon: <MessageSquare size={20} color={getIconColor()} />,
       label: '論壇管理',
       path: '/admin/forum',
-      requiredPrivilege: 'post',
+      requiredPrivilege: 'forum:read',
       subItems: [
         { label: '論壇概覽', path: '/admin/forum' },
         { label: '文章管理', path: '/admin/forum/articles' },
@@ -100,7 +100,7 @@ export default function Sidebar({ collapsed = false, onToggle }) {
       icon: <DollarSign size={20} color={getIconColor()} />,
       label: '金流管理',
       path: '/admin/finance',
-      requiredPrivilege: 'donation',
+      requiredPrivilege: 'finance:read',
       subItems: [
         { label: '金流概覽', path: '/admin/finance' },
         { label: '財務儀表板', path: '/admin/finance/dashboard' },

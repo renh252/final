@@ -1,142 +1,85 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import styles from './Register.module.css'; // 導入 CSS Modules
-
+import React, { useState, useEffect } from 'react'
+import styles from "./Register.module.css";
 export default function RegisterPage(props) {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [errors, setErrors] = useState({});
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' }); // 清除錯誤訊息
-  };
-
-  const validateForm = () => {
-    let isValid = true;
-    let newErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = '姓名不能為空';
-      isValid = false;
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = '電子郵件不能為空';
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = '電子郵件格式不正確';
-      isValid = false;
-    }
-
-    if (!formData.password.trim()) {
-      newErrors.password = '密碼不能為空';
-      isValid = false;
-    } else if (formData.password.length < 6) {
-      newErrors.password = '密碼長度至少為 6 個字元';
-      isValid = false;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = '密碼不匹配';
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/member/register', { // 假設您的後端 API 路徑為 /api/register
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setRegistrationSuccess(true);
-      } else {
-        const errorData = await response.json();
-        setErrors({ ...errors, general: errorData.message || '註冊失敗，請稍後再試' });
-      }
-    } catch (error) {
-      setErrors({ ...errors, general: '網路錯誤，請稍後再試' });
-    }
-  };
-
-  if (registrationSuccess) {
-    return <div>註冊成功！</div>;
-  }
-
   return (
-    <div className={styles.container}>
-      <h2>會員註冊</h2>
-      {errors.general && <div className={styles.error}>{errors.general}</div>}
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.formGroup}>
-          <label htmlFor="name">姓名：</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          {errors.name && <div className={styles.error}>{errors.name}</div>}
+    <>
+<main classname={styles.container}>
+  <section classname={styles.registrationWrapper}>
+    <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/113fc9eaf2a450ce67599182a38a68d6ecc38c23ec57923abf5c14fdcf528df5?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321" alt="Decorative background" classname="{styles.decorativeImage}" />
+    <header classname={styles.headerSection}>
+      <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/c961159506ebe222e2217510289e3eee7203e02a0affe719332fe812045a0061?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321" alt="Header background" classname="{styles.headerBackground}" />
+      <h1 classname={styles.pageTitle}>會員註冊</h1>
+    </header>
+    <section classname={styles.contentSection}>
+      <div classname={styles.formContainer}>
+        <h2 classname={styles.sectionTitle}>快速註冊</h2>
+        <div classname={styles.socialButtons}>
+          <button className="button"
+                style={{ width: '350px', height: '60px', fontSize: '20px' }}>
+            <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/153b2dcd7ca2627a463800e38ebc91cf43bcd541ad79fa3fea9919eec17199df?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321" alt="Google icon" 
+            style={{ width: '100px', height: '50px' }} />
+            以Google帳號註冊
+          </button>
+          <button className="button"
+          style={{ width: '350px', height: '60px', fontSize: '20px' }}>
+            <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/947deca3304a13703edd669f75def30df7a6bad1d73408cb9ee3fa21c3d9e912?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321" alt="Facebook icon" 
+            style={{ width: '100px', height: '50px' }} />
+            以Facebook帳號註冊
+          </button>
         </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="email">電子郵件：</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          {errors.email && <div className={styles.error}>{errors.email}</div>}
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="password">密碼：</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          {errors.password && <div className={styles.error}>{errors.password}</div>}
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="confirmPassword">確認密碼：</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            className={styles.input}
-          />
-          {errors.confirmPassword && <div className={styles.error}>{errors.confirmPassword}</div>}
-        </div>
-        <button type="submit" className={styles.button}>註冊</button>
-      </form>
-    </div>
-  );
+        <h2 classname={styles.sectionTitle}>加入會員</h2>
+        <form classname={styles.registrationForm}>
+          <div classname={styles.formGroup}>
+            <label htmlfor="email" classname={styles.formLabel}>
+              電子信箱 :
+            </label>
+            <input type="email" id="email" classname={styles.formInput} required />
+          </div>
+          <div classname={styles.formGroup}>
+            <label htmlfor="password" classname={styles.formLabel}>
+              密碼 :
+            </label>
+            <input type="password" id="password" classname={styles.formInput} required />
+          </div>
+          <div classname={styles.formGroup}>
+            <label htmlfor="confirmPassword" classname={styles.formLabel}>
+              確認密碼 :
+            </label>
+            <input type="password" id="confirmPassword" classname={styles.formInput} required />
+          </div>
+        </form>
+        <p classname={styles.loginLink}>
+          已經是會員?
+          <a href="#" classname={styles.link}
+          style={{ fontSize: '20px'}}>
+            點此登入
+          </a>
+        </p>
+        <p classname={styles.termsText}>
+          點擊「註冊」即表示你同意我們的
+          <a href="#" classname={styles.link}
+          style={{ fontSize: '20px'}}>
+            使用條款
+          </a>
+          及
+          <a href="#" classname={styles.link}
+          style={{ fontSize: '20px'}}>
+            私隱政策
+          </a>
+          。
+        </p>
+        <button className="button"
+                style={{ width: '200px', height: '50px', fontSize: '28px' }}
+>
+          註冊
+        </button>
+      </div>
+    </section>
+  </section>
+</main>
+
+    </>
+  )
 }
