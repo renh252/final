@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { Button, Alert, Badge, Form } from 'react-bootstrap'
+import { Button, Alert, Badge, Form, Table, InputGroup } from 'react-bootstrap'
 import {
   Eye,
   Edit,
@@ -11,6 +11,7 @@ import {
   Plus,
   Download,
   Upload,
+  Search,
 } from 'lucide-react'
 import DataTable from '../_components/DataTable'
 import type { Column } from '../_components/DataTable'
@@ -24,6 +25,9 @@ import Cookies from 'js-cookie'
 import { fetchApi } from '@/app/admin/_lib/api'
 import ModalForm from '@/app/admin/_components/ModalForm'
 import { useTheme } from '@/app/admin/ThemeContext'
+import { withAuth } from '@/app/admin/_hooks/useAuth'
+import { PERMISSIONS } from '@/app/api/admin/_lib/permissions'
+import LoadingSpinner from '@/app/admin/_components/LoadingSpinner'
 
 interface Member {
   user_id: number
@@ -47,7 +51,16 @@ const LEVEL_OPTIONS = [
   { value: '乾爹乾媽', label: '乾爹乾媽' },
 ]
 
-const MembersPage = () => {
+interface MembersPageProps {
+  auth: {
+    id: number
+    role: string
+    perms: string[]
+  }
+  can: (perm: string) => boolean
+}
+
+function MembersPage({ auth, can }: MembersPageProps) {
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -56,6 +69,7 @@ const MembersPage = () => {
   const [isImporting, setIsImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const [importResult, setImportResult] = useState<any | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     fetchMembers()
@@ -423,78 +437,55 @@ const MembersPage = () => {
     },
   ]
 
+  if (loading) {
+    return <LoadingSpinner />
+  }
+
   return (
-    <AdminPageLayout title="會員管理" stats={memberStats}>
-      <AdminSection title="會員列表">
-        <AdminCard>
-          {error && (
-            <Alert variant="danger" className="mb-3">
-              <Alert.Heading>獲取資料失敗</Alert.Heading>
-              <p>{error}</p>
-              <div className="d-flex justify-content-end">
-                <Button variant="outline-danger" onClick={fetchMembers}>
-                  重試
-                </Button>
-              </div>
-            </Alert>
-          )}
+    <div className="container-fluid">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1>會員管理</h1>
+        {can(PERMISSIONS.MEMBERS.WRITE) && (
+          <Button variant="primary">新增會員</Button>
+        )}
+      </div>
 
-          {importResult && importResult.success && (
-            <Alert
-              variant="success"
-              className="mb-3"
-              dismissible
-              onClose={() => setImportResult(null)}
-            >
-              <Alert.Heading>導入成功</Alert.Heading>
-              <p>{importResult.message}</p>
-              {importResult.errors && importResult.errors.length > 0 && (
-                <>
-                  <hr />
-                  <p>以下記錄導入失敗：</p>
-                  <ul>
-                    {importResult.errors.map((err: any, index: number) => (
-                      <li key={index}>
-                        {err.email}: {err.error}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </Alert>
-          )}
+      <div className="card">
+        <div className="card-body">
+          {/* 搜尋欄位 */}
+          <div className="mb-4">
+            <InputGroup>
+              <Form.Control
+                placeholder="搜尋會員..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Button variant="outline-secondary">
+                <Search size={20} />
+              </Button>
+            </InputGroup>
+          </div>
 
-          {importError && (
-            <Alert
-              variant="danger"
-              className="mb-3"
-              dismissible
-              onClose={() => setImportError(null)}
-            >
-              <Alert.Heading>導入失敗</Alert.Heading>
-              <p>{importError}</p>
-            </Alert>
-          )}
-
-          <DataTable
-            data={members}
-            columns={columns}
-            loading={loading}
-            searchable={true}
-            searchKeys={['user_name', 'user_email', 'user_number']}
-            actions={renderActions}
-            selectable={true}
-            batchActions={batchActions}
-            exportable={true}
-            onExport={handleExport}
-            importable={true}
-            onImport={handleImport}
-            advancedFiltering={true}
-          />
-        </AdminCard>
-      </AdminSection>
-    </AdminPageLayout>
+          {/* 會員列表 */}
+          <Table responsive hover>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>姓名</th>
+                <th>Email</th>
+                <th>電話</th>
+                <th>等級</th>
+                <th>狀態</th>
+                <th>註冊日期</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>{/* 這裡之後會加入實際的會員資料 */}</tbody>
+          </Table>
+        </div>
+      </div>
+    </div>
   )
 }
 
-export default MembersPage
+export default withAuth(MembersPage, PERMISSIONS.MEMBERS.READ)

@@ -1,19 +1,16 @@
 # 後台管理系統結構文檔
 
+> 最後更新時間：2024-03-14
+>
+> 本文檔描述了寵物領養平台後台管理系統的結構和功能。完整的 API 路由列表請參考 [API 結構文檔](api-structure.md)，項目當前狀態請參考 [項目狀態文檔](current-status.md)。
+
 ## 目錄
 
 1. [概述](#概述)
 2. [路由結構](#路由結構)
 3. [主要模塊](#主要模塊)
-   - [管理區首頁](#管理區首頁)
-   - [會員管理](#會員管理)
-   - [商城管理](#商城管理)
-   - [寵物管理](#寵物管理)
-   - [論壇管理](#論壇管理)
-   - [金流管理](#金流管理)
-   - [系統設定](#系統設定)
 4. [共用元件](#共用元件)
-5. [API 結構](#api-結構)
+5. [認證與授權](#認證與授權)
 6. [資料庫交互](#資料庫交互)
 
 ## 概述
@@ -172,17 +169,215 @@
 - `Toast`：提示訊息元件
 - `ConfirmDialog`：確認對話框元件
 
-## API 結構
+## 認證與授權
 
-後台管理系統的 API 結構遵循 Next.js 的 App Router API 路由結構，位於 `app/api/admin` 目錄下：
+### 認證機制
 
-- `/api/admin/members`：會員管理相關 API
-- `/api/admin/products`：商品管理相關 API
-- `/api/admin/orders`：訂單管理相關 API
-- `/api/admin/pets`：寵物管理相關 API
-- `/api/admin/forum`：論壇管理相關 API
-- `/api/admin/finance`：金流管理相關 API
-- `/api/admin/settings`：系統設定相關 API
+後台管理系統使用 JWT (JSON Web Token) 進行認證，主要包含以下部分：
+
+1. **登入流程**
+
+   ```typescript
+   // 在 LoginPage 中
+   const handleLogin = async () => {
+     const response = await fetch('/api/admin/auth/login', {
+       method: 'POST',
+       body: JSON.stringify({ account, password }),
+     })
+
+     if (response.success) {
+       // 設置 Cookie
+       Cookies.set('admin_token', response.data.token)
+       // 保存管理員資訊
+       localStorage.setItem('admin', JSON.stringify(response.data.admin))
+     }
+   }
+   ```
+
+2. **認證檢查**
+
+   ```typescript
+   // 在 AdminContext 中
+   const checkAuth = async () => {
+     const token = Cookies.get('admin_token')
+     if (!token) return false
+
+     const response = await fetch('/api/admin/auth/verify', {
+       headers: { Authorization: `Bearer ${token}` },
+     })
+
+     return response.success
+   }
+   ```
+
+3. **登出流程**
+
+   ```typescript
+   const handleLogout = async () => {
+     await fetch('/api/admin/auth/logout', {
+       method: 'POST',
+       headers: { Authorization: `Bearer ${token}` },
+     })
+
+     Cookies.remove('admin_token')
+     localStorage.removeItem('admin')
+   }
+   ```
+
+### 權限控制
+
+1. **權限定義**
+
+   ```typescript
+   // 在 permissions.ts 中
+   export const PERMISSIONS = {
+     MEMBERS: {
+       READ: 'members.read',
+       WRITE: 'members.write',
+       DELETE: 'members.delete',
+     },
+     PETS: {
+       READ: 'pets.read',
+       WRITE: 'pets.write',
+       DELETE: 'pets.delete',
+     },
+     // ... 其他權限
+   }
+   ```
+
+2. **API 路由保護**
+
+   ```typescript
+   // 在 API 路由中
+   export const GET = guard.api(async (request: NextRequest, authData) => {
+     // 檢查權限
+     if (!auth.can(authData, PERMISSIONS.MEMBERS.READ)) {
+       return NextResponse.json(
+         { success: false, message: '權限不足' },
+         { status: 403 }
+       )
+     }
+
+     // 處理請求
+     // ...
+   })
+   ```
+
+3. **頁面組件保護**
+   ```typescript
+   // 在頁面組件中
+   export default withAuth(MembersPage, PERMISSIONS.MEMBERS.READ)
+   ```
+
+### 權限檢查工具
+
+1. **API 路由保護工具**
+
+   ```typescript
+   // 在 guard.ts 中
+   export const guard = {
+     api: (handler: ApiHandler) => {
+       return async (request: NextRequest) => {
+         try {
+           // 驗證授權
+           const authData = await auth.fromRequest(request)
+           if (!authData) {
+             return NextResponse.json(
+               { success: false, message: '未授權的請求' },
+               { status: 401 }
+             )
+           }
+
+           // 執行處理器
+           return handler(request, authData)
+         } catch (error) {
+           console.error('API 錯誤:', error)
+           return NextResponse.json(
+             { success: false, message: '伺服器錯誤' },
+             { status: 500 }
+           )
+         }
+       }
+     },
+   }
+   ```
+
+2. **頁面組件保護工具**
+
+   ```typescript
+   // 在 useAuth.tsx 中
+   export function withAuth<
+     P extends { auth?: Auth; can?: (perm: string) => boolean }
+   >(Component: React.ComponentType<P>, requiredPerm?: string) {
+     return function AuthComponent(props: Omit<P, 'auth' | 'can'>) {
+       const { auth, loading, can } = useAuth(requiredPerm)
+
+       if (loading) {
+         return <LoadingSpinner />
+       }
+
+       if (!auth) {
+         return null
+       }
+
+       return <Component {...(props as P)} auth={auth} can={can} />
+     }
+   }
+   ```
+
+### 錯誤處理
+
+1. **認證錯誤**
+
+   - 401 未授權：Token 無效或過期
+   - 403 權限不足：無權訪問特定資源
+   - 重定向到登入頁面：`/admin/login`
+
+2. **API 錯誤處理**
+
+   ```typescript
+   try {
+     const response = await fetchApi('/api/admin/members')
+     if (!response.success) {
+       throw new Error(response.message)
+     }
+     // ... 處理成功響應
+   } catch (error) {
+     showToast('error', '錯誤', error.message)
+   }
+   ```
+
+3. **頁面錯誤處理**
+   ```typescript
+   if (error) {
+     return (
+       <div className="alert alert-danger">
+         <h4>錯誤</h4>
+         <p>{error}</p>
+         <Button onClick={() => router.back()}>返回</Button>
+       </div>
+     )
+   }
+   ```
+
+### 最佳實踐
+
+1. **Token 管理**
+
+   - 使用 Cookie 存儲 token
+   - 不要在 localStorage 中存儲敏感資訊
+   - 定期檢查 token 有效性
+
+2. **權限檢查**
+
+   - 在 API 和頁面層級都進行權限檢查
+   - 使用統一的權限代碼
+   - 超級管理員擁有所有權限
+
+3. **錯誤處理**
+   - 統一的錯誤處理機制
+   - 友好的錯誤提示
+   - 適當的錯誤日誌
 
 ## 資料庫交互
 
@@ -192,57 +387,19 @@
 
 ## API 路由
 
-後台 API 路由位於 `app/api/admin` 目錄下，而不是 `app/admin/api`。所有與後台功能相關的 API 都應該放在這個目錄下。
+> 完整的 API 路由列表請參考 [API 結構文檔](api-structure.md#api-路由結構)
 
-請注意，使用標準的 Next.js API 路由結構是最佳實踐，因此我們將所有 API 整合到 `app/api/admin` 中。
-
-### API 路由結構
+後台 API 路由位於 `app/api/admin` 目錄下。以下是主要的 API 路由結構：
 
 ```
 app/
   api/
     admin/
       auth/
-        login/
-          route.ts
-        logout/
-          route.ts
-        verify/
-          route.ts
       pets/
-        route.ts
-        [id]/
-          route.ts
-        photos/
-          route.ts
-        import/
-          route.ts
-        export/
-          route.ts
       products/
-        route.ts
-        [id]/
-          route.ts
-        import/
-          route.ts
-        export/
-          route.ts
       members/
-        route.ts
-        [id]/
-          route.ts
-        import/
-          route.ts
-        export/
-          route.ts
       _lib/
-        database.ts
-        jwt.ts
-        auth.ts
-        pet-database.ts
-        member-database.ts
-        data-import.ts
-        data-export.ts
 ```
 
 ### API 使用示例

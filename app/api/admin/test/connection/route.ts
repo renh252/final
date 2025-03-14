@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { adminDb } from '@/app/api/admin/_lib/database'
+import { adminDatabase } from '@/app/api/admin/_lib/database'
 import { verifyToken } from '@/app/api/admin/_lib/jwt'
 import { headers } from 'next/headers'
 
@@ -18,7 +18,7 @@ export async function GET() {
       return NextResponse.json({ error: '無效的認證' }, { status: 401 })
     }
 
-    const isConnected = await adminDb.testConnection()
+    const isConnected = await adminDatabase.testConnection()
 
     if (!isConnected) {
       return NextResponse.json({ error: '資料庫連接測試失敗' }, { status: 500 })
