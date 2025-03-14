@@ -1,12 +1,10 @@
 import * as crypto from 'crypto'
 
 export async function POST(req) {
-  const { amount, items } = await req.json()
+  const { amount, items, ChoosePayment } = await req.json()
 
   const itemName =
-    items.split(',').length > 1
-      ? items.split(',').join('#')
-      : '線上商店購買一批'
+    items.split(',').length > 1 ? items.split(',').join('#') : items
 
   if (!amount) {
     return new Response(JSON.stringify({ error: '缺少總金額' }), {
@@ -22,10 +20,8 @@ export async function POST(req) {
   const TotalAmount = Number(amount) // 總金額
   const TradeDesc = '商店線上付款' // 訂單描述
   const ItemName = itemName // 商品名稱
-  const ReturnURL =
-    ' http://localhost:3000//api/ecpay/notify'
-  const OrderResultURL =
-    ' http://localhost:3000//api/ecpay/callback' // 完成支付後回來的頁面
+  const ReturnURL = ' http://localhost:3000//api/ecpay/notify'
+  const OrderResultURL = ' http://localhost:3000//api/ecpay/callback' // 完成支付後回來的頁面
 
   const stage = isStage ? '-stage' : ''
   const algorithm = 'sha256'
@@ -60,7 +56,8 @@ export async function POST(req) {
     hour12: false,
   })
 
-  const ParamsBeforeCMV = {
+  // 改為let以便根據付款方式設置參數
+  let ParamsBeforeCMV = {
     MerchantID,
     MerchantTradeNo,
     MerchantTradeDate: MerchantTradeDate.toString(),
@@ -70,8 +67,19 @@ export async function POST(req) {
     TradeDesc,
     ItemName,
     ReturnURL,
-    ChoosePayment: 'ALL',
+    ChoosePayment: 'Credit',
     OrderResultURL,
+  }
+
+  // 處理信用卡定期定額 (CreditPeriod)
+  if (ChoosePayment === 'CreditPeriod') {
+    ParamsBeforeCMV = {
+      ...ParamsBeforeCMV,
+      PeriodAmount: TotalAmount, // 每次扣款金額
+      PeriodType: 'M', // M=每月, Y=每年, D=每日
+      Frequency: 1, // 每 1 個月扣款一次
+      ExecTimes: 12, // 總共扣款 12 次
+    }
   }
 
   function CheckMacValueGen(parameters, algorithm, digest) {
