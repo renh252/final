@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useParams } from 'next/navigation';  // 改用 App Router 的 navigation
 import Loading from '../../components/UI/loading';
 import NotFound from '../../components/UI/not-found';
 import ArticleHeader from '../../components/ArticleHeader';
@@ -9,8 +9,8 @@ import ArticleFooter from '../../components/ArticleFooter';
 import Comments from '../../components/Comments';
 
 const ArticlePage = () => {
-    const router = useRouter();
-    const { id } = router.query;
+    const params = useParams();  // 使用 App Router 的方式獲取參數
+    const id = params.id;  // 直接從 params 獲取 id
     const [article, setArticle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
