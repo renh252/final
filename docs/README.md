@@ -20,6 +20,7 @@
 3. **資料庫操作**：必須使用參數化查詢和事務管理（見[資料庫結構文檔](database-structure.md)）
 4. **目錄結構**：必須遵循分層架構，避免跨層級依賴（見[目錄結構文檔](directory-structure.md)）
 5. **UI 開發**：保持組件接口和樣式一致性，避免內聯樣式（見[前端組件文檔](frontend-components.md)）
+6. **身份驗證**：遵循用戶身份驗證的最佳實踐，確保安全性（見[用戶身份驗證實現指南](auth-implementation-guide.md)）
 
 > 📢 **注意**: AI 在實作功能前必須閱讀並遵循相關文檔中的開發規範警告和限制條件，避免破壞現有功能。
 
@@ -81,14 +82,15 @@
 
 開發不同功能時的文檔參考優先順序：
 
-| 開發領域   | 第一優先參考                  | 第二優先參考                    | 第三優先參考                   |
-| ---------- | ----------------------------- | ------------------------------- | ------------------------------ |
-| 權限系統   | 🔴 admin-permission-system.md | 🟠 admin-structure.md           | 🟡 api-structure.md            |
-| 側邊欄組件 | 🔴 admin-permission-system.md | 🟠 frontend-components.md       | 🟡 admin-structure.md          |
-| 資料庫查詢 | 🔴 database-structure.md      | 🟠 db-structure-usage.md        | 🟡 api-structure.md            |
-| 前端 UI    | 🔴 frontend-components.md     | 🟠 project-overview.md          | 🟡 utils-guide.md              |
-| API 開發   | 🔴 api-structure.md           | 🟠 database-structure.md        | 🟡 admin-api-simplification.md |
-| 後台功能   | 🔴 admin-structure.md         | 🟠 admin-implementation-plan.md | 🟡 admin-permission-system.md  |
+| 開發領域   | 第一優先參考                    | 第二優先參考                    | 第三優先參考                   |
+| ---------- | ------------------------------- | ------------------------------- | ------------------------------ |
+| 權限系統   | 🔴 admin-permission-system.md   | 🟠 admin-structure.md           | 🟡 api-structure.md            |
+| 側邊欄組件 | 🔴 admin-permission-system.md   | 🟠 frontend-components.md       | 🟡 admin-structure.md          |
+| 資料庫查詢 | 🔴 database-structure.md        | 🟠 db-structure-usage.md        | 🟡 api-structure.md            |
+| 前端 UI    | 🔴 frontend-components.md       | 🟠 project-overview.md          | 🟡 utils-guide.md              |
+| API 開發   | 🔴 api-structure.md             | 🟠 database-structure.md        | 🟡 admin-api-simplification.md |
+| 後台功能   | 🔴 admin-structure.md           | 🟠 admin-implementation-plan.md | 🟡 admin-permission-system.md  |
+| 身份驗證   | 🔴 auth-implementation-guide.md | 🟠 api-structure.md             | 🟡 database-structure.md       |
 
 ### 功能邊界圖（修改前必看）
 
@@ -111,6 +113,22 @@
 
 修改任一組件時，必須考慮對相連組件的影響。
 
+```
+用戶認證流程圖
+┌────────────────┐         ┌───────────────────┐
+│  login/route.ts │ ──────► │  jwt.ts (Token)   │
+└───────┬────────┘         └─────────┬─────────┘
+        │                             │
+        │                             ▼
+        │                   ┌───────────────────┐
+        └──────────────────►│     auth.ts       │
+                            └─────────┬─────────┘
+                                      │
+                            ┌─────────▼─────────┐
+                            │ API 路由 (驗證)    │
+                            └───────────────────┘
+```
+
 ### 成功標準檢查清單
 
 #### 權限系統修改檢查清單
@@ -120,6 +138,14 @@
 - [ ] 修改是否僅限於明確指定的檔案範圍？
 - [ ] 是否提供了詳細的用戶驗證方法？
 - [ ] 是否確保了向後兼容性？
+
+#### 身份驗證系統修改檢查清單
+
+- [ ] 是否保留支援明碼和哈希密碼的驗證機制？
+- [ ] 是否正確處理不同的用戶狀態（正常/禁言/停用等）？
+- [ ] 是否使用參數化查詢避免 SQL 注入？
+- [ ] JWT 令牌是否包含必要的用戶資訊？
+- [ ] 是否遵循 Cookie 安全設置（httpOnly、secure 等）？
 
 #### 側邊欄組件修改檢查清單
 
@@ -136,13 +162,13 @@
 
 ### 核心功能開發狀態
 
-| 功能領域     | 狀態               | 說明                       |
-| ------------ | ----------------- | -------------------------- |
-| 寵物領養系統 | ✅ 基本功能已完成   | 包含寵物列表、詳情和領養流程 |
-| 社群討論區   | ✅ 基本功能已完成   | 帖子發布、回覆、點讚等功能   |
-| 寵物用品商城 | ✅ 基本功能已完成   | 商品管理、購物車、訂單系統   |
-| 會員管理系統 | ✅ 基本功能已完成   | 註冊、登入、個人資料管理     |
-| 後台管理系統 | ✅ 基本功能已完成   | 包含權限控制、數據管理功能   |
+| 功能領域     | 狀態              | 說明                         |
+| ------------ | ----------------- | ---------------------------- |
+| 寵物領養系統 | ✅ 基本功能已完成 | 包含寵物列表、詳情和領養流程 |
+| 社群討論區   | ✅ 基本功能已完成 | 帖子發布、回覆、點讚等功能   |
+| 寵物用品商城 | ✅ 基本功能已完成 | 商品管理、購物車、訂單系統   |
+| 會員管理系統 | ✅ 基本功能已完成 | 註冊、登入、個人資料管理     |
+| 後台管理系統 | ✅ 基本功能已完成 | 包含權限控制、數據管理功能   |
 
 ### 支付系統開發狀態
 
@@ -171,29 +197,29 @@
 
 ### 尋找特定功能的文檔
 
-| 如果您需要了解...    | 請參考這些文檔                                                                                                                                                             |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 專案整體架構和技術棧 | [project-overview.md](./project-overview.md)                                                                                                                               |
-| 資料庫結構和關係     | [database-structure.md](./database-structure.md), [db-structure-usage.md](./db-structure-usage.md)                                                                         |
-| API 路由和使用方式   | [api-structure.md](./api-structure.md)                                                                                                                                     |
-| 後台管理系統         | [admin-structure.md](./admin-structure.md), [admin-implementation-plan.md](./admin-implementation-plan.md)                                                                 |
-| 前端元件和 UI        | [frontend-components.md](./frontend-components.md), [datatable-best-practices.md](./datatable-best-practices.md)                                                           |
-| 認證和授權機制       | [admin-structure.md](./admin-structure.md)（授權邏輯部分）, [api-structure.md](./api-structure.md)（認證部分）, [admin-permission-system.md](./admin-permission-system.md) |
-| 權限系統和側邊欄顯示 | [admin-permission-system.md](./admin-permission-system.md)                                                                                                                 |
-| 目錄結構和代碼組織   | [directory-structure.md](./directory-structure.md)                                                                                                                         |
-| 目前進度和未來計劃   | [current-status.md](./current-status.md)                                                                                                                                   |
-| 工具函數使用指南     | [utils-guide.md](./utils-guide.md)                                                                                                                                         |
+| 如果您需要了解...    | 請參考這些文檔                                                                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 專案整體架構和技術棧 | [project-overview.md](./project-overview.md)                                                                                                                                   |
+| 資料庫結構和關係     | [database-structure.md](./database-structure.md), [db-structure-usage.md](./db-structure-usage.md)                                                                             |
+| API 路由和使用方式   | [api-structure.md](./api-structure.md)                                                                                                                                         |
+| 後台管理系統         | [admin-structure.md](./admin-structure.md), [admin-implementation-plan.md](./admin-implementation-plan.md)                                                                     |
+| 前端元件和 UI        | [frontend-components.md](./frontend-components.md), [datatable-best-practices.md](./datatable-best-practices.md)                                                               |
+| 認證和授權機制       | [auth-implementation-guide.md](./auth-implementation-guide.md), [admin-structure.md](./admin-structure.md)（授權邏輯部分）, [api-structure.md](./api-structure.md)（認證部分） |
+| 權限系統和側邊欄顯示 | [admin-permission-system.md](./admin-permission-system.md)                                                                                                                     |
+| 目錄結構和代碼組織   | [directory-structure.md](./directory-structure.md)                                                                                                                             |
+| 目前進度和未來計劃   | [current-status.md](./current-status.md)                                                                                                                                       |
+| 工具函數使用指南     | [utils-guide.md](./utils-guide.md)                                                                                                                                             |
 
 ### 常見問題索引
 
-| 問題類型               | 相關文檔                                                     |
-| ---------------------- | ------------------------------------------------------------ |
-| 認證問題（Token 相關） | [admin-structure.md](./admin-structure.md)（授權功能邏輯）   |
-| 權限問題和側邊欄顯示   | [admin-permission-system.md](./admin-permission-system.md)   |
-| API 請求失敗           | [api-structure.md](./api-structure.md)（錯誤處理部分）       |
-| DataTable 渲染問題     | [datatable-best-practices.md](./datatable-best-practices.md) |
-| 資料庫查詢問題         | [db-structure-usage.md](./db-structure-usage.md)             |
-| 項目進度和已知問題     | [current-status.md](./current-status.md)                     |
+| 問題類型               | 相關文檔                                                                                                                   |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 認證問題（Token 相關） | [auth-implementation-guide.md](./auth-implementation-guide.md), [admin-structure.md](./admin-structure.md)（授權功能邏輯） |
+| 權限問題和側邊欄顯示   | [admin-permission-system.md](./admin-permission-system.md)                                                                 |
+| API 請求失敗           | [api-structure.md](./api-structure.md)（錯誤處理部分）                                                                     |
+| DataTable 渲染問題     | [datatable-best-practices.md](./datatable-best-practices.md)                                                               |
+| 資料庫查詢問題         | [db-structure-usage.md](./db-structure-usage.md)                                                                           |
+| 項目進度和已知問題     | [current-status.md](./current-status.md)                                                                                   |
 
 ## 文檔目錄概覽
 
@@ -208,6 +234,7 @@ docs/
 ├── admin-implementation-plan.md  # 後台系統實施計劃
 ├── frontend-components.md        # 前端元件說明
 ├── api-structure.md              # API 結構和使用方法
+├── auth-implementation-guide.md  # 用戶身份驗證實現指南
 ├── current-status.md             # 當前進度和計劃
 ├── datatable-best-practices.md   # DataTable 使用最佳實踐
 ├── directory-structure.md        # 專案目錄結構說明
@@ -232,9 +259,11 @@ docs/
 
 ### 認證機制簡要說明
 
-- 使用 JWT 認證存儲在 Cookie 中（名稱：`admin_token`）
+- 前台使用者系統使用 JWT 認證存儲在 Cookie 中（名稱：`token`）
+- 後台管理系統使用 JWT 認證存儲在 Cookie 中（名稱：`admin_token`）
+- 完整的用戶身份驗證流程詳見 [auth-implementation-guide.md](./auth-implementation-guide.md)
 - 權限驗證流程詳見 [admin-permission-system.md](./admin-permission-system.md)
-- 常見認證問題排查方法詳見 [admin-structure.md](./admin-structure.md)
+- 常見認證問題排查方法詳見 [auth-implementation-guide.md](./auth-implementation-guide.md)（用戶前台）和 [admin-structure.md](./admin-structure.md)（後台管理）
 
 ---
 
