@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { executeQuery } from '@/app/api/admin/_lib/database'
-import { isAuthenticated } from '@/app/api/admin/_lib/auth'
+import { auth } from '@/app/api/admin/_lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
     // 驗證JWT
-    const admin = await isAuthenticated(request)
+    const admin = await auth.fromRequest(request)
 
     if (admin) {
       try {

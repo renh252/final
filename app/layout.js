@@ -8,6 +8,9 @@ const fontIansui = localFont({
   src: '../public/fonts/Iansui-Regular.ttf',
   variable: '--font-iansui',
   weight: '100 900',
+  display: 'swap',
+  preload: true,
+  fallback: ['Helvetica', 'Arial', 'sans-serif'],
 })
 
 export const metadata = {

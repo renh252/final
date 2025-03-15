@@ -9,16 +9,22 @@ const JWT_EXPIRES_IN = '24h'
 
 export interface AdminPayload {
   id: number
-  account: string
-  privileges: string
+  manager_account: string
+  manager_privileges: string
   role?: string // 添加 role 屬性，用於權限控制
 }
 
 // 產生 JWT Token
-export async function generateToken(payload: AdminPayload): Promise<string> {
-  // 根據 privileges 設置 role
-  if (!payload.role) {
-    payload.role = 'admin' // 預設為管理員角色
+export async function generateToken(admin: {
+  id: number
+  manager_account: string
+  manager_privileges: string
+}): string {
+  const payload: AdminPayload = {
+    id: admin.id,
+    manager_account: admin.manager_account,
+    manager_privileges: admin.manager_privileges,
+    role: 'admin',
   }
 
   return await new SignJWT({ ...payload })
@@ -35,7 +41,7 @@ export async function verifyToken(token: string): Promise<AdminPayload | null> {
     const adminPayload = payload as AdminPayload
 
     // 確保 role 屬性存在
-    if (!adminPayload.role && adminPayload.privileges) {
+    if (!adminPayload.role && adminPayload.manager_privileges) {
       adminPayload.role = 'admin' // 預設為管理員角色
     }
 

@@ -199,6 +199,7 @@
 > 2. 如遇到 `Unknown column 'is_active' in 'field list'` 錯誤，請檢查 SQL 查詢語句，確保不使用不存在的欄位。
 > 3. 請參考 `docs/database-structure.md` 中的實際資料庫結構說明。
 > 4. `manager_privileges` 欄位是必不可少的，它存儲管理員的權限信息，**絕對不可為 NULL 或 undefined**，否則會導致權限驗證失敗。
+> 5. 有關權限緩存、初始化流程和側邊欄顯示問題，請參考 [admin-permission-system.md](./admin-permission-system.md) 文檔。
 
 後台管理系統使用 JWT (JSON Web Token) 進行認證，主要包含以下部分：
 
@@ -217,6 +218,10 @@
        Cookies.set('admin_token', response.data.token)
        // 保存管理員資訊
        localStorage.setItem('admin', JSON.stringify(response.data.admin))
+
+       // 登入後立即預載入並緩存權限 - 詳見 admin-permission-system.md
+       const adminContext = useAdmin()
+       adminContext.preloadPermissions()
      }
    }
    ```
@@ -232,6 +237,12 @@
      const response = await fetch('/api/admin/auth/verify', {
        headers: { Authorization: `Bearer ${token}` },
      })
+
+     if (response.success) {
+       // 更新管理員資訊和權限緩存
+       // 這一步確保側邊欄能夠正確顯示基於權限的菜單項
+       // 詳見 admin-permission-system.md
+     }
 
      return response.success
    }
@@ -252,6 +263,8 @@
    ```
 
 ### 權限控制
+
+> 注意：有關權限系統的完整詳細說明，請參閱專門的 [admin-permission-system.md](./admin-permission-system.md) 文檔，該文檔包含權限格式、緩存策略、初始化流程，以及側邊欄顯示問題的解決方案。
 
 ### 權限基本原則
 
@@ -275,13 +288,13 @@
 
    ```typescript
    // 正確處理方式
-   const privileges = admin.privileges || '' // 確保不是 undefined
+   const privileges = admin.manager_privileges || '' // 確保不是 undefined
    const perms = privileges ? privileges.split(',') : [] // 安全地使用 split
 
    // 權限檢查
    const hasPermission = (requiredPerm) => {
      if (!admin) return false
-     const privileges = admin.privileges || ''
+     const privileges = admin.manager_privileges || ''
      return privileges.split(',').includes(requiredPerm)
    }
    ```
@@ -296,18 +309,20 @@
 
 ```
 會員相關：
-- member_view：檢視會員列表與詳情
-- member_edit：編輯會員資料
-- member_delete：刪除會員
+- member_view：檢視會員列表與詳情 (新格式: members:read)
+- member_edit：編輯會員資料 (新格式: members:edit)
+- member_delete：刪除會員 (新格式: members:delete)
 
 寵物相關：
-- pet_view：檢視寵物列表與詳情
-- pet_add：新增寵物資料
-- pet_edit：編輯寵物資訊
-- pet_delete：刪除寵物資料
+- pet_view：檢視寵物列表與詳情 (新格式: pets:read)
+- pet_add：新增寵物資料 (新格式: pets:create)
+- pet_edit：編輯寵物資訊 (新格式: pets:edit)
+- pet_delete：刪除寵物資料 (新格式: pets:delete)
 
 ...其他權限...
 ```
+
+> 權限格式的更詳細說明和新舊格式的映射，請參閱 [admin-permission-system.md](./admin-permission-system.md)。
 
 ### API 路由保護
 
@@ -337,16 +352,17 @@ export const GET = guard.api(async (request: NextRequest, authData) => {
    - 前端接收到 401/403 錯誤時，可清除本地 token 並重定向
 
 2. **權限相關錯誤處理**
+
    - 當遇到 `TypeError: Cannot read properties of undefined (reading 'split')` 錯誤時，通常是因為 `manager_privileges` 欄位為 `undefined`
    - 解決方案：
 
      ```typescript
      // 使用防禦性編程
-     const privileges = admin?.privileges || ''
+     const privileges = admin?.manager_privileges || ''
      const permList = privileges ? privileges.split(',') : []
 
      // 或使用可選鏈和空值合併運算符
-     const permList = admin?.privileges?.split(',') ?? []
+     const permList = admin?.manager_privileges?.split(',') ?? []
      ```
 
    - 確保資料庫中 `manager_privileges` 欄位不為 NULL，可執行以下 SQL 修復:
