@@ -260,6 +260,10 @@
 
    - [x] 統一認證機制
    - [x] 修復權限驗證問題
+   - [x] 修復後台 API 中的 executeQuery 函數缺失問題
+     - 問題：在 database.ts 中缺少 executeQuery 函數定義，但多個文件引用了此函數
+     - 修復：在 database.ts 中添加了 executeQuery 函數，支援泛型類型並保持與現有用法兼容
+     - 影響範圍：影響所有使用此函數的後台 API，包括產品、會員、訂單等管理功能
    - [ ] 優化 API 響應速度
    - [ ] 完善 API 文檔
    - [ ] 添加 API 測試
