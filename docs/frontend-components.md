@@ -133,6 +133,10 @@
 - `AdminPageLayout`：後台頁面佈局
 - `AdminHeader`：後台頁面頂部導航欄
 - `AdminSidebar`：後台頁面側邊欄
+  - 基於管理員權限動態顯示菜單項
+  - 支持菜單展開/折疊
+  - 提供權限診斷工具（雙擊版本徽章開啟）
+  - 有關權限和側邊欄顯示的詳細說明，請參考 [admin-permission-system.md](./admin-permission-system.md)
 - `AdminFooter`：後台頁面底部信息
 - `AdminBreadcrumb`：後台頁面麵包屑導航
 
