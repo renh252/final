@@ -32,13 +32,20 @@
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.imageSection {
+  display: flex;
+  flex-direction: column;
 }
 
 .imageContainer {
   position: relative;
   width: 100%;
   height: 500px;
+  border-top-left-radius: 12px;
+  overflow: hidden;
 }
 
 .image {
@@ -49,78 +56,252 @@
   padding: 2rem;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.nameContainer {
+  flex: 1;
+}
+
 .name {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
+  font-weight: 700;
   color: #333;
   margin: 0 0 0.5rem 0;
 }
 
-.breed {
-  font-size: 1.25rem;
+.genderAge {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
   color: #666;
+  font-size: 1.1rem;
+}
+
+.age {
+  display: inline-flex;
+  align-items: center;
+}
+
+.typeBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+}
+
+.breedLocation {
   margin-bottom: 1.5rem;
 }
 
-.info {
+.breed {
   display: flex;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 0.75rem;
 }
 
-.infoItem {
+.location {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   color: #666;
+  margin: 0;
 }
 
-.description {
+.petTraits {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-bottom-left-radius: 12px;
+}
+
+.traitsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.traitBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.adoptStatus {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.statusDot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.available {
+  background-color: #2ecc71;
+}
+
+.pending {
+  background-color: #f39c12;
+}
+
+.adopted {
+  background-color: #e74c3c;
+}
+
+.adoptFee {
+  font-size: 1.1rem;
+}
+
+.fee {
+  font-weight: 700;
+  color: #e74c3c;
+}
+
+.tabContainer {
   margin-bottom: 2rem;
 }
 
-.description h2 {
+.tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 5px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.tabButton {
+  white-space: nowrap;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #555;
+  transition: all 0.2s ease;
+}
+
+.tabButton:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.activeTab {
+  background-color: #3498db;
+  color: white;
+  font-weight: 500;
+}
+
+.tabContent {
+  padding: 1rem 0;
+}
+
+.description h2,
+.medicalInfo h2,
+.habitsInfo h2 {
   font-size: 1.5rem;
   color: #333;
   margin-bottom: 1rem;
 }
 
 .description p {
-  color: #666;
+  color: #555;
   line-height: 1.6;
 }
 
+.medicalDetail,
+.habitDetail {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.medicalDetail svg,
+.habitDetail svg {
+  color: #4a90e2;
+  margin-top: 0.25rem;
+  font-size: 1.5rem;
+}
+
+.medicalDetail h3,
+.habitDetail h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.vaccinationStatus {
+  margin-top: 1.5rem;
+}
+
+.statusItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.statusItem:last-child {
+  border-bottom: none;
+}
+
+.statusIndicator {
+  font-weight: 600;
+}
+
 .adoptButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   width: 100%;
   padding: 1rem;
   background: #4a90e2;
   color: white;
+  text-decoration: none;
+  text-align: center;
   border: none;
   border-radius: 8px;
   font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .adoptButton:hover {
   background: #357abd;
-}
-
-@media (max-width: 768px) {
-  .content {
-    grid-template-columns: 1fr;
-  }
-
-  .imageContainer {
-    height: 300px;
-  }
-
-  .details {
-    padding: 1.5rem;
-  }
-
-  .name {
-    font-size: 2rem;
-  }
 }
 
 .photoNavButton {
@@ -175,4 +356,231 @@
 
 .activeDot {
   background-color: white;
+}
+
+.loadingContainer,
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 2rem;
+}
+
+.loadingSpinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #4a90e2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.errorContainer h2 {
+  color: #e74c3c;
+  margin: 1rem 0;
+}
+
+@media (max-width: 991px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .imageContainer {
+    border-top-right-radius: 12px;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 0;
+  }
+
+  .petTraits {
+    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .imageContainer {
+    height: 350px;
+  }
+
+  .details {
+    padding: 1.5rem;
+  }
+
+  .name {
+    font-size: 1.8rem;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .typeBadge {
+    align-self: flex-start;
+  }
+
+  .tabs {
+    justify-content: start;
+    padding-bottom: 5px;
+  }
+
+  .tabButton {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .traitsContainer {
+    justify-content: center;
+  }
+
+  .traitItem,
+  .activityItem {
+    padding: 12px;
+  }
+
+  .traitIcon {
+    font-size: 1.2rem;
+    margin-right: 10px;
+  }
+
+  .traitContent h3 {
+    font-size: 1rem;
+  }
+}
+
+/* 共通樣式 */
+.noDataMessage {
+  text-align: center;
+  color: #777;
+  padding: 20px;
+  font-style: italic;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  margin: 15px 0;
+}
+
+/* 特質相關樣式 */
+.traitsInfo h2 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.traitsInfo h2 svg {
+  margin-right: 10px;
+  color: #3498db;
+}
+
+.traitsList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.traitItem {
+  display: flex;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.traitItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.traitIcon {
+  flex-shrink: 0;
+  font-size: 1.5rem;
+  color: #f39c12;
+  margin-right: 15px;
+  margin-top: 5px;
+}
+
+.traitContent {
+  flex: 1;
+}
+
+.traitContent h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.traitContent p {
+  margin: 0;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* 活動記錄相關樣式 */
+.activitiesInfo h2 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.activitiesInfo h2 svg {
+  margin-right: 10px;
+  color: #27ae60;
+}
+
+.activitiesList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.activityItem {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.activityDate {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.activityDate svg {
+  margin-right: 6px;
+  color: #e74c3c;
+}
+
+.activityContent {
+  border-left: 3px solid #3498db;
+  padding-left: 15px;
+}
+
+.activityContent p {
+  margin: 0;
+  line-height: 1.6;
+  color: #333;
 }
