@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Card, Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Eye, EyeOff } from 'lucide-react'
 import { useAdmin } from '../AdminContext'
+import { getManagerPermissions } from '../_lib/permissions'
 import styles from './login.module.css'
 
 export default function LoginPage() {
@@ -15,7 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const { login, admin, isLoading } = useAdmin()
+  const { login, admin, isLoading, preloadPermissions } = useAdmin()
 
   // 如果已登入，重定向到後台首頁
   useEffect(() => {
@@ -46,8 +47,26 @@ export default function LoginPage() {
         throw new Error(data.message || '登入失敗，請檢查帳號和密碼')
       }
 
+      // 預先緩存權限列表 - 使用通用函數處理所有管理員
+      const privileges = data.data.admin.privileges || ''
+      const managerPerms = getManagerPermissions(privileges)
+      localStorage.setItem('admin_permissions', JSON.stringify(managerPerms))
+
+      // 超級管理員特殊處理
+      if (privileges === '111') {
+        localStorage.setItem(
+          'admin_all_permissions',
+          JSON.stringify(managerPerms)
+        )
+      }
+
       // 使用上下文的 login 方法
       login(data.data.token, data.data.admin)
+
+      // 主動觸發權限預緩存
+      setTimeout(() => {
+        preloadPermissions()
+      }, 100) // 短暫延遲確保login中的狀態已更新
 
       // 重定向到後台首頁
       router.push('/admin')
