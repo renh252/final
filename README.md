@@ -53,8 +53,7 @@ cp .env.example .env.local
 
 4. 設置資料庫(此處略過)
 
-SQL檔案存放於final/database
-
+SQL 檔案存放於 final/database
 
 5. 啟動開發伺服器
 
@@ -88,6 +87,68 @@ pet_proj/
 ├── scripts/                # 腳本工具
 ├── docs/                   # 文檔資料
 └── ...
+```
+
+## 前台路由架構
+
+### 會員中心路由
+
+```
+/member                         # 會員中心儀表板，提供整體概覽
+├── /member/register            # 註冊
+├── /member/login               # 登入
+├── /member/logout              # 登出（直接用popup提示已登出，並刷新頁面）
+├── /member/forget              # 忘記密碼
+├── /member/profile             # 個人資料管理，提供詳細資料編輯
+├── /member/orders              # 訂單詳情
+├── /member/discounts           # 折扣活動總覽
+└── /member/favorites           # 收藏管理
+    ├── /member/favorites/pets        # 寵物收藏
+    ├── /member/favorites/products    # 商品收藏
+    └── /member/favorites/articles    # 文章收藏
+```
+
+### 商城路由
+
+```
+/shop                           # 商城主頁
+├── /shop/cart                  # 購物車
+├── /shop/checkout              # 付款資訊
+│   ├── /shop/checkout/review   # 確認訂單資訊
+│   └── /shop/checkout/summary  # 訂單明細
+├── /shop/category              # 商品分類
+│   └── /shop/category/[cid]    # 特定商品分類（動態路由）
+└── /shop/[pid]                 # 特定商品頁面（動態路由）
+```
+
+### 寵物領養路由
+
+```
+/pets                           # 寵物領養主頁
+├── /pets/category              # 寵物分類
+│   └── /pets/category/[cid]    # 特定寵物分類（動態路由）
+└── /pets/[pid]                 # 特定寵物頁面（動態路由）
+    └── /pets/[pid]/appointment # 預約表單
+```
+
+### 論壇路由
+
+```
+/forum                          # 論壇主頁
+├── /forum/list                 # 文章列表
+├── /forum/publish              # 新建文章
+├── /forum/[aid]                # 特定文章頁面（動態路由）
+│   ├── /forum/[aid]?edit=true  # 編輯文章
+│   └── /forum/[aid]/report     # 檢舉文章
+├── /forum/category             # 文章分類管理
+└── /forum/notifications        # 通知系統
+```
+
+### 捐款路由
+
+```
+/donation                       # 捐款功能介紹
+└── /donation/flow              # 捐款流程
 ```
 
 ## 開發狀態說明
@@ -202,8 +263,6 @@ npm run start
 # 或
 yarn start
 ```
-
-
 
 ## 聯繫我們
 

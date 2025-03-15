@@ -19,7 +19,7 @@ Pet Project 是一個綜合性的寵物領養和社區平台，包含以下主�
 
 - **框架**: Next.js 14 (App Router)
 - **語言**: TypeScript、JavaScript
-- **樣式**: React-Bootstrap、Tailwind CSS(待修正:目前已棄用，因為會和 bootstrap 衝突)、CSS Modules
+- **樣式**: React-Bootstrap、Tailwind CSS(目前已棄用，因為會和 bootstrap 衝突)、CSS Modules
 - **狀態管理**: React Context API、React Query
 - **路由**: Next.js App Router
 - **其他庫**:
