@@ -42,11 +42,12 @@ WHERE
       connection.release(); 
       
       if (cart.length == 0) {
-        output.error = "購物車為空";
+        output.error = "購物車目前沒有商品";
       }else{
         output.success = true;
         output.data = cart;
-        
+        // 計算商品總數量
+        output.totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
       }
       
       
