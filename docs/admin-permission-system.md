@@ -1,5 +1,7 @@
 # 後台管理系統 - 權限系統文檔
 
+> ⚠️ **警告**: 此文檔描述了權限系統的關鍵機制。修改權限相關代碼時請嚴格遵循以下規範，避免破壞現有功能。
+
 ## 概述
 
 本文檔描述了後台管理系統的權限控制機制，包括權限格式、緩存策略、初始化流程以及與側邊欄顯示相關的問題解決方案。此權限系統設計用於控制不同管理員對後台各功能模塊的訪問權限。
@@ -15,13 +17,17 @@
 
 權限字符串存儲在資料庫 `manager_privileges` 欄位中。
 
-> **更新**: 系統已經移除對舊格式權限的支持，現在僅支持上述標準權限格式
+> **重要規範**:
+>
+> 1. 不得修改超級管理員的 `111` 權限碼格式
+> 2. 所有權限檢查必須支持冒號分隔的標準格式
+> 3. 系統已經移除對舊格式權限的支持，現在僅支持上述標準權限格式
 
 ## 權限系統組件
 
 系統由以下核心組件構成：
 
-### 1. 權限管理模組 (app/admin/_lib/permissions.ts)
+### 1. 權限管理模組 (app/admin/\_lib/permissions.ts)
 
 此模組負責權限的定義、解析和檢查。主要功能包括：
 
@@ -30,6 +36,11 @@
 - 解析權限字串，獲取對應的權限集 (`parsePrivileges`)
 - 檢查是否具有特定權限 (`checkPermission`)
 - 獲取管理員權限列表 (`getManagerPermissions`)
+
+> **實現限制**:
+>
+> - 任何對 `checkPermission` 函數的修改都必須保持向後兼容性
+> - 修改時必須保留 `privileges === '111'` 的超級管理員判斷邏輯
 
 ```typescript
 // 權限檢查示例
@@ -41,7 +52,10 @@ export function checkPermission(
   if (privileges === '111') return true
 
   // 參數驗證
-  if (!privileges || (!requiredPrivilege && !Array.isArray(requiredPrivilege))) {
+  if (
+    !privileges ||
+    (!requiredPrivilege && !Array.isArray(requiredPrivilege))
+  ) {
     return false
   }
 
@@ -70,6 +84,13 @@ export function checkPermission(
 }
 ```
 
+> **處理權限時的關鍵規則**:
+>
+> 1. 若需額外日誌，使用標準格式並避免重複輸出
+> 2. 任何權限錯誤應該默認拒絕訪問，而不是默認允許
+> 3. 必須在 try/catch 中處理權限解析，避免未處理的錯誤
+> 4. 更新權限邏輯時，所有相關組件必須同步更新
+
 ### 2. 管理員上下文 (app/admin/AdminContext.tsx)
 
 此組件負責管理員的認證、權限緩存和權限檢查。主要功能包括：
@@ -78,6 +99,11 @@ export function checkPermission(
 - 權限預載入與緩存
 - 管理員身份驗證
 - 權限檢查 API
+
+> **集成注意事項**:
+>
+> - 權限緩存使用 localStorage，請勿更改存儲機制
+> - 不要在此組件中添加業務邏輯，只處理權限相關功能
 
 ```typescript
 // 預加載權限的實現
@@ -92,10 +118,10 @@ const preloadPermissions = useCallback(() => {
     // 獲取管理員權限
     const permissions = getManagerPermissions(admin.manager_privileges)
     console.log(`預加載權限完成，獲取到 ${permissions.length} 個權限`)
-    
+
     // 存儲到本地緩存
     localStorage.setItem(CACHE_KEYS.PERMISSIONS, JSON.stringify(permissions))
-    
+
     // 更新狀態
     setCachedPermissions(permissions)
   } catch (error) {
@@ -104,7 +130,7 @@ const preloadPermissions = useCallback(() => {
 }, [admin])
 ```
 
-### 3. 側邊欄組件 (app/admin/_components/Sidebar.tsx)
+### 3. 側邊欄組件 (app/admin/\_components/Sidebar.tsx)
 
 側邊欄組件根據管理員權限動態顯示導航菜單。主要功能包括：
 
@@ -151,7 +177,7 @@ const filteredMenuItems = useMemo(() => {
 }, [menuItems, mounted, admin, hasPermission, debugMode])
 ```
 
-### 4. 權限診斷工具 (app/admin/_components/PermissionDebug.tsx)
+### 4. 權限診斷工具 (app/admin/\_components/PermissionDebug.tsx)
 
 新開發的權限診斷工具，用於調試和解決權限相關問題。主要功能包括：
 
@@ -239,7 +265,9 @@ export const openPermissionDebug = () => {
    <span
      className="badge rounded-pill bg-secondary bg-opacity-25 fw-normal px-2 py-1"
      style={{
-       backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+       backgroundColor: isDarkMode
+         ? 'rgba(255,255,255,0.1)'
+         : 'rgba(0,0,0,0.1)',
      }}
      onDoubleClick={handleVersionDoubleClick}
    >
@@ -312,6 +340,7 @@ const hasPermission = useCallback(
 ### 權限系統優化
 
 1. **移除舊格式權限支援**
+
    - 移除了 `LEGACY_TO_NEW_FORMAT` 映射
    - 移除了 `convertLegacyPermissions` 函數
    - 簡化了 `getManagerPermissions` 函數，只支援新格式權限
@@ -324,11 +353,13 @@ const hasPermission = useCallback(
 ### 側邊欄優化
 
 1. **主題支援**
+
    - 使用 `useMemo` 和 `useCallback` 確保圖標顏色隨主題變化
    - 使用 inline style 確保在主題切換時立即生效
    - 適配淺色/深色主題的文字和背景顏色
 
 2. **權限驗證整合**
+
    - 優化菜單項過濾邏輯，根據權限動態顯示菜單
    - 改進子菜單權限過濾
    - 增加調試日誌，方便追蹤權限問題
@@ -345,20 +376,24 @@ const hasPermission = useCallback(
 ### 主要功能
 
 1. **管理員信息檢查**
+
    - 顯示管理員 ID、帳號、權限字串
    - 顯示是否為超級管理員
    - 顯示解析後的權限數量
 
 2. **權限緩存分析**
+
    - 顯示權限緩存數量和覆蓋率
    - 提供權限重新載入功能
    - 提供權限緩存清除功能
 
 3. **欄位一致性檢查**
+
    - 驗證 `manager_account` 和 `manager_privileges` 欄位是否存在
    - 檢查欄位值是否符合預期格式
 
 4. **權限測試**
+
    - 測試常見模塊權限
    - 即時顯示權限驗證結果
    - 提供權限詳情輸出功能
@@ -384,16 +419,16 @@ const hasPermission = useCallback(
 
 ## 常見問題與解決方案
 
-| 問題                     | 可能原因                   | 解決方案                                 |
-| ------------------------ | -------------------------- | ---------------------------------------- |
-| 側邊欄項目未顯示         | 權限緩存為空               | 使用診斷工具重新載入權限                 |
-| 特定頁面無權限           | 權限字串不含必要權限       | 檢查該頁面所需的 `requiredPrivilege`     |
-| 權限變更未生效           | 本地緩存未更新             | 登出後重新登入，或使用診斷工具重新載入   |
-| 超級管理員無法訪問頁面   | 權限檢查邏輯錯誤           | 確認 `manager_privileges` 值為 `111`     |
-| 側邊欄顏色未隨主題變化   | ThemeContext 未正確整合    | 檢查 ThemeContext 是否包裹了應用         |
-| 診斷工具無法開啟         | debugInstance 未初始化     | 確保 Sidebar 組件正確載入                |
-| 權限檢查報錯             | 權限解析過程中出現異常     | 使用診斷工具檢查權限字串格式             |
-| 預加載權限失敗           | 管理員資訊未正確載入       | 查看控制台日誌，檢查 API 響應格式        |
+| 問題                   | 可能原因                | 解決方案                               |
+| ---------------------- | ----------------------- | -------------------------------------- |
+| 側邊欄項目未顯示       | 權限緩存為空            | 使用診斷工具重新載入權限               |
+| 特定頁面無權限         | 權限字串不含必要權限    | 檢查該頁面所需的 `requiredPrivilege`   |
+| 權限變更未生效         | 本地緩存未更新          | 登出後重新登入，或使用診斷工具重新載入 |
+| 超級管理員無法訪問頁面 | 權限檢查邏輯錯誤        | 確認 `manager_privileges` 值為 `111`   |
+| 側邊欄顏色未隨主題變化 | ThemeContext 未正確整合 | 檢查 ThemeContext 是否包裹了應用       |
+| 診斷工具無法開啟       | debugInstance 未初始化  | 確保 Sidebar 組件正確載入              |
+| 權限檢查報錯           | 權限解析過程中出現異常  | 使用診斷工具檢查權限字串格式           |
+| 預加載權限失敗         | 管理員資訊未正確載入    | 查看控制台日誌，檢查 API 響應格式      |
 
 ## 調試技巧
 
