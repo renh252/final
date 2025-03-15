@@ -46,7 +46,8 @@ WHERE
       }else{
         output.success = true;
         output.data = cart;
-        
+        // 計算商品總數量
+        output.totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
       }
       
       
