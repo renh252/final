@@ -12,6 +12,10 @@ export async function POST(req) {
     })
   }
 
+  // ✅ 確保使用最新的 ngrok URL
+  const ngrokURL =
+    ' https://95d7-2402-7500-a59-7e72-40ff-1bac-86de-5c7c.ngrok-free.app'
+
   // ECPay 配置
   const MerchantID = '3002607'
   const HashKey = 'pwFHCqoQZGmho4w6'
@@ -20,8 +24,10 @@ export async function POST(req) {
   const TotalAmount = Number(amount) // 總金額
   const TradeDesc = '商店線上付款' // 訂單描述
   const ItemName = itemName // 商品名稱
-  const ReturnURL = ' http://localhost:3000//api/ecpay/notify'
-  const OrderResultURL = ' http://localhost:3000//api/ecpay/callback' // 完成支付後回來的頁面
+
+  // ✅ 修正 `ReturnURL` & `OrderResultURL` (移除多餘的 `/`)
+  const ReturnURL = `${ngrokURL}/api/ecpay/notify`
+  const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
 
   const stage = isStage ? '-stage' : ''
   const algorithm = 'sha256'
@@ -56,7 +62,6 @@ export async function POST(req) {
     hour12: false,
   })
 
-  // 改為let以便根據付款方式設置參數
   let ParamsBeforeCMV = {
     MerchantID,
     MerchantTradeNo,
@@ -66,9 +71,9 @@ export async function POST(req) {
     TotalAmount,
     TradeDesc,
     ItemName,
-    ReturnURL,
-    ChoosePayment: 'Credit',
-    OrderResultURL,
+    ReturnURL, // ✅ 確保 ECPay 正確通知 `notify.js`
+    ChoosePayment,
+    OrderResultURL, // ✅ 確保交易完成後能正確回到前端
   }
 
   // 處理信用卡定期定額 (CreditPeriod)
