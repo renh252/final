@@ -95,3 +95,31 @@
   width: 90%;
   justify-content: end;
 }
+
+.order_payment_type {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.order_payment_type button {
+  width: 22%;
+  height: 5.5vw;
+  font-size: 1.5vw;
+  gap: 10px;
+}
+
+.order_payment_method {
+  width: 100%;
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.order_payment_method button {
+  width: 18%;
+  height: 4vw;
+  font-size: 1.3vw;
+  gap: 10px;
+}
