@@ -8,7 +8,7 @@ import Link from 'next/link'
 // styles
 import styles from './pid.module.css'
 import shopStyles from '@/app/shop/shop.module.css'
-import { FaShareNodes } from 'react-icons/fa6'
+// import { FaShareNodes } from 'react-icons/fa6'
 import { FaRegStar } from 'react-icons/fa6'
 import { IoChatboxEllipsesOutline } from 'react-icons/io5'
 import { FaCartShopping } from 'react-icons/fa6'
@@ -19,6 +19,7 @@ import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 
 // components
 import { IconLine_lg } from '@/app/shop/_components/icon_line'
+import Alert from '@/app/_components/alert'
 // card
 import Card from '@/app/_components/ui/Card'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
@@ -120,7 +121,6 @@ const calculateDisplayPrice = () => {
     variants,
     reviews,
     reviewCount,
-    categories,
     similarProducts
   } = data
 
@@ -143,6 +143,52 @@ const calculateDisplayPrice = () => {
     product_imgs?.product_img3,
     product_imgs?.product_img4
   ].filter(Boolean); // 过滤掉 null, undefined 或空字符串
+
+  // 加入購物車
+  async function handleAddToCart() {
+    
+    try {
+      const response = await fetch('/api/shop/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          productId: pid, 
+          variantId: selectedVariant.variant_id, 
+          quantity: count }),
+      });
+  
+      const data = await response.json();
+  
+      if (data.success) {
+
+        Alert({ 
+          icon:'success',
+          title:'成功加入購物車',
+          timer:1000
+        })
+        console.log('商品已成功加入購物車');
+        // 如果使用了 SWR，可以在這裡調用 mutate 來刷新購物車數據
+        // mutate('/api/shop/cart');
+      } else {
+        Alert({ 
+          icon:'error',
+          title:'加入購物車失敗',
+          timer:1000
+        })
+        console.error('加入購物車失敗:', data.message);
+      }
+    } catch (error) {
+      Alert({ 
+        icon:'error',
+        title:'加入購物車時發生錯誤',
+        timer:1000
+      })
+      console.error('加入購物車時發生錯誤:', error);
+    }
+
+  }
 
 
   return (
@@ -332,7 +378,7 @@ const calculateDisplayPrice = () => {
                 <FaPlus />
               </button>
             </div>
-            <button className={styles.addCartBtn}>
+            <button className={styles.addCartBtn} onClick={() => handleAddToCart(product.id, selectedVariant.variant_id)}>
               <FaCartShopping />
               加入購物車
             </button>

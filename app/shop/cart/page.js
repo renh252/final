@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useMemo} from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 // styles
@@ -17,23 +17,9 @@ export default function CartPage() {
   
   const { data, error } = useSWR('/api/shop/cart', fetcher)
 
-  const handleDeleteCart = async () => {
-    try {
-      const response = await fetch('/api/shop/cart', {
-        method: 'DELETE',
-      })
-      if (response.ok) {
-        // 重新獲取購物車數據
-        mutate('/api/shop/cart')
-      } else {
-        console.error('刪除購物車失敗')
-      }
-    } catch (error) {
-      console.error('刪除購物車時發生錯誤:', error)
-    }
-  }
 
 
+  // 清除購物車
   const handleClick = () => {
     Alert({ 
       title:'確定要清除購物車嗎?',
@@ -46,7 +32,21 @@ export default function CartPage() {
       showCancelBtn: true,
       cancelBtnText: '取消',
       
-      function:()=>handleDeleteCart(),
+      function:async () => {
+        try {
+          const response = await fetch('/api/shop/cart', {
+            method: 'DELETE',
+          })
+          if (response.ok) {
+            // 重新獲取購物車數據
+            mutate('/api/shop/cart')
+          } else {
+            console.error('刪除購物車失敗')
+          }
+        } catch (error) {
+          console.error('刪除購物車時發生錯誤:', error)
+        }
+      },
       icon2:'success',
       title2:'購物車已清除',
       timer2: 1000,
@@ -54,7 +54,46 @@ export default function CartPage() {
     });
   };
 
+  // 修改商品數量
+  const handleQuantityChange = async (cartId, newQuantity) => {
+    if (newQuantity < 1) return; // 防止數量小於1
 
+    try {
+      const response = await fetch(`/api/shop/cart/${cartId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quantity: newQuantity }),
+      });
+
+      if (response.ok) {
+        // 重新獲取購物車數據
+        mutate('/api/shop/cart');
+      } else {
+        console.error('更新購物車數量失敗');
+      }
+    } catch (error) {
+      console.error('更新購物車數量時發生錯誤:', error);
+    }
+  };
+
+  // 計算總金額和總折扣
+  const { totalAmount, totalDiscount ,totalOriginalPrice} = useMemo(() => {
+    if (!data?.data) return { totalAmount: 0, totalDiscount: 0 , totalOriginalPrice: 0};
+    return data.data.reduce((acc, item) => {
+      const originalPrice = item.price * item.quantity;
+      const discountedPrice = item.promotion 
+        ? item.price * (100 - item.promotion.discount_percentage) / 100 * item.quantity
+        : originalPrice;
+
+      acc.totalOriginalPrice += originalPrice;
+      acc.totalAmount += discountedPrice;
+      acc.totalDiscount += originalPrice - discountedPrice;
+      
+      return acc;
+    }, { totalAmount: 0, totalDiscount: 0 , totalOriginalPrice: 0});
+  }, [data]);
 
 
   if (error) return <div>獲取購物車時發生錯誤</div>
@@ -83,25 +122,36 @@ export default function CartPage() {
             {cart?.map((product) => (
               <div key={product.cart_id} className={styles.item}>
                 <button className={styles.delItemBtn}><FaX/></button>
-                <div className={styles.image}>
-                  <Image 
-                  src={product.image_url || '/images/default_no_pet.jpg'}
-                  alt={product.product_name}
-                  width={200}
-                  height={200}
-                  />
-                </div>
+                <Link href={`/shop/${product.product_id}`}>
+                  <div className={styles.image}>
+                    <Image 
+                    src={product.image_url || '/images/default_no_pet.jpg'}
+                    alt={product.product_name}
+                    width={200}
+                    height={200}
+                    />
+                  </div>
+                </Link>
                 <div className={styles.info}>
                   <div className={styles.infoTop}>
+                    <Link href={`/shop/${product.product_id}`}>
                     <p className={styles.h2}>{product.product_name}</p>
+                    </Link>
                     <p className={styles.p1}>{product?.variant_name}</p>
                   </div>
                   <div className={styles.infoBottom}>
-                    <p className={styles.h2}>${product.price}</p>
+                  {product?.promotion
+                  ?<>
+                    <p className={styles.h2}>${product.price * (100-product.promotion.discount_percentage)/100}</p>
+                    <p className={styles.h2}><del>${product.price}</del></p>
+                  </>
+                  :<p className={styles.h2}>${product.price}</p>
+                  
+                  }
                     <div className={styles.count}>
-                      <button><FaMinus/></button>
-                      <input value={product.quantity}/>
-                      <button><FaPlus/></button>
+                      <button  onClick={() => handleQuantityChange(product.cart_id, Number(product.quantity) - 1)}><FaMinus/></button>
+                      <input value={product.quantity} onChange={(event)=>{handleQuantityChange(product.cart_id, event.target.value)}}/>
+                      <button  onClick={() => handleQuantityChange(product.cart_id, Number(product.quantity) + 1)}><FaPlus/></button>
                     </div>
                   </div>
                 </div>
@@ -112,6 +162,7 @@ export default function CartPage() {
             <div className={styles.detailTitle}>
               <p>訂單明細</p>
             </div>
+            <hr/>
             <div className={styles.detailContent}>
               <div className={styles.item}>
                 <p>商品總數</p>
@@ -119,25 +170,25 @@ export default function CartPage() {
               </div>
               <div className={styles.item}>
                 <p>商品金額</p>
-                <p>{}</p>
+                <p>{totalOriginalPrice}</p>
               </div>
               <div className={styles.item}>
                 <p>折扣</p>
-                <p>{}</p>
+                <p>- {totalDiscount }</p>
               </div>
-              <div className={styles.item}>
+              {/* <div className={styles.item}>
                 <p>運費</p>
                 <p>{}</p>
-              </div>
+              </div> */}
               <hr />
               <div className={styles.item}>
                 <p>合計</p>
-                <p>{}</p>
+                <p>{totalAmount}</p>
               </div>
             </div>
             <div className={styles.detailBtn}>
               <button>前往結帳</button>
-              <button>繼續逛逛</button>
+              <Link href={'/shop'}>繼續逛逛</Link>
             </div>
 
           </div>
@@ -147,8 +198,8 @@ export default function CartPage() {
 
 
 
-      {/* <button onClick=
-      {()=>{handleClick()}}>刪除商品</button> */}
+      <button onClick=
+      {()=>{handleClick()}}>清空購物車</button>
     </>
   )
 }
