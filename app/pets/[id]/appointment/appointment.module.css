@@ -1,0 +1,45 @@
+.petImage {
+  height: 200px;
+  object-fit: cover;
+  border-top-left-radius: 0.375rem;
+  border-top-right-radius: 0.375rem;
+}
+
+.petInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.notesList {
+  padding-left: 1.5rem;
+  margin-bottom: 0;
+}
+
+.notesList li {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.notesList li:last-child {
+  margin-bottom: 0;
+}
+
+.successIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: rgba(40, 167, 69, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+@media (max-width: 767.98px) {
+  .petImage {
+    height: 180px;
+  }
+}
