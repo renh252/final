@@ -1,5 +1,5 @@
-import React from 'react';
 import Swal from 'sweetalert2';
+import styles from './alert.module.css'
 
 /*彈跳視窗使用方法
 import Alert from '@/app/_components/alert'
@@ -21,16 +21,8 @@ const handleClick = () => {
     // 自動關閉時間:預設為false
     timer: 3000,
 
-    // 確認按鈕事件(後面才需要寫)
-    function:()=>{},
-    title2:'',
-    text2:'',
-    icon2:'',
-    showconfirmBtn2: true,
-    confirmBtnText2: '確認',
-    showCancelBtn2: true,
-    cancelBtnText2: '取消',
-    timer2: 3000,
+    // 確認按鈕事件(預設為false)
+    function:()=>{}
 
 
   });
@@ -47,14 +39,6 @@ const Alert = ({
   showCancelBtn,
   cancelBtnText,
   timer,
-  title2,
-  text2,
-  icon2,
-  showconfirmBtn2,
-  confirmBtnText2,
-  showCancelBtn2,
-  cancelBtnText2,
-  timer2,
   function: customFunction = false  
 }) => {
 return(
@@ -67,19 +51,15 @@ return(
       showCancelButton: showCancelBtn || false,
       cancelButtonText: cancelBtnText || '取消',
       timer: timer || false,
+      customClass:{
+        popup: styles.customSwal,
+        confirmButton: styles.customConfirm,
+        cancelButton: styles.customCancel
+      }
+
     }).then((result) => {
       if (result.isConfirmed && customFunction) {  
         customFunction();
-        Swal.fire({
-          title: title2 || false,
-          text: text2 || false,
-          icon: icon2 || false,
-          showConfirmButton: showconfirmBtn2 || false,
-          confirmButtonText: confirmBtnText2 || '確認',
-          showCancelButton: showCancelBtn2 || false,
-          cancelButtonText: cancelBtnText2 || '取消',
-          timer: timer2 || false,
-        });
       }
     })
   
