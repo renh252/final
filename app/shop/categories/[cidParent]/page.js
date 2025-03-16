@@ -2,17 +2,18 @@
 
 import React, {useRef} from 'react'
 import Link from 'next/link'
+
 // product_menu
 import ProductMenu from '@/app/shop/_components/productMenu'
 // style
 import styles from '@/app/shop/shop.module.css'
 import categories_styles from '../categories.module.css'
-// card
+// components
 import Card from '@/app/_components/ui/Card'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
-import { FaRegHeart,FaHeart } from "react-icons/fa";
+import { FaArrowLeft,FaRegHeart,FaHeart } from "react-icons/fa";
 import { useParams } from 'next/navigation'
-
+import {Breadcrumbs} from '@/app/_components/breadcrumbs'
 // 連接資料庫
 import useSWR from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
@@ -22,6 +23,7 @@ export default function PagesProductTitle() {
   // 從網址上得到動態路由參數
   const params = useParams()
   const cid_parent = params?.cidParent
+  
 
   
   // card愛心狀態
@@ -70,49 +72,57 @@ export default function PagesProductTitle() {
   // 处理错误状态
   if (error) return <div>Failed to load</div>
 
+
+  
   const categories = data.categories
   const products = data.products
   
+  // 檢查是否存在 category_id 等於 cid_parent 的類別
+  const currentCategory = categories.find(category => category.category_id == cid_parent);
+  // 檢查是否有子類別（其他類別的 parent_id 等於 cid_parent）
+  const childCategories = categories.filter(category => category.parent_id == cid_parent);
   // const product_like = data.product_like
 
   // -----------------
 
+
   return (
     
     <>
-      {/* <div className={styles.header_space}></div> */}
-      <div className={categories_styles.main}>
-        <div className={styles.pageTitle}>
-            <p className={styles.title}>商品類別</p>
-            <div className="bread">
-              
-            </div>
-        </div>
+    <div className={categories_styles.main}>
+      {currentCategory && childCategories.length > 0 
+      ? (
+        <>
+        <Breadcrumbs
+            title={currentCategory.category_name}
+            items={[
+              { label: '商城', href: `/shop` },
+              { label: currentCategory.category_name, href: `/shop/categories/${cid_parent}` }
+            ]}
+          />
+
         <div className={categories_styles.container}>
           <div className="productMenu">
             <ProductMenu/>
           </div>
             <div className={categories_styles.contain_body}>
-              {/* subTitle */}
-              {/* subTitle */}
-              {categories.filter((category) => category.parent_id == cid_parent).map((category) => (
-                <div className={styles.group} key={category.id}>
-                  <div className={styles.groupTitle}>
-                    <p>{category.category_name}</p>
-                  </div>
-                  <div className={styles.groupBody}>
-                    <CardSwitchButton
-                      direction="left"
-                      onClick={() => scroll(-1, categoryRefs.current[category.category_id])}
-                      aria-label="向左滑動"
-                    />
-                    <div className={styles.cardGroup} ref={(el) => (categoryRefs.current[category.category_id] = { current: el })}>
-                      {products.filter((product) => product.category_id == category.category_id).map((product) => {
-                        return(
-                            <>
-                            <Link href={`/shop/${product.product_id}`}>
+                {/* subTitle */}
+                {categories.filter((category) => category.parent_id == cid_parent).map((category) => (
+                  <div className={styles.group} key={category.category_id}>
+                    <div className={styles.groupTitle}>
+                      <p>{category.category_name}</p>
+                    </div>
+                    <div className={styles.groupBody}>
+                      <CardSwitchButton
+                        direction="left"
+                        onClick={() => scroll(-1, categoryRefs.current[category.category_id])}
+                        aria-label="向左滑動"
+                      />
+                      <div className={styles.cardGroup} ref={(el) => (categoryRefs.current[category.category_id] = { current: el })}>
+                        {products.filter((product) => product.category_id == category.category_id).map((product) => {
+                          return(
+                            <Link key={product.	product_id} href={`/shop/${product.product_id}`}>
                               <Card
-                                key={product.	product_id}
                                 image={product.image_url || '/images/default_no_pet.jpg'}
                                 title={product.product_name}
                               >
@@ -128,24 +138,32 @@ export default function PagesProductTitle() {
                                 </div>
                               </Card>
                             </Link>
-                            </>
-                        )
-                      })}
+                          )
+                        })}
+                      </div>
+                      
+                      
+                      <CardSwitchButton
+                        direction="right"
+                        onClick={() => scroll(1, categoryRefs.current[category.category_id])}
+                        aria-label="向左滑動"
+                      />
                     </div>
-                    
-                    
-                    <CardSwitchButton
-                      direction="right"
-                      onClick={() => scroll(1, categoryRefs.current[category.category_id])}
-                      aria-label="向左滑動"
-                    />
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
-          
         </div>
-      </div>
+      </>)
+      :(
+        <div className={categories_styles.noCategory}>
+          <Link href='/shop'>
+            <div><FaArrowLeft/>返回商城</div>
+          </Link>
+          <p>查無此類別</p>
+        </div>
+      )
+      }
+    </div>
     </>
   )
 }

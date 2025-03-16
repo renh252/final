@@ -4,6 +4,7 @@
     margin: 0;
   }
 }
+
 .h2{font-size: 30px;}
 .p1{font-size: 18px;}
 .row{
@@ -19,18 +20,28 @@
       display: flex;
       flex-direction: column;
       gap: 60px;
+      align-items: start;
+
+      .delALL{
+        padding: 0 10px;
+        font-size: 25px;
+        border: none;
+        background-color: rgba(89, 62, 47, 1);
+        color: #fff;
+        border-radius: 15px;
+      }
 
       .item{
-        width: 600px;
-        position: relative;
         display: flex;
-        flex-direction: row;
-        gap: 30px;
+        flex-direction: column;
+        width: 650px;
+        position: relative;
         padding: 20px;
         padding-right: 35px;
         background-color: #fff;
         border-radius: 35px;
-
+        gap: 10px;
+        
         .delItemBtn{
             display: flex;
             justify-content: center;
@@ -43,53 +54,84 @@
             border: none;
         }
 
-        .image{
-          width: 200px;
-          height: 200px;
-          border-radius: 26px;
-          overflow: hidden;
-          flex-shrink: 0; /* 防止圖片被壓縮 */
-        }
-
-        .info{
-          width: 100%;
+        .promotion{
+          font-size: 18px;
           display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-
-          .infoTop{
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+          flex-direction: row;
+          justify-content: start;
+          align-items: center;
+          gap: 10px;
+          color: rgb(196, 123, 28);
           }
-
-          .infoBottom{
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-            justify-content: space-between;
-            align-items: center;
-
-            .count{
-              background-color:  rgba(243, 243, 243, 1);
-              padding: 12px 18px;
-              border-radius: 15px;
-
-              button{
-                border: none;
-                background: rgba(0, 0, 0, 0);
-              }
+          svg{
+            font-size: 20px;
+            
+        }
+        .itemBottom{
+          display: flex;
+          flex-direction: row;
+          gap: 30px;
   
-              input{
-                max-width: 50px;
-                border: none;
-                text-align: center;
-                background: rgba(0, 0, 0, 0);
-              }
+            .image{
+              width: 200px;
+              height: 200px;
+              border-radius: 26px;
+              overflow: hidden;
+              flex-shrink: 0; /* 防止圖片被壓縮 */
             }
-          }
+    
+            .info{
+              width: 100%;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+    
+              .infoTop{
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+              }
+    
 
-
+    
+              .infoBottom{
+                display: flex;
+                flex-direction: row;
+                gap: 10px;
+                justify-content: space-between;
+                align-items: center;
+    
+                .price{
+                  display: flex;
+                  flex-direction: row;
+                  gap: 20px;
+    
+                  del{
+                    font-size: 20px;
+                    color: gray;
+                  }
+                }
+                .count{
+                  background-color:  rgba(243, 243, 243, 1);
+                  padding: 12px 18px;
+                  border-radius: 15px;
+    
+                  button{
+                    border: none;
+                    background: rgba(0, 0, 0, 0);
+                  }
+      
+                  input{
+                    max-width: 50px;
+                    border: none;
+                    text-align: center;
+                    background: rgba(0, 0, 0, 0);
+                  }
+                }
+              }
+    
+    
+            }
         }
 
       }

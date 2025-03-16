@@ -81,19 +81,23 @@ export async function GET(request, { params }) {
     , [id])
     responseData.reviewCount = reviewCount[0]
 
-    // 產品類別
-    const [categories] = await connection.execute(`
+   // 產品類別及其父類別
+   const [categories] = await connection.execute(`
     SELECT 
-    *
+      c.category_id,
+      c.category_name,
+      c.parent_id,
+      pc.category_name AS parent_category_name
     FROM 
       categories c
     JOIN 
-      products p
-      ON p.category_id = c.category_id
+      products p ON p.category_id = c.category_id
+    LEFT JOIN
+      categories pc ON c.parent_id = pc.category_id
     WHERE 
       p.product_id = ?
-      `, [id])
-    responseData.categories = categories
+    `, [id])
+    responseData.categories = categories[0]
 
 // 獲取類似商品
 const productName = (responseData.product?.product_name || '').replace(/\s+/g, '');
