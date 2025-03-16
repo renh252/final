@@ -1,6 +1,5 @@
 .main{
   max-width: 100%;
-  padding: 20px;
   .pageTitle {
     width: 100%;
     padding: 0px;
@@ -39,6 +38,21 @@
         gap: 30px;
         flex-wrap: wrap;
       }
+    }
+  }
+
+  .noCategory{
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 10px;
+    a div{
+      display: flex;flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      background-color: aliceblue;
+      padding: 5px 10px;
+      border-radius: 10px;
     }
   }
 }
