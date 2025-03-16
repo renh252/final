@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken as jwtVerify } from './jwt'
 import { db } from './db'
 
@@ -23,8 +23,13 @@ export const auth = {
   // 驗證 token
   verify: async (token: string): Promise<Auth | null> => {
     try {
+      console.log('開始驗證token...')
       const payload = await jwtVerify(token)
-      if (!payload) return null
+      if (!payload) {
+        console.log('JWT驗證失敗，無效的payload')
+        return null
+      }
+      console.log('JWT驗證成功，payload:', payload)
 
       // 從資料庫獲取管理員資訊
       // 注意：移除了 is_active 欄位和條件，因為該欄位在實際資料庫中不存在
@@ -34,17 +39,24 @@ export const auth = {
       )
 
       const admin = admins?.[0]
-      if (!admin) return null
+      if (!admin) {
+        console.log('找不到管理員資訊，ID:', payload.id)
+        return null
+      }
+      console.log('找到管理員資訊:', admin)
 
       // 防止 manager_privileges 為 undefined 或 null
       const privileges = admin.manager_privileges || ''
       const isSuperAdmin = privileges === '111'
 
-      return {
+      // 創建並返回Auth對象
+      const authData = {
         id: admin.id,
         role: isSuperAdmin ? 'super' : 'admin',
         perms: privileges ? privileges.split(',') : [],
       }
+      console.log('創建Auth對象成功:', authData)
+      return authData
     } catch (error) {
       console.error('Token 驗證失敗:', error)
       return null
@@ -60,12 +72,33 @@ export const auth = {
 
   // 取得管理員
   getAdmin: async (id: number): Promise<Admin | null> => {
-    // 注意：移除了 is_active 欄位和條件，因為該欄位在實際資料庫中不存在
-    const [admins] = await db.query<Admin[]>(
-      'SELECT id, manager_account, manager_privileges FROM manager WHERE id = ?',
-      [id]
-    )
-    return admins?.[0] || null
+    try {
+      console.log('開始獲取管理員資訊，ID:', id)
+      // 注意：移除了 is_active 欄位和條件，因為該欄位在實際資料庫中不存在
+      const [admins] = await db.query<Admin[]>(
+        'SELECT id, manager_account, manager_privileges FROM manager WHERE id = ?',
+        [id]
+      )
+
+      const admin = admins?.[0]
+      if (!admin) {
+        console.log('找不到管理員資訊，ID:', id)
+        return null
+      }
+
+      // 確保欄位不為undefined/null
+      const secureAdmin: Admin = {
+        id: admin.id,
+        manager_account: admin.manager_account || '',
+        manager_privileges: admin.manager_privileges || '',
+      }
+
+      console.log('成功獲取管理員資訊:', secureAdmin)
+      return secureAdmin
+    } catch (error) {
+      console.error('獲取管理員資訊時發生錯誤:', error)
+      return null
+    }
   },
 
   // 從請求中驗證
@@ -73,6 +106,12 @@ export const auth = {
     const token = request.headers.get('authorization')?.split(' ')[1]
     if (!token) return null
     return auth.verify(token)
+  },
+
+  // 確認是否已認證 - 添加此函數解決 isAuthenticated 未定義的問題
+  isAuthenticated: async (request: NextRequest): Promise<boolean> => {
+    const auth = await auth.fromRequest(request)
+    return auth !== null
   },
 
   // 更新最後登入時間
@@ -92,16 +131,16 @@ export const auth = {
 
 // 檢查管理員是否擁有特定權限
 export function hasPermission(
-  admin: AdminPayload | null,
+  admin: { manager_privileges?: string } | null,
   requiredArea: string | string[]
 ): boolean {
   if (!admin) return false
 
   // 超級管理員權限
-  if (admin.privileges === '111') return true
+  if (admin.manager_privileges === '111') return true
 
   // 防止 privileges 為 undefined 或 null
-  const privileges = admin.privileges || ''
+  const privileges = admin.manager_privileges || ''
 
   // 處理可能的複合權限（用逗號分隔）
   const adminPrivileges = privileges ? privileges.split(',') : []

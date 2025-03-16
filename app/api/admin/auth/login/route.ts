@@ -51,9 +51,8 @@ export async function POST(request: NextRequest) {
       // 生成 JWT
       const token = await generateToken({
         id: manager.id,
-        account: manager.manager_account,
-        privileges: manager.manager_privileges,
-        role: 'admin',
+        manager_account: manager.manager_account,
+        manager_privileges: manager.manager_privileges,
       })
 
       // 返回成功響應
@@ -64,8 +63,8 @@ export async function POST(request: NextRequest) {
           token,
           admin: {
             id: manager.id,
-            account: manager.manager_account,
-            privileges: manager.manager_privileges,
+            manager_account: manager.manager_account,
+            manager_privileges: manager.manager_privileges,
           },
         },
       })
