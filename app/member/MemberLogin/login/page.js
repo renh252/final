@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
 import React, { useState } from 'react';
-import styles from "./login.module.css";
+import styles from './login.module.css';
 
 export default function MemberPage() {
   const [email, setEmail] = useState('');
@@ -9,16 +9,15 @@ export default function MemberPage() {
   const [message, setMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 處理表單提交
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // 模擬的登入檢查，通常應該使用 API 來進行驗證
+    // 模擬的登入檢查，實際應用中應該使用 API
     if (email === 'user@example.com' && password === 'password123') {
-      setMessage('Login successful!');
+      setMessage('登入成功！');
       setIsLoggedIn(true);
     } else {
-      setMessage('Invalid email or password.');
+      setMessage('電子郵件或密碼無效。');
       setIsLoggedIn(false);
     }
   };
@@ -28,22 +27,27 @@ export default function MemberPage() {
       <main className={styles.profile_page}>
         <div className={styles.profile_container}>
           <header className={styles.hero_section}>
-            <img src="./images/member/Frame 312.jpg" alt="Hero background" className="hero-image" />
+            <img
+              src="./images/member/Frame 312.jpg"
+              alt="Hero background"
+              className={styles.hero_image} // 使用 styles 導入的樣式
+            />
           </header>
           <div className={styles['login-container']}>
             {isLoggedIn ? (
               <div>
-                <h2>Welcome back!</h2>
-                <p>You are logged in.</p>
+                <h2>歡迎回來！</h2>
+                <p>您已登入。</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className={styles['login-form']}>
-                <h2>Login</h2>
+                <h2>登入</h2>
 
                 <div>
-                  <label>Email:</label>
+                  <label htmlFor="email">電子郵件：</label>
                   <input
                     type="email"
+                    id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -51,18 +55,18 @@ export default function MemberPage() {
                 </div>
 
                 <div>
-                  <label>Password:</label>
+                  <label htmlFor="password">密碼：</label>
                   <input
                     type="password"
+                    id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
 
-                <button type="submit">Login</button>
+                <button type="submit">登入</button>
 
-                {/* 顯示登入信息 */}
                 {message && <p>{message}</p>}
               </form>
             )}
