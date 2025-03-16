@@ -19,7 +19,7 @@ Pet Project 是一個綜合性的寵物領養和社區平台，包含以下主�
 
 - **框架**: Next.js 14 (App Router)
 - **語言**: TypeScript、JavaScript
-- **樣式**: React-Bootstrap、Tailwind CSS(待修正:目前已棄用，因為會和 bootstrap 衝突)、CSS Modules
+- **樣式**: React-Bootstrap、Tailwind CSS(目前已棄用，因為會和 bootstrap 衝突)、CSS Modules
 - **狀態管理**: React Context API、React Query
 - **路由**: Next.js App Router
 - **其他庫**:
@@ -219,14 +219,16 @@ pet_proj/
 
 **相關表格**:
 
-- donation_campaigns
+> **注意**: donation_campaigns 和相關活動管理功能不在當前開發範圍內，僅為文檔描述。
+
 - donations
 - donation_expenses
 - donation_rankings
 
 **相關 API 端點**:
 
-- `GET /api/donations/campaigns`: 獲取捐款活動
+> **注意**: 捐款活動管理相關 API 不在當前開發範圍內，僅為文檔描述。
+
 - `POST /api/donations`: 提交捐款
 - `GET /api/donations/expenses`: 獲取資金使用記錄
 - `GET /api/donations/rankings`: 獲取捐款者排行榜
@@ -491,9 +493,6 @@ ECPAY_HASH_IV=your_ecpay_hash_iv
 LINEPAY_CHANNEL_ID=your_linepay_channel_id
 LINEPAY_CHANNEL_SECRET=your_linepay_channel_secret
 
-NEWEBPAY_MERCHANT_ID=your_newebpay_merchant_id
-NEWEBPAY_HASH_KEY=your_newebpay_hash_key
-NEWEBPAY_HASH_IV=your_newebpay_hash_iv
 
 # 社群登入
 GOOGLE_CLIENT_ID=your_google_client_id
