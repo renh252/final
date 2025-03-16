@@ -353,3 +353,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+.breadcrumbContainer {
+  margin-bottom: 1.5rem;
+}

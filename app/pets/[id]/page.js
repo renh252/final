@@ -151,6 +151,7 @@ export default function PetDetailPage() {
   return (
     <div className={styles.container}>
       <Breadcrumbs
+        title="寵物詳情"
         items={[
           { label: '首頁', href: '/' },
           { label: '尋找寵物', href: '/pets' },
@@ -191,13 +192,15 @@ export default function PetDetailPage() {
                 </button>
                 <div className={styles.photoIndicator}>
                   {pet.photos.map((_, index) => (
-                    <span
+                    <button
                       key={index}
                       className={`${styles.dot} ${
                         index === currentPhotoIndex ? styles.activeDot : ''
                       }`}
                       onClick={() => setCurrentPhotoIndex(index)}
-                    ></span>
+                      aria-label={`查看第 ${index + 1} 張照片`}
+                      type="button"
+                    ></button>
                   ))}
                 </div>
               </>
