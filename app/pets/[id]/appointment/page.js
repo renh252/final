@@ -31,6 +31,7 @@ import {
   FaArrowLeft,
 } from 'react-icons/fa'
 import Link from 'next/link'
+import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import styles from './appointment.module.css'
 
 export default function PetAppointmentPage({ params }) {
@@ -106,11 +107,11 @@ export default function PetAppointmentPage({ params }) {
     // 檢查用戶登入狀態
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/check')
+        const response = await fetch('/api/auth/me')
         const data = await response.json()
 
-        if (data.success && data.user) {
-          setUser(data.user)
+        if (data.success && data.data) {
+          setUser(data.data)
         }
       } catch (err) {
         console.error('Error checking auth:', err)
@@ -338,9 +339,23 @@ export default function PetAppointmentPage({ params }) {
 
   return (
     <Container className={`py-5 ${styles.appointmentContainer}`}>
-      <Link href={`/pets/${id}`} className={styles.backLink}>
-        <FaArrowLeft className="me-2" /> 返回寵物詳情
-      </Link>
+      <Breadcrumbs
+        title="寵物預約"
+        items={[
+          {
+            label: '寵物領養',
+            href: '/pets',
+          },
+          {
+            label: pet?.name || '寵物',
+            href: `/pets/${id}`,
+          },
+          {
+            label: '預約',
+            href: `/pets/${id}/appointment`,
+          },
+        ]}
+      />
 
       <Row className="mt-4">
         <Col lg={4} md={5}>

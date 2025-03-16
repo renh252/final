@@ -17,6 +17,13 @@ import {
 } from 'react-bootstrap'
 import dynamic from 'next/dynamic'
 import locationData from './_components/locationData'
+import {
+  FaHeart,
+  FaSearch,
+  FaClipboardList,
+  FaPaw,
+  FaArrowRight,
+} from 'react-icons/fa'
 
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
@@ -205,6 +212,7 @@ export default function PetsPage() {
   const [mapMarkers, setMapMarkers] = useState([])
   const [mapCenter, setMapCenter] = useState([25.033, 121.5654]) // 預設為台北市中心
   const [mapZoom, setMapZoom] = useState(13)
+  const [viewMode, setViewMode] = useState('list')
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data: petsData, error: petsError } = useSWR(
@@ -325,133 +333,177 @@ export default function PetsPage() {
 
   return (
     <div className={styles.petsContainer}>
-      <div className={styles.breadcrumbContainer}>
-        <Breadcrumbs
-          title="寵物領養"
-          items={[
-            {
-              label: '寵物領養',
-              href: '/pets',
-            },
-          ]}
-        />
+      <Breadcrumbs
+        title="寵物領養"
+        items={[
+          {
+            label: '首頁',
+            href: '/',
+          },
+          {
+            label: '寵物領養',
+            href: '/pets',
+          },
+        ]}
+      />
+
+      <div className={styles.pageTitle}>
+        <h1>尋找您的完美寵物夥伴</h1>
+        <p>
+          我們有各種可愛的寵物等待一個溫暖的家，透過篩選或問卷推薦找到最適合您的毛孩
+        </p>
       </div>
 
-      {/* 篩選搜尋區域 */}
-      <div className={styles.filterSection}>
-        <Row>
-          <Col md={6}>
-            <div className={styles.filterForm}>
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label>物種</Form.Label>
-                  <Form.Select
-                    value={selectedSpecies}
-                    onChange={(e) => setSelectedSpecies(e.target.value)}
-                  >
-                    <option value="">請選擇物種</option>
-                    {speciesData?.species?.map((species) => (
-                      <option key={species.id} value={species.id}>
-                        {species.name}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
+      {/* 問卷推薦入口 */}
+      <div className={styles.questionnaireSection}>
+        <div className={styles.questionnaireCard}>
+          <div className={styles.questionnaireContent}>
+            <div className={styles.questionnaireIcon}>
+              <FaPaw />
+            </div>
+            <div className={styles.questionnaireText}>
+              <h3>不確定適合哪種寵物？</h3>
+              <p>
+                完成我們的簡短問卷，我們將根據您的生活方式和偏好推薦最適合您的寵物
+              </p>
+            </div>
+            <a
+              href="/pets/questionnaire"
+              className={styles.questionnaireButton}
+            >
+              開始問卷{' '}
+              <span>
+                <FaArrowRight />
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>品種</Form.Label>
-                  {/* 使用自定義的可搜尋下拉選單 */}
-                  <SearchableSelect
-                    options={varietiesData?.varieties || []}
-                    value={selectedBreed}
-                    onChange={setSelectedBreed}
-                    placeholder="請選擇品種"
-                    disabled={
-                      !varietiesData ||
-                      !varietiesData.varieties ||
-                      varietiesData.varieties.length === 0
-                    }
-                  />
-                  <div className={styles.varietyInfo}>
-                    {varietiesData
-                      ? `已找到 ${varietiesData.varieties?.length || 0} 個品種`
-                      : '正在載入品種資料...'}
-                  </div>
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>地區</Form.Label>
-                  <Form.Select
-                    value={selectedRegion}
-                    onChange={handleRegionChange}
-                  >
-                    <option value="">請選擇地區</option>
-                    <option>台北市</option>
-                    <option>新北市</option>
-                    <option>桃園市</option>
-                    <option>台中市</option>
-                    <option>台南市</option>
-                    <option>高雄市</option>
-                    <option>基隆市</option>
-                    <option>新竹市</option>
-                    <option>嘉義市</option>
-                    <option>宜蘭縣</option>
-                    <option>花蓮縣</option>
-                    <option>台東縣</option>
-                  </Form.Select>
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Check type="checkbox" label="已收藏" />
-                </Form.Group>
-
-                {selectedLocation && (
-                  <div className={styles.selectedLocation}>
-                    <p>已選擇位置：</p>
-                    <p>緯度: {selectedLocation.lat.toFixed(4)}</p>
-                    <p>經度: {selectedLocation.lng.toFixed(4)}</p>
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedLocation(null)
-                        // 如果有選擇地區，恢復地區標記
-                        if (selectedRegion && locationData[selectedRegion]) {
-                          const { lat, lng } = locationData[selectedRegion]
-                          // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
-                          setMapMarkers([
-                            {
-                              lat,
-                              lng,
-                              name: selectedRegion,
-                              isRegion: true,
-                              id: Date.now(),
-                            },
-                          ])
-                        } else {
-                          setMapMarkers([])
-                        }
-                      }}
+      <div className={styles.filterContainer}>
+        <CardSwitchButton
+          leftLabel="列表檢視"
+          rightLabel="地圖檢視"
+          checked={viewMode === 'map'}
+          onChange={() => setViewMode(viewMode === 'map' ? 'list' : 'map')}
+        />
+        <div className={styles.filterSection}>
+          <Row>
+            <Col md={6}>
+              <div className={styles.filterForm}>
+                <Form>
+                  <Form.Group className="mb-3">
+                    <Form.Label>物種</Form.Label>
+                    <Form.Select
+                      value={selectedSpecies}
+                      onChange={(e) => setSelectedSpecies(e.target.value)}
                     >
-                      清除位置
-                    </Button>
-                  </div>
-                )}
-              </Form>
-            </div>
-          </Col>
-          <Col md={6}>
-            <div className={styles.mapContainer}>
-              <MapComponent
-                center={mapCenter}
-                zoom={mapZoom}
-                markers={mapMarkers}
-                onLocationSelect={handleLocationSelect}
-                regionName={selectedRegion}
-              />
-            </div>
-          </Col>
-        </Row>
+                      <option value="">請選擇物種</option>
+                      {speciesData?.species?.map((species) => (
+                        <option key={species.id} value={species.id}>
+                          {species.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>品種</Form.Label>
+                    {/* 使用自定義的可搜尋下拉選單 */}
+                    <SearchableSelect
+                      options={varietiesData?.varieties || []}
+                      value={selectedBreed}
+                      onChange={setSelectedBreed}
+                      placeholder="請選擇品種"
+                      disabled={
+                        !varietiesData ||
+                        !varietiesData.varieties ||
+                        varietiesData.varieties.length === 0
+                      }
+                    />
+                    <div className={styles.varietyInfo}>
+                      {varietiesData
+                        ? `已找到 ${
+                            varietiesData.varieties?.length || 0
+                          } 個品種`
+                        : '正在載入品種資料...'}
+                    </div>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>地區</Form.Label>
+                    <Form.Select
+                      value={selectedRegion}
+                      onChange={handleRegionChange}
+                    >
+                      <option value="">請選擇地區</option>
+                      <option>台北市</option>
+                      <option>新北市</option>
+                      <option>桃園市</option>
+                      <option>台中市</option>
+                      <option>台南市</option>
+                      <option>高雄市</option>
+                      <option>基隆市</option>
+                      <option>新竹市</option>
+                      <option>嘉義市</option>
+                      <option>宜蘭縣</option>
+                      <option>花蓮縣</option>
+                      <option>台東縣</option>
+                    </Form.Select>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Check type="checkbox" label="已收藏" />
+                  </Form.Group>
+
+                  {selectedLocation && (
+                    <div className={styles.selectedLocation}>
+                      <p>已選擇位置：</p>
+                      <p>緯度: {selectedLocation.lat.toFixed(4)}</p>
+                      <p>經度: {selectedLocation.lng.toFixed(4)}</p>
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedLocation(null)
+                          // 如果有選擇地區，恢復地區標記
+                          if (selectedRegion && locationData[selectedRegion]) {
+                            const { lat, lng } = locationData[selectedRegion]
+                            // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
+                            setMapMarkers([
+                              {
+                                lat,
+                                lng,
+                                name: selectedRegion,
+                                isRegion: true,
+                                id: Date.now(),
+                              },
+                            ])
+                          } else {
+                            setMapMarkers([])
+                          }
+                        }}
+                      >
+                        清除位置
+                      </Button>
+                    </div>
+                  )}
+                </Form>
+              </div>
+            </Col>
+            <Col md={6}>
+              <div className={styles.mapContainer}>
+                <MapComponent
+                  center={mapCenter}
+                  zoom={mapZoom}
+                  markers={mapMarkers}
+                  onLocationSelect={handleLocationSelect}
+                  regionName={selectedRegion}
+                />
+              </div>
+            </Col>
+          </Row>
+        </div>
       </div>
 
       <main>
