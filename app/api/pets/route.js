@@ -98,6 +98,17 @@ export async function GET(request) {
       responseData.varieties = results.map((item) => item.variety)
     }
 
+    // 獲取寵物商店資料
+    if (type === 'stores') {
+      const [results] = await connection.execute(`
+        SELECT id, name, address, phone, mail, open_hours, lat, lng
+        FROM pet_store
+        ORDER BY id
+      `)
+
+      responseData.stores = results
+    }
+
     // 獲取寵物資料
     if (type === 'all' || type === 'pets') {
       // 獲取所有寵物資料

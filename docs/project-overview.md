@@ -19,7 +19,7 @@ Pet Project 是一個綜合性的寵物領養和社區平台，包含以下主�
 
 - **框架**: Next.js 14 (App Router)
 - **語言**: TypeScript、JavaScript
-- **樣式**: React-Bootstrap、Tailwind CSS(目前已棄用，因為會和 bootstrap 衝突)、CSS Modules
+- **樣式**: React-Bootstrap、CSS Modules
 - **狀態管理**: React Context API、React Query
 - **路由**: Next.js App Router
 - **其他庫**:
@@ -123,7 +123,11 @@ pet_proj/
 - 收藏感興趣的寵物
 - 提交領養申請
 - 寵物篩選功能 (種類、品種、年齡等)
-- 預約看寵物
+- 預約看寵物功能
+  - ✅ 已實現：寵物詳情頁預約入口
+  - ✅ 已實現：預約表單填寫、時間選擇、提交功能
+  - ✅ 已實現：後台預約管理系統
+  - 📝 待開發：會員預約管理頁面 (/member/appointments)
 - 寵物資料導入/導出
 
 **相關表格**:
@@ -141,7 +145,10 @@ pet_proj/
 - `GET /api/pets`: 獲取寵物列表
 - `GET /api/pets/{id}`: 獲取單一寵物詳細資訊
 - `POST /api/pets/like`: 收藏寵物
-- `POST /api/pets/appointment`: 預約看寵物
+- `POST /api/pets/appointments`: 創建預約
+- `GET /api/pets/appointments`: 獲取用戶預約列表
+- `PUT /api/pets/appointments/{id}`: 更新預約狀態
+- `DELETE /api/pets/appointments/{id}`: 取消預約
 - `POST /api/pets/adoption`: 申請領養
 
 ### 2. 社群討論區模塊
