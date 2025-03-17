@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PublishEditor from './PublishEditor';
-import styles from '../article.module.css';
+import styles from '../../article.module.css';
 
 const PublishForm = () => {
   const router = useRouter();
