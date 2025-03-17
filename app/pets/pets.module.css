@@ -27,6 +27,163 @@
   --transition-slow: 0.4s ease-out;
 }
 
+/* 通用容器樣式 */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.breadcrumbs {
+  margin-bottom: 1.5rem;
+}
+
+.pageTitle {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.pageTitle h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.75rem;
+}
+
+.pageTitle p {
+  font-size: 1.1rem;
+  color: #666;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* 問卷推薦區域樣式 */
+.questionnaireSection {
+  margin-bottom: 3rem;
+}
+
+.questionnaireCard {
+  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transition: transform var(--transition-normal),
+    box-shadow var(--transition-normal);
+}
+
+.questionnaireCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+.questionnaireContent {
+  display: flex;
+  align-items: center;
+  padding: 2rem;
+  gap: 1.5rem;
+  color: white;
+}
+
+.questionnaireIcon {
+  font-size: 3rem;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 1rem;
+  border-radius: 50%;
+}
+
+.questionnaireText {
+  flex: 1;
+}
+
+.questionnaireText h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.questionnaireText p {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.questionnaireButton {
+  background-color: white;
+  color: #a18cd1;
+  padding: 0.75rem 1.5rem;
+  border-radius: 30px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.questionnaireButton:hover {
+  background-color: #f8f8f8;
+  transform: translateX(5px);
+}
+
+.questionnaireButton span {
+  font-size: 1.2rem;
+  transition: transform var(--transition-fast);
+}
+
+.questionnaireButton:hover span {
+  transform: translateX(3px);
+}
+
+/* 篩選容器樣式 */
+.filterContainer {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+/* 篩選區域樣式 */
+.filterSection {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+/* 視圖模式切換容器 */
+.viewModeSwitchContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+/* 視圖模式切換開關樣式 */
+.viewModeSwitch {
+  font-weight: 500;
+}
+
+.viewModeSwitch :global(.form-check-input) {
+  height: 1.5rem;
+  width: 3rem;
+  cursor: pointer;
+}
+
+.viewModeSwitch :global(.form-check-input):checked {
+  background-color: rgba(199, 150, 80, 1);
+  border-color: rgba(179, 130, 60, 1);
+}
+
+.viewModeSwitch :global(.form-check-label) {
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
+
 .petsContainer {
   max-width: 1200px;
   margin: 0 auto;
@@ -221,6 +378,7 @@
   padding: 2rem;
   margin-bottom: 3rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
 }
 
 .filterForm {
@@ -247,14 +405,14 @@
   font-weight: normal;
 }
 
+/* 地圖容器樣式 */
 .mapContainer {
-  background-color: #fff;
+  height: 400px;
+  width: 100%;
   border-radius: 8px;
-  height: 300px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
+  margin-bottom: 2rem;
+  min-height: 400px; /* 確保最小高度 */
 }
 
 .mapContainer:before {
@@ -273,13 +431,66 @@
 }
 
 .mapPlaceholder {
+  height: 400px;
   width: 100%;
-  height: 100%;
+  border-radius: 8px;
+  background-color: #f0f0f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #e9ecef;
-  font-weight: 500;
+  color: #666;
+  font-style: italic;
+  border: 1px dashed #ccc;
+  margin-bottom: 2rem;
+}
+
+/* 側邊信息容器樣式 */
+.sideInfoContainer {
+  height: 600px;
+  width: 100%;
+  border-radius: 8px;
+  background-color: white;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  padding: 1rem;
+  margin-bottom: 2rem;
+  overflow-y: auto;
+}
+
+.sideInfoHeader {
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sideInfoHeader h4 {
+  font-size: 1.25rem;
+  margin: 0;
+  color: #212529;
+}
+
+.radiusSelectorSidebar {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background-color: #f0f7ff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.mapInfoPlaceholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #6c757d;
+  font-size: 1.1rem;
+  padding: 2rem;
+}
+
+.mapInfoPlaceholder p {
+  margin: 0.5rem 0;
 }
 
 /* 響應式調整 */
@@ -598,4 +809,312 @@
 }
 
 :global(.leaflet-control-layers) {
+}
+
+/* 全頁地圖容器樣式 */
+.fullMapContainer {
+  height: 80vh; /* 增加高度以獲得更好的視覺體驗 */
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative; /* 確保作為圖例和標籤的定位參考 */
+  transition: all 0.3s ease; /* 平滑過渡效果 */
+  animation: mapFadeIn 0.4s ease-out;
+}
+
+@keyframes mapFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 地圖圖例和操作提示的樣式 - 讓它們在全頁地圖視圖下更清晰 */
+.fullMapContainer :global(.leaflet-control-zoom),
+.fullMapContainer :global(.leaflet-control-attribution) {
+  z-index: 800;
+}
+
+/* 確保地圖相關元素在全頁視圖下可見性更好 */
+.fullMapContainer :global(.leaflet-marker-icon) {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+}
+
+.fullMapContainer :global(.leaflet-popup) {
+  z-index: 900;
+}
+
+/* 地圖相關樣式 */
+:global(.user-location-marker) {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+
+:global(.user-location-dot) {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background-color: #2d8a30;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+:global(.user-location-pulse) {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background-color: rgba(45, 138, 48, 0.4);
+  border-radius: 50%;
+  animation: locationPulse 1.5s infinite;
+  z-index: 1;
+}
+
+@keyframes locationPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* 位置按鈕樣式 */
+.locationButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.locationButton:before {
+  content: '📍';
+  font-size: 1.2rem;
+}
+
+/* 範圍選擇器樣式 */
+.radiusSelector {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background-color: #f0f7ff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.radiusSelector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+.radiusSelector input[type='range'] {
+  width: 100%;
+  height: 8px;
+}
+
+.radiusSelector input[type='range']::-webkit-slider-thumb {
+  cursor: pointer;
+}
+
+.locationError {
+  color: var(--danger-color);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--danger-light);
+  border-radius: 4px;
+  border-left: 3px solid var(--danger-dark);
+}
+
+/* 附近商店列表樣式 */
+.nearbyStores {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f0f8ff;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.5s ease-out;
+}
+
+.nearbyStores h5 {
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+}
+
+.nearbyStores h5:before {
+  content: '🏪';
+  margin-right: 8px;
+}
+
+.nearbyStores ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nearbyStores li {
+  padding: 0;
+  border-bottom: 1px solid #e7eef8;
+}
+
+.nearbyStores li:last-child {
+  border-bottom: none;
+}
+
+.storeButton {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.storeButton:hover {
+  background-color: #e7f1ff;
+}
+
+.storeButton:focus {
+  outline: 2px solid #4a90e2;
+  background-color: #e7f1ff;
+}
+
+.storeName {
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.storeDistance {
+  font-size: 0.85rem;
+  color: #2d8a30;
+  font-weight: normal;
+  background-color: rgba(45, 138, 48, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.storeAddress {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+/* 未找到商店提示樣式 */
+.noStores {
+  padding: 1rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.noStores p {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+.noStores p:first-child {
+  font-weight: bold;
+  color: #333;
+}
+
+/* 地圖圓圈和直線樣式 */
+.searchRadius {
+  stroke: #2d8a30;
+  stroke-width: 3px;
+  stroke-dasharray: 5, 5;
+  fill: #2d8a30;
+  fill-opacity: 0.15;
+}
+
+.distanceLine {
+  stroke: #dc3545;
+  stroke-width: 4px;
+  stroke-opacity: 0.9;
+  stroke-dasharray: 10, 10;
+}
+
+/* 商店彈出窗口樣式 */
+:global(.store-popup) {
+  max-width: 250px;
+  padding: 5px;
+}
+
+:global(.store-popup h5) {
+  color: #8e44ad;
+  font-weight: bold;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+/* 搜尋半徑文字標籤 */
+.radiusLabel {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #2d8a30;
+  border: 1px solid #2d8a30;
+}
+
+/* 距離線上的距離標籤 */
+.distanceLabel {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  white-space: nowrap;
+}
+
+/* 表單組佈局控制 */
+.formGroupRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.viewModeSwitchWrapper {
+  text-align: right;
 }

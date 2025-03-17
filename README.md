@@ -13,7 +13,7 @@ Pet Project 是一個綜合性的寵物領養和社區平台，旨在為寵物�
 
 ## 技術棧
 
-- **前端**: Next.js 14 (App Router), TypeScript, React Bootstrap, Tailwind CSS
+- **前端**: Next.js 14 (App Router), TypeScript, React Bootstrap
 - **後端**: Next.js API Routes, TypeScript, MySQL
 - **認證**: JWT (JSON Web Token)
 - **部署**: 計劃部署到 Vercel 或 AWS
