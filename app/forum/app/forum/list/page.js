@@ -40,18 +40,18 @@ const ForumListPage = () => {
 
     return (
         <div className="container">
-            <Carousel articles={pinnedArticles} />
+            <Carousel articles={PinnedCard} />
             <ButtonGroup />
             <div className="d-flex justify-content-between">
                 <NavTabs />
                 <SearchBox />
             </div>
             <div className="mt-4">
-                {pinnedArticles.map(article => (
+                {PinnedCard.map(article => (
                     <PinnedCard key={article.id} article={article} />
                 ))}
             </div>
-            <PostList articles={articles} />
+            <PostList articles={ArticleContext} />
             <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} />
         </div>
     );
