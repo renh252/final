@@ -61,20 +61,20 @@ const lastPathSegment = pathname.split('/').pop()
     <>
       <div className={styles.productMenu}>
       {parentsWithProducts.map((parent) => (
-          <>
+          <div key={parent.category_id}>
           <Link href = {`/shop/categories/${parent.category_id} `} className={`${styles.title} ${lastPathSegment == parent.category_id ? styles.active : ''}`}>
             <p>{parent.category_name}</p>
           </Link>
           {getChildrenWithProducts(parent.category_id).map((child) => (
-            <>
-              <Link href = {`/shop/categories/${parent.category_id}/${child.category_id}`} className={`${styles.title} ${lastPathSegment == child.category_id ? styles.active : ''}`}
+            
+              <Link key={child.category_id} href = {`/shop/categories/${parent.category_id}/${child.category_id}`} className={`${styles.title} ${lastPathSegment == child.category_id ? styles.active : ''}`}
               >
                 <p>{child.category_name}</p>
               </Link>
-            </>
+            
           ))}
           <hr />
-          </>
+          </div>
         ))}
         
       </div>
