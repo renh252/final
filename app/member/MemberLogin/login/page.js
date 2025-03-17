@@ -1,23 +1,44 @@
 'use client';
-
 import React, { useState } from 'react';
 import styles from './login.module.css';
+import { useRouter } from 'next/navigation'; // 引入 useRouter
 
 export default function MemberPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter(); // 初始化 useRouter
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage(''); // 清空之前的訊息
 
-    // 模擬的登入檢查，實際應用中應該使用 API
-    if (email === 'user@example.com' && password === 'password123') {
-      setMessage('登入成功！');
-      setIsLoggedIn(true);
-    } else {
-      setMessage('電子郵件或密碼無效。');
+    try {
+      const response = await fetch('/api/member', { // 確保路徑與您的 route.js 相符
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setMessage('登入成功！');
+        setIsLoggedIn(true);
+        localStorage.setItem('token', data.data.token); // 儲存 token
+        // 可以將使用者資訊儲存到 state 或 context 中
+        // 例如：setUser(data.data.user);
+        router.push('/member'); // 登入成功後導向會員中心或其他頁面
+      } else {
+        setMessage(data.message || '登入失敗，請檢查您的電子郵件和密碼。');
+        setIsLoggedIn(false);
+      }
+    } catch (error) {
+      console.error('登入請求失敗:', error);
+      setMessage('登入時發生錯誤，請稍後再試。');
       setIsLoggedIn(false);
     }
   };
@@ -46,9 +67,11 @@ export default function MemberPage() {
                   <br />
                   <input
                     type="email"
-                    id="email"
-                    className={styles.formInput}
-                    required
+              id="email"
+              className={styles.formInput}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
                   />
                   <br />  <br />
                   <label htmlFor="password" className={styles.formLabel}>
@@ -57,9 +80,11 @@ export default function MemberPage() {
                   <br />
                   <input
                     type="password"
-                    id="password"
-                    className={styles.formInput}
-                    required
+              id="password"
+              className={styles.formInput}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
                   />
                     <br />  <br /> 
                     <div className={styles.rememberMe}>
@@ -71,6 +96,7 @@ export default function MemberPage() {
               <button
                 className="button"
                 style={{ width: '200px', height: '50px', fontSize: '28px' }}
+                onClick={handleSubmit} 
               >
                 登入
               </button>
@@ -100,6 +126,7 @@ export default function MemberPage() {
                   </div>
               </div>
             </div>
+            {message && <p className={styles.message}>{message}</p>} {/* 顯示登入訊息 */}
     </>
   );
 }
