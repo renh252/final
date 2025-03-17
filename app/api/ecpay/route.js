@@ -13,8 +13,8 @@ export async function POST(req) {
   }
 
   // ✅ 確保使用最新的 ngrok URL
-  const ngrokURL =
-    ' https://95d7-2402-7500-a59-7e72-40ff-1bac-86de-5c7c.ngrok-free.app'
+  // const ngrokURL =
+  //   ' https://95d7-2402-7500-a59-7e72-40ff-1bac-86de-5c7c.ngrok-free.app'
 
   // ECPay 配置
   const MerchantID = '3002607'
@@ -26,7 +26,8 @@ export async function POST(req) {
   const ItemName = itemName // 商品名稱
 
   // ✅ 修正 `ReturnURL` & `OrderResultURL` (移除多餘的 `/`)
-  const ReturnURL = `${ngrokURL}/api/ecpay/notify`
+  // const ReturnURL = `${ngrokURL}/api/ecpay/notify`
+  const ReturnURL = `http://localhost:3000/api/ecpay/notify`
   const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
 
   const stage = isStage ? '-stage' : ''

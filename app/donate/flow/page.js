@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import styles from './flow.module.css'
 import Image from 'next/image'
+import { Display } from 'react-bootstrap-icons'
 
 export default function FlowPage() {
   const searchParams = useSearchParams()
@@ -13,10 +14,13 @@ export default function FlowPage() {
   const [paymentType, setPaymentType] = useState('Credit') // 預設信用卡
   const [paymentData, setPaymentData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [petName, setPetName] = useState('')
 
   useEffect(() => {
     const donationType = searchParams.get('donationType') || '一般捐款'
+    const pet = searchParams.get('pet') || ''
     setItems(donationType)
+    setPetName(pet)
   }, [searchParams])
 
   const handleAmountChange = (e) => setAmount(e.target.value)
@@ -184,18 +188,22 @@ export default function FlowPage() {
           <div className={styles.order_payment_method}>
             {selectedPaymentMode === 'recurring' ? (
               <>
-                <button
-                  type="button"
-                  className="button"
-                  onClick={() => handlePaymentMethodClick('Credit')}
-                  style={{
-                    backgroundColor:
-                      paymentType === 'CreditPeriod' ? '#cda274' : '',
-                  }}
-                >
-                  信用卡
-                </button>
-                <p className={styles.note}>定期定額僅限信用卡支付方式可使用</p>
+                <div className={styles.payment_item}>
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => handlePaymentMethodClick('Credit')}
+                    style={{
+                      backgroundColor:
+                        paymentType === 'CreditPeriod' ? '#cda274' : '',
+                    }}
+                  >
+                    信用卡
+                  </button>
+                  <p className={styles.note}>
+                    ※定期定額僅限信用卡支付方式可使用
+                  </p>
+                </div>
               </>
             ) : (
               <>
@@ -233,10 +241,37 @@ export default function FlowPage() {
             )}
           </div>
         </div>
-
-        <button type="submit" className="button" disabled={isLoading}>
-          {isLoading ? '處理中...' : '開始支付'}
-        </button>
+        <div className={styles.order_container}>
+          <h5>請填寫捐款人資料</h5>
+          <div className={styles.donate_info_container}>
+            <div>
+              <label>姓名</label>
+              <input type="text" className={styles.input} required />
+            </div>
+            <div>
+              <label>認養寵物</label>
+              <input
+                type="text"
+                className={styles.readOnlyInput}
+                value={petName}
+                readOnly
+              />
+            </div>
+            <div>
+              <label>手機號碼</label>
+              <input type="text" className={styles.input} required />
+            </div>
+            <div>
+              <label>電子郵件</label>
+              <input type="email" className={styles.input} required />
+            </div>
+          </div>
+        </div>
+        <div className={styles.flow_container}>
+          <button type="submit" className="button" disabled={isLoading}>
+            {isLoading ? '處理中...' : '開始支付'}
+          </button>
+        </div>
 
         {paymentData && (
           <div>
