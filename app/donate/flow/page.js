@@ -14,6 +14,7 @@ export default function FlowPage() {
   const [paymentData, setPaymentData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [petName, setPetName] = useState('')
+  const [petId, setPetId] = useState(null)
 
   // 新增：用來存放捐款人資訊的狀態
   const [donorName, setDonorName] = useState('')
@@ -25,6 +26,19 @@ export default function FlowPage() {
     const pet = searchParams.get('pet') || ''
     setItems(donationType)
     setPetName(pet)
+    if (pet) {
+      (async () => {
+        try {
+          const res = await fetch(`/api/pets?name=${encodeURIComponent(pet)}`)
+          const data = await res.json()
+          if (data.status === 'success' && data.pet) {
+            setPetId(data.pet.id)
+          }
+        } catch (error) {
+          console.error('獲取寵物 ID 失敗:', error)
+        }
+      })() // 立即執行函數寫法，因為不能直接讓useEffect 本身變成 async
+    }
   }, [searchParams])
 
   const handleAmountChange = (e) => setAmount(e.target.value)
@@ -69,7 +83,7 @@ export default function FlowPage() {
         amount: Number(amount),
         items,
         ChoosePayment: paymentType,
-        petId: petName ? Number(petName.replace('Pet', '')) : null, // 轉換成數字
+        petId: petId || null,
         donorName,
         donorPhone,
         donorEmail,

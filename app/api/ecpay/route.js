@@ -93,6 +93,10 @@ export async function POST(req) {
       'pending',
     ]
   )
+
+  const ecpayChoosePayment =
+    ChoosePayment === 'CreditPeriod' ? 'Credit' : ChoosePayment
+
   let ParamsBeforeCMV = {
     MerchantID,
     MerchantTradeNo,
@@ -103,7 +107,7 @@ export async function POST(req) {
     TradeDesc,
     ItemName,
     ReturnURL, // ✅ 確保 ECPay 正確通知 `notify.js`
-    ChoosePayment,
+    ChoosePayment: ecpayChoosePayment,
     OrderResultURL, // ✅ 確保交易完成後能正確回到前端
   }
 

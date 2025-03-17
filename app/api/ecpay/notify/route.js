@@ -6,7 +6,7 @@ import db from '@/app/lib/db'
 const HashKey = 'pwFHCqoQZGmho4w6'
 const HashIV = 'EkRm7iFT261dpevs'
 
-// CheckMacValueGen 函數移到 root 層級
+// CheckMacValue 驗證函式
 function CheckMacValueGen(parameters) {
   let Step0 = Object.entries(parameters)
     .map(([key, value]) => `${key}=${value}`)
@@ -79,7 +79,7 @@ export async function POST(req) {
 
     console.log('✅ CheckMacValue 驗證成功!')
 
-    // 這裡可以加上你的資料庫更新邏輯，例如：
+    // 資料庫更新邏輯，例如：
     // ✅ 取得交易編號 & 付款狀態
     const tradeNo = data.MerchantTradeNo
     const transactionStatus = data.RtnCode === '1' ? 'success' : 'failed'
@@ -106,7 +106,7 @@ export async function POST(req) {
     console.log(
       `✅ 交易 ${tradeNo} 狀態更新為: ${transactionStatus}, 付款方式: ${paymentMethod}`
     )
-    
+
     return new Response('1|OK', { status: 200 }) // ✅ 確保 ECPay 正確接收
   } catch (error) {
     console.error('❌ ECPay 通知處理錯誤:', error)
