@@ -1,87 +1,75 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState } from 'react'
 import { useRouter  } from 'next/navigation'  // 导入 useRouter
 // styles
 import styles from './checkout.module.css'
 // components
+import { useCheckoutData } from '@/app/shop/_components/useCheckoutData'
 
 
 
 
 export default function CheckoutPage() {
-const router = useRouter()  // 初始化 router
-const [isProcessing, setIsProcessing] = useState(false)
-const formRef = useRef(null);
+  const router = useRouter()
+  const [checkoutData, setCheckoutData] = useCheckoutData();
 
 
-const [delivery, setDelivery] = useState('宅配到府')
-const [storeInfo, setStoreInfo] = useState({ name: "", id: "" });
+  // 表單驗證錯誤信息
+  const [errors, setErrors] = useState({});
 
-  // 表單資料
-  const [formData, setFormData] = useState(() => {
-    const savedData = localStorage.getItem('checkoutData');
-    return savedData ? JSON.parse(savedData) : {
-      recipient_name: '',
-      recipient_phone: '',
-      recipient_email: '',
-      remark: '',
-      payment_method: '',
-      invoice_method: '',
-      mobile_barcode: '/',
-      taxID_number: '',
-      // ... 其他字段的初始值
-    };
-  });
+  // 当用户输入时清除该字段的错误
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    let newValue = value;
 
-// 表單驗證錯誤信息
-const [errors, setErrors] = useState({});
-
-// 当用户输入时清除该字段的错误
-const handleInputChange = (e) => {
-  const { name, value, type } = e.target;
-  let newValue = value;
-
-  // mobile_barcode
-  if (name === 'mobile_barcode') {
-    // 如果用户试图删除 '/'，我们保留它
-    if (!value.startsWith('/')) {
-      newValue = '/' + value;
+    // 特殊字段的处理逻辑（如 mobile_barcode, taxID_number 等）
+    if (name === 'mobile_barcode') {
+      if (!value.startsWith('/')) {
+        newValue = '/' + value;
+      }
+      if (value === '') {
+        newValue = '/';
+      }
     }
-    // 如果用户只输入了 '/'，我们保留它
-    if (value === '') {
-      newValue = '/';
+
+    if (name === 'taxID_number') {
+      newValue = value.replace(/\D/g, '').slice(0, 8);
     }
-  }
 
-  if (name === 'taxID_number') {
-    newValue = value.replace(/\D/g, ''); // 只保留数字，最多8位
-  }
-
-  if(name === 'recipient_phone'){
-    newValue = value.replace(/\D/g, '');
-  }
-  
-  setFormData(prev => ({ ...prev, [name]: newValue }));
-
-  // 填寫時清空該錯誤
-  setErrors(prev => ({ ...prev, [name]: '' }));
-
-  // invoice_method
-  if (name === 'invoice_method') {
-    if (value !== '手機載具') {
-      setFormData(prev => ({ ...prev, mobile_barcode: '/' }));
+    if(name === 'recipient_phone'){
+      newValue = value.replace(/\D/g, '');
     }
-    if (value !== '統編') {
-      setFormData(prev => ({ ...prev, taxID_number: '' }));
-    }
-  }
 
-    // 更新formData后，立即保存到localStorage
-    const updatedFormData = { ...formData, [e.target.name]: e.target.value };
-    setFormData(updatedFormData);
-    localStorage.setItem('checkoutData', JSON.stringify(updatedFormData));
-};
+    setCheckoutData(prev => ({ ...prev, [name]: newValue }));
+    setErrors(prev => ({ ...prev, [name]: '' }));
+
+    if (name === 'delivery') {
+      if (value === '宅配到府') {
+        setCheckoutData(prev => ({ ...prev, storeName: '', storeId: '' }));
+      }
+      if(value === '7-ELEVEN超商'){
+        setCheckoutData(prev => ({...prev, storeName: '', storeId: '' }));
+        setPayload({ ...Payload, CvsType: 'UNIMART'  });
+        SendParams();
+      }
+      if(value === '全家'){
+        setCheckoutData(prev => ({...prev, storeName: '', storeId: '' }));
+        setPayload({...Payload, CvsType: 'FAMI'  });
+        SendParams(); 
+      }
+    }
+
+    // invoice_method 的特殊处理
+    if (name === 'invoice_method') {
+      if (value !== '手機載具') {
+        setCheckoutData(prev => ({ ...prev, mobile_barcode: '/' }));
+      }
+      if (value !== '統編') {
+        setCheckoutData(prev => ({ ...prev, taxID_number: '' }));
+      }
+    }
+  };
 
 
 
@@ -184,7 +172,11 @@ const handleStoreSelection = (event) => {
   if (event.origin !== 'https://logistics-stage.ecpay.com.tw') return;
 
   const { CVSStoreID, CVSStoreName } = event.data;
-  setStoreInfo({ name: CVSStoreName, id: CVSStoreID });
+  setCheckoutData(prev => ({
+    ...prev,
+    storeName: CVSStoreName,
+    storeId: CVSStoreID
+  }));
 
   // 移除事件監聽器
   window.removeEventListener('message', handleStoreSelection);
@@ -193,57 +185,57 @@ const handleStoreSelection = (event) => {
 
 // 存儲表單資料到 LocalStorage
 // useEffect(() => {
-//   localStorage.setItem('checkoutData', JSON.stringify(formData));
-// }, [formData]);
+//   localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
+// }, [checkoutData]);
 
 // 表單驗證
 const validateForm = () => {
   let newErrors = {};
   
   // name
-  if (!formData.recipient_name.trim()) {
+  if (!checkoutData.recipient_name.trim()) {
     newErrors.recipient_name = '*收件人為必填';
-  }else if(formData.recipient_name.length > 50){
+  }else if(checkoutData.recipient_name.length > 50){
     newErrors.recipient_name = '*格式錯誤';
   }
   
   // phone
-  if (!formData.recipient_phone.trim()) {
+  if (!checkoutData.recipient_phone.trim()) {
     newErrors.recipient_phone = '* 連絡電話為必填';
-  }else if(!formData.recipient_phone.startsWith('0')){
+  }else if(!checkoutData.recipient_phone.startsWith('0')){
     newErrors.recipient_phone = '* 請輸入有效的電話號碼';
   }
   
   // email
-  if (!formData.recipient_email.trim()) {
+  if (!checkoutData.recipient_email.trim()) {
     newErrors.recipient_email = '* 電子信箱為必填';
-  } else if (!/\S+@\S+\.\S+/.test(formData.recipient_email)) {
+  } else if (!/\S+@\S+\.\S+/.test(checkoutData.recipient_email)) {
     newErrors.recipient_email = '* 請輸入有效的電子信箱';
   }
 
   // payment_method
-  if (!formData.payment_method) {
+  if (!checkoutData.payment_method) {
     newErrors.payment_method = '* 請選擇付款方式';
   }
 
   // invoice_method
-  if (!formData.invoice_method) {
+  if (!checkoutData.invoice_method) {
     newErrors.invoice_method = '* 請選擇發票方式';
   }
 
   // 手機載具
-  if (formData.invoice_method === '手機載具') { 
-    if(!formData.mobile_barcode ){
+  if (checkoutData.invoice_method === '手機載具') { 
+    if(!checkoutData.mobile_barcode ){
     newErrors.mobile_barcode = '* 請輸入載具號碼';}
-    else if(formData.mobile_barcode.length !== 8){
+    else if(checkoutData.mobile_barcode.length !== 8){
     newErrors.mobile_barcode = '* 格式錯誤'}
   }
 
   // 統編
-  if (formData.invoice_method === '統編') {
-    if (!formData.taxID_number) {
+  if (checkoutData.invoice_method === '統編') {
+    if (!checkoutData.taxID_number) {
       newErrors.taxID_number = '* 請輸入統編號碼';
-    } else if (formData.taxID_number.length !== 8) {
+    } else if (checkoutData.taxID_number.length !== 8) {
       newErrors.taxID_number = '* 格式錯誤';
     }
   }
@@ -260,8 +252,6 @@ const validateForm = () => {
     event.preventDefault();
     
     if (validateForm()) {
-      setIsProcessing(true);
-      // 数据已经在handleInputChange中保存，这里不需要再次保存
       router.push('/shop/checkout/review');
     }
   };
@@ -280,38 +270,38 @@ const validateForm = () => {
             <h3>配送方式</h3>
             <div className={styles.delivery}>
                 <label>
-                  <input type="radio" name="delivery" value="宅配到府" checked={delivery === "宅配到府"} onChange={(event) =>{ setDelivery(event.target.value);
-                  setPayload({ ...Payload, CvsType: '' })}}  />
+                  <input 
+                  type="radio" 
+                  name="delivery" 
+                  value="宅配到府" 
+                  checked={checkoutData.delivery === "宅配到府"} 
+                  onChange={  handleInputChange}  />
                   宅配到府
                 </label>
                 <label>
                   <input 
                   type="radio" 
                   name="delivery"
-                  value="7-ELEVEN超商" checked={delivery === "7-ELEVEN超商"} onChange={(event) =>{ 
-                    setDelivery(event.target.value);
-                    setPayload({ ...Payload, CvsType: 'UNIMART'  });
-                    SendParams();
-                  }} />
+                  value="7-ELEVEN超商" 
+                  checked={checkoutData.delivery === "7-ELEVEN超商"} 
+                  onChange={handleInputChange} />
                   7-ELEVEN超商
                 </label>
                 <label>
                   <input 
                   type="radio" 
                   name="delivery"
-                  value="全家" checked={delivery === "全家"} onChange={(event) =>{ setDelivery(event.target.value);
-                    setPayload({ ...Payload, CvsType: 'FAMI'  });
-                    SendParams();
-                  }}
+                  value="全家" 
+                  checked={checkoutData.delivery === "全家"} onChange={handleInputChange}
                   />
                   全家
                 </label>
             </div>
         </div>
-        {delivery
+        {checkoutData.delivery
         ?
         <div className={styles.containBody}>
-          {delivery === '宅配到府'
+          {checkoutData.delivery === '宅配到府'
           ? ''
           : 
           <>
@@ -319,10 +309,10 @@ const validateForm = () => {
             選擇門市
           </button>
           <label>門市名稱：
-            <input type="text" value={storeInfo.name} readOnly />
+            <input type="text" value={checkoutData.CVSStoreName} readOnly />
           </label>
           <label>門市代號：
-            <input type="text" value={storeInfo.id} readOnly />
+            <input type="text" value={checkoutData.CVSStoreID} readOnly />
           </label>
           </>
           }
@@ -331,7 +321,7 @@ const validateForm = () => {
                 <input 
                 name='recipient_name' 
                 type="text"
-                value={formData.recipient_name}
+                value={checkoutData.recipient_name}
                 onChange={handleInputChange}
                 />
                 <span className={styles.warn}>{errors.recipient_name}</span>
@@ -341,7 +331,7 @@ const validateForm = () => {
                 name='recipient_phone' 
                 type="text" 
                 placeholder='09xxxxxxxx'
-                value={formData.recipient_phone}
+                value={checkoutData.recipient_phone}
                 onChange={handleInputChange}
                 />
                 <span className={styles.warn}>{errors.recipient_phone}</span>
@@ -350,7 +340,7 @@ const validateForm = () => {
                 <input 
                 name='recipient_email' 
                 type="text" 
-                value={formData.recipient_email}
+                value={checkoutData.recipient_email}
                 onChange={handleInputChange} 
                 />
                 <span className={styles.warn}>{errors.recipient_email}</span>
@@ -359,7 +349,7 @@ const validateForm = () => {
                 <input 
                 name='remark' 
                 type="text" 
-                value={formData.remark}
+                value={checkoutData.remark}
                 onChange={handleInputChange}
                 />
             </label>
@@ -371,7 +361,7 @@ const validateForm = () => {
                     name='payment_method' 
                     type="radio" 
                     value='信用卡'
-                    checked={formData.payment_method === '信用卡'}
+                    checked={checkoutData.payment_method === '信用卡'}
                     onChange={handleInputChange}
                     />
                     信用卡
@@ -380,7 +370,7 @@ const validateForm = () => {
                     <input 
                     name='payment_method' type="radio" 
                     value='linePay'
-                    checked={formData.payment_method === 'linePay'}
+                    checked={checkoutData.payment_method === 'linePay'}
                     onChange={handleInputChange}
                     />
                     line pay
@@ -397,7 +387,7 @@ const validateForm = () => {
                     name='invoice_method' 
                     type="radio" 
                     value='紙本'
-                    checked={formData.invoice_method === '紙本'}
+                    checked={checkoutData.invoice_method === '紙本'}
                     onChange={handleInputChange}
                   />
                   紙本
@@ -408,19 +398,19 @@ const validateForm = () => {
                       name='invoice_method' 
                       type="radio" 
                       value='手機載具'
-                      checked={formData.invoice_method === '手機載具'}
+                      checked={checkoutData.invoice_method === '手機載具'}
                       onChange={handleInputChange}
                     />
                     手機載具
                   </label>
-                  {formData.invoice_method === '手機載具' && (
+                  {checkoutData.invoice_method === '手機載具' && (
                     <>
                     <label>
                       : 
                       <input 
                         type="text" 
                         name='mobile_barcode'
-                        value={formData.mobile_barcode}
+                        value={checkoutData.mobile_barcode}
                         onChange={handleInputChange}
                       />
                     </label>
@@ -434,19 +424,19 @@ const validateForm = () => {
                       name='invoice_method' 
                       type="radio" 
                       value='統編'
-                      checked={formData.invoice_method === '統編'}
+                      checked={checkoutData.invoice_method === '統編'}
                       onChange={handleInputChange}
                     />
                     統編
                   </label>
-                  {formData.invoice_method === '統編' && (
+                  {checkoutData.invoice_method === '統編' && (
                     <>
                     <label>
                       : 
                       <input 
                         type="text" 
                         name='taxID_number'
-                        value={formData.taxID_number}
+                        value={checkoutData.taxID_number}
                         onChange={handleInputChange}
                       />
                     </label>
@@ -459,7 +449,7 @@ const validateForm = () => {
                     name='invoice_method' 
                     type="radio" 
                     value='捐贈發票'
-                    checked={formData.invoice_method === '捐贈發票'}
+                    checked={checkoutData.invoice_method === '捐贈發票'}
                     onChange={handleInputChange}
                   />
                   捐贈發票
@@ -472,7 +462,7 @@ const validateForm = () => {
         }
       </div>
 
-      {delivery
+      {checkoutData.delivery
       ?
       <div className={styles.btns}>
       <button type="button" onClick={handleCancelPurchase}>返回購物車</button>
