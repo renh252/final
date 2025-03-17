@@ -10,12 +10,14 @@ export default function MemberPage(props) {
   return (
     <>
 
-  <header className={styles.header_container}>
-      <img src=".\images\member\memb.jpg"  />
-<div className={styles.text_overlay}>
-  會員中心
-</div>
-  </header>
+<header className={styles.headerSection}>
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets/TEMP/c961159506ebe222e2217510289e3eee7203e02a0affe719332fe812045a0061?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
+              alt="Header background"
+              className={styles.headerBackground}
+            />
+            <h1 className={styles.pageTitle}>會員中心</h1>
+          </header>
 
 
       <div className={styles.logos_grid}>
@@ -23,7 +25,7 @@ export default function MemberPage(props) {
                 className="button"
                 style={{ width: '200px', height: '50px', fontSize: '28px' }}
               >
-                <Link href="/shop">我的購物車</Link>
+                <Link href="/shop/cart">我的購物車</Link>
               </button>
               <button
                 className="button"
