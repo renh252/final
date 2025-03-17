@@ -24,55 +24,82 @@ export default function MemberPage() {
 
   return (
     <>
-      <main className={styles.profile_page}>
-        <div className={styles.profile_container}>
-          <header className={styles.hero_section}>
+       <header className={styles.headerSection}>
             <img
-              src="./images/member/Frame 312.jpg"
-              alt="Hero background"
-              className={styles.hero_image} // 使用 styles 導入的樣式
+              src="https://cdn.builder.io/api/v1/image/assets/TEMP/c961159506ebe222e2217510289e3eee7203e02a0affe719332fe812045a0061?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
+              alt="Header background"
+              className={styles.headerBackground}
             />
+            <h1 className={styles.pageTitle}>會員登入</h1>
           </header>
-          <div className={styles['login-container']}>
-            {isLoggedIn ? (
-              <div>
-                <h2>歡迎回來！</h2>
-                <p>您已登入。</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className={styles['login-form']}>
-                <h2>登入</h2>
+          
 
-                <div>
-                  <label htmlFor="email">電子郵件：</label>
+            <div className={styles.formContainer}>
+
+            <h2 className={styles.sectionTitle}>登入會員</h2>
+              <div className={styles.form}>
+                 <div className={styles.formGroup}>
+                 <br /> <br />  <br />
+                <label htmlFor="email" className={styles.formLabel}>
+                    電子信箱 :
+                  </label>
+                  <br />
                   <input
                     type="email"
                     id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    className={styles.formInput}
                     required
                   />
-                </div>
-
-                <div>
-                  <label htmlFor="password">密碼：</label>
+                  <br />  <br />
+                  <label htmlFor="password" className={styles.formLabel}>
+                    密碼 :
+                  </label>
+                  <br />
                   <input
                     type="password"
                     id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    className={styles.formInput}
                     required
                   />
-                </div>
-
-                <button type="submit">登入</button>
-
-                {message && <p>{message}</p>}
-              </form>
-            )}
-          </div>
+                    <br />  <br /> 
+                    <div className={styles.rememberMe}>
+            <input type="checkbox" id="rememberMe" name="rememberMe" />
+            <label htmlFor="rememberMe">記住我</label>
         </div>
-      </main>
+                    <br />  
+                    <br />
+              <button
+                className="button"
+                style={{ width: '200px', height: '50px', fontSize: '28px' }}
+              >
+                登入
+              </button>
+              <br />
+              <div>
+                <p className={styles.loginLink}>
+                還沒有會員?  
+                <a
+                  href="\member\MemberLogin\register"
+                  className={styles.link}
+                  style={{ fontSize: '22px' }}
+                >
+                點此註冊
+                </a>
+              </p>
+              <p className={styles.loginLink}>
+                忘記密碼?  
+                <a
+                  href="\member\MemberLogin\forgot"
+                  className={styles.link}
+                  style={{ fontSize: '22px' }}
+                >
+                請點我
+                </a>
+              </p>
+              </div>
+                  </div>
+              </div>
+            </div>
     </>
   );
 }
