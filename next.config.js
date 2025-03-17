@@ -33,3 +33,19 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value:
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://payment-stage.ecpay.com.tw https://gpayment-stage.ecpay.com.tw",
+          },
+        ],
+      },
+    ]
+  },
+}
