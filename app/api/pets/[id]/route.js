@@ -50,7 +50,7 @@ export async function GET(request, { params }) {
 
     // 獲取店家資訊，用於地點顯示
     const [stores] = await connection.execute(`
-      SELECT id, address FROM pet_store
+      SELECT id, address, name FROM pet_store
     `)
 
     // 建立店家 ID 到地址的映射
@@ -58,8 +58,40 @@ export async function GET(request, { params }) {
     stores.forEach((store) => {
       storeMap[store.id] = {
         address: store.address,
+        name: store.name,
       }
     })
+
+    // 獲取寵物特質
+    const [petTraits] = await connection.execute(
+      `
+      SELECT 
+        pt.pet_id,
+        pt.trait_id,
+        ptl.trait_tag,
+        ptl.description as trait_description
+      FROM pet_trait pt
+      JOIN pet_trait_list ptl ON pt.trait_id = ptl.id
+      WHERE pt.pet_id = ?
+      `,
+      [id]
+    )
+
+    // 獲取寵物最近活動
+    const [recentActivities] = await connection.execute(
+      `
+      SELECT 
+        id,
+        pet_id,
+        date,
+        content
+      FROM pets_recent_activities
+      WHERE pet_id = ?
+      ORDER BY date DESC
+      LIMIT 10
+      `,
+      [id]
+    )
 
     // 處理年齡和位置顯示
     const pet = pets[0]
@@ -67,6 +99,8 @@ export async function GET(request, { params }) {
     // 處理年齡顯示
     const birthDate = pet.birthday ? new Date(pet.birthday) : null
     let ageDisplay = pet.age ? `${pet.age}歲` : '未知'
+    let ageYear = 0
+    let ageMonth = 0
 
     if (birthDate) {
       const today = new Date()
@@ -84,18 +118,23 @@ export async function GET(request, { params }) {
         months += 12
       }
 
+      ageYear = years
+      ageMonth = months
+
       // 根據年齡決定顯示方式
       ageDisplay = years > 0 ? `${years}歲` : `${months}個月`
     }
 
     // 處理位置顯示 - 根據 store_id 獲取地點
     let locationDisplay = '未知位置'
+    let storeName = null
     if (pet.store_id && storeMap[pet.store_id]) {
       const store = storeMap[pet.store_id]
       if (store.address) {
         // 從地址中提取城市名稱（假設前三個字是城市名）
         locationDisplay = store.address.substring(0, 3)
       }
+      storeName = store.name
     }
 
     // 處理性別顯示
@@ -105,9 +144,14 @@ export async function GET(request, { params }) {
     const processedPet = {
       ...pet,
       age: ageDisplay,
+      age_year: ageYear,
+      age_month: ageMonth,
       location: locationDisplay,
+      store_name: storeName,
       gender: genderDisplay,
       photos: photos,
+      traits: petTraits,
+      recent_activities: recentActivities,
     }
 
     connection.release()
