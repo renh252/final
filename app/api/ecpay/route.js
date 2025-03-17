@@ -1,15 +1,30 @@
 import * as crypto from 'crypto'
+import { NextResponse } from 'next/server'
+import db from '@/app/lib/db'
 
 export async function POST(req) {
-  const { amount, items, ChoosePayment } = await req.json()
+  const {
+    amount,
+    items,
+    ChoosePayment,
+    petId,
+    donorName,
+    donorPhone,
+    donorEmail,
+  } = await req.json()
 
-  const itemName =
-    items.split(',').length > 1 ? items.split(',').join('#') : items
+  const itemName = items
 
   if (!amount) {
     return new Response(JSON.stringify({ error: '缺少總金額' }), {
       status: 400,
     })
+  }
+  if (!donorName || !donorPhone || !donorEmail) {
+    return NextResponse.json(
+      { error: '請填寫完整的捐款人資料' },
+      { status: 400 }
+    )
   }
 
   // ✅ 確保使用最新的 ngrok URL
@@ -25,8 +40,6 @@ export async function POST(req) {
   const TradeDesc = '商店線上付款' // 訂單描述
   const ItemName = itemName // 商品名稱
 
-  // ✅ 修正 `ReturnURL` & `OrderResultURL` (移除多餘的 `/`)
-  // const ReturnURL = `${ngrokURL}/api/ecpay/notify`
   const ReturnURL = `http://localhost:3000/api/ecpay/notify`
   const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
 
@@ -35,6 +48,7 @@ export async function POST(req) {
   const digest = 'hex'
   const APIURL = `https://payment${stage}.ecpay.com.tw/Cashier/AioCheckOut/V5`
 
+  // 產生 ECPay 訂單編號
   const MerchantTradeNo = `od${new Date().getFullYear()}${(
     new Date().getMonth() + 1
   )
@@ -62,7 +76,23 @@ export async function POST(req) {
     second: '2-digit',
     hour12: false,
   })
-
+  // 2️⃣ **存入 `donations` 表，狀態為 `pending`**
+  const [result] = await db.query(
+    `INSERT INTO donations (donation_type, pet_id, amount, donation_mode, payment_method, donor_name, donor_phone, donor_email, trade_no, transaction_status) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      items,
+      petId,
+      amount,
+      'oneTime',
+      ChoosePayment,
+      donorName,
+      donorPhone,
+      donorEmail,
+      MerchantTradeNo,
+      'pending',
+    ]
+  )
   let ParamsBeforeCMV = {
     MerchantID,
     MerchantTradeNo,
