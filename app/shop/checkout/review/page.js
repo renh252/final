@@ -1,12 +1,13 @@
 // FILEPATH: c:/iSpan/final/app/shop/checkout/review/page.js
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from './review.module.css' 
 
 export default function ReviewPage() {
   const [checkoutData, setCheckoutData] = useState(null)
+  const [isProcessing, setIsProcessing] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -19,9 +20,36 @@ export default function ReviewPage() {
     }
   }, [router])
 
+  const handleModifyOrder = (e) => {
+    e.preventDefault()
+    console.log('Modifying order...')
+    // setIsProcessing(true)
+    router.push('/shop/checkout')
+  }
+
+  const handleSubmitOrder = (e) => {
+    e.preventDefault()
+    setIsProcessing(true)
+    // 这里可以添加提交订单的逻辑
+    alert('訂單已提交！')
+    localStorage.removeItem('checkoutData')  // 清除存储的数据
+    router.push('/shop/summary')  // 导航到订单完成页面
+  }
+
+  // 在组件卸载时检查是否需要删除数据
+  useEffect(() => {
+    return () => {
+      if (!isProcessing) {
+        // 如果不是正在处理订单，则删除数据
+        localStorage.removeItem('checkoutData');
+      }
+    };
+  }, [isProcessing]);
+
   if (!checkoutData) {
     return <div>加載中...</div>
   }
+
 
   return (
     <form className={styles.main}>
@@ -60,13 +88,8 @@ export default function ReviewPage() {
       </div>
 
       <div className={styles.buttons}>
-        <button onClick={() => router.push('/shop/checkout')}>修改訂單</button>
-        <button onClick={() => {
-          // 这里可以添加提交订单的逻辑
-          alert('訂單已提交！')
-          localStorage.removeItem('checkoutData')  // 清除存储的数据
-          router.push('/shop/summary')  // 导航到订单完成页面
-        }}>前往付款</button>
+        <button type="button" onClick={handleModifyOrder}>修改訂單</button>
+        <button type="button" onClick={handleSubmitOrder}>前往付款</button>
       </div>
 
     </form>
