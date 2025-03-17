@@ -3,11 +3,10 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2025-03-12 10:21:31
+-- 產生時間： 2025-03-17 04:43:23
 -- 伺服器版本： 8.0.40
 -- PHP 版本： 8.2.12
--- 刪除舊的資料庫
-DROP DATABASE IF EXISTS `pet_proj`;
+
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -21,8 +20,6 @@ SET time_zone = "+00:00";
 --
 -- 資料庫： `pet_proj`
 --
-CREATE DATABASE IF NOT EXISTS `pet_proj` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `pet_proj`;
 
 -- --------------------------------------------------------
 
@@ -141,8 +138,8 @@ INSERT INTO `bookmarks` (`id`, `user_id`, `post_id`, `created_at`) VALUES
 
 CREATE TABLE `cases` (
   `id` int NOT NULL,
-  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `content` text COLLATE utf8mb4_general_ci NOT NULL
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -168,7 +165,7 @@ INSERT INTO `cases` (`id`, `title`, `content`) VALUES
 CREATE TABLE `case_images` (
   `id` int NOT NULL,
   `case_id` int DEFAULT NULL,
-  `image_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL
+  `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -234,6 +231,48 @@ INSERT INTO `categories` (`category_id`, `category_name`, `category_tag`, `categ
 (13, '貓日常用品', 'cat_supplies', '貓的日常用品，如貓砂盆、貓抓板', 4, '2025-03-11 15:42:59', '2025-03-11 15:42:59'),
 (14, '狗美容用品', 'dog_grooming', '狗的美容與清潔用品', 5, '2025-03-11 15:42:59', '2025-03-11 15:42:59'),
 (15, '貓美容用品', 'cat_grooming', '貓的美容與清潔用品', 5, '2025-03-11 15:42:59', '2025-03-11 15:42:59');
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `chat_messages`
+--
+
+CREATE TABLE `chat_messages` (
+  `id` int NOT NULL,
+  `room_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `message` text COLLATE utf8mb4_general_ci NOT NULL,
+  `message_type` enum('text','image','video','system') COLLATE utf8mb4_general_ci DEFAULT 'text',
+  `reply_to` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `chat_rooms`
+--
+
+CREATE TABLE `chat_rooms` (
+  `id` int NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `chat_users`
+--
+
+CREATE TABLE `chat_users` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `room_id` int NOT NULL,
+  `last_read_message_id` int DEFAULT NULL,
+  `joined_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -842,6 +881,78 @@ INSERT INTO `follows` (`id`, `following_user_id`, `followed_user_id`, `created_a
 -- --------------------------------------------------------
 
 --
+-- 資料表結構 `forum_articles`
+--
+
+CREATE TABLE `forum_articles` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `view_count` int DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `forum_article_favorites`
+--
+
+CREATE TABLE `forum_article_favorites` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `article_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `forum_article_likes`
+--
+
+CREATE TABLE `forum_article_likes` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `article_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `forum_comments`
+--
+
+CREATE TABLE `forum_comments` (
+  `id` int NOT NULL,
+  `article_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `forum_comment_replies`
+--
+
+CREATE TABLE `forum_comment_replies` (
+  `id` int NOT NULL,
+  `comment_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- 資料表結構 `manager`
 --
 
@@ -865,6 +976,60 @@ INSERT INTO `manager` (`id`, `manager_account`, `manager_password`, `manager_pri
 (6, 'aaa', '$2y$10$3PY7..Z4dL4.ENXW/XZG1.HO7FkOKaMViKjPHOySYYOp0.pRbGAVe', '111'),
 (20, 'aa', '$2y$10$ls7Ts30LmD0x9ODUrVtrZefQLcyghnzGNmw.yMbGFNOaBisC/2QyK', 'test'),
 (21, 'test', '$2y$10$bW0hvzSq1BLJJMqFd9TH.OytSgeXLmxnlbkZ92MPbsQq50Si684fW', 'test');
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `media_article`
+--
+
+CREATE TABLE `media_article` (
+  `id` int NOT NULL,
+  `article_id` int NOT NULL,
+  `media_id` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `media_chat`
+--
+
+CREATE TABLE `media_chat` (
+  `id` int NOT NULL,
+  `message_id` int NOT NULL,
+  `media_id` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `media_uploads`
+--
+
+CREATE TABLE `media_uploads` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `file_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_type` enum('image','gif','video') COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `notify_notifications`
+--
+
+CREATE TABLE `notify_notifications` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `type` enum('article_comment','article_like','comment_reply','chat_message') COLLATE utf8mb4_general_ci NOT NULL,
+  `reference_id` int NOT NULL,
+  `reference_table` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `is_read` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1887,10 +2052,10 @@ INSERT INTO `products` (`product_id`, `product_name`, `product_description`, `pr
 
 CREATE TABLE `product_img` (
   `product_id` int NOT NULL,
-  `product_img1` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `product_img2` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `product_img3` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `product_img4` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL
+  `product_img1` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `product_img2` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `product_img3` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `product_img4` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -2238,6 +2403,29 @@ ALTER TABLE `categories`
   ADD KEY `parent_id` (`parent_id`);
 
 --
+-- 資料表索引 `chat_messages`
+--
+ALTER TABLE `chat_messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `room_id` (`room_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `reply_to` (`reply_to`);
+
+--
+-- 資料表索引 `chat_rooms`
+--
+ALTER TABLE `chat_rooms`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- 資料表索引 `chat_users`
+--
+ALTER TABLE `chat_users`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `room_id` (`room_id`);
+
+--
 -- 資料表索引 `comments`
 --
 ALTER TABLE `comments`
@@ -2270,12 +2458,81 @@ ALTER TABLE `follows`
   ADD KEY `followed_user_id` (`followed_user_id`);
 
 --
+-- 資料表索引 `forum_articles`
+--
+ALTER TABLE `forum_articles`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- 資料表索引 `forum_article_favorites`
+--
+ALTER TABLE `forum_article_favorites`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_favorite` (`user_id`,`article_id`),
+  ADD KEY `article_id` (`article_id`);
+
+--
+-- 資料表索引 `forum_article_likes`
+--
+ALTER TABLE `forum_article_likes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_like` (`user_id`,`article_id`),
+  ADD KEY `article_id` (`article_id`);
+
+--
+-- 資料表索引 `forum_comments`
+--
+ALTER TABLE `forum_comments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `article_id` (`article_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- 資料表索引 `forum_comment_replies`
+--
+ALTER TABLE `forum_comment_replies`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `comment_id` (`comment_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- 資料表索引 `manager`
 --
 ALTER TABLE `manager`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `manager_account` (`manager_account`),
   ADD UNIQUE KEY `manager_account_2` (`manager_account`);
+
+--
+-- 資料表索引 `media_article`
+--
+ALTER TABLE `media_article`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `article_id` (`article_id`),
+  ADD KEY `media_id` (`media_id`);
+
+--
+-- 資料表索引 `media_chat`
+--
+ALTER TABLE `media_chat`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `message_id` (`message_id`),
+  ADD KEY `media_id` (`media_id`);
+
+--
+-- 資料表索引 `media_uploads`
+--
+ALTER TABLE `media_uploads`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- 資料表索引 `notify_notifications`
+--
+ALTER TABLE `notify_notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- 資料表索引 `orders`
@@ -2496,6 +2753,24 @@ ALTER TABLE `categories`
   MODIFY `category_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
+-- 使用資料表自動遞增(AUTO_INCREMENT) `chat_messages`
+--
+ALTER TABLE `chat_messages`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `chat_rooms`
+--
+ALTER TABLE `chat_rooms`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `chat_users`
+--
+ALTER TABLE `chat_users`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- 使用資料表自動遞增(AUTO_INCREMENT) `comments`
 --
 ALTER TABLE `comments`
@@ -2520,10 +2795,64 @@ ALTER TABLE `follows`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
+-- 使用資料表自動遞增(AUTO_INCREMENT) `forum_articles`
+--
+ALTER TABLE `forum_articles`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `forum_article_favorites`
+--
+ALTER TABLE `forum_article_favorites`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `forum_article_likes`
+--
+ALTER TABLE `forum_article_likes`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `forum_comments`
+--
+ALTER TABLE `forum_comments`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `forum_comment_replies`
+--
+ALTER TABLE `forum_comment_replies`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- 使用資料表自動遞增(AUTO_INCREMENT) `manager`
 --
 ALTER TABLE `manager`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `media_article`
+--
+ALTER TABLE `media_article`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `media_chat`
+--
+ALTER TABLE `media_chat`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `media_uploads`
+--
+ALTER TABLE `media_uploads`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `notify_notifications`
+--
+ALTER TABLE `notify_notifications`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `order_items`
@@ -2676,6 +3005,21 @@ ALTER TABLE `categories`
   ADD CONSTRAINT `categories_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`category_id`);
 
 --
+-- 資料表的限制式 `chat_messages`
+--
+ALTER TABLE `chat_messages`
+  ADD CONSTRAINT `chat_messages_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `chat_rooms` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `chat_messages_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `chat_messages_ibfk_3` FOREIGN KEY (`reply_to`) REFERENCES `chat_messages` (`id`) ON DELETE SET NULL;
+
+--
+-- 資料表的限制式 `chat_users`
+--
+ALTER TABLE `chat_users`
+  ADD CONSTRAINT `chat_users_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `chat_users_ibfk_2` FOREIGN KEY (`room_id`) REFERENCES `chat_rooms` (`id`) ON DELETE CASCADE;
+
+--
 -- 資料表的限制式 `comments`
 --
 ALTER TABLE `comments`
@@ -2702,6 +3046,66 @@ ALTER TABLE `expenses`
 ALTER TABLE `follows`
   ADD CONSTRAINT `follows_ibfk_1` FOREIGN KEY (`following_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `follows_ibfk_2` FOREIGN KEY (`followed_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `forum_articles`
+--
+ALTER TABLE `forum_articles`
+  ADD CONSTRAINT `forum_articles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `forum_article_favorites`
+--
+ALTER TABLE `forum_article_favorites`
+  ADD CONSTRAINT `forum_article_favorites_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `forum_article_favorites_ibfk_2` FOREIGN KEY (`article_id`) REFERENCES `forum_articles` (`id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `forum_article_likes`
+--
+ALTER TABLE `forum_article_likes`
+  ADD CONSTRAINT `forum_article_likes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `forum_article_likes_ibfk_2` FOREIGN KEY (`article_id`) REFERENCES `forum_articles` (`id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `forum_comments`
+--
+ALTER TABLE `forum_comments`
+  ADD CONSTRAINT `forum_comments_ibfk_1` FOREIGN KEY (`article_id`) REFERENCES `forum_articles` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `forum_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `forum_comment_replies`
+--
+ALTER TABLE `forum_comment_replies`
+  ADD CONSTRAINT `forum_comment_replies_ibfk_1` FOREIGN KEY (`comment_id`) REFERENCES `forum_comments` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `forum_comment_replies_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `media_article`
+--
+ALTER TABLE `media_article`
+  ADD CONSTRAINT `media_article_ibfk_1` FOREIGN KEY (`article_id`) REFERENCES `forum_articles` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `media_article_ibfk_2` FOREIGN KEY (`media_id`) REFERENCES `media_uploads` (`id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `media_chat`
+--
+ALTER TABLE `media_chat`
+  ADD CONSTRAINT `media_chat_ibfk_1` FOREIGN KEY (`message_id`) REFERENCES `chat_messages` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `media_chat_ibfk_2` FOREIGN KEY (`media_id`) REFERENCES `media_uploads` (`id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `media_uploads`
+--
+ALTER TABLE `media_uploads`
+  ADD CONSTRAINT `media_uploads_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `notify_notifications`
+--
+ALTER TABLE `notify_notifications`
+  ADD CONSTRAINT `notify_notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- 資料表的限制式 `order_items`
