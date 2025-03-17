@@ -7,6 +7,20 @@ export const adminPool = createPool(true)
 // 創建管理員專用查詢輔助對象
 export const adminDb = createQueryHelper(adminPool)
 
+// 執行查詢函數 - 返回直接結果而不是tuple
+export async function executeQuery<T = any>(
+  sql: string,
+  params: any[] = []
+): Promise<T> {
+  try {
+    const [results] = await adminPool.query<T & RowDataPacket[]>(sql, params)
+    return results as unknown as T
+  } catch (error) {
+    console.error('SQL查詢執行錯誤:', error)
+    throw error
+  }
+}
+
 // 創建管理員資料庫操作對象
 export const adminDatabase = {
   // 測試連接

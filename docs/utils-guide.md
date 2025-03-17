@@ -86,7 +86,6 @@ const buttonClass = cn(
 
 1. **樣式系統整合**
 
-   - 與 Tailwind CSS 等工具更好地整合
    - 建立更完整的樣式管理系統
 
 2. **組件庫建設**
