@@ -37,4 +37,21 @@ const regionIcon = createCustomIcon('#0d6efd', 30)
 // 選定位置圖標 - 紅色
 const selectedIcon = createCustomIcon('#dc3545', 30)
 
-export { defaultIcon, regionIcon, selectedIcon }
+// 商店圖標 - 紫色
+const storeIcon = createCustomIcon('#8e44ad', 30)
+
+// 用戶位置圖標 - 綠色，帶有脈衝效果
+const userLocationIcon = L.divIcon({
+  html: `
+    <div class="user-location-marker">
+      <div class="user-location-dot"></div>
+      <div class="user-location-pulse"></div>
+    </div>
+  `,
+  className: 'custom-div-icon',
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
+  popupAnchor: [0, -15],
+})
+
+export { defaultIcon, regionIcon, selectedIcon, storeIcon, userLocationIcon }
