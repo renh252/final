@@ -30,10 +30,7 @@ const nextConfig = {
   skipMiddlewareUrlNormalize: true,
   // output: 'export', // don't use with `next start` or api route
   // distDir: 'dist',
-}
 
-module.exports = nextConfig
-module.exports = {
   async headers() {
     return [
       {
@@ -49,3 +46,5 @@ module.exports = {
     ]
   },
 }
+
+module.exports = nextConfig
