@@ -39,13 +39,14 @@ a {
 }
 
 .button {
-  width: 150px;
+  width: 180px;
+  height: 60px;
   background-color: #003459;
   color: white;
   padding: 8px 28px;
-  border-radius: 25px;
+  border-radius: 28px;
   border: 0;
-  font-size: 20px;
+  font-size: 25px;
   margin: 0 5px;
 
   display: flex;

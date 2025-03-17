@@ -1,0 +1,13 @@
+.customSwal{
+border-radius: 30px !important;
+}
+
+.customConfirm,.customCancel {
+  border-radius: 18px;
+}
+.customConfirm {
+  background-color: rgba(205, 162, 116, 1);
+}
+.customCancel{
+  background-color: gray;
+}

@@ -6,8 +6,11 @@ import Image from 'next/image'
 // styles
 import styles from './cart.module.css'
 import { FaPlus, FaMinus ,FaX } from 'react-icons/fa6'
+import { MdOutlinePets } from "react-icons/md";
+
 // components
 import Alert from '@/app/_components/alert'
+import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 
 // 連接資料庫
 import useSWR, { mutate } from 'swr'
@@ -22,7 +25,8 @@ export default function CartPage() {
   // 清除購物車
   const handleClick = () => {
     Alert({ 
-      title:'確定要清除購物車嗎?',
+      icon:'warning',
+      title:'確定要清空購物車嗎?',
       // text:'確定要清除購物車嗎?',
       // icon:'success',
 
@@ -40,6 +44,12 @@ export default function CartPage() {
           if (response.ok) {
             // 重新獲取購物車數據
             mutate('/api/shop/cart')
+            Alert({
+              title:'購物車已清除',
+              icon:'success',
+              timer: 1000, 
+            })
+            
           } else {
             console.error('刪除購物車失敗')
           }
@@ -47,9 +57,9 @@ export default function CartPage() {
           console.error('刪除購物車時發生錯誤:', error)
         }
       },
-      icon2:'success',
-      title2:'購物車已清除',
-      timer2: 1000,
+      // icon2:'success',
+      // title2:'購物車已清除',
+      // timer2: 1000,
 
     });
   };
@@ -78,13 +88,41 @@ export default function CartPage() {
     }
   };
 
+  // 刪除單筆商品
+  const handleDeleteItem = async (cartId) => {
+    Alert({
+      title:'是否要刪除此商品?',
+      showconfirmBtn: true,
+      confirmBtnText: '確認',
+      showCancelBtn: true,
+      cancelBtnText: '取消',
+      function: async () => {
+        try {
+          const response = await fetch(`/api/shop/cart/${cartId}`, {method: 'DELETE'});
+          if (response.ok) {
+            mutate('/api/shop/cart');
+            Alert({
+              title:'商品已刪除',
+              icon:'success',
+              timer: 1000, 
+            })
+          }else{
+            console.error('刪除購物車商品失敗');
+          }
+        } catch (error) {
+          console.error('刪除購物車商品時發生錯誤:', error);
+        }
+      }
+    })
+  }
+
   // 計算總金額和總折扣
   const { totalAmount, totalDiscount ,totalOriginalPrice} = useMemo(() => {
     if (!data?.data) return { totalAmount: 0, totalDiscount: 0 , totalOriginalPrice: 0};
     return data.data.reduce((acc, item) => {
       const originalPrice = item.price * item.quantity;
       const discountedPrice = item.promotion 
-        ? item.price * (100 - item.promotion.discount_percentage) / 100 * item.quantity
+        ? Math.ceil(item.price * (100 - item.promotion.discount_percentage) / 100) * item.quantity
         : originalPrice;
 
       acc.totalOriginalPrice += originalPrice;
@@ -116,42 +154,64 @@ export default function CartPage() {
 
   return (
     <>
-      <div className={styles.main}>Cart Page
+      <Breadcrumbs
+        title='購物車'
+        items={[
+          { label: '購物車', href: '/shop/cart' }
+        ]}
+      />
+      <div className={styles.main}>
         <div className={styles.row}>
           <div className={styles.productGroup}>
+          
+            <button className={styles.delALL} onClick=
+            {()=>{handleClick()}}>清空購物車</button>
             {cart?.map((product) => (
               <div key={product.cart_id} className={styles.item}>
-                <button className={styles.delItemBtn}><FaX/></button>
-                <Link href={`/shop/${product.product_id}`}>
-                  <div className={styles.image}>
-                    <Image 
-                    src={product.image_url || '/images/default_no_pet.jpg'}
-                    alt={product.product_name}
-                    width={200}
-                    height={200}
-                    />
-                  </div>
-                </Link>
-                <div className={styles.info}>
-                  <div className={styles.infoTop}>
-                    <Link href={`/shop/${product.product_id}`}>
-                    <p className={styles.h2}>{product.product_name}</p>
-                    </Link>
-                    <p className={styles.p1}>{product?.variant_name}</p>
-                  </div>
-                  <div className={styles.infoBottom}>
-                  {product?.promotion
-                  ?<>
-                    <p className={styles.h2}>${product.price * (100-product.promotion.discount_percentage)/100}</p>
-                    <p className={styles.h2}><del>${product.price}</del></p>
+                <button className={styles.delItemBtn} onClick={()=>handleDeleteItem(product.cart_id)}><FaX/></button>
+                
+                <div className={styles.promotion}>
+                  {product?.promotion?
+                  <>
+                  <MdOutlinePets/>
+                  <p>{product.promotion.promotion_name}</p>
                   </>
-                  :<p className={styles.h2}>${product.price}</p>
-                  
-                  }
-                    <div className={styles.count}>
-                      <button  onClick={() => handleQuantityChange(product.cart_id, Number(product.quantity) - 1)}><FaMinus/></button>
-                      <input value={product.quantity} onChange={(event)=>{handleQuantityChange(product.cart_id, event.target.value)}}/>
-                      <button  onClick={() => handleQuantityChange(product.cart_id, Number(product.quantity) + 1)}><FaPlus/></button>
+                  :''}
+                </div>
+                <div className={styles.itemBottom}>
+                  <Link href={`/shop/${product.product_id}`}>
+                    <div className={styles.image}>
+                      <Image 
+                      src={product.image_url || '/images/default_no_pet.jpg'}
+                      alt={product.product_name}
+                      width={200}
+                      height={200}
+                      />
+                    </div>
+                  </Link>
+                  <div className={styles.info}>
+                    <div className={styles.infoTop}>
+                      <Link href={`/shop/${product.product_id}`}>
+                      <p className={styles.h2}>{product.product_name}</p>
+                      </Link>
+                      <p className={styles.p1}>{product?.variant_name}</p>
+                    </div>
+                    <div className={styles.infoBottom}>
+                      <div className={styles.price}>
+                      
+                        {product?.promotion
+                        ?<>
+                          <p className={styles.h2}>${Math.ceil(product.price * (100-product.promotion.discount_percentage)/100)}</p>
+                          <p className={styles.h2}><del>${product.price}</del></p>
+                        </>
+                        :<p className={styles.h2}>${product.price}</p>
+                        }
+                      </div>
+                      <div className={styles.count}>
+                        <button  onClick={() => handleQuantityChange(product.cart_id, Number(product.quantity) - 1)}><FaMinus/></button>
+                        <input value={product.quantity} onChange={(event)=>{handleQuantityChange(product.cart_id, event.target.value)}}/>
+                        <button  onClick={() => handleQuantityChange(product.cart_id, Number(product.quantity) + 1)}><FaPlus/></button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -198,8 +258,6 @@ export default function CartPage() {
 
 
 
-      <button onClick=
-      {()=>{handleClick()}}>清空購物車</button>
     </>
   )
 }

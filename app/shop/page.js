@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, {  useRef, useState} from 'react'
+import React, { useRef } from 'react'
 import {IconLine} from '@/app/shop/_components/icon_line'
 import Link from 'next/link'
 // style

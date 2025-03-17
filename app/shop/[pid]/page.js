@@ -20,6 +20,7 @@ import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 // components
 import { IconLine_lg } from '@/app/shop/_components/icon_line'
 import Alert from '@/app/_components/alert'
+import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 // card
 import Card from '@/app/_components/ui/Card'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
@@ -78,7 +79,7 @@ const calculateDisplayPrice = () => {
   let discountedPrice = basePrice
 
   if (promotion && promotion.length > 0) {
-    discountedPrice = Math.floor(basePrice * (1 - Number(promotion[0]?.discount_percentage) / 100))
+    discountedPrice = Math.ceil(basePrice * (1 - Number(promotion[0]?.discount_percentage) / 100))
   }
 
   return { 
@@ -121,8 +122,11 @@ const calculateDisplayPrice = () => {
     variants,
     reviews,
     reviewCount,
-    similarProducts
+    similarProducts,
+    categories
   } = data
+console.log(categories);
+console.log(data);
 
   
   // ------------------------
@@ -175,7 +179,7 @@ const calculateDisplayPrice = () => {
         Alert({ 
           icon:'error',
           title:'加入購物車失敗',
-          timer:1000
+          timer:2000
         })
         console.error('加入購物車失敗:', data.message);
       }
@@ -193,6 +197,16 @@ const calculateDisplayPrice = () => {
 
   return (
     <main className={styles.main}>
+      <Breadcrumbs
+        title=''
+        items={[
+          { label: '商城', href: `/shop` },
+          { label: categories.parent_category_name, href: `/shop/categories/${categories.parent_id}` },
+          { label: categories.category_name, href: `/shop/categories/${categories.parent_id}/${categories.category_id}` },
+          { label: product.product_name, href: `/shop/${product.product_id}` },
+        ]}
+      />
+
       <div className={styles.row}>
         <div className={styles.imgs}>
           <div className={styles.imgContainer}>
@@ -239,7 +253,7 @@ const calculateDisplayPrice = () => {
                   </button>)
                 ))}
                 {product_imgs?.map((img, index) => (
-                  <button className={styles.imgs_item} key={pid}
+                  <button className={styles.imgs_item} key={index}
                   onClick={() => handleImageClick(img.image_url)}>
                     <Image
                       key={`imgs${index}`}
