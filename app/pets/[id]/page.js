@@ -154,7 +154,7 @@ export default function PetDetailPage() {
         title="寵物詳情"
         items={[
           { label: '首頁', href: '/' },
-          { label: '尋找寵物', href: '/pets' },
+          { label: '寵物列表', href: '/pets' },
           { label: pet?.name || '寵物詳情', href: `/pets/${id}` },
         ]}
       />
