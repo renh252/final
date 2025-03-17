@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import axios from "axios";
+import { useRouter  } from 'next/navigation'  // 导入 useRouter
 // styles
 import styles from './checkout.module.css'
 // components
@@ -10,11 +11,13 @@ import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 
 
 function CheckoutPage(props) {
-
+const router = useRouter()  // 初始化 router
 const formRef = useRef(null);
 const [delivery, setDelivery] = useState('')
 const [storeInfo, setStoreInfo] = useState({ name: "", id: "" });
+const [invoiceMethod, setInvoiceMethod] = useState('');
 const [isLoading, setIsLoading] = useState(false);
+
 
 const [Payload, setPayload] = useState({
   MerchantID: "2000132",
@@ -115,22 +118,41 @@ const handleStoreSelection = (event) => {
   window.removeEventListener('message', handleStoreSelection);
 };
 
+// 送出表單
 
+const handleSubmit = (event) => {
+  event.preventDefault(); // 这行很重要，它阻止了表单的默认提交行为
+
+  // 收集表单数据
+  const formData = new FormData(event.target);
+  const formObject = Object.fromEntries(formData.entries());
+
+  try {
+    // 将表单数据存储到 LocalStorage
+    localStorage.setItem('checkoutData', JSON.stringify(formObject));
+
+    // 使用 router.push 导航到 review 页面
+    router.push('/shop/checkout/review');
+  } catch (error) {
+    console.error('提交出错:', error);
+    alert('提交失败，请稍后重试');
+  }
+};
 
   return (
-    <div className={styles.main}>
+    <form className={styles.main}  onSubmit={handleSubmit}>
       <Breadcrumbs
         title="配送/付款方式"
         items={[
           { label: '購物車', href: `/shop/cart` },
           { label: '配送/付款方式', href: `/shop/checkout` }
         ]}/>
-      <form className={styles.container}>
+      <div className={styles.container}>
         <div className={styles.containTitle}>
             <h3>配送方式</h3>
             <div className={styles.delivery}>
                 <label>
-                  <input type="radio" name="delivery" value="home" checked={delivery === "home"} onChange={(event) =>{ setDelivery(event.target.value);
+                  <input type="radio" name="delivery" value="宅配到府" checked={delivery === "宅配到府"} onChange={(event) =>{ setDelivery(event.target.value);
                   setPayload({ ...Payload, CvsType: '' })}}  />
                   宅配到府
                 </label>
@@ -138,7 +160,7 @@ const handleStoreSelection = (event) => {
                   <input 
                   type="radio" 
                   name="delivery"
-                  value="seven" checked={delivery === "seven"} onChange={(event) =>{ 
+                  value="7-ELEVEN超商" checked={delivery === "7-ELEVEN超商"} onChange={(event) =>{ 
                     setDelivery(event.target.value);
                     setPayload({ ...Payload, CvsType: 'UNIMART'  });
                     SendParams();
@@ -149,36 +171,135 @@ const handleStoreSelection = (event) => {
                   <input 
                   type="radio" 
                   name="delivery"
-                  value="family" checked={delivery === "family"} onChange={(event) =>{ setDelivery(event.target.value);
+                  value="全家" checked={delivery === "全家"} onChange={(event) =>{ setDelivery(event.target.value);
                     setPayload({ ...Payload, CvsType: 'FAMI'  });
                     SendParams();
                   }}
-                     />
+                  />
                   全家
                 </label>
               
             </div>
         </div>
+        {delivery
+        ?
         <div className={styles.containBody}>
-        {delivery === 'home'
-        ? ''
-        : 
-        <>
-        <button  onClick={()=>{}}> 
-          選擇門市
-        </button>
-        <label>門市名稱：
-          <input type="text" value={storeInfo.name} readOnly />
-        </label>
-        <label>門市代號：
-          <input type="text" value={storeInfo.id} readOnly />
-        </label>
-        </>
-        }
-        <p>收件人:</p>
+          {delivery === 'home'
+          ? ''
+          : 
+          <>
+          <button  onClick={()=>{}}> 
+            選擇門市
+          </button>
+          <label>門市名稱：
+            <input type="text" value={storeInfo.name} readOnly />
+          </label>
+          <label>門市代號：
+            <input type="text" value={storeInfo.id} readOnly />
+          </label>
+          </>
+          }
+          <div>
+            <label>收件人 :
+                <input name='recipient_name' type="text" />
+            </label>
+            <label>手機 :
+                <input name='recipient_phone' type="text" />
+            </label>
+            <label>電子信箱 :
+                <input name='recipient_email' type="text" />
+            </label>
+            <label>備註 :
+                <input name='remark' type="text" />
+            </label>
+            <label>備註 :
+                <input name='remark' type="text" />
+            </label>
+            <div className={styles.paymentMethod}>
+              付款方式 :
+              <div>
+                <label>
+                    <input name='payment_method' type="radio" value='creditCard'/>
+                    信用卡
+                </label>
+                <label>
+                    <input name='payment_method' type="radio" value='linePay'/>
+                    line pay
+                </label>
+              </div>
+            </div>
+            <div className={styles.invoiceMethod}>
+              發票 :
+              <div>
+                <label>
+                  <input 
+                    name='invoice_method' 
+                    type="radio" 
+                    value='paper'
+                    checked={invoiceMethod === 'paper'}
+                    onChange={(e) => setInvoiceMethod(e.target.value)}
+                  />
+                  紙本
+                </label>
+                <div>
+                  <label>
+                    <input 
+                      name='invoice_method' 
+                      type="radio" 
+                      value='mobile'
+                      checked={invoiceMethod === 'mobile'}
+                      onChange={(e) => setInvoiceMethod(e.target.value)}
+                    />
+                    手機載具
+                  </label>
+                  {invoiceMethod === 'mobile' && (
+                    <label>
+                      : 
+                      <input type="text" name='mobile_barcode'  value='/'/>
+                    </label>
+                  )}
+                </div>
+                <div>
+                  <label>
+                    <input 
+                      name='invoice_method' 
+                      type="radio" 
+                      value='taxID_number'
+                      checked={invoiceMethod === 'taxID_number'}
+                      onChange={(e) => setInvoiceMethod(e.target.value)}
+                    />
+                    統編
+                  </label>
+                  {invoiceMethod === 'taxID_number' && (
+                    <label>
+                      : 
+                      <input type="text" name='mobile_barcode' />
+                    </label>
+                  )}
+                </div>
+                <label>
+                  <input 
+                    name='invoice_method' 
+                    type="radio" 
+                    value='donate'
+                    checked={invoiceMethod === 'donate'}
+                    onChange={(e) => setInvoiceMethod(e.target.value)}
+                  />
+                  捐贈發票
+                </label>
+
+              </div>
+            </div>
+          </div>
         </div>
-      </form>
-    </div>
+        :<div className={styles.containBody}>請先選擇配送方式</div>
+        }
+      </div>
+      <div className={styles.btns}>
+        <button  type="button" >上一步</button>
+        <button  type="submit" >下一步</button>
+      </div>
+    </form>
 
 
   )
