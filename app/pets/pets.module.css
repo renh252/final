@@ -1086,7 +1086,7 @@
 .storeName {
   font-weight: bold;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
 }
 
@@ -1215,4 +1215,80 @@
   transform: scale(1.1);
   background-color: rgba(255, 255, 255, 1);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.resultsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.activeFilters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filterTag {
+  padding: 0.25rem 0.75rem;
+  background-color: #f0f0f0;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+/* 新增 Flexbox 布局相關樣式 */
+.flexContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: start;
+  align-items: stretch;
+  gap: 20px;
+  margin: 0 -10px; /* 負邊距抵消卡片邊距 */
+}
+
+.flexItem {
+  flex: 0 0 calc(50% - 20px); /* 每行兩個卡片，考慮間距 */
+  min-width: 280px; /* 最小寬度確保在小屏上良好顯示 */
+  margin-bottom: 20px;
+  display: flex;
+}
+
+/* 對應最新上架區的滾動式 flexbox 布局 */
+.flexGroup {
+  display: flex;
+  gap: 30px; /* 與原有的 gap 保持一致 */
+  padding: 10px 0;
+}
+
+/* 響應式調整：大屏幕 */
+@media (min-width: 992px) {
+  .flexItem {
+    flex: 0 0 calc(33.333% - 20px); /* 每行三個卡片 */
+  }
+}
+
+/* 響應式調整：超大屏幕 */
+@media (min-width: 1200px) {
+  .flexItem {
+    flex: 0 0 calc(25% - 20px); /* 每行四個卡片 */
+  }
+}
+
+/* 讓卡片內的元素也使用 flexbox，確保高度一致 */
+.petCard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.petCardContent {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.petCardInfo {
+  flex-grow: 1;
 }

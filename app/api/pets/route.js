@@ -2,42 +2,42 @@ import { NextResponse } from 'next/server'
 import { pool } from '@/app/lib/db'
 
 export async function GET(request) {
+  let connection
   try {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') || 'all'
     const speciesId = searchParams.get('species_id')
+    const species = searchParams.get('species')
+    const region = searchParams.get('region')
+    const storeId = searchParams.get('storeId') || searchParams.get('store')
+    const breed = searchParams.get('breed')
 
-    const connection = await pool.getConnection()
+    connection = await pool.getConnection()
+    const responseData = {}
 
-    let responseData = {}
-
-    // 獲取物種資料
+    // 獲取物種資料 - 直接使用 species 欄位
     if (type === 'all' || type === 'species') {
       const [results] = await connection.execute(`
         SELECT DISTINCT
+          species as name,
           CASE 
-            WHEN variety LIKE '%貓%' THEN '貓'
-            WHEN variety LIKE '%犬%' OR variety LIKE '%狗%' THEN '狗'
-            ELSE '其他'
-          END as name,
-          CASE 
-            WHEN variety LIKE '%貓%' THEN 2
-            WHEN variety LIKE '%犬%' OR variety LIKE '%狗%' THEN 1
+            WHEN species = '狗' THEN 1
+            WHEN species = '貓' THEN 2
             ELSE 3
           END as id
         FROM pets
+        WHERE species IS NOT NULL
         ORDER BY id
       `)
 
-      // 去除重複的物種
-      const species = Array.from(
+      const uniqueSpecies = Array.from(
         new Set(results.map((r) => JSON.stringify(r)))
       ).map((s) => JSON.parse(s))
 
-      responseData.species = species
+      responseData.species = uniqueSpecies
     }
 
-    // 獲取品種資料
+    // 獲取品種資料 - 根據 species 篩選
     if ((type === 'all' || type === 'breeds') && speciesId) {
       const [results] = await connection.execute(
         `
@@ -46,31 +46,26 @@ export async function GET(request) {
         FROM pets
         WHERE 
           CASE 
-            WHEN ? = '1' THEN variety LIKE '%犬%' OR variety LIKE '%狗%'
-            WHEN ? = '2' THEN variety LIKE '%貓%'
-            ELSE NOT (variety LIKE '%貓%' OR variety LIKE '%犬%' OR variety LIKE '%狗%')
+            WHEN ? = '1' THEN species = '狗'
+            WHEN ? = '2' THEN species = '貓'
+            ELSE species != '狗' AND species != '貓'
           END
         ORDER BY variety
       `,
         [speciesId, speciesId]
       )
-
-      // 將結果轉換為帶有 id 的格式
       const breeds = results.map((breed, index) => ({
         id: index + 1,
         name: breed.name,
       }))
-
       responseData.breeds = breeds
     }
 
-    // 獲取所有不重複的品種（variety）
+    // 獲取所有不重複的品種（variety）- 使用 species 欄位篩選
     if (type === 'varieties') {
       let query = ''
       let params = []
-
       if (speciesId === '1') {
-        // 狗的品種
         query = `
           SELECT DISTINCT variety
           FROM pets
@@ -78,7 +73,6 @@ export async function GET(request) {
           ORDER BY variety
         `
       } else if (speciesId === '2') {
-        // 貓的品種
         query = `
           SELECT DISTINCT variety
           FROM pets
@@ -86,91 +80,133 @@ export async function GET(request) {
           ORDER BY variety
         `
       } else {
-        // 所有品種
         query = `
           SELECT DISTINCT variety
           FROM pets
           ORDER BY variety
         `
       }
-
       const [results] = await connection.execute(query, params)
       responseData.varieties = results.map((item) => item.variety)
     }
 
-    // 獲取寵物商店資料
+    // 在 stores 查詢部分增加地區分組
     if (type === 'stores') {
       const [results] = await connection.execute(`
-        SELECT id, name, address, phone, mail, open_hours, lat, lng
+        SELECT 
+          id, 
+          name, 
+          address, 
+          phone, 
+          mail, 
+          open_hours, 
+          lat, 
+          lng,
+          SUBSTRING(address, 1, 3) as region
         FROM pet_store
-        ORDER BY id
+        ORDER BY region, id
       `)
+      const storesByRegion = results.reduce((acc, store) => {
+        const region = store.region || '其他'
+        if (!acc[region]) {
+          acc[region] = []
+        }
+        acc[region].push(store)
+        return acc
+      }, {})
 
       responseData.stores = results
+      responseData.storesByRegion = storesByRegion
     }
 
-    // 獲取寵物資料
+    // 獲取寵物資料 - 使用 species 欄位篩選
     if (type === 'all' || type === 'pets') {
-      // 獲取所有寵物資料
-      const [pets] = await connection.execute(`
+      let conditions = []
+      let params = []
+      let query = `
         SELECT 
           p.*,
-          CASE 
-            WHEN p.variety LIKE '%貓%' THEN '貓'
-            WHEN p.variety LIKE '%犬%' OR p.variety LIKE '%狗%' THEN '狗'
-            ELSE '其他'
-          END as species_name,
-          p.variety as breed_name
+          p.species as species_name,
+          p.variety as breed_name,
+          ps.name as store_name,
+          ps.address as store_address,
+          COUNT(pl.pet_id) as like_count
         FROM pets p
-      `)
+        LEFT JOIN pet_store ps ON p.store_id = ps.id
+        LEFT JOIN pets_like pl ON p.id = pl.pet_id
+      `
 
-      // 獲取店家資訊，用於地點顯示
-      const [stores] = await connection.execute(`
-        SELECT id, address FROM pet_store
-      `)
+      // 物種篩選 - 直接使用 species 欄位
+      if (species) {
+        conditions.push(`
+          CASE 
+            WHEN ? = 'dog' THEN p.species = '狗'
+            WHEN ? = 'cat' THEN p.species = '貓'
+            ELSE p.species != '狗' AND p.species != '貓'
+          END
+        `)
+        params.push(species, species)
+      } else if (speciesId) {
+        conditions.push(`
+          CASE 
+            WHEN ? = '1' THEN p.species = '狗'
+            WHEN ? = '2' THEN p.species = '貓'
+            ELSE p.species != '狗' AND p.species != '貓'
+          END
+        `)
+        params.push(speciesId, speciesId)
+      }
 
-      // 建立店家 ID 到地址的映射
-      const storeMap = {}
-      stores.forEach((store) => {
-        storeMap[store.id] = {
-          address: store.address,
-        }
-      })
+      // 品種篩選
+      if (breed) {
+        conditions.push('p.variety = ?')
+        params.push(breed)
+      }
 
-      // 處理年齡和位置顯示
+      // 地區篩選
+      if (region) {
+        conditions.push('ps.address LIKE ?') 
+        params.push(`${region}%`)
+      }
+
+      // 商店篩選
+      if (storeId) {
+        conditions.push('p.store_id = ?')
+        params.push(storeId)
+      }
+
+      // WHERE 子句和分組
+      if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`
+      }
+      query += ` GROUP BY p.id ORDER BY p.created_at DESC`
+
+      const [pets] = await connection.execute(query, params)
+
       const processedPets = pets.map((pet) => {
-        // 處理年齡顯示
         const birthDate = pet.birthday ? new Date(pet.birthday) : null
-        let ageDisplay = pet.age ? `${pet.age}歲` : '未知'
+        let ageDisplay = '未知'
 
         if (birthDate) {
           const today = new Date()
           let years = today.getFullYear() - birthDate.getFullYear()
           let months = today.getMonth() - birthDate.getMonth()
 
-          // 如果當月日期小於出生日期，減去一個月
           if (today.getDate() < birthDate.getDate()) {
             months--
           }
 
-          // 調整年份和月份
           if (months < 0) {
             years--
             months += 12
           }
 
-          // 根據年齡決定顯示方式
           ageDisplay = years > 0 ? `${years}歲` : `${months}個月`
         }
 
-        // 處理位置顯示 - 根據 store_id 獲取地點
         let locationDisplay = '未知位置'
-        if (pet.store_id && storeMap[pet.store_id]) {
-          const store = storeMap[pet.store_id]
-          if (store.address) {
-            // 從地址中提取城市名稱（假設前三個字是城市名）
-            locationDisplay = store.address.substring(0, 3)
-          }
+        if (pet.store_address) {
+          locationDisplay = pet.store_address.substring(0, 3)
         }
 
         return {
@@ -183,7 +219,7 @@ export async function GET(request) {
       responseData.pets = processedPets
     }
 
-    // 獲取用戶的收藏列表
+    // 獲取收藏列表
     if (type === 'favorites') {
       const userId = searchParams.get('userId')
       if (!userId) {
@@ -193,20 +229,77 @@ export async function GET(request) {
         'SELECT pet_id FROM pets_like WHERE user_id = ?',
         [userId]
       )
-      connection.release()
       return NextResponse.json({ favorites })
     }
 
-    connection.release()
+    // 獲取最新上架寵物 - 也更新為使用 species 欄位
+    if (type === 'latest') {
+      const [latestPets] = await connection.execute(`
+        SELECT 
+          p.*,
+          p.species as species_name,
+          p.variety as breed_name,
+          ps.name as store_name,
+          ps.address as store_address,
+          COUNT(pl.pet_id) as like_count
+        FROM pets p
+        LEFT JOIN pet_store ps ON p.store_id = ps.id
+        LEFT JOIN pets_like pl ON p.id = pl.pet_id
+        GROUP BY p.id 
+        ORDER BY p.created_at DESC
+        LIMIT 5
+      `)
+
+      // 處理年齡和位置顯示
+      const processedPets = latestPets.map((pet) => {
+        const birthDate = pet.birthday ? new Date(pet.birthday) : null
+        let ageDisplay = '未知'
+
+        if (birthDate) {
+          const today = new Date()
+          let years = today.getFullYear() - birthDate.getFullYear()
+          let months = today.getMonth() - birthDate.getMonth()
+
+          if (today.getDate() < birthDate.getDate()) {
+            months--
+          }
+
+          if (months < 0) {
+            years--
+            months += 12
+          }
+
+          ageDisplay = years > 0 ? `${years}歲` : `${months}個月`
+        }
+
+        let locationDisplay = '未知位置'
+        if (pet.store_address) {
+          locationDisplay = pet.store_address.substring(0, 3)
+        }
+
+        return {
+          ...pet,
+          age: ageDisplay,
+          location: locationDisplay,
+        }
+      })
+
+      responseData.pets = processedPets
+    }
+
     return NextResponse.json(responseData)
   } catch (error) {
     console.error('獲取資料時發生錯誤：', error)
     return NextResponse.json({ error: '獲取資料時發生錯誤' }, { status: 500 })
+  } finally {
+    if (connection) {
+      connection.release()
+    }
   }
 }
 
-// 處理收藏操作
 export async function POST(request) {
+  let connection
   try {
     const body = await request.json()
     const { userId, petId, action } = body
@@ -215,7 +308,7 @@ export async function POST(request) {
       return NextResponse.json({ error: '缺少必要參數' }, { status: 400 })
     }
 
-    const connection = await pool.getConnection()
+    connection = await pool.getConnection()
 
     if (action === 'add') {
       await connection.execute(
@@ -229,10 +322,13 @@ export async function POST(request) {
       )
     }
 
-    connection.release()
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Database error:', error)
     return NextResponse.json({ error: '資料庫錯誤' }, { status: 500 })
+  } finally {
+    if (connection) {
+      connection.release()
+    }
   }
 }

@@ -20,7 +20,6 @@ import locationData from './_components/locationData'
 import {
   FaHeart,
   FaSearch,
-  FaClipboardList,
   FaPaw,
   FaArrowRight,
   FaRegHeart,
@@ -252,7 +251,7 @@ export default function PetsPage() {
   const [selectedRegion, setSelectedRegion] = useState('')
   const [selectedStore, setSelectedStore] = useState('')
   const [mapMarkers, setMapMarkers] = useState([])
-  const [mapCenter, setMapCenter] = useState([25.033, 121.5654])
+  const [mapCenter, setMapCenter] = useState([22.9997, 120.227])
   const [mapZoom, setMapZoom] = useState(13)
   const [viewMode, setViewMode] = useState('list')
   const [isGettingLocation, setIsGettingLocation] = useState(false)
@@ -262,19 +261,26 @@ export default function PetsPage() {
   const [selectedStoreLocation, setSelectedStoreLocation] = useState(null)
   const [favorites, setFavorites] = useState({})
   const [showFavorites, setShowFavorites] = useState(false)
+  // 新增分頁控制狀態
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10 // 每頁顯示的寵物數量改為10筆
 
-  // 使用 SWR 獲取資料
-  const { data: petsData, error: petsError } = useSWR(
-    '/api/pets?type=pets',
-    fetcher
-  )
+  // 使用 SWR 獲取資料，根據選擇的物種和品種更新查詢參數
+  const { data: petsData, error: petsError, mutate: mutatePets } = useSWR(() => {
+    const params = new URLSearchParams()
+    params.set('type', 'pets')
+    if (selectedSpecies) params.set('species_id', selectedSpecies)
+    if (selectedBreed) params.set('breed', selectedBreed)
+    if (selectedRegion) params.set('region', selectedRegion)
+    if (selectedStore) params.set('store', selectedStore)
+    return `/api/pets?${params.toString()}`
+  }, fetcher)
+
+  // 修改獨立獲取最新上架寵物的邏輯
+  const { data: latestPetsData } = useSWR('/api/pets?type=latest', fetcher)
+
   const { data: speciesData } = useSWR('/api/pets?type=species', fetcher)
-  const { data: breedsData, mutate: mutateBreeds } = useSWR(
-    selectedSpecies
-      ? `/api/pets?type=breeds&species_id=${selectedSpecies}`
-      : null,
-    fetcher
-  )
+
   // 獲取所有不重複的品種資料
   const { data: varietiesData, mutate: mutateVarieties } = useSWR(
     selectedSpecies
@@ -308,55 +314,47 @@ export default function PetsPage() {
     }
   }, [favoritesData])
 
-  // 處理最新上架的寵物（取ID最大的前5筆）
+  // 處理最新上架的寵物（取API直接返回的資料）
   const latestPets = useMemo(() => {
-    if (!petsData?.pets || !Array.isArray(petsData.pets)) return []
-    return [...petsData.pets].sort((a, b) => b.id - a.id).slice(0, 5)
-  }, [petsData])
+    if (!latestPetsData?.pets || !Array.isArray(latestPetsData.pets)) return []
+    return latestPetsData.pets
+  }, [latestPetsData])
 
   // 處理篩選結果的寵物
   const filteredPets = useMemo(() => {
     if (!petsData?.pets || !Array.isArray(petsData.pets)) return []
 
-    // 使用篩選條件過濾資料
-    let filtered = petsData.pets
+    return petsData.pets.filter((pet) => {
+      // 物種篩選 - 直接比較 species 欄位
+      if (selectedSpecies) {
+        const speciesName = pet.species || pet.species_name
+        if (selectedSpecies === '1' && speciesName !== '狗') return false
+        if (selectedSpecies === '2' && speciesName !== '貓') return false
+        if (selectedSpecies === '3' && (speciesName === '狗' || speciesName === '貓')) return false
+      }
 
-    // 根據選擇的物種篩選
-    if (selectedSpecies) {
-      filtered = filtered.filter(
-        (pet) =>
-          pet.species_name ===
-          (selectedSpecies === '1'
-            ? '狗'
-            : selectedSpecies === '2'
-            ? '貓'
-            : '其他')
-      )
-    }
+      // 品種篩選
+      if (selectedBreed && pet.variety !== selectedBreed) {
+        return false
+      }
 
-    // 根據選擇的品種篩選
-    if (selectedBreed) {
-      filtered = filtered.filter((pet) => pet.variety === selectedBreed)
-    }
+      // 地區篩選
+      if (selectedRegion && !pet.location?.includes(selectedRegion)) {
+        return false
+      }
 
-    // 根據選擇的地區篩選
-    if (selectedRegion) {
-      filtered = filtered.filter((pet) => pet.location.includes(selectedRegion))
-    }
+      // 商店篩選
+      if (selectedStore && pet.store_id !== parseInt(selectedStore)) {
+        return false
+      }
 
-    // 根據選擇的商店篩選
-    if (selectedStore) {
-      filtered = filtered.filter(
-        (pet) => pet.store_id === parseInt(selectedStore)
-      )
-    }
+      // 收藏篩選
+      if (showFavorites && !favorites[pet.id]) {
+        return false
+      }
 
-    // 根據收藏狀態篩選
-    if (showFavorites) {
-      filtered = filtered.filter((pet) => favorites[pet.id])
-    }
-
-    return filtered
+      return true
+    })
   }, [
     petsData,
     selectedSpecies,
@@ -367,12 +365,106 @@ export default function PetsPage() {
     favorites,
   ])
 
+  // 處理分頁的寵物資料
+  const paginatedPets = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    return filteredPets.slice(startIndex, endIndex)
+  }, [filteredPets, currentPage, itemsPerPage])
+
+  // 計算總頁數
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredPets.length / itemsPerPage)
+  }, [filteredPets, itemsPerPage])
+
+  // 清除所有篩選條件
+  const clearAllFilters = () => {
+    setSelectedSpecies('')
+    setSelectedBreed('')
+    setSelectedRegion('')
+    setSelectedStore('')
+    setShowFavorites(false)
+    setCurrentPage(1) // 重置回第一頁
+    // 重新刷新寵物資料
+    mutatePets()
+  }
+
+  // 頁面變更
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber)
+    // 滾動到頂部
+    window.scrollTo({
+      top: document.querySelector(`.${styles.contain_title}`).offsetTop - 100,
+      behavior: 'smooth',
+    })
+  }
+
+  // 更新 URL 查詢參數
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (selectedSpecies) params.set('species', selectedSpecies)
+    if (selectedBreed) params.set('breed', selectedBreed)
+    if (selectedRegion) params.set('region', selectedRegion)
+    if (selectedStore) params.set('store', selectedStore)
+    if (showFavorites) params.set('favorites', 'true')
+    if (currentPage > 1) params.set('page', currentPage.toString())
+
+    window.history.replaceState(
+      {},
+      '',
+      `${window.location.pathname}?${params.toString()}`
+    )
+  }, [
+    selectedSpecies,
+    selectedBreed,
+    selectedRegion,
+    selectedStore,
+    showFavorites,
+    currentPage,
+  ])
+
+  // 在結果區塊加入篩選結果統計
+  const ResultsHeader = () => (
+    <div className={styles.resultsHeader}>
+      <h2>寵物搜尋結果 ({filteredPets.length})</h2>
+      <div className={styles.activeFilters}>
+        {selectedSpecies && (
+          <span className={styles.filterTag}>
+            物種:{' '}
+            {selectedSpecies === '1'
+              ? '狗'
+              : selectedSpecies === '2'
+              ? '貓'
+              : '其他'}
+          </span>
+        )}
+        {selectedBreed && (
+          <span className={styles.filterTag}>品種: {selectedBreed}</span>
+        )}
+        {selectedRegion && (
+          <span className={styles.filterTag}>地區: {selectedRegion}</span>
+        )}
+        {selectedStore && storesData?.stores && (
+          <span className={styles.filterTag}>
+            商店:{' '}
+            {
+              storesData.stores.find((s) => s.id === parseInt(selectedStore))
+                ?.name
+            }
+          </span>
+        )}
+      </div>
+    </div>
+  )
+
   // 處理地區選擇
   const handleRegionChange = (e) => {
     const region = e.target.value
     setSelectedRegion(region)
     // 清除商店選擇
     setSelectedStore('')
+    // 重新刷新寵物資料以應用篩選
+    mutatePets()
 
     if (region && locationData[region]) {
       const { lat, lng, zoom } = locationData[region]
@@ -394,55 +486,38 @@ export default function PetsPage() {
   const handleStoreChange = (e) => {
     const storeId = e.target.value
     setSelectedStore(storeId)
-    // 清除地區選擇
     setSelectedRegion('')
+    // 重新刷新寵物資料以應用篩選
+    mutatePets()
 
     if (storeId && storesData?.stores) {
-      // 找到選中的商店
       const store = storesData.stores.find(
         (store) => store.id.toString() === storeId
       )
 
-      if (store) {
-        // 從地址中提取大約的坐標 - 實際應用中應該從資料庫獲取準確坐標
-        // 這裡我們簡單處理，根據地址的前兩個字判斷城市，然後使用該城市的默認坐標
-        const cityName = store.address.substring(0, 2)
-        let lat = 25.033 // 默認台北市
-        let lng = 121.5654
-        let zoom = 15
-
-        // 根據地址前綴判斷城市，設置坐標
-        for (const [region, coords] of Object.entries(locationData)) {
-          if (store.address.startsWith(region.substring(0, 2))) {
-            lat = coords.lat
-            lng = coords.lng
-            zoom = 15 // 放大到更詳細的級別
-            break
-          }
-        }
-
-        setMapCenter([lat, lng])
-        setMapZoom(zoom)
-
-        // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
+      if (store && store.lat && store.lng) {
+        setMapCenter([parseFloat(store.lat), parseFloat(store.lng)])
+        setMapZoom(15)
         setMapMarkers([
           {
-            lat,
-            lng,
+            lat: parseFloat(store.lat),
+            lng: parseFloat(store.lng),
             name: store.name,
             description: `${store.address} (${store.phone})`,
             isStore: true,
             id: Date.now(),
           },
         ])
-
-        // 清除手動選擇的位置
         setSelectedLocation(null)
+      } else {
+        // 如果商店沒有有效的坐標，使用預設值
+        setMapCenter([25.033, 121.5654])
+        setMapZoom(13)
+        setMapMarkers([])
       }
     } else {
-      // 如果選擇了「請選擇商店」，清除標記
+      // 重置地圖狀態
       setMapMarkers([])
-      // 恢復預設地圖中心
       setMapCenter([25.033, 121.5654])
       setMapZoom(13)
     }
@@ -457,6 +532,63 @@ export default function PetsPage() {
     ])
     // 當手動選擇位置時，清除地區選擇
     setSelectedRegion('')
+  }
+
+  // 修改視圖切換邏輯
+  const handleViewModeChange = () => {
+    const newViewMode = viewMode === 'map' ? 'list' : 'map'
+
+    // 確保切換回列表視圖時重置地圖狀態
+    if (newViewMode === 'list') {
+      // 保存當前位置信息但重置地圖狀態
+      const currentLocation = selectedLocation
+      const currentStore = selectedStoreLocation
+
+      setMapMarkers([])
+      setMapCenter([25.033, 121.5654]) // 預設台北市中心
+      setMapZoom(13)
+
+      // 延遲後恢復標記，確保地圖元件已經重新渲染
+      setTimeout(() => {
+        if (currentLocation) {
+          const markers = [
+            {
+              lat: currentLocation.lat,
+              lng: currentLocation.lng,
+              name: '您的位置',
+              isSelected: true,
+              id: 'user-location',
+              isUserLocation: true,
+            },
+          ]
+
+          if (currentStore) {
+            markers.push({
+              lat: currentStore.lat,
+              lng: currentStore.lng,
+              name: currentStore.name,
+              isStore: true,
+              id: `store-${Date.now()}`,
+            })
+          }
+
+          setMapMarkers(markers)
+        } else if (selectedRegion && locationData[selectedRegion]) {
+          const { lat, lng } = locationData[selectedRegion]
+          setMapMarkers([
+            {
+              lat,
+              lng,
+              name: selectedRegion,
+              isRegion: true,
+              id: Date.now(),
+            },
+          ])
+        }
+      }, 100)
+    }
+
+    setViewMode(newViewMode)
   }
 
   // 滾動功能
@@ -859,6 +991,23 @@ export default function PetsPage() {
     }
   }
 
+  // 從URL讀取查詢參數
+  useEffect(() => {
+    // 只在客戶端環境中執行
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+
+      // 從URL讀取分頁參數
+      const pageParam = params.get('page')
+      if (pageParam) {
+        const page = parseInt(pageParam)
+        if (!isNaN(page) && page > 0) {
+          setCurrentPage(page)
+        }
+      }
+    }
+  }, []) // 空依賴數組，僅在組件掛載時執行一次
+
   if (!petsData) return <div>載入中...</div>
   if (petsError) return <div>發生錯誤</div>
 
@@ -931,9 +1080,7 @@ export default function PetsPage() {
                         id="view-mode-switch"
                         label={viewMode === 'map' ? '地圖檢視' : '列表檢視'}
                         checked={viewMode === 'map'}
-                        onChange={() =>
-                          setViewMode(viewMode === 'map' ? 'list' : 'map')
-                        }
+                        onChange={handleViewModeChange}
                         className={styles.viewModeSwitch}
                       />
                     </div>
@@ -995,12 +1142,12 @@ export default function PetsPage() {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
-                    <Form.Label>商店位置</Form.Label>
+                    <Form.Label>據點位置</Form.Label>
                     <Form.Select
                       value={selectedStore}
                       onChange={handleStoreChange}
                     >
-                      <option value="">請選擇商店</option>
+                      <option value="">請選擇據點</option>
                       {storesData?.stores
                         ?.filter(
                           (store) =>
@@ -1065,6 +1212,18 @@ export default function PetsPage() {
                       </Button>
                     </div>
                   )}
+
+                  {/* 清除所有篩選按鈕 */}
+                  <div className={styles.clearFiltersContainer}>
+                    <Button
+                      variant="outline-primary"
+                      onClick={clearAllFilters}
+                      className={styles.clearFiltersButton}
+                    >
+                      <FaSearch className="me-2" />
+                      清除所有篩選條件
+                    </Button>
+                  </div>
                 </Form>
               </div>
             </Col>
@@ -1128,22 +1287,167 @@ export default function PetsPage() {
             {/* 篩選結果區塊 */}
             <div className={styles.contain}>
               <div className={styles.contain_title}>
-                <h2>寵物搜尋結果</h2>
+                <ResultsHeader />
+              </div>
+              <div className={styles.group}>
+                <div
+                  className={`${styles.gridContainer} ${styles.flexContainer}`}
+                >
+                  {paginatedPets.length > 0 ? (
+                    paginatedPets.map((pet) => (
+                      <Link
+                        href={`/pets/${pet.id}`}
+                        key={pet.id}
+                        className={`${styles.cardLink} ${styles.flexItem}`}
+                      >
+                        <Card
+                          image={
+                            pet.image_url ||
+                            pet.main_photo ||
+                            '/images/default_no_pet.jpg'
+                          }
+                          title={pet.name}
+                          className={styles.petCard}
+                        >
+                          <div className={styles.petCardContent}>
+                            <div className={styles.petCardInfo}>
+                              <p>
+                                <span className={styles.label}>品種</span>
+                                {pet.variety || '未知'}
+                              </p>
+                              <p>
+                                <span className={styles.label}>年齡</span>
+                                {pet.age || '未知'}
+                                <span className={styles.separator}>・</span>
+                                {pet.gender === 'M' ? '男生' : '女生'}
+                              </p>
+                            </div>
+                            <div className={styles.petCardLocation}>
+                              <FaMapMarkerAlt />
+                              {pet.location || '地點未提供'}
+                            </div>
+                          </div>
+                          <button
+                            className={styles.likeButton}
+                            onClick={(e) => handleToggleFavorite(e, pet.id)}
+                            aria-label={
+                              favorites[pet.id] ? '取消收藏' : '加入收藏'
+                            }
+                          >
+                            {favorites[pet.id] ? <FaHeart /> : <FaRegHeart />}
+                          </button>
+                        </Card>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className={styles.noResults}>
+                      <FaSearch />
+                      <p>沒有符合條件的寵物，請調整篩選條件</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 分頁控制 */}
+              {filteredPets.length > itemsPerPage && (
+                <div className={styles.pagination}>
+                  <div className={styles.paginationInfo}>
+                    顯示 {filteredPets.length} 個結果中的
+                    {(currentPage - 1) * itemsPerPage + 1} -
+                    {Math.min(currentPage * itemsPerPage, filteredPets.length)}{' '}
+                    項
+                  </div>
+                  <div className={styles.paginationControls}>
+                    <Button
+                      variant="outline-secondary"
+                      onClick={() => handlePageChange(1)}
+                      disabled={currentPage === 1}
+                      className={styles.paginationButton}
+                    >
+                      首頁
+                    </Button>
+                    <Button
+                      variant="outline-secondary"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className={styles.paginationButton}
+                    >
+                      &laquo; 上一頁
+                    </Button>
+
+                    {/* 頁碼按鈕 */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      // 計算要顯示的頁碼，確保當前頁在中間
+                      let pageNum
+                      if (totalPages <= 5) {
+                        pageNum = i + 1
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i
+                      } else {
+                        pageNum = currentPage - 2 + i
+                      }
+
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={
+                            currentPage === pageNum
+                              ? 'primary'
+                              : 'outline-secondary'
+                          }
+                          onClick={() => handlePageChange(pageNum)}
+                          className={styles.paginationButton}
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })}
+
+                    <Button
+                      variant="outline-secondary"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className={styles.paginationButton}
+                    >
+                      下一頁 &raquo;
+                    </Button>
+                    <Button
+                      variant="outline-secondary"
+                      onClick={() => handlePageChange(totalPages)}
+                      disabled={currentPage === totalPages}
+                      className={styles.paginationButton}
+                    >
+                      末頁
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 最新上架區 */}
+            <div className={styles.contain}>
+              <div className={styles.contain_title}>
+                <h2>最新上架</h2>
               </div>
               <div className={styles.group}>
                 <div className={styles.groupBody}>
                   <CardSwitchButton
                     direction="left"
-                    onClick={() => scroll(-1, popularRef)}
+                    onClick={() => scroll(-1, latestRef)}
                     aria-label="向左滑動"
                   />
-                  <div className={styles.cardGroup} ref={popularRef}>
-                    {filteredPets.length > 0 ? (
-                      filteredPets.map((pet) => (
+                  <div
+                    className={`${styles.cardGroup} ${styles.flexGroup}`}
+                    ref={latestRef}
+                  >
+                    {latestPets && latestPets.length > 0 ? (
+                      latestPets.map((pet) => (
                         <Link
                           href={`/pets/${pet.id}`}
                           key={pet.id}
-                          className={styles.cardLink}
+                          className={`${styles.cardLink} ${styles.flexItem}`}
                         >
                           <Card
                             image={
@@ -1185,79 +1489,10 @@ export default function PetsPage() {
                         </Link>
                       ))
                     ) : (
-                      <div className={styles.noResults}>
-                        <FaSearch />
-                        <p>沒有符合條件的寵物，請調整篩選條件</p>
+                      <div className={styles.noResultsInLatest}>
+                        <p>暫無最新上架寵物</p>
                       </div>
                     )}
-                  </div>
-                  <CardSwitchButton
-                    direction="right"
-                    onClick={() => scroll(1, popularRef)}
-                    aria-label="向右滑動"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 最新上架區 */}
-            <div className={styles.contain}>
-              <div className={styles.contain_title}>
-                <h2>最新上架</h2>
-              </div>
-              <div className={styles.group}>
-                <div className={styles.groupBody}>
-                  <CardSwitchButton
-                    direction="left"
-                    onClick={() => scroll(-1, latestRef)}
-                    aria-label="向左滑動"
-                  />
-                  <div className={styles.cardGroup} ref={latestRef}>
-                    {latestPets.map((pet) => (
-                      <Link
-                        href={`/pets/${pet.id}`}
-                        key={pet.id}
-                        className={styles.cardLink}
-                      >
-                        <Card
-                          image={
-                            pet.image_url ||
-                            pet.main_photo ||
-                            '/images/default_no_pet.jpg'
-                          }
-                          title={pet.name}
-                          className={styles.petCard}
-                        >
-                          <div className={styles.petCardContent}>
-                            <div className={styles.petCardInfo}>
-                              <p>
-                                <span className={styles.label}>品種</span>
-                                {pet.variety || '未知'}
-                              </p>
-                              <p>
-                                <span className={styles.label}>年齡</span>
-                                {pet.age || '未知'}
-                                <span className={styles.separator}>・</span>
-                                {pet.gender === 'M' ? '男生' : '女生'}
-                              </p>
-                            </div>
-                            <div className={styles.petCardLocation}>
-                              <FaMapMarkerAlt />
-                              {pet.location || '地點未提供'}
-                            </div>
-                          </div>
-                          <button
-                            className={styles.likeButton}
-                            onClick={(e) => handleToggleFavorite(e, pet.id)}
-                            aria-label={
-                              favorites[pet.id] ? '取消收藏' : '加入收藏'
-                            }
-                          >
-                            {favorites[pet.id] ? <FaHeart /> : <FaRegHeart />}
-                          </button>
-                        </Card>
-                      </Link>
-                    ))}
                   </div>
                   <CardSwitchButton
                     direction="right"
