@@ -422,7 +422,17 @@ export const GET = guard.api(async (request: NextRequest, authData) => {
 
 ## 資料庫交互
 
-後台管理系統通過 API 與資料庫進行交互，主要使用 MySQL 資料庫。資料庫連接和查詢邏輯位於 `app/api/admin/_lib/database.ts` 文件中，提供了 `executeQuery` 函數用於執行 SQL 查詢。
+後台管理系統通過 API 與資料庫進行交互，主要使用 MySQL 資料庫。資料庫連接和查詢邏輯位於 `app/api/admin/_lib/database.ts` 文件中，提供了以下主要函數：
+
+1. `executeQuery<T>(sql, params)` - 執行 SQL 查詢並直接返回結果，支援泛型類型參數
+2. `executeSecureQuery<T>(sql, params)` - 執行 SQL 查詢並返回 [results, error] 元組
+3. `execute<T>(sql, params)` - 執行 SQL 語句並返回 [results, error] 元組
+4. `findAdminById(id)` - 根據 ID 查詢管理員資訊
+
+這些函數提供了不同的錯誤處理方式：
+
+- `executeQuery` 拋出異常，適合需要立即中斷執行流程的情況
+- `executeSecureQuery` 和 `execute` 返回結果和錯誤的元組，適合需要更細緻錯誤處理的情況
 
 資料庫結構的詳細信息可以參考 `docs/database-structure.md` 文件。
 

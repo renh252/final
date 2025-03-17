@@ -1,0 +1,459 @@
+.container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+}
+
+.breadcrumbContainer {
+  margin-bottom: 2rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.matchScoreContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.matchScore {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0070f3;
+}
+
+.resultSection {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  padding: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.userAnswersContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.answerCard {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.answerCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.questionTitle {
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.answerText {
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.booleanYes {
+  color: #28a745;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.booleanNo {
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.traitsPreference {
+  margin-top: 2rem;
+  background-color: #f0f7ff;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.traitsTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #0070f3;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.traitsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.traitItem {
+  background-color: #e0f2fe;
+  color: #0284c7;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  border: 1px solid #93c5fd;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.petMatchesContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.petCard {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.petCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.petImageContainer {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  position: relative;
+}
+
+.petImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.petCard:hover .petImage {
+  transform: scale(1.05);
+}
+
+.noImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  color: #999;
+  gap: 0.5rem;
+}
+
+.matchBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: #0070f3;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0, 112, 243, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.petContent {
+  padding: 1.25rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.petName {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.starIcon {
+  color: #ffc107;
+  font-size: 1.1rem;
+}
+
+.hiddenIcon {
+  display: none;
+}
+
+.petDetails {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.petDetail {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.petLocation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #555;
+  font-size: 0.95rem;
+  margin-top: 0.75rem;
+  margin-bottom: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
+}
+
+.petTraits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.traitTag {
+  background-color: #f0f7ff;
+  color: #0070f3;
+  padding: 0.3rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  border: 1px solid #d0e1ff;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.matchingTraitTag {
+  background-color: #e0f2fe;
+  color: #0284c7;
+  border-color: #93c5fd;
+  font-weight: 600;
+}
+
+.matchIcon {
+  font-size: 0.7rem;
+  background-color: #0284c7;
+  color: white;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.petActions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.viewButton {
+  background-color: #0070f3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.viewButton:hover {
+  background-color: #0056b3;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.retryButton {
+  background-color: #0070f3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.retryButton:hover {
+  background-color: #0056b3;
+}
+
+.browseButton {
+  background-color: #4caf50;
+}
+
+.browseButton:hover {
+  background-color: #388e3c;
+}
+
+.errorContainer {
+  text-align: center;
+  padding: 3rem;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.errorTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #e53e3e;
+  margin-bottom: 1rem;
+}
+
+.errorMessage {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.loadingSpinner {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(0, 112, 243, 0.2);
+  border-radius: 50%;
+  border-top: 5px solid #0070f3;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+.loadingText {
+  color: #666;
+  font-size: 1.2rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+    margin: 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .resultSection {
+    padding: 1.25rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.25rem;
+  }
+
+  .userAnswersContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .petMatchesContainer {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .retryButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -145,10 +145,22 @@ API 路由結構遵循 Next.js 的 App Router API 路由結構，位於 `app/api
 - `GET /api/pets`：獲取寵物列表
 - `GET /api/pets/:id`：獲取寵物詳情
 - `GET /api/pets/categories`：獲取寵物分類
-- `POST /api/pets/appointments`：預約看寵物
-- `GET /api/pets/appointments`：獲取預約列表
-- `PUT /api/pets/appointments/:id`：更新預約狀態
-- `DELETE /api/pets/appointments/:id`：取消預約
+- `POST /api/pets/appointments`：預約看寵物 ✅ 已實現
+  - 功能：創建新的寵物預約
+  - 請求參數：pet_id, user_id, appointment_date, appointment_time, 以及其他表單資料
+  - 返回：success, message, 以及預約 ID
+- `GET /api/pets/appointments`：獲取用戶預約列表 ✅ 已實現
+  - 功能：獲取當前登入用戶的所有預約記錄
+  - 請求參數：無(使用 JWT 驗證)
+  - 返回：預約資料列表，包含寵物基本資訊
+- `PUT /api/pets/appointments/:id`：更新預約狀態 ✅ 已實現
+  - 功能：用戶更新預約時間或其他資訊
+  - 請求參數：appointment_date, appointment_time 等
+  - 返回：success, message
+- `DELETE /api/pets/appointments/:id`：取消預約 ✅ 已實現
+  - 功能：用戶取消已提交的預約
+  - 請求參數：無(通過 URL 參數指定預約 ID)
+  - 返回：success, message
 - `POST /api/pets/adoptions`：申請領養
 - `GET /api/pets/adoptions`：獲取領養申請列表
 - `GET /api/pets/adoptions/:id`：獲取領養申請詳情
@@ -240,9 +252,18 @@ API 路由結構遵循 Next.js 的 App Router API 路由結構，位於 `app/api
 - `POST /api/admin/pets/categories`：新增寵物分類
 - `PUT /api/admin/pets/categories/:id`：更新寵物分類
 - `DELETE /api/admin/pets/categories/:id`：刪除寵物分類
-- `GET /api/admin/pets/appointments`：獲取預約列表
-- `PUT /api/admin/pets/appointments/:id`：更新預約狀態
-- `DELETE /api/admin/pets/appointments/:id`：刪除預約
+- `GET /api/admin/pets/appointments`：獲取預約列表 ✅ 已實現
+  - 功能：管理員獲取所有預約記錄
+  - 請求參數：可選的篩選條件
+  - 返回：所有預約資料列表
+- `PUT /api/admin/pets/appointments/:id`：更新預約狀態 ✅ 已實現
+  - 功能：管理員更新預約狀態(核准、拒絕等)
+  - 請求參數：status, admin_note 等
+  - 返回：success, message
+- `DELETE /api/admin/pets/appointments/:id`：刪除預約 ✅ 已實現
+  - 功能：管理員刪除預約記錄
+  - 請求參數：無(通過 URL 參數指定預約 ID)
+  - 返回：success, message
 - `GET /api/admin/pets/adoptions`：獲取領養申請列表
 - `PUT /api/admin/pets/adoptions/:id`：更新領養申請狀態
 - `DELETE /api/admin/pets/adoptions/:id`：刪除領養申請
@@ -881,203 +902,3 @@ POST /api/admin/products/batch-delete
   "product_ids": [45, 46, 47]
 }
 ```
-
-#### 響應範例
-
-```json
-{
-  "message": "批量刪除完成",
-  "deleted": 3,
-  "failed": 0
-}
-```
-
-### 更新商品狀態
-
-```
-PUT /api/admin/products/:product_id/status
-```
-
-#### 請求參數
-
-| 參數名     | 類型   | 必填 | 說明    |
-| ---------- | ------ | ---- | ------- |
-| product_id | number | 是   | 商品 ID |
-
-#### 請求內容
-
-```json
-{
-  "status": "inactive"
-}
-```
-
-#### 響應範例
-
-```json
-{
-  "message": "商品狀態更新成功",
-  "product": {
-    "product_id": 46,
-    "product_status": "下架",
-    "status": "inactive"
-  }
-}
-```
-
-### 導入商品數據
-
-```
-POST /api/admin/products/import
-```
-
-#### 請求內容
-
-使用 `multipart/form-data` 格式，包含一個名為 `file` 的文件字段，文件可以是 CSV 或 JSON 格式。
-
-#### 響應範例
-
-```json
-{
-  "message": "成功導入 15 個商品，失敗 2 個",
-  "results": {
-    "total": 17,
-    "success": 15,
-    "failed": 2,
-    "errors": [
-      {
-        "row": 3,
-        "error": "商品名稱不能為空"
-      },
-      {
-        "row": 12,
-        "error": "商品價格必須是有效數字"
-      }
-    ]
-  }
-}
-```
-
-### 導出商品數據
-
-```
-GET /api/admin/products/export
-```
-
-#### 請求參數
-
-| 參數名          | 類型    | 必填 | 說明                                  |
-| --------------- | ------- | ---- | ------------------------------------- |
-| format          | string  | 否   | 導出格式，'csv' 或 'json'，默認 'csv' |
-| include_deleted | boolean | 否   | 是否包含已刪除商品，默認為 false      |
-
-#### 響應
-
-文件下載，文件類型取決於請求的 format 參數。
-
-### 訂單 API 響應格式
-
-#### GET /api/admin/shop/orders/:id
-
-```typescript
-interface OrderResponse {
-  success: boolean
-  order: {
-    order_id: string
-    user_id: number
-    order_status: '待出貨' | '已出貨' | '已完成' | '已取消'
-    payment_method: '信用卡' | 'LINE Pay' | '貨到付款'
-    payment_status: '未付款' | '已付款' | '已退款'
-    recipient_name: string
-    recipient_email: string
-    recipient_phone: string
-    shipping_address: string
-    note?: string
-    created_at: string
-    updated_at: string
-    items: Array<{
-      order_item_id: number
-      product_id: number
-      product_name: string
-      product_image: string
-      variant?: string
-      price: number
-      quantity: number
-    }>
-    shipping?: {
-      carrier: string
-      tracking_number: string
-      shipped_date: string
-      estimated_delivery: string
-    }
-    messages: Array<{
-      id: number
-      admin_name: string
-      content: string
-      created_at: string
-    }>
-    timeline: Array<{
-      id: number
-      status: string
-      admin_name: string
-      note?: string
-      created_at: string
-    }>
-  }
-}
-```
-
-#### 訂單總金額計算
-
-訂單總金額是根據訂單項目（items）計算得出：
-
-```typescript
-const calculateTotalPrice = (items: OrderItem[]): number => {
-  if (!items || items.length === 0) return 0
-  return items.reduce((sum, item) => {
-    const itemTotal = (item.price || 0) * (item.quantity || 0)
-    return sum + itemTotal
-  }, 0)
-}
-```
-
-計算邏輯：
-
-1. 每個訂單項目的金額 = 商品單價 × 購買數量
-2. 訂單總金額 = 所有訂單項目的金額總和
-
-注意事項：
-
-1. 訂單總金額不包含運費
-2. 優惠券折扣應在計算總金額後再進行扣除
-3. 所有金額計算都應考慮到可能的 undefined 值，使用空值合併運算符（??）或邏輯或運算符（||）處理
-
-#### 預設值處理
-
-所有 API 響應中的陣列類型欄位都應有預設值：
-
-```typescript
-interface OrderResponse {
-  success: boolean
-  order: {
-    // ... 其他欄位 ...
-    items: OrderItem[] // 預設值：[]
-    shipping?: ShippingInfo // 預設值：{}
-    messages: Message[] // 預設值：[]
-    timeline: Timeline[] // 預設值：[]
-  }
-}
-```
-
-前端處理時應確保：
-
-```typescript
-const {
-  items = [],
-  shipping = {},
-  messages = [],
-  timeline = [],
-} = response.order
-```
-
-這樣可以避免在處理 undefined 或 null 值時出現錯誤。
