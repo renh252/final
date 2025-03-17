@@ -9,6 +9,7 @@ import Form from 'react-bootstrap/Form'
 
 import styles from './donate.module.css'
 import SelectBasicExample from './_components/options'
+import RescueModal from './_components/modal'
 
 import MethodItem from './_components/methodItem'
 import Contents from './_data/Contents'
@@ -33,6 +34,19 @@ export default function DonatePage() {
   const router = useRouter()
   const [donationType, setDonationType] = useState('')
   const [selectedPet, setSelectedPet] = useState('')
+
+  // 救援醫療
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedCase, setSelectedCase] = useState(null)
+
+  // 開關Modal
+  const openModal = (rescueCase) => {
+    setSelectedCase(rescueCase)
+    setIsModalOpen(true)
+  }
+  const closeModal = () => {
+    setIsModalOpen(false)
+  }
 
   const handleDonate = (e) => {
     e.preventDefault()
@@ -64,8 +78,8 @@ export default function DonatePage() {
   const cards = ['jcb', 'mastercard', 'visa']
   const sections = [
     { id: 'credit_card', label: '信用卡' },
-    { id: 'bank_atm', label: '銀行ATM' },
-    { id: 'post_office', label: '郵局' },
+    { id: 'bank_atm', label: 'ATM轉帳' },
+    { id: 'post_office', label: '超商繳款' },
     { id: 'faq', label: 'FAQ' },
   ]
   const sections2 = [
@@ -112,6 +126,7 @@ export default function DonatePage() {
                   priority
                 />
               ))}
+              / ATM轉帳 / 超商繳款
             </li>
             <li style={{ display: 'flex', alignItems: 'center' }}>
               <h5 style={{ marginRight: '5px' }}>選擇捐款種類</h5>
@@ -291,7 +306,13 @@ export default function DonatePage() {
                           <p>No images available</p>
                         )}
                         <h5>{post.title}</h5>
-                        <button type="button" className="button">
+                        <button
+                          type="button"
+                          className="button"
+                          onClick={() => {
+                            openModal(post)
+                          }}
+                        >
                           查看詳情
                         </button>
                       </li>
@@ -303,6 +324,16 @@ export default function DonatePage() {
                   >
                     <Link href="/donate">立即捐款</Link>
                   </button>
+                  {/* Modal - 當 selectedCase 存在時顯示 */}
+                  {selectedCase && (
+                    <RescueModal
+                      isOpen={isModalOpen}
+                      closeModal={closeModal}
+                      title={selectedCase.title}
+                      description={selectedCase.description}
+                      image={selectedCase.images?.[0]}
+                    />
+                  )}
                 </div>
               </>
             )}
