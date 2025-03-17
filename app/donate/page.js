@@ -4,14 +4,14 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import useSWR from 'swr'
+import Form from 'react-bootstrap/Form'
 
 import styles from './donate.module.css'
-
 import SelectBasicExample from './_components/options'
-import MethodItem from './_components/methodItem'
 
+import MethodItem from './_components/methodItem'
 import Contents from './_data/Contents'
-import useSWR from 'swr'
 
 import Card from '@/app/_components/ui/Card'
 
@@ -32,14 +32,28 @@ export default function DonatePage() {
 
   const router = useRouter()
   const [donationType, setDonationType] = useState('')
-  const handleDonate = () => {
+  const [selectedPet, setSelectedPet] = useState('')
+
+  const handleDonate = (e) => {
+    e.preventDefault()
+
     if (!donationType) {
       alert('請選擇捐款類型！')
       return
     }
+    if (donationType === '線上認養' && !selectedPet) {
+      alert('請選擇認養的寵物！')
+      return
+    }
 
-    // 跳轉到 flow 頁面，並帶上選擇的捐款類型
-    router.push(`/donate/flow?donationType=${encodeURIComponent(donationType)}`)
+    let query = `donationType=${encodeURIComponent(donationType)}`
+
+    // 如果選擇的是「線上認養」，則將 selectedPet 也加入網址參數
+    if (donationType === '線上認養' && selectedPet) {
+      query += `&pet=${encodeURIComponent(selectedPet)}`
+    }
+
+    router.push(`/donate/flow?${query}`)
   }
 
   const [activeSection, setActiveSection] = useState('method') // 控制主選單（捐款方式/種類說明）
@@ -106,13 +120,39 @@ export default function DonatePage() {
                 onChange={setDonationType}
               />
             </li>
+            {donationType === '線上認養' ? (
+              <li style={{ display: 'flex', alignItems: 'center' }}>
+                <h5 style={{ marginRight: '5px' }}>選擇認養寵物</h5>
+                <Form.Select
+                  aria-label="Default select example"
+                  style={{
+                    width: '150px',
+                    backgroundColor: '#092C4C',
+                    color: 'white',
+                    textAlign: 'center',
+                  }}
+                  value={selectedPet}
+                  onChange={(e) => setSelectedPet(e.target.value)}
+                >
+                  <option value="">－ 請選擇 －</option>
+                  {pets.map((pet) => (
+                    <option key={pet.id} value={pet.name}>
+                      {pet.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </li>
+            ) : (
+              ''
+            )}
+
             <li style={{ display: 'flex', justifyContent: 'end' }}>
               <button
                 className="button"
                 style={{ width: '120px', height: '50px', fontSize: '28px' }}
                 onClick={handleDonate}
               >
-                <Link href="/donate/flow">捐款</Link>
+                捐款
               </button>
             </li>
           </ul>
