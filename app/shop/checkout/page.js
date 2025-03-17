@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import axios from "axios";
 import { useRouter  } from 'next/navigation'  // 导入 useRouter
 // styles
 import styles from './checkout.module.css'
@@ -10,29 +9,30 @@ import styles from './checkout.module.css'
 
 
 
-function CheckoutPage(props) {
+export default function CheckoutPage() {
 const router = useRouter()  // 初始化 router
+const [isProcessing, setIsProcessing] = useState(false)
 const formRef = useRef(null);
 
 
 const [delivery, setDelivery] = useState('宅配到府')
 const [storeInfo, setStoreInfo] = useState({ name: "", id: "" });
 
-// 表單資料
-const [formData, setFormData] = useState(() => {
-  const savedData = localStorage.getItem('checkoutFormData');
-  return savedData ? JSON.parse(savedData) : {
-    recipient_name: '',
-    recipient_phone: '',
-    recipient_email: '',
-    remark: '',
-    payment_method: '',
-    invoice_method: '',
-    mobile_barcode: '/',
-    taxID_number: '',
-    // ... 其他字段的初始值
-  };
-});
+  // 表單資料
+  const [formData, setFormData] = useState(() => {
+    const savedData = localStorage.getItem('checkoutData');
+    return savedData ? JSON.parse(savedData) : {
+      recipient_name: '',
+      recipient_phone: '',
+      recipient_email: '',
+      remark: '',
+      payment_method: '',
+      invoice_method: '',
+      mobile_barcode: '/',
+      taxID_number: '',
+      // ... 其他字段的初始值
+    };
+  });
 
 // 表單驗證錯誤信息
 const [errors, setErrors] = useState({});
@@ -76,6 +76,11 @@ const handleInputChange = (e) => {
       setFormData(prev => ({ ...prev, taxID_number: '' }));
     }
   }
+
+    // 更新formData后，立即保存到localStorage
+    const updatedFormData = { ...formData, [e.target.name]: e.target.value };
+    setFormData(updatedFormData);
+    localStorage.setItem('checkoutData', JSON.stringify(updatedFormData));
 };
 
 
@@ -93,6 +98,7 @@ const [Payload, setPayload] = useState({
 const CreateCMVURL = "http://localhost:3000/api/shop/checkout";
 const APIURL = "https://logistics-stage.ecpay.com.tw/Helper/GetStoreList";
 
+// ------------串超商地圖
 async function SendParams() {
   try {
     const params = { 
@@ -183,11 +189,12 @@ const handleStoreSelection = (event) => {
   // 移除事件監聽器
   window.removeEventListener('message', handleStoreSelection);
 };
+// -----------------
 
 // 存儲表單資料到 LocalStorage
-useEffect(() => {
-  localStorage.setItem('checkoutFormData', JSON.stringify(formData));
-}, [formData]);
+// useEffect(() => {
+//   localStorage.setItem('checkoutData', JSON.stringify(formData));
+// }, [formData]);
 
 // 表單驗證
 const validateForm = () => {
@@ -248,25 +255,23 @@ const validateForm = () => {
 };
 
 
-// 送出表單
-const handleSubmit = (event) => {
-  event.preventDefault();
-  
-  if (validateForm()) {
-    // 存储结算数据（这是之前用于 ReviewPage 的数据）
-    localStorage.setItem('checkoutData', JSON.stringify(formData));
+  // 送出表單
+  const handleSubmit = (event) => {
+    event.preventDefault();
     
-    // 导航到 review 页面
-    router.push('/shop/checkout/review');
-  }
-};
+    if (validateForm()) {
+      setIsProcessing(true);
+      // 数据已经在handleInputChange中保存，这里不需要再次保存
+      router.push('/shop/checkout/review');
+    }
+  };
 
-// 刪除localStorage並導回購物車
-const handleCancelPurchase = () => {
-  localStorage.removeItem('checkoutFormData');
-  localStorage.removeItem('checkoutData');
-  router.push('/shop/cart');
-};
+  // 刪除localStorage並導回購物車
+  const handleCancelPurchase = () => {
+    localStorage.removeItem('checkoutData');
+    router.push('/shop/cart');
+  };
+
 
   return (
     <form className={styles.main}  onSubmit={handleSubmit}>
@@ -480,4 +485,3 @@ const handleCancelPurchase = () => {
 
   )
 }
-export default CheckoutPage;
