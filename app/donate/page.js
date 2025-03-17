@@ -21,7 +21,7 @@ const fetcher = (...args) => fetch(...args).then((res) => res.json())
 
 export default function DonatePage() {
   const url = '/api/donate' // 接救援醫療資料
-  const url2 = '/api/pets?type=pets' // 接救援醫療資料
+  const url2 = '/api/pets?type=pets' // 接寵物認養資料
 
   // 向伺服器fetch
   const { data } = useSWR(url, fetcher)
@@ -330,8 +330,8 @@ export default function DonatePage() {
                       isOpen={isModalOpen}
                       closeModal={closeModal}
                       title={selectedCase.title}
-                      description={selectedCase.description}
-                      image={selectedCase.images?.[0]}
+                      content={selectedCase.content}
+                      images={selectedCase.images}
                     />
                   )}
                 </div>

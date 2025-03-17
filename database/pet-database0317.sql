@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2025-03-17 04:43:23
+-- 產生時間： 2025-03-17 15:40:03
 -- 伺服器版本： 8.0.40
 -- PHP 版本： 8.2.12
 
@@ -20,6 +20,62 @@ SET time_zone = "+00:00";
 --
 -- 資料庫： `pet_proj`
 --
+DROP DATABASE IF EXISTS `pet_proj`;
+CREATE DATABASE IF NOT EXISTS `pet_proj` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `pet_proj`;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `admin_operation_logs`
+--
+
+CREATE TABLE `admin_operation_logs` (
+  `id` int NOT NULL,
+  `admin_id` int NOT NULL,
+  `action_type` varchar(50) NOT NULL COMMENT '操作類型：登入、登出、新增、修改、刪除等',
+  `module` varchar(50) NOT NULL COMMENT '操作模組：會員、寵物、商品、文章等',
+  `target_id` int DEFAULT NULL COMMENT '操作對象ID',
+  `details` text NOT NULL COMMENT '詳細操作內容',
+  `ip_address` varchar(45) DEFAULT NULL COMMENT '操作者IP地址',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '操作時間'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理員操作日誌';
+
+--
+-- 傾印資料表的資料 `admin_operation_logs`
+--
+
+INSERT INTO `admin_operation_logs` (`id`, `admin_id`, `action_type`, `module`, `target_id`, `details`, `ip_address`, `created_at`) VALUES
+(1, 1, 'LOGIN', 'SYSTEM', NULL, '管理員登入系統', '192.168.1.100', '2024-03-15 09:00:00'),
+(2, 1, 'UPDATE', 'MEMBER', 25, '更新會員資料：修改聯絡電話', '192.168.1.100', '2024-03-15 09:15:23'),
+(3, 1, 'DELETE', 'MEMBER', 30, '刪除停用會員帳號', '192.168.1.100', '2024-03-15 09:30:45'),
+(4, 1, 'LOGOUT', 'SYSTEM', NULL, '管理員登出系統', '192.168.1.100', '2024-03-15 17:30:00'),
+(5, 2, 'LOGIN', 'SYSTEM', NULL, '管理員登入系統', '192.168.1.101', '2024-03-15 08:30:00'),
+(6, 2, 'CREATE', 'PET', 101, '新增寵物資料：米克斯成年貓', '192.168.1.101', '2024-03-15 08:45:12'),
+(7, 2, 'UPDATE', 'PET', 95, '更新寵物狀態：已完成結紮手術', '192.168.1.101', '2024-03-15 10:20:33'),
+(8, 2, 'UPDATE', 'PET', 88, '更新寵物狀態：已被領養', '192.168.1.101', '2024-03-15 14:15:27'),
+(9, 2, 'LOGOUT', 'SYSTEM', NULL, '管理員登出系統', '192.168.1.101', '2024-03-15 18:00:00'),
+(10, 3, 'LOGIN', 'SYSTEM', NULL, '管理員登入系統', '192.168.1.102', '2024-03-15 09:15:00'),
+(11, 3, 'CREATE', 'DONATION', 156, '新增捐款記錄：台幣 5000 元', '192.168.1.102', '2024-03-15 09:45:18'),
+(12, 3, 'UPDATE', 'DONATION', 155, '更新捐款狀態：已開立收據', '192.168.1.102', '2024-03-15 11:30:42'),
+(13, 3, 'LOGOUT', 'SYSTEM', NULL, '管理員登出系統', '192.168.1.102', '2024-03-15 17:45:00'),
+(14, 4, 'LOGIN', 'SYSTEM', NULL, '管理員登入系統', '192.168.1.103', '2024-03-15 08:00:00'),
+(15, 4, 'CREATE', 'PRODUCT', 89, '新增商品：優質貓砂 10kg裝', '192.168.1.103', '2024-03-15 08:30:15'),
+(16, 4, 'UPDATE', 'PRODUCT', 75, '更新商品庫存：補貨 50 件', '192.168.1.103', '2024-03-15 09:20:44'),
+(17, 4, 'UPDATE', 'PRODUCT', 82, '更新商品價格：調整為 299 元', '192.168.1.103', '2024-03-15 13:45:30'),
+(18, 4, 'DELETE', 'PRODUCT', 70, '下架已售罄商品', '192.168.1.103', '2024-03-15 15:30:22'),
+(19, 4, 'LOGOUT', 'SYSTEM', NULL, '管理員登出系統', '192.168.1.103', '2024-03-15 17:15:00'),
+(20, 5, 'LOGIN', 'SYSTEM', NULL, '管理員登入系統', '192.168.1.104', '2024-03-15 09:30:00'),
+(21, 5, 'CREATE', 'POST', 45, '發布新文章：寵物健康檢查指南', '192.168.1.104', '2024-03-15 10:15:33'),
+(22, 5, 'UPDATE', 'POST', 42, '更新文章內容：補充疫苗資訊', '192.168.1.104', '2024-03-15 11:45:21'),
+(23, 5, 'DELETE', 'POST', 38, '刪除過期活動文章', '192.168.1.104', '2024-03-15 14:30:17'),
+(24, 5, 'LOGOUT', 'SYSTEM', NULL, '管理員登出系統', '192.168.1.104', '2024-03-15 18:15:00'),
+(25, 1, 'LOGIN', 'SYSTEM', NULL, '管理員登入系統', '192.168.1.100', '2025-03-17 05:35:59'),
+(26, 1, 'UPDATE', 'MEMBER', 28, '更新會員等級：升級為 VIP', '192.168.1.100', '2025-03-17 06:35:59'),
+(27, 2, 'LOGIN', 'SYSTEM', NULL, '管理員登入系統', '192.168.1.101', '2025-03-17 04:35:59'),
+(28, 2, 'CREATE', 'PET', 102, '新增寵物資料：米克斯幼犬', '192.168.1.101', '2025-03-17 07:05:59'),
+(29, 4, 'LOGIN', 'SYSTEM', NULL, '管理員登入系統', '192.168.1.103', '2025-03-17 03:35:59'),
+(30, 4, 'UPDATE', 'PRODUCT', 90, '更新商品促銷資訊', '192.168.1.103', '2025-03-17 07:20:59');
 
 -- --------------------------------------------------------
 
@@ -242,8 +298,8 @@ CREATE TABLE `chat_messages` (
   `id` int NOT NULL,
   `room_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `message` text COLLATE utf8mb4_general_ci NOT NULL,
-  `message_type` enum('text','image','video','system') COLLATE utf8mb4_general_ci DEFAULT 'text',
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `message_type` enum('text','image','video','system') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'text',
   `reply_to` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -256,7 +312,7 @@ CREATE TABLE `chat_messages` (
 
 CREATE TABLE `chat_rooms` (
   `id` int NOT NULL,
-  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -887,8 +943,8 @@ INSERT INTO `follows` (`id`, `following_user_id`, `followed_user_id`, `created_a
 CREATE TABLE `forum_articles` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `view_count` int DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -930,7 +986,7 @@ CREATE TABLE `forum_comments` (
   `id` int NOT NULL,
   `article_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `is_deleted` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -945,7 +1001,7 @@ CREATE TABLE `forum_comment_replies` (
   `id` int NOT NULL,
   `comment_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `is_deleted` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1010,8 +1066,8 @@ CREATE TABLE `media_chat` (
 CREATE TABLE `media_uploads` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `file_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `file_type` enum('image','gif','video') COLLATE utf8mb4_general_ci NOT NULL,
+  `file_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `file_type` enum('image','gif','video') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -1024,9 +1080,9 @@ CREATE TABLE `media_uploads` (
 CREATE TABLE `notify_notifications` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `type` enum('article_comment','article_like','comment_reply','chat_message') COLLATE utf8mb4_general_ci NOT NULL,
+  `type` enum('article_comment','article_like','comment_reply','chat_message') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `reference_id` int NOT NULL,
-  `reference_table` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `reference_table` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `is_read` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1148,106 +1204,106 @@ CREATE TABLE `pets` (
 --
 
 INSERT INTO `pets` (`id`, `name`, `gender`, `species`, `variety`, `birthday`, `weight`, `chip_number`, `fixed`, `story`, `store_id`, `created_at`, `is_adopted`, `main_photo`) VALUES
-(1, 'Pet1', '母', '狗', '貴賓', '2024-01-31', 31.84, '8958766700', 1, 'This is the story of Pet1. It is a very lovely pet.', 1, '2025-01-14 11:39:05', 0, ''),
-(2, 'Pet2', '母', '貓', '波斯貓', '2020-05-05', 49.46, '5354310530', 1, 'This is the story of Pet2. It is a very lovely pet.', 6, '2025-01-14 11:39:05', 1, ''),
-(3, 'Pet3', '公', '貓', '暹羅貓', '2022-05-23', 13.76, '5803740308', 0, 'This is the story of Pet3. It is a very lovely pet.', 10, '2025-01-14 11:39:05', 1, ''),
-(4, 'Pet4', '母', '狗', '馬爾濟斯', '2018-09-07', 7.61, '8524556371', 1, 'This is the story of Pet4. It is a very lovely pet.', 10, '2025-01-14 11:39:05', 0, ''),
-(5, 'Pet5', '公', '貓', '米克斯', '2024-01-31', 31.24, '8362333427', 0, 'This is the story of Pet5. It is a very lovely pet.', 3, '2025-01-14 11:39:05', 0, ''),
-(6, 'Pet6', '母', '狗', '貴賓', '2017-12-03', 39.47, '8100980331', 1, 'This is the story of Pet6. It is a very lovely pet.', 9, '2025-01-14 11:39:05', 1, ''),
-(7, 'Pet7', '公', '狗', '貴賓', '2021-04-08', 13.25, '1917984366', 0, 'This is the story of Pet7. It is a very lovely pet.', 8, '2025-01-14 11:39:05', 0, ''),
-(8, 'Pet8', '母', '貓', '米克斯', '2023-10-08', 21.83, '8010308590', 1, 'This is the story of Pet8. It is a very lovely pet.', 3, '2025-01-14 11:39:05', 0, ''),
-(9, 'Pet9', '公', '狗', '貴賓', '2019-10-19', 5.41, '9662287653', 1, 'This is the story of Pet9. It is a very lovely pet.', 7, '2025-01-14 11:39:05', 1, ''),
-(10, 'Pet10', '公', '狗', '拉不拉多', '2015-01-24', 27.88, '7925170657', 0, 'This is the story of Pet10. It is a very lovely pet.', 5, '2025-01-14 11:39:05', 0, ''),
-(11, 'Pet11', '公', '狗', '拉不拉多', '2024-12-01', 40.67, '0289899753', 1, 'This is the story of Pet11. It is a very lovely pet.', 1, '2025-01-14 11:39:05', 0, ''),
-(12, 'Pet12', '公', '狗', '柴犬', '2022-01-04', 12.21, '3102898069', 1, 'This is the story of Pet12. It is a very lovely pet.', 4, '2025-01-14 11:39:05', 0, ''),
-(13, 'Pet13', '公', '貓', '暹羅貓', '2021-07-16', 1.60, '1084685140', 0, 'This is the story of Pet13. It is a very lovely pet.', 2, '2025-01-14 11:39:05', 1, ''),
-(14, 'Pet14', '公', '貓', '暹羅貓', '2018-06-29', 35.50, '5838767108', 1, 'This is the story of Pet14. It is a very lovely pet.', 7, '2025-01-14 11:39:05', 0, ''),
-(15, 'Pet15', '公', '貓', '暹羅貓', '2021-07-29', 14.25, '3840784824', 0, 'This is the story of Pet15. It is a very lovely pet.', 7, '2025-01-14 11:39:05', 0, ''),
-(16, 'Pet16', '母', '狗', '貴賓', '2017-07-26', 31.68, '9241156455', 1, 'This is the story of Pet16. It is a very lovely pet.', 10, '2025-01-14 11:39:05', 1, ''),
-(17, 'Pet17', '公', '狗', '拉不拉多', '2018-01-02', 31.15, '0016294075', 0, 'This is the story of Pet17. It is a very lovely pet.', 1, '2025-01-14 11:39:05', 1, ''),
-(18, 'Pet18', '公', '貓', '波斯貓', '2019-01-01', 15.74, '7608557340', 1, 'This is the story of Pet18. It is a very lovely pet.', 6, '2025-01-14 11:39:05', 0, ''),
-(19, 'Pet19', '公', '狗', '馬爾濟斯', '2020-01-06', 9.73, '4635533666', 1, 'This is the story of Pet19. It is a very lovely pet.', 2, '2025-01-14 11:39:05', 0, ''),
-(20, 'Pet20', '公', '狗', '柴犬', '2023-06-11', 26.17, '1360594687', 0, 'This is the story of Pet20. It is a very lovely pet.', 4, '2025-01-14 11:39:05', 0, ''),
-(21, 'Pet21', '公', '貓', '波斯貓', '2015-03-10', 16.35, '6766519226', 0, 'This is the story of Pet21. It is a very lovely pet.', 7, '2025-01-14 11:39:05', 1, ''),
-(22, 'Pet22', '母', '狗', '拉不拉多', '2018-03-08', 21.21, '0618406404', 0, 'This is the story of Pet22. It is a very lovely pet.', 9, '2025-01-14 11:39:05', 1, ''),
-(23, 'Pet23', '公', '狗', '柴犬', '2016-05-23', 48.07, '2107347912', 0, 'This is the story of Pet23. It is a very lovely pet.', 6, '2025-01-14 11:39:05', 0, ''),
-(24, 'Pet24', '公', '狗', '拉布拉多', '2022-12-07', 0.90, '4573131570', 0, 'This is the story of Pet24. It is a very lovely pet.', 3, '2025-01-14 11:39:05', 1, ''),
-(25, 'Pet25', '母', '狗', '拉不拉多', '2017-10-25', 29.35, '7660648102', 0, 'This is the story of Pet25. It is a very lovely pet.', 1, '2025-01-14 11:39:05', 0, ''),
-(26, 'Pet26', '公', '狗', '米格魯', '2016-06-07', 18.12, '2281587554', 0, 'This is the story of Pet26. It is a very lovely pet.', 8, '2025-01-14 11:39:05', 1, ''),
-(27, 'Pet27', '公', '狗', '拉不拉多', '2015-03-28', 24.84, '5398888592', 0, 'This is the story of Pet27. It is a very lovely pet.', 6, '2025-01-14 11:39:05', 0, ''),
-(28, 'Pet28', '公', '貓', '暹羅貓', '2015-08-08', 48.81, '0468828836', 0, 'This is the story of Pet28. It is a very lovely pet.', 1, '2025-01-14 11:39:05', 0, ''),
-(29, 'Pet29', '母', '狗', '拉不拉多', '2019-05-24', 38.86, '1899284098', 1, 'This is the story of Pet29. It is a very lovely pet.', 8, '2025-01-14 11:39:05', 1, ''),
-(30, 'Pet30', '公', '貓', '暹羅貓', '2021-06-22', 26.19, '5481030573', 0, 'This is the story of Pet30. It is a very lovely pet.', 5, '2025-01-14 11:39:05', 0, ''),
-(31, 'Pet31', '母', '狗', '拉不拉多', '2018-10-17', 29.75, '0993144783', 1, 'This is the story of Pet31. It is a very lovely pet.', 2, '2025-01-14 11:39:05', 0, ''),
-(32, 'Pet32', '公', '狗', '拉不拉多', '2019-07-13', 27.14, '0593640059', 1, 'This is the story of Pet32. It is a very lovely pet.', 9, '2025-01-14 11:39:05', 0, ''),
-(33, 'Pet33', '母', '貓', '波斯貓', '2018-04-28', 45.00, '4827728620', 1, 'This is the story of Pet33. It is a very lovely pet.', 5, '2025-01-14 11:39:05', 0, ''),
-(34, 'Pet34', '母', '狗', '貴賓', '2024-05-01', 31.03, '8904288846', 1, 'This is the story of Pet34. It is a very lovely pet.', 7, '2025-01-14 11:39:05', 0, ''),
-(35, 'Pet35', '公', '貓', '波斯貓', '2021-02-18', 43.79, '2065237315', 0, 'This is the story of Pet35. It is a very lovely pet.', 9, '2025-01-14 11:39:05', 0, ''),
-(36, 'Pet36', '母', '狗', '拉不拉多', '2021-06-25', 22.55, '1866115733', 1, 'This is the story of Pet36. It is a very lovely pet.', 10, '2025-01-14 11:39:05', 0, ''),
-(37, 'Pet37', '母', '狗', '米克斯', '2017-08-12', 21.76, '9451071907', 0, 'This is the story of Pet37. It is a very lovely pet.', 1, '2025-01-14 11:39:05', 0, ''),
-(38, 'Pet38', '母', '貓', '米克斯', '2018-10-14', 34.05, '5264351931', 1, 'This is the story of Pet38. It is a very lovely pet.', 1, '2025-01-14 11:39:05', 0, ''),
-(39, 'Pet39', '公', '狗', '拉不拉多', '2023-07-27', 41.37, '6941832272', 1, 'This is the story of Pet39. It is a very lovely pet.', 4, '2025-01-14 11:39:05', 1, ''),
-(40, 'Pet40', '公', '貓', '米克斯', '2015-04-02', 28.35, '8953864032', 1, 'This is the story of Pet40. It is a very lovely pet.', 7, '2025-01-14 11:39:05', 0, ''),
-(41, 'Pet41', '母', '狗', '拉布拉多', '2015-05-14', 40.46, '1410790720', 0, 'This is the story of Pet41. It is a very lovely pet.', 10, '2025-01-14 11:39:05', 1, ''),
-(42, 'Pet42', '公', '貓', '米克斯', '2016-07-26', 39.61, '4168527381', 1, 'This is the story of Pet42. It is a very lovely pet.', 4, '2025-01-14 11:39:05', 0, ''),
-(43, 'Pet43', '母', '貓', '米克斯', '2024-02-21', 8.23, '5517537877', 0, 'This is the story of Pet43. It is a very lovely pet.', 6, '2025-01-14 11:39:05', 1, ''),
-(44, 'Pet44', '母', '狗', '拉布拉多', '2016-08-13', 42.07, '6773139169', 1, 'This is the story of Pet44. It is a very lovely pet.', 9, '2025-01-14 11:39:05', 0, ''),
-(45, 'Pet45', '公', '狗', '拉不拉多', '2024-08-03', 48.31, '6950105788', 1, 'This is the story of Pet45. It is a very lovely pet.', 3, '2025-01-14 11:39:05', 1, ''),
-(46, 'Pet46', '母', '狗', '拉不拉多', '2017-03-18', 42.05, '8546836467', 1, 'This is the story of Pet46. It is a very lovely pet.', 7, '2025-01-14 11:39:05', 0, ''),
-(47, 'Pet47', '母', '狗', '貴賓', '2020-09-30', 12.83, '9938004164', 0, 'This is the story of Pet47. It is a very lovely pet.', 5, '2025-01-14 11:39:05', 0, ''),
-(48, 'Pet48', '公', '狗', '柴犬', '2024-11-20', 33.10, '2633026505', 0, 'This is the story of Pet48. It is a very lovely pet.', 4, '2025-01-14 11:39:05', 1, ''),
-(49, 'Pet49', '公', '狗', '米克斯', '2015-10-10', 45.80, '7972368660', 0, 'This is the story of Pet49. It is a very lovely pet.', 3, '2025-01-14 11:39:05', 1, ''),
-(50, 'Pet50', '公', '狗', '柴犬', '2023-01-04', 22.19, '6094262344', 1, 'This is the story of Pet50. It is a very lovely pet.', 6, '2025-01-14 11:39:05', 1, ''),
-(51, 'Pet51', '母', '狗', '米格魯', '2020-11-18', 14.54, '2048150125', 0, 'This is the story of Pet51. It is a very lovely pet.', 3, '2025-01-14 11:39:05', 0, ''),
-(52, 'Pet52', '母', '狗', '拉不拉多', '2017-04-14', 39.88, '6592692552', 1, 'This is the story of Pet52. It is a very lovely pet.', 10, '2025-01-14 11:39:05', 1, ''),
-(53, 'Pet53', '公', '狗', '拉不拉多', '2019-11-21', 23.27, '7791052495', 0, 'This is the story of Pet53. It is a very lovely pet.', 4, '2025-01-14 11:39:05', 0, ''),
-(54, 'Pet54', '公', '狗', '柴犬', '2023-05-13', 13.81, '8769647747', 1, 'This is the story of Pet54. It is a very lovely pet.', 1, '2025-01-14 11:39:05', 0, ''),
-(55, 'Pet55', '母', '貓', '暹羅貓', '2024-11-30', 31.58, '1192605412', 1, 'This is the story of Pet55. It is a very lovely pet.', 7, '2025-01-14 11:39:05', 0, ''),
-(56, 'Pet56', '母', '狗', '貴賓', '2018-12-25', 41.25, '3060941950', 0, 'This is the story of Pet56. It is a very lovely pet.', 7, '2025-01-14 11:39:05', 0, ''),
-(57, 'Pet57', '公', '貓', '波斯貓', '2016-12-18', 47.72, '3471780086', 1, 'This is the story of Pet57. It is a very lovely pet.', 10, '2025-01-14 11:39:05', 0, ''),
-(58, 'Pet58', '母', '狗', '拉不拉多', '2016-02-18', 27.20, '0443315403', 1, 'This is the story of Pet58. It is a very lovely pet.', 4, '2025-01-14 11:39:05', 1, ''),
-(59, 'Pet59', '公', '貓', '米克斯', '2015-05-11', 27.41, '8336750024', 1, 'This is the story of Pet59. It is a very lovely pet.', 1, '2025-01-14 11:39:05', 0, ''),
-(60, 'Pet60', '母', '貓', '波斯貓', '2023-02-08', 44.06, '8244980161', 0, 'This is the story of Pet60. It is a very lovely pet.', 2, '2025-01-14 11:39:05', 1, ''),
-(61, 'Pet61', '公', '狗', '拉不拉多', '2022-08-06', 26.59, '9244748343', 0, 'This is the story of Pet61. It is a very lovely pet.', 8, '2025-01-14 11:39:05', 0, ''),
-(62, 'Pet62', '母', '貓', '波斯貓', '2021-03-22', 12.34, '0871076957', 1, 'This is the story of Pet62. It is a very lovely pet.', 10, '2025-01-14 11:39:05', 0, ''),
-(63, 'Pet63', '公', '貓', '暹羅貓', '2019-12-08', 37.92, '2591066362', 0, 'This is the story of Pet63. It is a very lovely pet.', 6, '2025-01-14 11:39:05', 0, ''),
-(64, 'Pet64', '母', '貓', '米克斯', '2016-06-24', 36.31, '0609333003', 0, 'This is the story of Pet64. It is a very lovely pet.', 9, '2025-01-14 11:39:05', 0, ''),
-(65, 'Pet65', '母', '狗', '柴犬', '2020-01-08', 25.29, '0210027424', 1, 'This is the story of Pet65. It is a very lovely pet.', 7, '2025-01-14 11:39:05', 1, ''),
-(66, 'Pet66', '公', '貓', '米克斯', '2020-12-21', 41.93, '9711599153', 0, 'This is the story of Pet66. It is a very lovely pet.', 10, '2025-01-14 11:39:05', 1, ''),
-(67, 'Pet67', '公', '狗', '貴賓', '2016-03-18', 10.29, '3783907912', 0, 'This is the story of Pet67. It is a very lovely pet.', 4, '2025-01-14 11:39:05', 0, ''),
-(68, 'Pet68', '公', '貓', '暹羅貓', '2023-07-27', 22.30, '7871076378', 1, 'This is the story of Pet68. It is a very lovely pet.', 4, '2025-01-14 11:39:05', 1, ''),
-(69, 'Pet69', '母', '狗', '米克斯', '2020-07-25', 21.47, '8020910850', 1, 'This is the story of Pet69. It is a very lovely pet.', 9, '2025-01-14 11:39:05', 0, ''),
-(70, 'Pet70', '母', '狗', '拉不拉多', '2021-12-14', 45.68, '6402822663', 0, 'This is the story of Pet70. It is a very lovely pet.', 6, '2025-01-14 11:39:05', 0, ''),
-(71, 'Pet71', '母', '狗', '拉不拉多', '2023-07-14', 47.80, '3264363774', 1, 'This is the story of Pet71. It is a very lovely pet.', 10, '2025-01-14 11:39:05', 1, ''),
-(72, 'Pet72', '公', '貓', '米克斯', '2016-06-02', 7.11, '1217243439', 0, 'This is the story of Pet72. It is a very lovely pet.', 2, '2025-01-14 11:39:05', 1, ''),
-(73, 'Pet73', '公', '狗', '米格魯', '2021-07-27', 11.52, '1098893146', 1, 'This is the story of Pet73. It is a very lovely pet.', 3, '2025-01-14 11:39:05', 1, ''),
-(74, 'Pet74', '公', '貓', '暹羅貓', '2024-11-10', 46.79, '6245204494', 0, 'This is the story of Pet74. It is a very lovely pet.', 6, '2025-01-14 11:39:06', 1, ''),
-(75, 'Pet75', '母', '狗', '拉不拉多', '2015-04-30', 20.96, '1797943442', 1, 'This is the story of Pet75. It is a very lovely pet.', 5, '2025-01-14 11:39:06', 1, ''),
-(76, 'Pet76', '公', '狗', '米克斯', '2019-06-28', 1.14, '4466917108', 0, 'This is the story of Pet76. It is a very lovely pet.', 10, '2025-01-14 11:39:06', 0, ''),
-(77, 'Pet77', '公', '狗', '柴犬', '2015-09-07', 25.26, '7165561352', 0, 'This is the story of Pet77. It is a very lovely pet.', 8, '2025-01-14 11:39:06', 0, ''),
-(78, 'Pet78', '公', '狗', '米克斯', '2019-02-25', 20.08, '2395029079', 1, 'This is the story of Pet78. It is a very lovely pet.', 3, '2025-01-14 11:39:06', 0, ''),
-(79, 'Pet79', '母', '狗', '拉不拉多', '2019-04-04', 20.99, '3619675257', 1, 'This is the story of Pet79. It is a very lovely pet.', 7, '2025-01-14 11:39:06', 1, ''),
-(80, 'Pet80', '公', '狗', '米克斯', '2023-11-04', 5.18, '1573388233', 0, 'This is the story of Pet80. It is a very lovely pet.', 2, '2025-01-14 11:39:06', 1, ''),
-(81, 'Pet81', '母', '狗', '拉不拉多', '2016-03-31', 37.57, '1168955705', 0, 'This is the story of Pet81. It is a very lovely pet.', 6, '2025-01-14 11:39:06', 0, ''),
-(82, 'Pet82', '母', '狗', '拉不拉多', '2019-09-03', 30.25, '4132838997', 0, 'This is the story of Pet82. It is a very lovely pet.', 4, '2025-01-14 11:39:06', 0, ''),
-(83, 'Pet83', '母', '狗', '拉不拉多', '2023-07-10', 39.93, '5371080287', 0, 'This is the story of Pet83. It is a very lovely pet.', 4, '2025-01-14 11:39:06', 1, ''),
-(84, 'Pet84', '公', '狗', '拉布拉多', '2023-03-02', 32.94, '7301505353', 1, 'This is the story of Pet84. It is a very lovely pet.', 9, '2025-01-14 11:39:06', 0, ''),
-(85, 'Pet85', '母', '狗', '拉不拉多', '2021-04-27', 21.38, '0197641998', 1, 'This is the story of Pet85. It is a very lovely pet.', 7, '2025-01-14 11:39:06', 0, ''),
-(86, 'Pet86', '公', '狗', '拉布拉多', '2021-07-26', 26.11, '5683108116', 0, 'This is the story of Pet86. It is a very lovely pet.', 6, '2025-01-14 11:39:06', 1, ''),
-(87, 'Pet87', '母', '貓', '波斯貓', '2021-06-19', 25.52, '4777229162', 1, 'This is the story of Pet87. It is a very lovely pet.', 7, '2025-01-14 11:39:06', 1, ''),
-(88, 'Pet88', '母', '貓', '波斯貓', '2020-07-22', 7.89, '4418551841', 1, 'This is the story of Pet88. It is a very lovely pet.', 6, '2025-01-14 11:39:06', 0, ''),
-(89, 'Pet89', '母', '狗', '拉布拉多', '2020-05-23', 10.23, '6274945424', 1, 'This is the story of Pet89. It is a very lovely pet.', 2, '2025-01-14 11:39:06', 1, ''),
-(90, 'Pet90', '公', '狗', '柴犬', '2019-09-18', 46.20, '0204715812', 0, 'This is the story of Pet90. It is a very lovely pet.', 10, '2025-01-14 11:39:06', 1, ''),
-(91, 'Pet91', '公', '狗', '拉布拉多', '2019-02-03', 6.20, '8336183575', 1, 'This is the story of Pet91. It is a very lovely pet.', 1, '2025-01-14 11:39:06', 0, ''),
-(92, 'Pet92', '母', '狗', '拉不拉多', '2015-06-05', 48.32, '9447892576', 1, 'This is the story of Pet92. It is a very lovely pet.', 10, '2025-01-14 11:39:06', 0, ''),
-(93, 'Pet93', '公', '狗', '貴賓', '2017-01-05', 4.44, '0343918856', 1, 'This is the story of Pet93. It is a very lovely pet.', 5, '2025-01-14 11:39:06', 0, ''),
-(94, 'Pet94', '母', '貓', '波斯貓', '2024-03-08', 7.71, '5140071189', 0, 'This is the story of Pet94. It is a very lovely pet.', 7, '2025-01-14 11:39:06', 1, ''),
-(95, 'Pet95', '公', '貓', '波斯貓', '2021-02-27', 31.25, '9582477266', 1, 'This is the story of Pet95. It is a very lovely pet.', 8, '2025-01-14 11:39:06', 1, ''),
-(96, 'Pet96', '母', '狗', '米格魯', '2021-09-23', 18.59, '8637890170', 0, 'This is the story of Pet96. It is a very lovely pet.', 6, '2025-01-14 11:39:06', 0, ''),
-(97, 'Pet97', '公', '狗', '貴賓', '2022-01-25', 46.02, '7082803478', 1, 'This is the story of Pet97. It is a very lovely pet.', 6, '2025-01-14 11:39:06', 1, ''),
-(98, 'Pet98', '公', '狗', '拉布拉多', '2023-01-11', 35.42, '9372005666', 1, 'This is the story of Pet98. It is a very lovely pet.', 3, '2025-01-14 11:39:06', 1, ''),
-(99, 'Pet99', '公', '貓', '暹羅貓', '2018-03-16', 36.16, '5633186516', 1, 'This is the story of Pet99. It is a very lovely pet.', 8, '2025-01-14 11:39:06', 0, ''),
-(100, 'Pet100', '公', '貓', '三花貓', '2025-01-30', 11.22, '3355846512', 0, 'This is the story of Pet100. It is a very lovely pet.', NULL, '2025-02-03 23:22:07', 0, '');
+(1, 'Pet1', '母', '狗', '貴賓', '2024-01-31', 31.84, '8958766700', 1, 'This is the story of Pet1. It is a very lovely pet.', 1, '2024-12-07 00:00:00', 0, ''),
+(2, 'Pet2', '母', '貓', '波斯貓', '2020-05-05', 49.46, '5354310530', 1, 'This is the story of Pet2. It is a very lovely pet.', 6, '2024-12-08 00:00:00', 1, ''),
+(3, 'Pet3', '公', '貓', '暹羅貓', '2022-05-23', 13.76, '5803740308', 0, 'This is the story of Pet3. It is a very lovely pet.', 10, '2024-12-09 00:00:00', 1, ''),
+(4, 'Pet4', '母', '狗', '馬爾濟斯', '2018-09-07', 7.61, '8524556371', 1, 'This is the story of Pet4. It is a very lovely pet.', 10, '2024-12-10 00:00:00', 0, ''),
+(5, 'Pet5', '公', '貓', '米克斯', '2024-01-31', 31.24, '8362333427', 0, 'This is the story of Pet5. It is a very lovely pet.', 3, '2024-12-11 00:00:00', 0, ''),
+(6, 'Pet6', '母', '狗', '貴賓', '2017-12-03', 39.47, '8100980331', 1, 'This is the story of Pet6. It is a very lovely pet.', 9, '2024-12-12 00:00:00', 1, ''),
+(7, 'Pet7', '公', '狗', '貴賓', '2021-04-08', 13.25, '1917984366', 0, 'This is the story of Pet7. It is a very lovely pet.', 8, '2024-12-13 00:00:00', 0, ''),
+(8, 'Pet8', '母', '貓', '米克斯', '2023-10-08', 21.83, '8010308590', 1, 'This is the story of Pet8. It is a very lovely pet.', 3, '2024-12-14 00:00:00', 0, ''),
+(9, 'Pet9', '公', '狗', '貴賓', '2019-10-19', 5.41, '9662287653', 1, 'This is the story of Pet9. It is a very lovely pet.', 7, '2024-12-15 00:00:00', 1, ''),
+(10, 'Pet10', '公', '狗', '拉不拉多', '2015-01-24', 27.88, '7925170657', 0, 'This is the story of Pet10. It is a very lovely pet.', 5, '2024-12-16 00:00:00', 0, ''),
+(11, 'Pet11', '公', '狗', '拉不拉多', '2024-12-01', 40.67, '0289899753', 1, 'This is the story of Pet11. It is a very lovely pet.', 1, '2024-12-17 00:00:00', 0, ''),
+(12, 'Pet12', '公', '狗', '柴犬', '2022-01-04', 12.21, '3102898069', 1, 'This is the story of Pet12. It is a very lovely pet.', 4, '2024-12-18 00:00:00', 0, ''),
+(13, 'Pet13', '公', '貓', '暹羅貓', '2021-07-16', 1.60, '1084685140', 0, 'This is the story of Pet13. It is a very lovely pet.', 2, '2024-12-19 00:00:00', 1, ''),
+(14, 'Pet14', '公', '貓', '暹羅貓', '2018-06-29', 35.50, '5838767108', 1, 'This is the story of Pet14. It is a very lovely pet.', 7, '2024-12-20 00:00:00', 0, ''),
+(15, 'Pet15', '公', '貓', '暹羅貓', '2021-07-29', 14.25, '3840784824', 0, 'This is the story of Pet15. It is a very lovely pet.', 7, '2024-12-21 00:00:00', 0, ''),
+(16, 'Pet16', '母', '狗', '貴賓', '2017-07-26', 31.68, '9241156455', 1, 'This is the story of Pet16. It is a very lovely pet.', 10, '2024-12-22 00:00:00', 1, ''),
+(17, 'Pet17', '公', '狗', '拉不拉多', '2018-01-02', 31.15, '0016294075', 0, 'This is the story of Pet17. It is a very lovely pet.', 1, '2024-12-23 00:00:00', 1, ''),
+(18, 'Pet18', '公', '貓', '波斯貓', '2019-01-01', 15.74, '7608557340', 1, 'This is the story of Pet18. It is a very lovely pet.', 6, '2024-12-24 00:00:00', 0, ''),
+(19, 'Pet19', '公', '狗', '馬爾濟斯', '2020-01-06', 9.73, '4635533666', 1, 'This is the story of Pet19. It is a very lovely pet.', 2, '2024-12-25 00:00:00', 0, ''),
+(20, 'Pet20', '公', '狗', '柴犬', '2023-06-11', 26.17, '1360594687', 0, 'This is the story of Pet20. It is a very lovely pet.', 4, '2024-12-26 00:00:00', 0, ''),
+(21, 'Pet21', '公', '貓', '波斯貓', '2015-03-10', 16.35, '6766519226', 0, 'This is the story of Pet21. It is a very lovely pet.', 7, '2024-12-27 00:00:00', 1, ''),
+(22, 'Pet22', '母', '狗', '拉不拉多', '2018-03-08', 21.21, '0618406404', 0, 'This is the story of Pet22. It is a very lovely pet.', 9, '2024-12-28 00:00:00', 1, ''),
+(23, 'Pet23', '公', '狗', '柴犬', '2016-05-23', 48.07, '2107347912', 0, 'This is the story of Pet23. It is a very lovely pet.', 6, '2024-12-29 00:00:00', 0, ''),
+(24, 'Pet24', '公', '狗', '拉不拉多', '2022-12-07', 0.90, '4573131570', 0, 'This is the story of Pet24. It is a very lovely pet.', 3, '2024-12-30 00:00:00', 1, ''),
+(25, 'Pet25', '母', '狗', '拉不拉多', '2017-10-25', 29.35, '7660648102', 0, 'This is the story of Pet25. It is a very lovely pet.', 1, '2024-12-31 00:00:00', 0, ''),
+(26, 'Pet26', '公', '狗', '米格魯', '2016-06-07', 18.12, '2281587554', 0, 'This is the story of Pet26. It is a very lovely pet.', 8, '2025-01-01 00:00:00', 1, ''),
+(27, 'Pet27', '公', '狗', '拉不拉多', '2015-03-28', 24.84, '5398888592', 0, 'This is the story of Pet27. It is a very lovely pet.', 6, '2025-01-02 00:00:00', 0, ''),
+(28, 'Pet28', '公', '貓', '暹羅貓', '2015-08-08', 48.81, '0468828836', 0, 'This is the story of Pet28. It is a very lovely pet.', 1, '2025-01-03 00:00:00', 0, ''),
+(29, 'Pet29', '母', '狗', '拉不拉多', '2019-05-24', 38.86, '1899284098', 1, 'This is the story of Pet29. It is a very lovely pet.', 8, '2025-01-04 00:00:00', 1, ''),
+(30, 'Pet30', '公', '貓', '暹羅貓', '2021-06-22', 26.19, '5481030573', 0, 'This is the story of Pet30. It is a very lovely pet.', 5, '2025-01-05 00:00:00', 0, ''),
+(31, 'Pet31', '母', '狗', '拉不拉多', '2018-10-17', 29.75, '0993144783', 1, 'This is the story of Pet31. It is a very lovely pet.', 2, '2025-01-06 00:00:00', 0, ''),
+(32, 'Pet32', '公', '狗', '拉不拉多', '2019-07-13', 27.14, '0593640059', 1, 'This is the story of Pet32. It is a very lovely pet.', 9, '2025-01-07 00:00:00', 0, ''),
+(33, 'Pet33', '母', '貓', '波斯貓', '2018-04-28', 45.00, '4827728620', 1, 'This is the story of Pet33. It is a very lovely pet.', 5, '2025-01-08 00:00:00', 0, ''),
+(34, 'Pet34', '母', '狗', '貴賓', '2024-05-01', 31.03, '8904288846', 1, 'This is the story of Pet34. It is a very lovely pet.', 7, '2025-01-09 00:00:00', 0, ''),
+(35, 'Pet35', '公', '貓', '波斯貓', '2021-02-18', 43.79, '2065237315', 0, 'This is the story of Pet35. It is a very lovely pet.', 9, '2025-01-10 00:00:00', 0, ''),
+(36, 'Pet36', '母', '狗', '拉不拉多', '2021-06-25', 22.55, '1866115733', 1, 'This is the story of Pet36. It is a very lovely pet.', 10, '2025-01-11 00:00:00', 0, ''),
+(37, 'Pet37', '母', '狗', '米克斯', '2017-08-12', 21.76, '9451071907', 0, 'This is the story of Pet37. It is a very lovely pet.', 1, '2025-01-12 00:00:00', 0, ''),
+(38, 'Pet38', '母', '貓', '米克斯', '2018-10-14', 34.05, '5264351931', 1, 'This is the story of Pet38. It is a very lovely pet.', 1, '2025-01-13 00:00:00', 0, ''),
+(39, 'Pet39', '公', '狗', '拉不拉多', '2023-07-27', 41.37, '6941832272', 1, 'This is the story of Pet39. It is a very lovely pet.', 4, '2025-01-14 00:00:00', 1, ''),
+(40, 'Pet40', '公', '貓', '米克斯', '2015-04-02', 28.35, '8953864032', 1, 'This is the story of Pet40. It is a very lovely pet.', 7, '2025-01-15 00:00:00', 0, ''),
+(41, 'Pet41', '母', '狗', '拉不拉多', '2015-05-14', 40.46, '1410790720', 0, 'This is the story of Pet41. It is a very lovely pet.', 10, '2025-01-16 00:00:00', 1, ''),
+(42, 'Pet42', '公', '貓', '米克斯', '2016-07-26', 39.61, '4168527381', 1, 'This is the story of Pet42. It is a very lovely pet.', 4, '2025-01-17 00:00:00', 0, ''),
+(43, 'Pet43', '母', '貓', '米克斯', '2024-02-21', 8.23, '5517537877', 0, 'This is the story of Pet43. It is a very lovely pet.', 6, '2025-01-18 00:00:00', 1, ''),
+(44, 'Pet44', '母', '狗', '拉不拉多', '2016-08-13', 42.07, '6773139169', 1, 'This is the story of Pet44. It is a very lovely pet.', 9, '2025-01-19 00:00:00', 0, ''),
+(45, 'Pet45', '公', '狗', '拉不拉多', '2024-08-03', 48.31, '6950105788', 1, 'This is the story of Pet45. It is a very lovely pet.', 3, '2025-01-20 00:00:00', 1, ''),
+(46, 'Pet46', '母', '狗', '拉不拉多', '2017-03-18', 42.05, '8546836467', 1, 'This is the story of Pet46. It is a very lovely pet.', 7, '2025-01-21 00:00:00', 0, ''),
+(47, 'Pet47', '母', '狗', '貴賓', '2020-09-30', 12.83, '9938004164', 0, 'This is the story of Pet47. It is a very lovely pet.', 5, '2025-01-22 00:00:00', 0, ''),
+(48, 'Pet48', '公', '狗', '柴犬', '2024-11-20', 33.10, '2633026505', 0, 'This is the story of Pet48. It is a very lovely pet.', 4, '2025-01-23 00:00:00', 1, ''),
+(49, 'Pet49', '公', '狗', '米克斯', '2015-10-10', 45.80, '7972368660', 0, 'This is the story of Pet49. It is a very lovely pet.', 3, '2025-01-24 00:00:00', 1, ''),
+(50, 'Pet50', '公', '狗', '柴犬', '2023-01-04', 22.19, '6094262344', 1, 'This is the story of Pet50. It is a very lovely pet.', 6, '2025-01-25 00:00:00', 1, ''),
+(51, 'Pet51', '母', '狗', '米格魯', '2020-11-18', 14.54, '2048150125', 0, 'This is the story of Pet51. It is a very lovely pet.', 3, '2025-01-26 00:00:00', 0, ''),
+(52, 'Pet52', '母', '狗', '拉不拉多', '2017-04-14', 39.88, '6592692552', 1, 'This is the story of Pet52. It is a very lovely pet.', 10, '2025-01-27 00:00:00', 1, ''),
+(53, 'Pet53', '公', '狗', '拉不拉多', '2019-11-21', 23.27, '7791052495', 0, 'This is the story of Pet53. It is a very lovely pet.', 4, '2025-01-28 00:00:00', 0, ''),
+(54, 'Pet54', '公', '狗', '柴犬', '2023-05-13', 13.81, '8769647747', 1, 'This is the story of Pet54. It is a very lovely pet.', 1, '2025-01-29 00:00:00', 0, ''),
+(55, 'Pet55', '母', '貓', '暹羅貓', '2024-11-30', 31.58, '1192605412', 1, 'This is the story of Pet55. It is a very lovely pet.', 7, '2025-01-30 00:00:00', 0, ''),
+(56, 'Pet56', '母', '狗', '貴賓', '2018-12-25', 41.25, '3060941950', 0, 'This is the story of Pet56. It is a very lovely pet.', 7, '2025-01-31 00:00:00', 0, ''),
+(57, 'Pet57', '公', '貓', '波斯貓', '2016-12-18', 47.72, '3471780086', 1, 'This is the story of Pet57. It is a very lovely pet.', 10, '2025-02-01 00:00:00', 0, ''),
+(58, 'Pet58', '母', '狗', '拉不拉多', '2016-02-18', 27.20, '0443315403', 1, 'This is the story of Pet58. It is a very lovely pet.', 4, '2025-02-02 00:00:00', 1, ''),
+(59, 'Pet59', '公', '貓', '米克斯', '2015-05-11', 27.41, '8336750024', 1, 'This is the story of Pet59. It is a very lovely pet.', 1, '2025-02-03 00:00:00', 0, ''),
+(60, 'Pet60', '母', '貓', '波斯貓', '2023-02-08', 44.06, '8244980161', 0, 'This is the story of Pet60. It is a very lovely pet.', 2, '2025-02-04 00:00:00', 1, ''),
+(61, 'Pet61', '公', '狗', '拉不拉多', '2022-08-06', 26.59, '9244748343', 0, 'This is the story of Pet61. It is a very lovely pet.', 8, '2025-02-05 00:00:00', 0, ''),
+(62, 'Pet62', '母', '貓', '波斯貓', '2021-03-22', 12.34, '0871076957', 1, 'This is the story of Pet62. It is a very lovely pet.', 10, '2025-02-06 00:00:00', 0, ''),
+(63, 'Pet63', '公', '貓', '暹羅貓', '2019-12-08', 37.92, '2591066362', 0, 'This is the story of Pet63. It is a very lovely pet.', 6, '2025-02-07 00:00:00', 0, ''),
+(64, 'Pet64', '母', '貓', '米克斯', '2016-06-24', 36.31, '0609333003', 0, 'This is the story of Pet64. It is a very lovely pet.', 9, '2025-02-08 00:00:00', 0, ''),
+(65, 'Pet65', '母', '狗', '柴犬', '2020-01-08', 25.29, '0210027424', 1, 'This is the story of Pet65. It is a very lovely pet.', 7, '2025-02-09 00:00:00', 1, ''),
+(66, 'Pet66', '公', '貓', '米克斯', '2020-12-21', 41.93, '9711599153', 0, 'This is the story of Pet66. It is a very lovely pet.', 10, '2025-02-10 00:00:00', 1, ''),
+(67, 'Pet67', '公', '狗', '貴賓', '2016-03-18', 10.29, '3783907912', 0, 'This is the story of Pet67. It is a very lovely pet.', 4, '2025-02-11 00:00:00', 0, ''),
+(68, 'Pet68', '公', '貓', '暹羅貓', '2023-07-27', 22.30, '7871076378', 1, 'This is the story of Pet68. It is a very lovely pet.', 4, '2025-02-12 00:00:00', 1, ''),
+(69, 'Pet69', '母', '狗', '米克斯', '2020-07-25', 21.47, '8020910850', 1, 'This is the story of Pet69. It is a very lovely pet.', 9, '2025-02-13 00:00:00', 0, ''),
+(70, 'Pet70', '母', '狗', '拉不拉多', '2021-12-14', 45.68, '6402822663', 0, 'This is the story of Pet70. It is a very lovely pet.', 6, '2025-02-14 00:00:00', 0, ''),
+(71, 'Pet71', '母', '狗', '拉不拉多', '2023-07-14', 47.80, '3264363774', 1, 'This is the story of Pet71. It is a very lovely pet.', 10, '2025-02-15 00:00:00', 1, ''),
+(72, 'Pet72', '公', '貓', '米克斯', '2016-06-02', 7.11, '1217243439', 0, 'This is the story of Pet72. It is a very lovely pet.', 2, '2025-02-16 00:00:00', 1, ''),
+(73, 'Pet73', '公', '狗', '米格魯', '2021-07-27', 11.52, '1098893146', 1, 'This is the story of Pet73. It is a very lovely pet.', 3, '2025-02-17 00:00:00', 1, ''),
+(74, 'Pet74', '公', '貓', '暹羅貓', '2024-11-10', 46.79, '6245204494', 0, 'This is the story of Pet74. It is a very lovely pet.', 6, '2025-02-18 00:00:00', 1, ''),
+(75, 'Pet75', '母', '狗', '拉不拉多', '2015-04-30', 20.96, '1797943442', 1, 'This is the story of Pet75. It is a very lovely pet.', 5, '2025-02-19 00:00:00', 1, ''),
+(76, 'Pet76', '公', '狗', '米克斯', '2019-06-28', 1.14, '4466917108', 0, 'This is the story of Pet76. It is a very lovely pet.', 10, '2025-02-20 00:00:00', 0, ''),
+(77, 'Pet77', '公', '狗', '柴犬', '2015-09-07', 25.26, '7165561352', 0, 'This is the story of Pet77. It is a very lovely pet.', 8, '2025-02-21 00:00:00', 0, ''),
+(78, 'Pet78', '公', '狗', '米克斯', '2019-02-25', 20.08, '2395029079', 1, 'This is the story of Pet78. It is a very lovely pet.', 3, '2025-02-22 00:00:00', 0, ''),
+(79, 'Pet79', '母', '狗', '拉不拉多', '2019-04-04', 20.99, '3619675257', 1, 'This is the story of Pet79. It is a very lovely pet.', 7, '2025-02-23 00:00:00', 1, ''),
+(80, 'Pet80', '公', '狗', '米克斯', '2023-11-04', 5.18, '1573388233', 0, 'This is the story of Pet80. It is a very lovely pet.', 2, '2025-02-24 00:00:00', 1, ''),
+(81, 'Pet81', '母', '狗', '拉不拉多', '2016-03-31', 37.57, '1168955705', 0, 'This is the story of Pet81. It is a very lovely pet.', 6, '2025-02-25 00:00:00', 0, ''),
+(82, 'Pet82', '母', '狗', '拉不拉多', '2019-09-03', 30.25, '4132838997', 0, 'This is the story of Pet82. It is a very lovely pet.', 4, '2025-02-26 00:00:00', 0, ''),
+(83, 'Pet83', '母', '狗', '拉不拉多', '2023-07-10', 39.93, '5371080287', 0, 'This is the story of Pet83. It is a very lovely pet.', 4, '2025-02-27 00:00:00', 1, ''),
+(84, 'Pet84', '公', '狗', '拉不拉多', '2023-03-02', 32.94, '7301505353', 1, 'This is the story of Pet84. It is a very lovely pet.', 9, '2025-02-28 00:00:00', 0, ''),
+(85, 'Pet85', '母', '狗', '拉不拉多', '2021-04-27', 21.38, '0197641998', 1, 'This is the story of Pet85. It is a very lovely pet.', 7, '2025-03-01 00:00:00', 0, ''),
+(86, 'Pet86', '公', '狗', '拉不拉多', '2021-07-26', 26.11, '5683108116', 0, 'This is the story of Pet86. It is a very lovely pet.', 6, '2025-03-02 00:00:00', 1, ''),
+(87, 'Pet87', '母', '貓', '波斯貓', '2021-06-19', 25.52, '4777229162', 1, 'This is the story of Pet87. It is a very lovely pet.', 7, '2025-03-03 00:00:00', 1, ''),
+(88, 'Pet88', '母', '貓', '波斯貓', '2020-07-22', 7.89, '4418551841', 1, 'This is the story of Pet88. It is a very lovely pet.', 6, '2025-03-04 00:00:00', 0, ''),
+(89, 'Pet89', '母', '狗', '拉不拉多', '2020-05-23', 10.23, '6274945424', 1, 'This is the story of Pet89. It is a very lovely pet.', 2, '2025-03-05 00:00:00', 1, ''),
+(90, 'Pet90', '公', '狗', '柴犬', '2019-09-18', 46.20, '0204715812', 0, 'This is the story of Pet90. It is a very lovely pet.', 10, '2025-03-06 00:00:00', 1, ''),
+(91, 'Pet91', '公', '狗', '拉不拉多', '2019-02-03', 6.20, '8336183575', 1, 'This is the story of Pet91. It is a very lovely pet.', 1, '2025-03-07 00:00:00', 0, ''),
+(92, 'Pet92', '母', '狗', '拉不拉多', '2015-06-05', 48.32, '9447892576', 1, 'This is the story of Pet92. It is a very lovely pet.', 10, '2025-03-08 00:00:00', 0, ''),
+(93, 'Pet93', '公', '狗', '貴賓', '2017-01-05', 4.44, '0343918856', 1, 'This is the story of Pet93. It is a very lovely pet.', 5, '2025-03-09 00:00:00', 0, ''),
+(94, 'Pet94', '母', '貓', '波斯貓', '2024-03-08', 7.71, '5140071189', 0, 'This is the story of Pet94. It is a very lovely pet.', 7, '2025-03-10 00:00:00', 1, ''),
+(95, 'Pet95', '公', '貓', '波斯貓', '2021-02-27', 31.25, '9582477266', 1, 'This is the story of Pet95. It is a very lovely pet.', 8, '2025-03-11 00:00:00', 1, ''),
+(96, 'Pet96', '母', '狗', '米格魯', '2021-09-23', 18.59, '8637890170', 0, 'This is the story of Pet96. It is a very lovely pet.', 6, '2025-03-12 00:00:00', 0, ''),
+(97, 'Pet97', '公', '狗', '貴賓', '2022-01-25', 46.02, '7082803478', 1, 'This is the story of Pet97. It is a very lovely pet.', 6, '2025-03-13 00:00:00', 1, ''),
+(98, 'Pet98', '公', '狗', '拉不拉多', '2023-01-11', 35.42, '9372005666', 1, 'This is the story of Pet98. It is a very lovely pet.', 3, '2025-03-14 00:00:00', 1, ''),
+(99, 'Pet99', '公', '貓', '暹羅貓', '2018-03-16', 36.16, '5633186516', 1, 'This is the story of Pet99. It is a very lovely pet.', 8, '2025-03-15 00:00:00', 0, ''),
+(100, 'Pet100', '公', '貓', '三花貓', '2025-01-30', 11.22, '3355846512', 0, 'This is the story of Pet100. It is a very lovely pet.', NULL, '2025-03-16 00:00:00', 0, '');
 
 -- --------------------------------------------------------
 
@@ -1332,6 +1388,20 @@ INSERT INTO `pet_photos` (`id`, `pet_id`, `photo_url`, `is_main`, `sort_order`, 
 -- --------------------------------------------------------
 
 --
+-- 資料表結構 `pet_recommendation`
+--
+
+CREATE TABLE `pet_recommendation` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `pet_id` int NOT NULL,
+  `match_score` decimal(5,2) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- 資料表結構 `pet_store`
 --
 
@@ -1342,24 +1412,26 @@ CREATE TABLE `pet_store` (
   `phone` varchar(50) DEFAULT NULL,
   `mail` text,
   `open_hours` text,
-  `created_at` timestamp NULL DEFAULT NULL
+  `created_at` timestamp NULL DEFAULT NULL,
+  `lat` decimal(10,6) DEFAULT NULL,
+  `lng` decimal(10,6) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- 傾印資料表的資料 `pet_store`
 --
 
-INSERT INTO `pet_store` (`id`, `name`, `address`, `phone`, `mail`, `open_hours`, `created_at`) VALUES
-(1, 'Pet Store 1', '台北市信義區忠孝東路五段68號', '0911111111', 'petstore1@test.com.tw', '10:00~18:00', '2023-11-23 20:34:56'),
-(2, 'Pet Store 2', '台中市西屯區台灣大道三段25號', '0922222222', 'petstore2@test.com.tw', '10:00~18:00', '2023-11-30 23:23:11'),
-(3, 'Pet Store 3', '台南市中西區國華街二段175號', '0933333333', 'petstore3@test.com.tw', '10:00~18:00', '2023-11-14 17:45:32'),
-(4, 'Pet Store 4', '高雄市前金區中山二路77號', '0944444444', 'petstore4@test.com.tw', '10:00~18:00', '2023-12-10 01:08:49'),
-(5, 'Pet Store 5', '新北市板橋區中山路一段1號', '0955555555', 'petstore5@test.com.tw', '10:00~18:00', '2023-11-28 04:12:05'),
-(6, 'Pet Store 6', '桃園市桃園區中正路132號', '0966666666', 'petstore6@test.com.tw', '10:00~18:00', '2023-12-04 21:57:22'),
-(7, 'Pet Store 7', '新竹市東區中山路170號', '0977777777', 'petstore7@test.com.tw', '10:00~18:00', '2023-11-19 19:38:17'),
-(8, 'Pet Store 8', '基隆市仁愛區愛三路1號', '0988888888', 'petstore8@test.com.tw', '10:00~18:00', '2023-12-08 00:44:03'),
-(9, 'Pet Store 9', '嘉義市西區中山路229號', '0999999999', 'petstore9@test.com.tw', '10:00~18:00', '2023-11-24 22:29:58'),
-(10, 'Pet Store 10', '花蓮市中山路426號', '0900000000', 'petstore10@test.com.tw', '10:00~18:00', '2023-12-02 02:15:41');
+INSERT INTO `pet_store` (`id`, `name`, `address`, `phone`, `mail`, `open_hours`, `created_at`, `lat`, `lng`) VALUES
+(1, 'Pet Store 1', '台北市信義區忠孝東路五段68號', '0911111111', 'petstore1@test.com.tw', '10:00~18:00', '2023-11-23 20:34:56', 25.042000, 121.565500),
+(2, 'Pet Store 2', '台南市東區大東路229號', '0922222222', 'petstore2@test.com.tw', '10:00~18:00', '2023-11-30 23:23:11', 22.982400, 120.225400),
+(3, 'Pet Store 3', '台南市中西區國華街二段175號', '0933333333', 'petstore3@test.com.tw', '10:00~18:00', '2023-11-14 17:45:32', 22.989600, 120.202600),
+(4, 'Pet Store 4', '高雄市前金區中山二路77號', '0944444444', 'petstore4@test.com.tw', '10:00~18:00', '2023-12-10 01:08:49', 22.631400, 120.301400),
+(5, 'Pet Store 5', '高雄市鼓山區美術東二路99號', '0955555555', 'petstore5@test.com.tw', '10:00~18:00', '2023-11-28 04:12:05', 22.660700, 120.284800),
+(6, 'Pet Store 6', '台南市安南區安和路一段208號', '0966666666', 'petstore6@test.com.tw', '10:00~18:00', '2023-12-04 21:57:22', 23.040100, 120.141300),
+(7, 'Pet Store 7', '桃園市桃園區中正路108號', '0977777777', 'petstore7@test.com.tw', '10:00~18:00', '2023-11-19 19:38:17', 24.993600, 121.301000),
+(8, 'Pet Store 8', '新北市板橋區文化路一段360號', '0988888888', 'petstore8@test.com.tw', '10:00~18:00', '2023-12-08 00:44:03', 25.013200, 121.456800),
+(9, 'Pet Store 9', '新竹市東區光復路二段101號', '0999999999', 'petstore9@test.com.tw', '10:00~18:00', '2023-11-24 22:29:58', 24.786800, 120.996700),
+(10, 'Pet Store 10', '基隆市中正區義一路43號', '0900000000', 'petstore10@test.com.tw', '10:00~18:00', '2023-12-02 02:15:41', 25.128600, 121.742500);
 
 -- --------------------------------------------------------
 
@@ -2065,10 +2137,22 @@ CREATE TABLE `product_img` (
 --
 
 CREATE TABLE `product_like` (
-  `product_id` int NOT NULL,
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
+  `product_id` int NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- 傾印資料表的資料 `product_like`
+--
+
+INSERT INTO `product_like` (`id`, `user_id`, `product_id`, `created_at`) VALUES
+(1, 1, 1, '2025-03-17 07:36:54'),
+(2, 1, 2, '2025-03-17 07:36:54'),
+(3, 1, 3, '2025-03-17 07:36:54'),
+(4, 1, 4, '2025-03-17 07:36:54'),
+(5, 1, 5, '2025-03-17 07:36:54');
 
 -- --------------------------------------------------------
 
@@ -2086,6 +2170,15 @@ CREATE TABLE `product_reviews` (
   `review_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 傾印資料表的資料 `product_reviews`
+--
+
+INSERT INTO `product_reviews` (`review_id`, `order_item_id`, `user_id`, `product_id`, `variant_id`, `rating`, `review_text`, `created_at`) VALUES
+(1, 1, 1, 1, 1, 5, '狗狗很喜歡這款乾糧，品質很好！', '2025-03-10 10:00:00'),
+(2, 11, 3, 1, 1, 4, '味道不錯，狗狗吃得很開心，但希望包裝可以改進。', '2025-03-10 10:05:00'),
+(3, 21, 5, 1, 1, 3, '一般般，狗狗吃得還行，但比預期中貴了一點。', '2025-03-10 10:10:00');
 
 -- --------------------------------------------------------
 
@@ -2137,20 +2230,21 @@ CREATE TABLE `promotions` (
   `start_date` date NOT NULL,
   `end_date` date DEFAULT NULL,
   `discount_percentage` int NOT NULL,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `photo` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- 傾印資料表的資料 `promotions`
 --
 
-INSERT INTO `promotions` (`promotion_id`, `promotion_name`, `promotion_description`, `start_date`, `end_date`, `discount_percentage`, `updated_at`) VALUES
-(1, '夏季寵物用品大促', '全館寵物食品、零食、日常用品享受高達30%折扣', '2025-06-01', '2025-06-30', 30, '2025-03-11 15:42:59'),
-(2, '寵物美容護理優惠', '寵物美容產品限時買一送一，包括洗毛精、護毛素等', '2025-07-01', '2025-07-15', 50, '2025-03-11 15:42:59'),
-(3, '新品飼料優惠', '全新上市的寵物乾糧和罐頭享受首次購買20%折扣', '2025-08-01', '2025-08-31', 20, '2025-03-11 15:42:59'),
-(4, '寵物用品滿額折扣', '全館消費滿500元可享受額外10%折扣，適用於所有寵物商品', '2025-09-01', '2025-09-30', 10, '2025-03-11 15:42:59'),
-(5, '雙11寵物狂歡節', '雙11期間所有寵物商品享有30%折扣，限時搶購', '2025-11-01', '2025-11-11', 30, '2025-03-11 15:42:59'),
-(7, '寵物零食優惠週', '寵物零食專屬折扣，最高可享15%優惠', '2025-01-01', '2025-12-07', 15, '2025-03-11 15:42:59');
+INSERT INTO `promotions` (`promotion_id`, `promotion_name`, `promotion_description`, `start_date`, `end_date`, `discount_percentage`, `updated_at`, `photo`) VALUES
+(1, '夏季寵物用品大促', '全館寵物食品、零食、日常用品享受高達30%折扣', '2025-06-01', '2025-06-30', 30, '2025-03-17 07:36:54', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXwEQcai8Shnw_B0c_NCiP_HGPNduDrkNtfQ&s'),
+(2, '寵物美容護理優惠', '寵物美容產品限時買一送一，包括洗毛精、護毛素等', '2025-07-01', '2025-07-15', 50, '2025-03-11 15:42:59', NULL),
+(3, '新品飼料優惠', '全新上市的寵物乾糧和罐頭享受首次購買20%折扣', '2025-08-01', '2025-08-31', 20, '2025-03-11 15:42:59', NULL),
+(4, '寵物用品滿額折扣', '全館消費滿500元可享受額外10%折扣，適用於所有寵物商品', '2025-09-01', '2025-09-30', 10, '2025-03-11 15:42:59', NULL),
+(5, '雙11寵物狂歡節', '雙11期間所有寵物商品享有30%折扣，限時搶購', '2025-11-01', '2025-11-11', 30, '2025-03-11 15:42:59', NULL),
+(7, '寵物零食優惠週', '寵物零食專屬折扣，最高可享15%優惠', '2025-01-01', '2025-12-07', 15, '2025-03-11 15:42:59', NULL);
 
 -- --------------------------------------------------------
 
@@ -2301,6 +2395,32 @@ CREATE TABLE `return_order` (
 -- --------------------------------------------------------
 
 --
+-- 資料表結構 `shopping_cart`
+--
+
+CREATE TABLE `shopping_cart` (
+  `id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
+  `product_id` int DEFAULT NULL,
+  `variant_id` int DEFAULT NULL,
+  `quantity` int DEFAULT '1',
+  `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- 傾印資料表的資料 `shopping_cart`
+--
+
+INSERT INTO `shopping_cart` (`id`, `user_id`, `product_id`, `variant_id`, `quantity`, `update_at`) VALUES
+(1, 1, 1, 1, 2, '2025-03-17 07:36:53'),
+(2, 1, 2, 2, 1, '2025-03-17 07:36:53'),
+(3, 1, 3, 3, 3, '2025-03-17 07:36:53'),
+(4, 1, 4, 4, 1, '2025-03-17 07:36:53'),
+(5, 1, 5, 5, 2, '2025-03-17 07:36:53');
+
+-- --------------------------------------------------------
+
+--
 -- 資料表結構 `users`
 --
 
@@ -2345,6 +2465,29 @@ INSERT INTO `users` (`user_id`, `user_email`, `user_password`, `user_name`, `use
 -- --------------------------------------------------------
 
 --
+-- 資料表結構 `user_questionnaire`
+--
+
+CREATE TABLE `user_questionnaire` (
+  `id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
+  `living_environment` varchar(50) NOT NULL,
+  `activity_level` varchar(50) NOT NULL,
+  `experience_level` varchar(50) NOT NULL,
+  `time_available` varchar(50) NOT NULL,
+  `preferred_size` varchar(50) NOT NULL,
+  `preferred_age` varchar(50) NOT NULL,
+  `preferred_traits` text,
+  `allergies` tinyint(1) DEFAULT '0',
+  `has_children` tinyint(1) DEFAULT '0',
+  `has_other_pets` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- 資料表結構 `user_sessions`
 --
 
@@ -2358,6 +2501,16 @@ CREATE TABLE `user_sessions` (
 --
 -- 已傾印資料表的索引
 --
+
+--
+-- 資料表索引 `admin_operation_logs`
+--
+ALTER TABLE `admin_operation_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_admin_id` (`admin_id`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_action_type` (`action_type`),
+  ADD KEY `idx_module` (`module`);
 
 --
 -- 資料表索引 `bank_transfer_details`
@@ -2587,6 +2740,14 @@ ALTER TABLE `pet_photos`
   ADD KEY `pet_id` (`pet_id`);
 
 --
+-- 資料表索引 `pet_recommendation`
+--
+ALTER TABLE `pet_recommendation`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_recommendation_user` (`user_id`),
+  ADD KEY `fk_recommendation_pet` (`pet_id`);
+
+--
 -- 資料表索引 `pet_store`
 --
 ALTER TABLE `pet_store`
@@ -2637,7 +2798,7 @@ ALTER TABLE `product_img`
 -- 資料表索引 `product_like`
 --
 ALTER TABLE `product_like`
-  ADD PRIMARY KEY (`product_id`,`user_id`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- 資料表索引 `product_reviews`
@@ -2700,11 +2861,27 @@ ALTER TABLE `return_order`
   ADD KEY `order_id` (`order_id`);
 
 --
+-- 資料表索引 `shopping_cart`
+--
+ALTER TABLE `shopping_cart`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `product_id` (`product_id`),
+  ADD KEY `variant_id` (`variant_id`);
+
+--
 -- 資料表索引 `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`user_id`),
   ADD UNIQUE KEY `user_email` (`user_email`);
+
+--
+-- 資料表索引 `user_questionnaire`
+--
+ALTER TABLE `user_questionnaire`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_questionnaire_user` (`user_id`);
 
 --
 -- 資料表索引 `user_sessions`
@@ -2715,6 +2892,12 @@ ALTER TABLE `user_sessions`
 --
 -- 在傾印的資料表使用自動遞增(AUTO_INCREMENT)
 --
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `admin_operation_logs`
+--
+ALTER TABLE `admin_operation_logs`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `bank_transfer_details`
@@ -2885,6 +3068,12 @@ ALTER TABLE `pet_photos`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
+-- 使用資料表自動遞增(AUTO_INCREMENT) `pet_recommendation`
+--
+ALTER TABLE `pet_recommendation`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- 使用資料表自動遞增(AUTO_INCREMENT) `pet_store`
 --
 ALTER TABLE `pet_store`
@@ -2915,10 +3104,16 @@ ALTER TABLE `products`
   MODIFY `product_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
+-- 使用資料表自動遞增(AUTO_INCREMENT) `product_like`
+--
+ALTER TABLE `product_like`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- 使用資料表自動遞增(AUTO_INCREMENT) `product_reviews`
 --
 ALTER TABLE `product_reviews`
-  MODIFY `review_id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `review_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `product_variants`
@@ -2963,14 +3158,32 @@ ALTER TABLE `return_order`
   MODIFY `return_id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- 使用資料表自動遞增(AUTO_INCREMENT) `shopping_cart`
+--
+ALTER TABLE `shopping_cart`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- 使用資料表自動遞增(AUTO_INCREMENT) `users`
 --
 ALTER TABLE `users`
   MODIFY `user_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
+-- 使用資料表自動遞增(AUTO_INCREMENT) `user_questionnaire`
+--
+ALTER TABLE `user_questionnaire`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- 已傾印資料表的限制式
 --
+
+--
+-- 資料表的限制式 `admin_operation_logs`
+--
+ALTER TABLE `admin_operation_logs`
+  ADD CONSTRAINT `fk_admin_logs_admin_id` FOREIGN KEY (`admin_id`) REFERENCES `manager` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 --
 -- 資料表的限制式 `bank_transfer_details`
@@ -3148,6 +3361,13 @@ ALTER TABLE `pet_photos`
   ADD CONSTRAINT `pet_photos_ibfk_1` FOREIGN KEY (`pet_id`) REFERENCES `pets` (`id`) ON DELETE CASCADE;
 
 --
+-- 資料表的限制式 `pet_recommendation`
+--
+ALTER TABLE `pet_recommendation`
+  ADD CONSTRAINT `fk_recommendation_pet` FOREIGN KEY (`pet_id`) REFERENCES `pets` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_recommendation_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
 -- 資料表的限制式 `pet_trait`
 --
 ALTER TABLE `pet_trait`
@@ -3219,6 +3439,20 @@ ALTER TABLE `reports`
 --
 ALTER TABLE `return_order`
   ADD CONSTRAINT `return_order_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `shopping_cart`
+--
+ALTER TABLE `shopping_cart`
+  ADD CONSTRAINT `shopping_cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `shopping_cart_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  ADD CONSTRAINT `shopping_cart_ibfk_3` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`variant_id`);
+
+--
+-- 資料表的限制式 `user_questionnaire`
+--
+ALTER TABLE `user_questionnaire`
+  ADD CONSTRAINT `fk_questionnaire_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
 
 --
 -- 資料表的限制式 `user_sessions`

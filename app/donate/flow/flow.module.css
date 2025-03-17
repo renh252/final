@@ -187,3 +187,21 @@
   padding: 6px 8px;
   cursor: not-allowed;
 }
+.result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.result div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 50px;
+}
+.result div h1 {
+  font-size: 60px;
+}
+.result div p {
+  font-size: 20px;
+  margin: 0;
+}
