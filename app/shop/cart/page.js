@@ -247,7 +247,7 @@ export default function CartPage() {
               </div>
             </div>
             <div className={styles.detailBtn}>
-              <button>前往結帳</button>
+              <Link href={'/shop/checkout'}>前往結帳</Link>
               <Link href={'/shop'}>繼續逛逛</Link>
             </div>
 
