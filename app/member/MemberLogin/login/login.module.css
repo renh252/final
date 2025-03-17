@@ -1,7 +1,221 @@
-.login_container {
+.headerSection {
+  color: #f4f0ec;
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-self: center;
+  width: 1995px;
+  max-width: 100%;
+  font-size: 120px;
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.headerBackground {
+  aspect-ratio: 2.35;
+  object-fit: contain;
+  object-position: center;
+  align-self: center;
+  width: 100%;
+  z-index: 0;
+}
+
+.pageTitle {
+  position: absolute; /* 絕對定位，以便在圖片上居中 */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* 居中定位的技巧 */
+  color: white; /* 文字顏色，根據圖片調整 */
+  z-index: 2; /* 確保文字在圖片上方 */
+  text-align: center; /* 文字置中 */
+}
+
+.formContainer {
+  background-color: #fff;
+  border-radius: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 240px;
+  min-height: 900px;
+  padding-bottom: 50px;
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.sectionTitle {
+  color: #f4f0ec;
+  text-align: center;
+  background-color: #593e2f;
+  align-self: center;
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 268px;
+  overflow: hidden;
+}
+
+.form {
+  color: #fff;
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  
+}
+.rememberMe {
+  color: #000;
+  font-size:26px;
+  display: flex;
   align-items: center;
-  height: 100vh;
-  background-color: #f4f4f4;
+  margin-bottom: 20px;
+}
+
+.rememberMe input[type="checkbox"] {
+  transform: scale(2);
+  margin-right: 20px;
+}
+
+.registrationForm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px; /* 調整最大寬度以符合您的設計 */
+  margin: 0 auto; /* 水平居中 */ 
+}
+
+.formGroup {
+  width: 100%;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+}
+
+.formLabel {
+  color: #0e0d0d;
+  font-size:32px;
+  margin-bottom: 10px;
+}
+
+.formInput {
+  border: 2px solid #bdbdbd;
+  border-radius: 50px;
+  width: 80%; /* 確保輸入欄位佔據 formGroup 的寬度 */
+  height: 70px;
+}
+
+.loginLink {
+  text-align: center;
+  font-size: 24px;
+  line-height: 1;
+  color: #000;
+}
+
+.termsText {
+  text-align: center;
+  color: #000;
+  font-size: 24px;
+  line-height: 15px;
+}
+
+.link {
+  color: #4484ce;
+  text-decoration: none;
+}
+
+.registerButton {
+  color: #fff;
+  text-align: center;
+  width: 288px;
+  height: 96px;
+  font-family:
+    Inter,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 36px;
+  line-height: 0;
+  position: absolute;
+  bottom: 259px;
+  right: 716px;
+  background-color: #003459;
+  border: none;
+  border-radius: 50px;
+  padding: 42px 29px 21px;
+  cursor: pointer;
+}
+
+.decorativeIcon1,
+.decorativeIcon2 {
+  aspect-ratio: 1.24;
+  object-fit: contain;
+  object-position: center;
+  width: 68px;
+  height: 55px;
+  position: absolute;
+  right: 430px;
+  z-index: 0;
+}
+
+.decorativeIcon1 {
+  bottom: 820px;
+}
+
+.decorativeIcon2 {
+  bottom: 548px;
+}
+
+@media (width <= 991px) {
+  .container {
+    padding-left: 20px;
+  }
+
+  .registrationWrapper {
+    max-width: 100%;
+  }
+
+  .headerSection {
+    font-size: 40px;
+  }
+
+  .pageTitle {
+    max-width: 100%;
+    font-size: 40px;
+  }
+
+  .contentSection {
+    max-width: 100%;
+    margin-top: 40px;
+    padding: 0 20px;
+  }
+
+  .formContainer {
+    max-width: 100%;
+  }
+
+  .sectionTitle {
+    padding: 10px 20px;
+  }
+
+  .socialButtons {
+    white-space: initial;
+  }
+
+  .googleButton,
+  .facebookButton {
+    padding: 15px 20px;
+  }
+
+  .registrationForm {
+    padding-left: 20px;
+  }
+
+  .termsText {
+    max-width: 100%;
+  }
 }

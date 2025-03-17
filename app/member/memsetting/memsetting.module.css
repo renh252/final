@@ -1,71 +1,72 @@
-.header_container {
+.headerSection {
+  color: #f4f0ec;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: center;
+  width: 1995px;
+  max-width: 100%;
+  font-size: 120px;
   position: relative;
-  text-align: center;
-  color: white;
+  overflow: hidden;
+  z-index: 0;
 }
 
-.header_container img {
+.headerBackground {
+  aspect-ratio: 2.35;
+  object-fit: contain;
+  object-position: center;
+  align-self: center;
   width: 100%;
-  height: auto;
-  display: block;
+  z-index: 0;
 }
 
-.text_overlay {
+.pageTitle {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 2em;
+  color: white;
+  z-index: 2;
+  text-align: center;
 }
 
 .member_container {
-  padding: 20px;
+  width: 100%;
+  max-width: 800px; /* 調整容器寬度 */
+  margin: 30px auto;
+  padding: 50px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
 }
 
-.profile_section {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.profile_photos {
-  text-align: center;
-  margin-right: 20px;
-}
-
-.profile_photos img {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 10px;
-}
-
-.profile_content {
-  flex: 1;
-}
-
-.profile_title {
-  font-size: 1.5em;
-  margin-bottom: 20px;
-}
-
-.profile_group {
+.profile_form {
   display: flex;
   flex-direction: column;
 }
 
-.form_label {
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 1.2rem;
   margin-bottom: 5px;
 }
 
-.profile_group input {
-  padding: 5px;
-  margin-bottom: 10px;
+.formInput {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  font-size: 1rem;
 }
 
-.edit_but {
-  margin-top: 20px;
+.buttonContainer {
   display: flex;
-  justify-content: space-around;
+  justify-content: center; /* 將按鈕置中對齊 */
+  align-items: center; /* 將按鈕垂直置中對齊 */
+  gap: 10px; /* 按鈕之間的間距 */
+  margin-top: 20px; /* 按鈕上方的間距 */
 }
