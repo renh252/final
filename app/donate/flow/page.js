@@ -4,7 +4,6 @@ import { useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import styles from './flow.module.css'
 import Image from 'next/image'
-import { Display } from 'react-bootstrap-icons'
 
 export default function FlowPage() {
   const searchParams = useSearchParams()
