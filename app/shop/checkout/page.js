@@ -48,7 +48,7 @@ export default function CheckoutPage() {
       if (value === '宅配到府') {
         setCheckoutData(prev => ({ ...prev, storeName: '', storeId: '' }));
       }
-      if(value === '7-ELEVEN超商'){
+      if(value === '7-ELEVEN'){
         setCheckoutData(prev => ({...prev, storeName: '', storeId: '' }));
         setPayload({ ...Payload, CvsType: 'UNIMART'  });
         SendParams();
@@ -194,48 +194,50 @@ const validateForm = () => {
   
   // name
   if (!checkoutData.recipient_name.trim()) {
-    newErrors.recipient_name = '*收件人為必填';
+    newErrors.recipient_name = '* 必填';
   }else if(checkoutData.recipient_name.length > 50){
     newErrors.recipient_name = '*格式錯誤';
   }
   
   // phone
   if (!checkoutData.recipient_phone.trim()) {
-    newErrors.recipient_phone = '* 連絡電話為必填';
+    newErrors.recipient_phone = '* 必填';
   }else if(!checkoutData.recipient_phone.startsWith('0')){
-    newErrors.recipient_phone = '* 請輸入有效的電話號碼';
+    newErrors.recipient_phone = '* 格式錯誤';
   }
   
   // email
   if (!checkoutData.recipient_email.trim()) {
-    newErrors.recipient_email = '* 電子信箱為必填';
+    newErrors.recipient_email = '* 必填';
   } else if (!/\S+@\S+\.\S+/.test(checkoutData.recipient_email)) {
-    newErrors.recipient_email = '* 請輸入有效的電子信箱';
+    newErrors.recipient_email = '* 格式錯誤';
   }
 
   // payment_method
   if (!checkoutData.payment_method) {
-    newErrors.payment_method = '* 請選擇付款方式';
+    newErrors.payment_method = '* 必填';
   }
 
   // invoice_method
   if (!checkoutData.invoice_method) {
-    newErrors.invoice_method = '* 請選擇發票方式';
+    newErrors.invoice_method = '* 必填';
   }
 
   // 手機載具
   if (checkoutData.invoice_method === '手機載具') { 
     if(!checkoutData.mobile_barcode ){
-    newErrors.mobile_barcode = '* 請輸入載具號碼';}
-    else if(checkoutData.mobile_barcode.length !== 8){
+    newErrors.mobile_barcode = '* 必填';
+    } else if (checkoutData.mobile_barcode == '/') {
+      newErrors.mobile_barcode = '* 必填';
+    } else if(checkoutData.mobile_barcode.length !== 8){
     newErrors.mobile_barcode = '* 格式錯誤'}
   }
 
   // 統編
   if (checkoutData.invoice_method === '統編') {
     if (!checkoutData.taxID_number) {
-      newErrors.taxID_number = '* 請輸入統編號碼';
-    } else if (checkoutData.taxID_number.length !== 8) {
+      newErrors.taxID_number = '* 必填';
+    }  else if (checkoutData.taxID_number.length !== 8) {
       newErrors.taxID_number = '* 格式錯誤';
     }
   }
@@ -267,7 +269,7 @@ const validateForm = () => {
     <form className={styles.main}  onSubmit={handleSubmit}>
       <div className={styles.container}>
         <div className={styles.containTitle}>
-            <h3>配送方式</h3>
+            <p>配送方式</p>
             <div className={styles.delivery}>
                 <label>
                   <input 
@@ -282,10 +284,10 @@ const validateForm = () => {
                   <input 
                   type="radio" 
                   name="delivery"
-                  value="7-ELEVEN超商" 
-                  checked={checkoutData.delivery === "7-ELEVEN超商"} 
+                  value="7-ELEVEN" 
+                  checked={checkoutData.delivery === "7-ELEVEN"} 
                   onChange={handleInputChange} />
-                  7-ELEVEN超商
+                  7-ELEVEN
                 </label>
                 <label>
                   <input 
@@ -316,95 +318,122 @@ const validateForm = () => {
           </label>
           </>
           }
-          <div>
-            <label>收件人 :
-                <input 
-                name='recipient_name' 
-                type="text"
-                value={checkoutData.recipient_name}
-                onChange={handleInputChange}
-                />
-                <span className={styles.warn}>{errors.recipient_name}</span>
-            </label>
-            <label>電話 :
-                <input 
-                name='recipient_phone' 
-                type="text" 
-                placeholder='09xxxxxxxx'
-                value={checkoutData.recipient_phone}
-                onChange={handleInputChange}
-                />
-                <span className={styles.warn}>{errors.recipient_phone}</span>
-            </label>
-            <label>電子信箱 :
-                <input 
-                name='recipient_email' 
-                type="text" 
-                value={checkoutData.recipient_email}
-                onChange={handleInputChange} 
-                />
-                <span className={styles.warn}>{errors.recipient_email}</span>
-            </label>
-            <label>備註 :
-                <input 
-                name='remark' 
-                type="text" 
-                value={checkoutData.remark}
-                onChange={handleInputChange}
-                />
-            </label>
-            <div className={styles.paymentMethod}>
-              付款方式 :
-              <div>
-                <label>
-                    <input 
-                    name='payment_method' 
-                    type="radio" 
-                    value='信用卡'
-                    checked={checkoutData.payment_method === '信用卡'}
-                    onChange={handleInputChange}
-                    />
-                    信用卡
-                </label>
-                <label>
-                    <input 
-                    name='payment_method' type="radio" 
-                    value='linePay'
-                    checked={checkoutData.payment_method === 'linePay'}
-                    onChange={handleInputChange}
-                    />
-                    line pay
-                </label>
-              </div>
-              <span className={styles.warn}>{errors.payment_method}</span>
+        
+          <div className={styles.address}>
+            <p>配送地址</p>
+            <div>
+              <select 
+              id='city'
+              name='city'
+              >
+                <option value="" selected>縣市</option>
+              </select>
+              <select 
+              id='district'
+              name='district'
+              >
+                <option value="" >區</option>
+              </select>
+              <input 
+              name='address'
+              type="text" />
+          </div>
             </div>
-            <div className={styles.invoiceMethod}>
-              發票 : 
+          <label>
+          <p>收件人 :</p>
+              <input 
+              name='recipient_name' 
+              type="text"
+              value={checkoutData.recipient_name}
+              onChange={handleInputChange}
+              />
+              <span className={styles.warn}>{errors.recipient_name}</span>
+          </label>
+          <label>
+            <p>電話 :</p>
+              <input 
+              name='recipient_phone' 
+              type="text" 
+              placeholder='09xxxxxxxx'
+              value={checkoutData.recipient_phone}
+              onChange={handleInputChange}
+              />
+              <span className={styles.warn}>{errors.recipient_phone}</span>
+          </label>
+          <label>
+            <p>電子信箱 :</p>
+              <input 
+              name='recipient_email' 
+              type="text" 
+              value={checkoutData.recipient_email}
+              onChange={handleInputChange} 
+              />
+              <span className={styles.warn}>{errors.recipient_email}</span>
+          </label>
+          <label>
+            <p>備註 :</p>
+            <input 
+            name='remark' 
+            type="text" 
+            value={checkoutData.remark}
+            onChange={handleInputChange}
+            />
+          </label>
+          <div>
+            <p>付款方式 :</p>
+            
+            <div className={styles.paymentMethod}>
+              <label>
+                  <input 
+                  name='payment_method' 
+                  type="radio" 
+                  value='信用卡'
+                  checked={checkoutData.payment_method === '信用卡'}
+                  onChange={handleInputChange}
+                  />
+                  信用卡
+              </label>
+              <label>
+                  <input 
+                  name='payment_method' type="radio" 
+                  value='linePay'
+                  checked={checkoutData.payment_method === 'linePay'}
+                  onChange={handleInputChange}
+                  />
+                  line pay
+              </label>
+            </div>
+            <span className={styles.warn}>{errors.payment_method}</span>
+          </div>
+          <div className={styles.invoiceMethod}>
+            <div className={styles.invoiceTitle}>
+              <p>發票 :</p>
               <span className={styles.warn}>{errors.invoice_method}</span>
+            </div>
+            <div className={styles.invoiceBody}>
+              <label>
+                <input 
+                  name='invoice_method' 
+                  type="radio" 
+                  value='紙本'
+                  checked={checkoutData.invoice_method === '紙本'}
+                  onChange={handleInputChange}
+                />
+                紙本
+              </label>
               <div>
                 <label>
                   <input 
                     name='invoice_method' 
                     type="radio" 
-                    value='紙本'
-                    checked={checkoutData.invoice_method === '紙本'}
+                    value='手機載具'
+                    checked={checkoutData.invoice_method === '手機載具'}
                     onChange={handleInputChange}
                   />
-                  紙本
+                  手機載具
                 </label>
-                <div>
-                  <label>
-                    <input 
-                      name='invoice_method' 
-                      type="radio" 
-                      value='手機載具'
-                      checked={checkoutData.invoice_method === '手機載具'}
-                      onChange={handleInputChange}
-                    />
-                    手機載具
-                  </label>
-                  {checkoutData.invoice_method === '手機載具' && (
-                    <>
+                {checkoutData.invoice_method === '手機載具' && (
+                  <div>
                     <label>
                       : 
                       <input 
@@ -414,49 +443,49 @@ const validateForm = () => {
                         onChange={handleInputChange}
                       />
                     </label>
-                    <span>{errors.mobile_barcode}</span>
-                    </>
-                  )}
-                </div>
-                <div>
-                  <label>
-                    <input 
-                      name='invoice_method' 
-                      type="radio" 
-                      value='統編'
-                      checked={checkoutData.invoice_method === '統編'}
-                      onChange={handleInputChange}
-                    />
-                    統編
-                  </label>
-                  {checkoutData.invoice_method === '統編' && (
-                    <>
-                    <label>
-                      : 
-                      <input 
-                        type="text" 
-                        name='taxID_number'
-                        value={checkoutData.taxID_number}
-                        onChange={handleInputChange}
-                      />
-                    </label>
-                    <span>{errors.taxID_number}</span>
-                    </>
-                  )}
-                </div>
+                    <span className={styles.warn}>{errors.mobile_barcode}</span>
+                  </div>
+                )}
+              </div>
+              <div>
                 <label>
                   <input 
                     name='invoice_method' 
                     type="radio" 
-                    value='捐贈發票'
-                    checked={checkoutData.invoice_method === '捐贈發票'}
+                    value='統編'
+                    checked={checkoutData.invoice_method === '統編'}
                     onChange={handleInputChange}
                   />
-                  捐贈發票
+                  統編
                 </label>
+                {checkoutData.invoice_method === '統編' && (
+                  <>
+                  <label>
+                    : 
+                    <input 
+                      type="text" 
+                      name='taxID_number'
+                      value={checkoutData.taxID_number}
+                      onChange={handleInputChange}
+                    />
+                  </label>
+                  <span className={styles.warn}>{errors.taxID_number}</span>
+                  </>
+                )}
               </div>
+              <label>
+                <input 
+                  name='invoice_method' 
+                  type="radio" 
+                  value='捐贈發票'
+                  checked={checkoutData.invoice_method === '捐贈發票'}
+                  onChange={handleInputChange}
+                />
+                捐贈發票
+              </label>
             </div>
           </div>
+        
         </div>
         :<div className={styles.containBody}>請先選擇配送方式</div>
         }
