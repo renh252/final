@@ -15,6 +15,11 @@ export default function FlowPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [petName, setPetName] = useState('')
 
+  // 新增：用來存放捐款人資訊的狀態
+  const [donorName, setDonorName] = useState('')
+  const [donorPhone, setDonorPhone] = useState('')
+  const [donorEmail, setDonorEmail] = useState('')
+
   useEffect(() => {
     const donationType = searchParams.get('donationType') || '一般捐款'
     const pet = searchParams.get('pet') || ''
@@ -52,6 +57,10 @@ export default function FlowPage() {
       alert('請填寫金額、商品項目並選擇付款方式！')
       return
     }
+    if (!donorName || !donorPhone || !donorEmail) {
+      alert('請填寫正確的捐款人資料！')
+      return
+    }
 
     setIsLoading(true)
 
@@ -60,6 +69,10 @@ export default function FlowPage() {
         amount: Number(amount),
         items,
         ChoosePayment: paymentType,
+        petId: petName ? Number(petName.replace('Pet', '')) : null, // 轉換成數字
+        donorName,
+        donorPhone,
+        donorEmail,
       }
 
       if (paymentType === 'CreditPeriod') {
@@ -245,7 +258,13 @@ export default function FlowPage() {
           <div className={styles.donate_info_container}>
             <div>
               <label>姓名</label>
-              <input type="text" className={styles.input} required />
+              <input
+                type="text"
+                className={styles.input}
+                value={donorName}
+                onChange={(e) => setDonorName(e.target.value)}
+                required
+              />
             </div>
             <div>
               <label>認養寵物</label>
@@ -258,11 +277,23 @@ export default function FlowPage() {
             </div>
             <div>
               <label>手機號碼</label>
-              <input type="text" className={styles.input} required />
+              <input
+                type="text"
+                className={styles.input}
+                value={donorPhone}
+                onChange={(e) => setDonorPhone(e.target.value)}
+                required
+              />
             </div>
             <div>
               <label>電子郵件</label>
-              <input type="email" className={styles.input} required />
+              <input
+                type="email"
+                className={styles.input}
+                value={donorEmail}
+                onChange={(e) => setDonorEmail(e.target.value)}
+                required
+              />
             </div>
           </div>
         </div>
