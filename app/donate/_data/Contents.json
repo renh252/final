@@ -17,34 +17,16 @@
     {
       "imgSrc": "/images/donate/icon/atm1.png",
       "alt": "atm1",
-      "description": [
-        "戶名：社團法人新北市流浪貓狗再生保護協會",
-        "捐款帳號：中國信託/ 新店分行",
-        "銀行代號：822",
-        "銀行帳號：3145-4046-2742"
-      ]
-    },
-    {
-      "imgSrc": "/images/donate/icon/atm2.png",
-      "alt": "atm2",
-      "title": "捐款資料",
-      "description": "捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額 、後五碼， 如要報稅者需再提供ID或統一編號、收據收件地址 、收件人。"
+      "title": "ATM虛擬帳號轉帳",
+      "description": "選擇銀行並取得虛擬帳號後，再透過網路銀行、銀行APP或至實體ATM轉帳完成付款。"
     }
   ],
   "post_office": [
     {
       "imgSrc": "/images/donate/icon/atm1.png",
       "alt": "atm1",
-      "description": [
-        "戶名：社團法人新北市流浪貓狗再生保護協會",
-        "郵政劃撥：5029-8902"
-      ]
-    },
-    {
-      "imgSrc": "/images/donate/icon/atm2.png",
-      "alt": "atm2",
-      "title": "捐款資料",
-      "description": "捐款如需要收據請私訊提供以下資料收據抬頭 、捐款金額 、後五碼， 如要報稅者需再提供ID或統一編號、收據收件地址 、收件人。"
+      "title": "超商代碼繳款",
+      "description": "請至超商機台輸入代碼，產生繳費單後前往櫃台繳費，並請於 7天內 至超商列印繳費單並完成繳費。"
     }
   ],
   "faq": [
