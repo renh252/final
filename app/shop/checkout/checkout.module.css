@@ -1,0 +1,128 @@
+.main{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    
+    p{
+      padding: 0;
+      margin: 0;
+    }
+    .container{
+      display: flex;
+      flex-direction: column;
+      background-color: #fff;
+      font-size: 24px;
+      border-radius: 20px;
+      overflow: hidden;
+
+      input[type="text"],select{
+        border-radius: 19px;
+        border: 1px solid rgba(153, 162, 165, 1);
+      }
+      select{
+        padding: 0 5px;
+      }
+      
+      .containTitle{
+        display: flex;
+        flex-direction: row;
+        gap: 50px;
+        padding: 20px 50px;
+        background-color: rgba(89, 62, 47, 1);
+        color: #fff;
+        align-items: center;
+
+          >div{
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+            gap: 30px;
+
+            label{
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              gap: 20px;
+
+              input{
+                 border: none; 
+              }
+            }
+
+          }
+      }
+
+      .containBody{
+        display: flex;
+        flex-direction: column;
+        padding: 20px 50px;
+        gap: 20px;
+
+        >label,>div{
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: start;
+          gap: 20px;
+
+          >:first-child{
+            width: 120px;
+          }
+          >:last-child,>:nth-child(2){
+            label{
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              gap: 20px;
+            } 
+          }
+
+        }
+
+        .address{
+          >div{
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+          }
+        }
+
+        .paymentMethod{
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 30px;
+        }
+
+        .invoiceTitle{
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: start;
+          justify-content: start;
+        }
+        .invoiceBody{
+          label,div{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            
+            input[type="text"]{
+              border: none;
+              border-bottom: 1px solid #000; 
+            }
+          }
+        }
+      }
+    }
+}
+
+.warn{
+  color: red;
+  font-size: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
