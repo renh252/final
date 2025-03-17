@@ -23,6 +23,8 @@ import {
   FaClipboardList,
   FaPaw,
   FaArrowRight,
+  FaRegHeart,
+  FaMapMarkerAlt,
 } from 'react-icons/fa'
 
 const fetcher = (url) => fetch(url).then((res) => res.json())
@@ -258,6 +260,7 @@ export default function PetsPage() {
   const [nearbyStores, setNearbyStores] = useState([]) // 新增：附近商店列表
   const [searchRadius, setSearchRadius] = useState(2) // 新增：搜尋範圍，預設 10 公里
   const [selectedStoreLocation, setSelectedStoreLocation] = useState(null) // 新增：選中的店家位置，用於繪製直線
+  const [favorites, setFavorites] = useState({})
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data: petsData, error: petsError } = useSWR(
@@ -772,6 +775,16 @@ export default function PetsPage() {
     setMapMarkers(newMarkers)
   }
 
+  // 處理收藏功能
+  const handleToggleFavorite = (event, petId) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setFavorites((prev) => ({
+      ...prev,
+      [petId]: !prev[petId],
+    }))
+  }
+
   if (!petsData) return <div>載入中...</div>
   if (petsError) return <div>發生錯誤</div>
 
@@ -1064,15 +1077,33 @@ export default function PetsPage() {
                           title={pet.name}
                           className={styles.petCard}
                         >
-                          <div>
-                            <p>品種：{pet.variety}</p>
-                            <p>
-                              <span>年齡：{pet.age}</span>
-                              <span className={styles.separator}>・</span>
-                              <span>{pet.gender}</span>
-                            </p>
-                            <p>地點：{pet.location}</p>
+                          <div className={styles.petCardContent}>
+                            <div className={styles.petCardInfo}>
+                              <p>
+                                <span className={styles.label}>品種</span>
+                                {pet.variety || '未知'}
+                              </p>
+                              <p>
+                                <span className={styles.label}>年齡</span>
+                                {pet.age || '未知'}
+                                <span className={styles.separator}>・</span>
+                                {pet.gender || '未知'}
+                              </p>
+                              <div className={styles.petCardLocation}>
+                                <FaMapMarkerAlt />
+                                {pet.location || '地點未提供'}
+                              </div>
+                            </div>
                           </div>
+                          <button
+                            className={styles.likeButton}
+                            onClick={(e) => handleToggleFavorite(e, pet.id)}
+                            aria-label={
+                              favorites[pet.id] ? '取消收藏' : '加入收藏'
+                            }
+                          >
+                            {favorites[pet.id] ? <FaHeart /> : <FaRegHeart />}
+                          </button>
                         </Card>
                       </Link>
                     ))}
@@ -1114,15 +1145,33 @@ export default function PetsPage() {
                           title={pet.name}
                           className={styles.petCard}
                         >
-                          <div>
-                            <p>品種：{pet.variety}</p>
-                            <p>
-                              <span>年齡：{pet.age}</span>
-                              <span className={styles.separator}>・</span>
-                              <span>{pet.gender}</span>
-                            </p>
-                            <p>地點：{pet.location}</p>
+                          <div className={styles.petCardContent}>
+                            <div className={styles.petCardInfo}>
+                              <p>
+                                <span className={styles.label}>品種</span>
+                                {pet.variety || '未知'}
+                              </p>
+                              <p>
+                                <span className={styles.label}>年齡</span>
+                                {pet.age || '未知'}
+                                <span className={styles.separator}>・</span>
+                                {pet.gender || '未知'}
+                              </p>
+                              <div className={styles.petCardLocation}>
+                                <FaMapMarkerAlt />
+                                {pet.location || '地點未提供'}
+                              </div>
+                            </div>
                           </div>
+                          <button
+                            className={styles.likeButton}
+                            onClick={(e) => handleToggleFavorite(e, pet.id)}
+                            aria-label={
+                              favorites[pet.id] ? '取消收藏' : '加入收藏'
+                            }
+                          >
+                            {favorites[pet.id] ? <FaHeart /> : <FaRegHeart />}
+                          </button>
                         </Card>
                       </Link>
                     ))}

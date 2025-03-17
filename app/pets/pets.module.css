@@ -318,6 +318,88 @@
 .cardLink {
   text-decoration: none;
   color: inherit;
+  position: relative;
+  display: block;
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.petCard {
+  position: relative;
+  padding-bottom: 2.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.petCard :global(.card-img-top) {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+}
+
+.petCardContent {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  min-height: 130px;
+  background-color: transparent;
+}
+
+.petCardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.petCardInfo p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.petCardInfo .label {
+  color: #333;
+  font-weight: 500;
+  min-width: 45px;
+}
+
+.separator {
+  margin: 0 0.5rem;
+  color: #333;
+}
+
+.petCardLocation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #2d8a30;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+}
+
+.petCardLocation svg {
+  font-size: 1rem;
+}
+
+.petCard :global(.card-title) {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .scrollButton,
@@ -412,7 +494,7 @@
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 2rem;
-  min-height: 400px; /* 確保最小高度 */
+  min-height: 400px;
 }
 
 .mapContainer:before {
@@ -575,8 +657,8 @@
   border-top: 1px solid var(--border-color);
   margin-top: var(--spacing-md);
   padding-top: var(--spacing-md);
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #ced4da var(--light-bg); /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #ced4da var(--light-bg);
   animation: listFadeIn var(--transition-slow) 0.1s both;
 }
 
@@ -790,37 +872,25 @@
   transition: color var(--transition-fast);
 }
 
-:global(.leaflet-container a.leaflet-popup-close-button:hover) {
-}
-
 /* OpenStreetMap 文字顏色設定 */
 :global(.leaflet-container) {
   font-family: inherit;
-}
-
-:global(.leaflet-control-attribution) {
 }
 
 :global(.leaflet-control-attribution a) {
   text-decoration: underline;
 }
 
-:global(.leaflet-control-zoom a) {
-}
-
-:global(.leaflet-control-layers) {
-}
-
 /* 全頁地圖容器樣式 */
 .fullMapContainer {
-  height: 80vh; /* 增加高度以獲得更好的視覺體驗 */
+  height: 80vh;
   width: 100%;
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  position: relative; /* 確保作為圖例和標籤的定位參考 */
-  transition: all 0.3s ease; /* 平滑過渡效果 */
+  position: relative;
+  transition: all 0.3s ease;
   animation: mapFadeIn 0.4s ease-out;
 }
 
@@ -1117,4 +1187,32 @@
 
 .viewModeSwitchWrapper {
   text-align: right;
+}
+
+.likeButton {
+  width: 35px;
+  aspect-ratio: 1/1;
+  padding: 8px;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 18px;
+  line-height: 18px;
+  color: #d75951;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(215, 89, 81, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.likeButton:hover {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
