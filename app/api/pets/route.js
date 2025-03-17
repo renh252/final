@@ -183,11 +183,56 @@ export async function GET(request) {
       responseData.pets = processedPets
     }
 
-    connection.release()
+    // 獲取用戶的收藏列表
+    if (type === 'favorites') {
+      const userId = searchParams.get('userId')
+      if (!userId) {
+        return NextResponse.json({ error: '需要用戶ID' }, { status: 400 })
+      }
+      const [favorites] = await connection.execute(
+        'SELECT pet_id FROM pets_like WHERE user_id = ?',
+        [userId]
+      )
+      connection.release()
+      return NextResponse.json({ favorites })
+    }
 
+    connection.release()
     return NextResponse.json(responseData)
   } catch (error) {
     console.error('獲取資料時發生錯誤：', error)
     return NextResponse.json({ error: '獲取資料時發生錯誤' }, { status: 500 })
+  }
+}
+
+// 處理收藏操作
+export async function POST(request) {
+  try {
+    const body = await request.json()
+    const { userId, petId, action } = body
+
+    if (!userId || !petId || !action) {
+      return NextResponse.json({ error: '缺少必要參數' }, { status: 400 })
+    }
+
+    const connection = await pool.getConnection()
+
+    if (action === 'add') {
+      await connection.execute(
+        'INSERT INTO pets_like (user_id, pet_id) VALUES (?, ?)',
+        [userId, petId]
+      )
+    } else if (action === 'remove') {
+      await connection.execute(
+        'DELETE FROM pets_like WHERE user_id = ? AND pet_id = ?',
+        [userId, petId]
+      )
+    }
+
+    connection.release()
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Database error:', error)
+    return NextResponse.json({ error: '資料庫錯誤' }, { status: 500 })
   }
 }
