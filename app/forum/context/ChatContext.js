@@ -3,8 +3,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
-const ChatContext = createContext();
-
 export const ChatProvider = ({ children }) => {
     const [messages, setMessages] = useState([]);
     const [socket, setSocket] = useState(null);
@@ -44,6 +42,6 @@ export const ChatProvider = ({ children }) => {
     );
 };
 
-export const useChat = () => {
+export const ChatContext = () => {
     return useContext(ChatContext);
 };
