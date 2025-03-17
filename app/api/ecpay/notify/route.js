@@ -1,5 +1,6 @@
 import * as crypto from 'crypto'
 import { NextResponse } from 'next/server'
+import db from '@/app/lib/db'
 
 // ECPay 商店設定
 const HashKey = 'pwFHCqoQZGmho4w6'
@@ -55,9 +56,9 @@ export async function POST(req) {
     console.log('🔔 ECPay 回傳通知:', data)
 
     // 檢查必要的參數
-    if (!data || !data.TradeNo || !data.CheckMacValue) {
+    if (!data || !data.MerchantTradeNo || !data.CheckMacValue) {
       return NextResponse.json(
-        { message: 'ERROR: Missing required parameters' },
+        { message: 'ERROR: 缺少必要參數' },
         { status: 400 }
       )
     }
@@ -79,7 +80,33 @@ export async function POST(req) {
     console.log('✅ CheckMacValue 驗證成功!')
 
     // 這裡可以加上你的資料庫更新邏輯，例如：
+    // ✅ 取得交易編號 & 付款狀態
+    const tradeNo = data.MerchantTradeNo
+    const transactionStatus = data.RtnCode === '1' ? 'success' : 'failed'
+    // ✅ 取得付款方式
+    const paymentMethod = data.PaymentType.includes('_')
+      ? data.PaymentType.split('_')[0]
+      : data.PaymentType
 
+    // ✅ 更新資料庫的交易狀態
+    const [result] = await db.query(
+      `UPDATE donations 
+      SET transaction_status = ?, payment_method = ? 
+      WHERE trade_no = ?`,
+      [transactionStatus, paymentMethod, tradeNo]
+    )
+    if (result.affectedRows === 0) {
+      console.error(`❌ 未找到對應的交易: ${tradeNo}`)
+      return NextResponse.json(
+        { message: 'ERROR: 交易不存在' },
+        { status: 400 }
+      )
+    }
+
+    console.log(
+      `✅ 交易 ${tradeNo} 狀態更新為: ${transactionStatus}, 付款方式: ${paymentMethod}`
+    )
+    
     return new Response('1|OK', { status: 200 }) // ✅ 確保 ECPay 正確接收
   } catch (error) {
     console.error('❌ ECPay 通知處理錯誤:', error)
