@@ -22,13 +22,37 @@ export default function FlowPage() {
   const [donorEmail, setDonorEmail] = useState('')
 
   useEffect(() => {
-    const donationType = searchParams.get('donationType') || '一般捐款'
+    const donationType = searchParams.get('donationType') || '捐給我們'
     const pet = searchParams.get('pet') || ''
     const petIdFromQuery = searchParams.get('petId') || null
     setItems(donationType)
     setPetName(pet)
     setPetId(petIdFromQuery) // 直接使用 `donate` 頁面傳來的 `petId`
   }, [searchParams])
+
+  const validateFields = () => {
+    // 驗證姓名
+    if (!/^[\u4e00-\u9fa5]{2,}$/.test(donorName)) {
+      alert('請輸入至少兩個中文字的姓名')
+      return false
+    }
+
+    // 驗證手機號碼
+    if (!/^09\d{2}[- ]?\d{3}[- ]?\d{3}$/.test(donorPhone)) {
+      alert('請輸入有效的手機號碼 (例: 0912345678)')
+      return false
+    }
+
+    // 驗證電子郵件
+    if (
+      !/^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z]+\.[a-zA-Z]+$/.test(donorEmail)
+    ) {
+      alert('請輸入有效的電子郵件地址 (格式錯誤)')
+      return false
+    }
+
+    return true
+  }
 
   const handleAmountChange = (e) => setAmount(e.target.value)
 
@@ -56,12 +80,17 @@ export default function FlowPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!amount || !items || !paymentType) {
-      alert('請填寫金額、商品項目並選擇付款方式！')
+    // 驗證表單
+    if (!validateFields()) {
       return
     }
-    if (!donorName || !donorPhone || !donorEmail) {
-      alert('請填寫正確的捐款人資料！')
+    if (Number(amount) < 100) {
+      alert('捐款金額至少為 100 元')
+      return
+    }
+
+    if (!amount || !items || !paymentType) {
+      alert('請填寫金額、商品項目並選擇付款方式！')
       return
     }
 
@@ -143,7 +172,7 @@ export default function FlowPage() {
               </tr>
               <tr>
                 <td className={styles.order_label}>捐款金額</td>
-                <td className={styles.order_value}>
+                <td className={styles.order_value_money}>
                   <input
                     type="number"
                     value={amount}
@@ -151,6 +180,7 @@ export default function FlowPage() {
                     placeholder="請輸入金額"
                     required
                   />
+                  <p>(金額最低需為100元)</p>
                 </td>
               </tr>
               <tr className={styles.order_total_row}>
@@ -267,18 +297,21 @@ export default function FlowPage() {
                 className={styles.input}
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
-                required
               />
             </div>
-            <div>
-              <label>認養寵物</label>
-              <input
-                type="text"
-                className={styles.readOnlyInput}
-                value={petName}
-                readOnly
-              />
-            </div>
+            {petName ? (
+              <div>
+                <label>認養寵物</label>
+                <input
+                  type="text"
+                  className={styles.readOnlyInput}
+                  value={petName}
+                  readOnly
+                />
+              </div>
+            ) : (
+              ''
+            )}
             <div>
               <label>手機號碼</label>
               <input
@@ -286,7 +319,6 @@ export default function FlowPage() {
                 className={styles.input}
                 value={donorPhone}
                 onChange={(e) => setDonorPhone(e.target.value)}
-                required
               />
             </div>
             <div>
@@ -296,7 +328,6 @@ export default function FlowPage() {
                 className={styles.input}
                 value={donorEmail}
                 onChange={(e) => setDonorEmail(e.target.value)}
-                required
               />
             </div>
           </div>
