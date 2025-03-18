@@ -24,26 +24,11 @@ export default function FlowPage() {
   useEffect(() => {
     const donationType = searchParams.get('donationType') || '一般捐款'
     const pet = searchParams.get('pet') || ''
+    const petIdFromQuery = searchParams.get('petId') || null
     setItems(donationType)
     setPetName(pet)
-    // 只有「線上認養」時才查詢 pet_id
-    if (donationType === '線上認養' && pet) {
-      fetchPetId(pet)
-    }
+    setPetId(petIdFromQuery) // 直接使用 `donate` 頁面傳來的 `petId`
   }, [searchParams])
-  // 獲取 pet_id
-  
-  const fetchPetId = async (petName) => {
-    try {
-      const res = await fetch(`/api/pets?name=${encodeURIComponent(petName)}`)
-      const data = await res.json()
-      if (data.status === 'success' && data.pet) {
-        setPetId(data.pet.id)
-      }
-    } catch (error) {
-      console.error('獲取寵物 ID 失敗:', error)
-    }
-  }
 
   const handleAmountChange = (e) => setAmount(e.target.value)
 
@@ -87,6 +72,7 @@ export default function FlowPage() {
         amount: Number(amount),
         items,
         ChoosePayment: paymentType,
+        selectedPaymentMode,
         petId: petId || null,
         donorName,
         donorPhone,
