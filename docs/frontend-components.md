@@ -72,6 +72,7 @@
 - `Tooltip`：工具提示
 - `Popover`：彈出提示
 - `Breadcrumb`：麵包屑導航
+- `FullCalendar`：日曆元件，支援月、週、日三種視圖模式，用於顯示和管理時間相關資料
 
 ### 表單元件
 
@@ -151,6 +152,7 @@
 - `MessageList`：訊息列表
 - `MessageDetail`：訊息詳情
 - `MessageForm`：訊息表單
+- `MemberAppointmentCalendar`：會員預約日曆，用於顯示會員的預約記錄，支援月、週、日三種視圖模式
 
 ## 後台管理元件
 
@@ -180,6 +182,7 @@
 - `DataSearch`：數據搜索
 - `DataExport`：數據導出
 - `DataImport`：數據導入
+- `FullCalendar`：日曆元件，位於 `app/admin/_components/FullCalendar.tsx`，用於後台預約管理，支援月、週、日三種視圖模式，根據預約狀態顯示不同顏色的事件，支援事件點擊查看詳情
 
 ### 表單元件
 
