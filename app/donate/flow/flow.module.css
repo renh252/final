@@ -69,6 +69,17 @@
   width: 90%;
   padding-left: 15px;
 }
+.order_value_money {
+  display: flex;
+  background-color: #f8f8f8;
+  text-align: left;
+  width: 90%;
+  padding-left: 15px;
+  gap: 5px;
+}
+.order_value_money p {
+  margin: auto 0;
+}
 .order_total_row {
   display: flex;
   justify-content: space-between;
