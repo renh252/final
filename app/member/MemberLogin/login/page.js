@@ -1,7 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './login.module.css';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function MemberPage() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,14 @@ export default function MemberPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,6 +44,7 @@ export default function MemberPage() {
         setMessage('登入成功！');
         setIsLoggedIn(true);
         localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
         if (rememberMe) {
           localStorage.setItem('rememberedEmail', email);
         } else {
@@ -115,23 +125,23 @@ export default function MemberPage() {
         <div>
           <p className={styles.loginLink}>
             還沒有會員?  
-            <a
+            <Link
               href="/member/MemberLogin/register"
               className={styles.link}
               style={{ fontSize: '22px' }}
             >
               點此註冊
-            </a>
+            </Link>
           </p>
           <p className={styles.loginLink}>
             忘記密碼?  
-            <a
+            <Link
               href="/member/MemberLogin/forgot"
               className={styles.link}
               style={{ fontSize: '22px' }}
             >
               請點我
-            </a>
+            </Link>
           </p>
         </div>
       </div>
