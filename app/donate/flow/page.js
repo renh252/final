@@ -26,20 +26,24 @@ export default function FlowPage() {
     const pet = searchParams.get('pet') || ''
     setItems(donationType)
     setPetName(pet)
-    if (pet) {
-      (async () => {
-        try {
-          const res = await fetch(`/api/pets?name=${encodeURIComponent(pet)}`)
-          const data = await res.json()
-          if (data.status === 'success' && data.pet) {
-            setPetId(data.pet.id)
-          }
-        } catch (error) {
-          console.error('獲取寵物 ID 失敗:', error)
-        }
-      })() // 立即執行函數寫法，因為不能直接讓useEffect 本身變成 async
+    // 只有「線上認養」時才查詢 pet_id
+    if (donationType === '線上認養' && pet) {
+      fetchPetId(pet)
     }
   }, [searchParams])
+  // 獲取 pet_id
+  
+  const fetchPetId = async (petName) => {
+    try {
+      const res = await fetch(`/api/pets?name=${encodeURIComponent(petName)}`)
+      const data = await res.json()
+      if (data.status === 'success' && data.pet) {
+        setPetId(data.pet.id)
+      }
+    } catch (error) {
+      console.error('獲取寵物 ID 失敗:', error)
+    }
+  }
 
   const handleAmountChange = (e) => setAmount(e.target.value)
 
