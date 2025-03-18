@@ -1,0 +1,390 @@
+/* 頁面整體樣式 */
+.pageHeader {
+  margin-bottom: 2rem;
+}
+
+.pageHeader h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.pageHeader p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* 載入中樣式 */
+.loadingContainer {
+  padding: 3rem;
+  text-align: center;
+}
+
+.loadingSpinner {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #007bff;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 預約卡片樣式 */
+.appointmentCard {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.appointmentCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* 寵物圖片樣式 */
+.petImageCol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.petImageContainer {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.petImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.petSpeciesBadge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(0, 123, 255, 0.8);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* 預約資訊樣式 */
+.appointmentInfo {
+  padding: 0.5rem 0;
+}
+
+.appointmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.petName {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #333;
+}
+
+.appointmentDetails {
+  margin-bottom: 1.5rem;
+}
+
+.appointmentDetails p {
+  margin-bottom: 0.5rem;
+  color: #666;
+  display: flex;
+  align-items: center;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+.detailIcon {
+  color: #007bff;
+  margin-right: 0.5rem;
+  min-width: 16px;
+}
+
+.notes {
+  background-color: #fff8e1;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.notesIcon {
+  color: #ff9800;
+  margin-right: 0.5rem;
+}
+
+/* 操作按鈕樣式 */
+.appointmentActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionButton svg {
+  margin-right: 0.5rem;
+}
+
+/* 過濾區樣式 */
+.filterCard {
+  background-color: #f8f9fa;
+  margin-bottom: 1.5rem;
+}
+
+.filterSection {
+  padding: 0.5rem;
+}
+
+.filterTitle {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.dateFilter {
+  max-width: 200px;
+}
+
+/* 頁籤樣式 */
+.appointmentTabs {
+  margin-bottom: 1.5rem;
+}
+
+/* 預約詳情模態框樣式 */
+.appointmentDetailModal {
+  padding: 1rem 0;
+}
+
+.modalPetInfo {
+  display: flex;
+  margin-bottom: 1.5rem;
+}
+
+.modalPetImageContainer {
+  width: 180px;
+  height: 180px;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-right: 1.5rem;
+  flex-shrink: 0;
+}
+
+.modalPetImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modalPetDetails {
+  flex-grow: 1;
+}
+
+.modalPetDetails h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.sectionTitle {
+  color: #007bff;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.modalDetailItem {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.modalDetailIcon {
+  color: #007bff;
+  margin-right: 1rem;
+  margin-top: 0.25rem;
+  font-size: 1.2rem;
+}
+
+.additionalNotes {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+/* 無預約時的樣式 */
+.noAppointments {
+  text-align: center;
+  padding: 3rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.noAppointmentsIcon {
+  font-size: 3rem;
+  color: #adb5bd;
+  margin-bottom: 1rem;
+}
+
+/* 訊息提示樣式 */
+.alertMessage {
+  margin-bottom: 1.5rem;
+}
+
+/* 狀態追蹤器樣式 */
+.statusTracker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  position: relative;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.stepNumber {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.stepLabel {
+  font-size: 0.9rem;
+  color: #6c757d;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.stepLine {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background-color: #e9ecef;
+  z-index: 0;
+}
+
+/* 活動狀態 */
+.step.active .stepNumber {
+  background-color: #28a745;
+  color: white;
+}
+
+.step.active .stepLabel {
+  color: #28a745;
+  font-weight: 600;
+}
+
+/* 取消狀態 */
+.step.cancelled .stepNumber,
+.step.cancelled .stepLine {
+  background-color: #dc3545;
+}
+
+.step.cancelled .stepLabel {
+  color: #dc3545;
+}
+
+/* 響應式調整 */
+@media (max-width: 767px) {
+  .modalPetInfo {
+    flex-direction: column;
+  }
+
+  .modalPetImageContainer {
+    margin-right: 0;
+    margin-bottom: 1rem;
+    width: 100%;
+    height: 200px;
+  }
+
+  .appointmentActions {
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .stepLabel {
+    font-size: 0.8rem;
+  }
+
+  .stepNumber {
+    width: 25px;
+    height: 25px;
+    font-size: 0.9rem;
+  }
+
+  .appointmentCard {
+    margin-bottom: 1rem;
+  }
+
+  .petImageContainer {
+    height: 150px;
+    margin-bottom: 1rem;
+  }
+
+  .appointmentInfo {
+    text-align: center;
+  }
+
+  .appointmentHeader {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .appointmentActions {
+    margin-top: 1rem;
+  }
+}
