@@ -4,45 +4,53 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import styles from "./member.module.css";
 import { Breadcrumbs } from '../_components/breadcrumbs'
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setMessage('');
 
-  try {
-    const response = await fetch('/api/member', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      // ... 成功登入的處理邏輯 ...
-    } else {
-      setMessage(data.message || '登入失敗，請檢查您的電子郵件和密碼。');
-      console.error('登入錯誤詳情:', data.error); // 添加這行來記錄詳細錯誤
-    }
-  } catch (error) {
-    console.error('登入請求失敗:', error);
-    setMessage('登入時發生錯誤，請稍後再試。錯誤詳情: ' + error.message);
-  }
-};
-export default function MemberPage(props) {
+export default function MemberPage() {
+  const [userData, setUserData] = useState(null);
   
+  useEffect(() => {
+    // 從API獲取用戶數據
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('/api/user'); // 假設您有一個 /api/user 路由
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleNicknameChange = async (event) => {
+    const newNickname = event.target.value;
+    try {
+      const response = await fetch('/api/user/updateNickname', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nickname: newNickname }),
+      });
+      if (response.ok) {
+        setUserData(prevData => ({ ...prevData, nickname: newNickname }));
+      } else {
+        throw new Error('Failed to update nickname');
+      }
+    } catch (error) {
+      console.error('Error updating nickname:', error);
+    }
+  };
+
+
   return (
     <>
-
-<header className={styles.headerSection}>
-            <img
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/c961159506ebe222e2217510289e3eee7203e02a0affe719332fe812045a0061?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
-              alt="Header background"
-              className={styles.headerBackground}
-            />
-            <h1 className={styles.pageTitle}>會員中心</h1>
-          </header>
+  <main classname={styles.profile_page}>
+  <header>
+      <img src="./images\member\Frame 312.jpg" 
+      style={{ width: '1340px', height: '600px'}} />
+  </header>
 
 
       <div className={styles.logos_grid}>
@@ -50,7 +58,7 @@ export default function MemberPage(props) {
                 className="button"
                 style={{ width: '200px', height: '50px', fontSize: '28px' }}
               >
-                <Link href="/shop/cart">我的購物車</Link>
+                <Link href="/shop">我的購物車</Link>
               </button>
               <button
                 className="button"
@@ -96,7 +104,7 @@ export default function MemberPage(props) {
     <section className={styles.profile_section}>
     <div className={styles.profile_photos}>
           <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/c07e5bb4325caeb94efd091416f6964123f3611a" alt="大頭照" classname="profile-photo" />
-              <select>
+          <select value={userData?.nickname || ""}>
               <option value="">暱稱</option>
               <option value="愛心小天使">愛心小天使</option>
               <option value="乾爹乾媽">乾爹乾媽</option>
@@ -108,15 +116,15 @@ export default function MemberPage(props) {
         <div className={styles.profile_content}>
           <h3 className="{styles.profile_title}">個人資料</h3>
             <div className="{styles.profile_group}">
-            <label className="{styles.form_label}">姓名 :</label>
+            <label className="{styles.form_label}">姓名 : {userData?.name}</label>
             <hr />
-            <label className="{styles.form_label}">電話 :</label>
+            <label className="{styles.form_label}">電話 : {userData?.phone}</label>
             <hr />
-            <label className="{styles.form_label}">生日 :</label>
+            <label className="{styles.form_label}">生日 : {userData?.birthday}</label>
             <hr />
-            <label className="{styles.form_label}">論壇ID :</label>
+            <label className="{styles.form_label}">論壇ID : {userData?.forumId}</label>
             <hr />
-            <label className="{styles.form_label}">地址 :</label>
+            <label className="{styles.form_label}">地址 : {userData?.address}</label>
             <hr />
             </div>
             
@@ -133,7 +141,7 @@ export default function MemberPage(props) {
               
 </section>
 </div>
-
+</main>
 
 
     </>
