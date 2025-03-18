@@ -34,6 +34,7 @@ export default function DonatePage() {
   const router = useRouter()
   const [donationType, setDonationType] = useState('')
   const [selectedPet, setSelectedPet] = useState('')
+  const [selectedPetId, setSelectedPetId] = useState('')
 
   // 救援醫療
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -55,7 +56,7 @@ export default function DonatePage() {
       alert('請選擇捐款類型！')
       return
     }
-    if (donationType === '線上認養' && !selectedPet) {
+    if ((donationType === '線上認養' && !selectedPet)) {
       alert('請選擇認養的寵物！')
       return
     }
@@ -63,8 +64,8 @@ export default function DonatePage() {
     let query = `donationType=${encodeURIComponent(donationType)}`
 
     // 如果選擇的是「線上認養」，則將 selectedPet 也加入網址參數
-    if (donationType === '線上認養' && selectedPet) {
-      query += `&pet=${encodeURIComponent(selectedPet)}`
+    if (donationType === '線上認養' && selectedPet && selectedPetId) {
+      query += `&pet=${encodeURIComponent(selectedPet)}&petId=${selectedPetId}`
     }
 
     router.push(`/donate/flow?${query}`)
@@ -147,7 +148,18 @@ export default function DonatePage() {
                     textAlign: 'center',
                   }}
                   value={selectedPet}
-                  onChange={(e) => setSelectedPet(e.target.value)}
+                  onChange={(e) => {
+                    const petName = e.target.value
+                    setSelectedPet(petName)
+
+                    // 找到對應的 petId
+                    const pet = pets.find((p) => p.name === petName)
+                    if (pet) {
+                      setSelectedPetId(pet.id)
+                    } else {
+                      setSelectedPetId('') // 若沒找到，清空 petId
+                    }
+                  }}
                 >
                   <option value="">－ 請選擇 －</option>
                   {pets.map((pet) => (
