@@ -49,13 +49,11 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
 }
 .ul2 {
   list-style: none;
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
 }
 .li_image {
   margin-right: 5px;
@@ -159,3 +157,114 @@
   margin: 15px;
 }
 
+/* 原始樣式保持不變，針對手機板進行調整 */
+
+@media (max-width: 768px) {
+  .image {
+    width: 100%; /* 讓圖片適應容器寬度 */
+  }
+
+  .donate_container,
+  .donate_container2,
+  .donate_container3 {
+    flex-direction: column; /* 垂直排列 */
+    padding: 20px;
+  }
+
+  .donate_item {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ul {
+    padding: 0;
+    width: 100%;
+  }
+  .ul li {
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid rgb(255, 255, 255, 0.8);
+    background-color: rgb(255, 255, 255, 0.5);
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .ul li:first-child {
+    margin: 10px auto;
+  }
+
+  .ul li p {
+    margin: 0;
+  }
+
+  .ul2 {
+    align-items: center;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+  .ul2 button {
+    width: 160px;
+    margin: 8px;
+  }
+
+  .method_item {
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    gap: 15px;
+  }
+
+  .instructions_item {
+    padding: 10px;
+  }
+
+  .icon {
+    flex-direction: column;
+    height: auto;
+    gap: 15px;
+  }
+
+  .content {
+    align-items: center;
+    text-align: center;
+  }
+
+  .instructions_content {
+    padding: 0 20px;
+    text-align: center;
+  }
+
+  .img_size {
+    width: 100%;
+  }
+
+  .cases {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .cases_img {
+    width: 100%;
+    height: auto;
+  }
+
+  .petContainer {
+    max-height: 400px;
+    padding: 5px;
+  }
+
+  .petList {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .petItem {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .button {
+    width: 100%; /* 按鈕自適應寬度 */
+    font-size: 20px;
+    padding: 10px;
+  }
+}
