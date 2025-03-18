@@ -21,19 +21,22 @@ const SearchBox = () => {
                     placeholder="搜尋文章"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    size="sm"
-                    className="flex-grow-1" // 確保輸入框能夠彈性伸展
+                    style={{
+                        marginTop: '20px',  // 固定高度
+                        borderRadius: '4px 0 0 4px' // 左側圓角
+                    }}
                 />
                 <Button 
-                    onClick={handleSearch} 
-                    size="sm"
+                    onClick={handleSearch}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                     style={{ 
                         backgroundColor: isHovered ? '#092C4C' : '#063970', 
                         borderColor: isHovered ? '#092C4C' : '#063970',
                         color: 'white',
-                        transition: 'background-color 0.2s ease'
+                        transition: 'background-color 0.2s ease',
+                        marginTop: '20px', // 與輸入框相同高度
+                        borderRadius: '0 4px 4px 0' // 右側圓角
                     }}
                 >
                     搜尋

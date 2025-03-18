@@ -14,13 +14,36 @@ export default function FlowPage() {
   const [paymentData, setPaymentData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [petName, setPetName] = useState('')
+  const [petId, setPetId] = useState(null)
+
+  // 新增：用來存放捐款人資訊的狀態
+  const [donorName, setDonorName] = useState('')
+  const [donorPhone, setDonorPhone] = useState('')
+  const [donorEmail, setDonorEmail] = useState('')
 
   useEffect(() => {
     const donationType = searchParams.get('donationType') || '一般捐款'
     const pet = searchParams.get('pet') || ''
     setItems(donationType)
     setPetName(pet)
+    // 只有「線上認養」時才查詢 pet_id
+    if (donationType === '線上認養' && pet) {
+      fetchPetId(pet)
+    }
   }, [searchParams])
+  // 獲取 pet_id
+  
+  const fetchPetId = async (petName) => {
+    try {
+      const res = await fetch(`/api/pets?name=${encodeURIComponent(petName)}`)
+      const data = await res.json()
+      if (data.status === 'success' && data.pet) {
+        setPetId(data.pet.id)
+      }
+    } catch (error) {
+      console.error('獲取寵物 ID 失敗:', error)
+    }
+  }
 
   const handleAmountChange = (e) => setAmount(e.target.value)
 
@@ -52,6 +75,10 @@ export default function FlowPage() {
       alert('請填寫金額、商品項目並選擇付款方式！')
       return
     }
+    if (!donorName || !donorPhone || !donorEmail) {
+      alert('請填寫正確的捐款人資料！')
+      return
+    }
 
     setIsLoading(true)
 
@@ -60,6 +87,10 @@ export default function FlowPage() {
         amount: Number(amount),
         items,
         ChoosePayment: paymentType,
+        petId: petId || null,
+        donorName,
+        donorPhone,
+        donorEmail,
       }
 
       if (paymentType === 'CreditPeriod') {
@@ -245,7 +276,13 @@ export default function FlowPage() {
           <div className={styles.donate_info_container}>
             <div>
               <label>姓名</label>
-              <input type="text" className={styles.input} required />
+              <input
+                type="text"
+                className={styles.input}
+                value={donorName}
+                onChange={(e) => setDonorName(e.target.value)}
+                required
+              />
             </div>
             <div>
               <label>認養寵物</label>
@@ -258,11 +295,23 @@ export default function FlowPage() {
             </div>
             <div>
               <label>手機號碼</label>
-              <input type="text" className={styles.input} required />
+              <input
+                type="text"
+                className={styles.input}
+                value={donorPhone}
+                onChange={(e) => setDonorPhone(e.target.value)}
+                required
+              />
             </div>
             <div>
               <label>電子郵件</label>
-              <input type="email" className={styles.input} required />
+              <input
+                type="email"
+                className={styles.input}
+                value={donorEmail}
+                onChange={(e) => setDonorEmail(e.target.value)}
+                required
+              />
             </div>
           </div>
         </div>
