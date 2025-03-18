@@ -70,6 +70,43 @@
   color: #666;
 }
 
+/* 視圖切換樣式 */
+.viewToggle {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* 行事曆容器樣式 */
+.calendarContainer {
+  min-height: 600px;
+  padding: 1rem 0;
+}
+
+/* 行事曆事件顏色 */
+.pending {
+  background-color: #ffc107 !important;
+  border-color: #ffc107 !important;
+}
+
+.approved {
+  background-color: #28a745 !important;
+  border-color: #28a745 !important;
+}
+
+.completed {
+  background-color: #17a2b8 !important;
+  border-color: #17a2b8 !important;
+}
+
+.cancelled {
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+}
+
 /* 響應式調整 */
 @media (max-width: 768px) {
   .table-responsive {
@@ -78,5 +115,9 @@
 
   .btn-sm {
     margin-bottom: 0.5rem;
+  }
+
+  .calendarContainer {
+    min-height: 400px;
   }
 }
