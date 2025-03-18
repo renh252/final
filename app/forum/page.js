@@ -259,6 +259,10 @@ const ForumPage = () => {
     return <Loading />
   }
 
+  if (loading) {
+    return <Loading />
+  }
+
   return (
     <ArticleProvider>
       <div className="container">
@@ -266,9 +270,9 @@ const ForumPage = () => {
         <ButtonGroup />
         <div className="d-flex justify-content-between align-items-center my-3">
           <NavTabs />
-          <div className="d-flex align-items-center gap-2">
-            <CreatePostButton />
-            <SearchBox />
+          <div className="ml-auto"><CreatePostButton /></div>
+          <div className="ml-auto">
+          <SearchBox />
           </div>
         </div>
         <div className="pinned-articles">
