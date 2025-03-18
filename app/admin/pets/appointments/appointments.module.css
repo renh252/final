@@ -1,0 +1,82 @@
+.pageTitle {
+  margin-bottom: 2rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.loadingSpinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 表格樣式 */
+.table th {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* 狀態標籤樣式 */
+.badge {
+  padding: 0.5em 0.8em;
+  font-weight: 500;
+}
+
+/* 按鈕樣式 */
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Modal 樣式 */
+.modal-title {
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-body h5 {
+  color: #555;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.modal-body p {
+  margin-bottom: 0.5rem;
+  color: #666;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+  .table-responsive {
+    margin-bottom: 1rem;
+  }
+
+  .btn-sm {
+    margin-bottom: 0.5rem;
+  }
+}

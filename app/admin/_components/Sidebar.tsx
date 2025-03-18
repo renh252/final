@@ -177,6 +177,14 @@ export default function Sidebar({ collapsed = false, onToggle }) {
         label: '寵物管理',
         path: '/admin/pets',
         requiredPrivilege: 'pets:read',
+        subItems: [
+          { label: '寵物列表', path: '/admin/pets' },
+          {
+            label: '預約管理',
+            path: '/admin/pets/appointments',
+            requiredPrivilege: 'pets:appointments:read',
+          },
+        ],
       },
       {
         icon: <MessageSquare size={20} color={getIconColor()} />,
