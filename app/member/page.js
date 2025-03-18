@@ -4,7 +4,32 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import styles from "./member.module.css";
 import { Breadcrumbs } from '../_components/breadcrumbs'
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMessage('');
 
+  try {
+    const response = await fetch('/api/member', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      // ... 成功登入的處理邏輯 ...
+    } else {
+      setMessage(data.message || '登入失敗，請檢查您的電子郵件和密碼。');
+      console.error('登入錯誤詳情:', data.error); // 添加這行來記錄詳細錯誤
+    }
+  } catch (error) {
+    console.error('登入請求失敗:', error);
+    setMessage('登入時發生錯誤，請稍後再試。錯誤詳情: ' + error.message);
+  }
+};
 export default function MemberPage(props) {
   
   return (
