@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import './CreatePostButton.css';
 
 const CreatePostButton = () => {
   const router = useRouter();
@@ -11,9 +12,8 @@ const CreatePostButton = () => {
 
   return (
     <button 
-      className="btn btn-primary ms-3" 
+      className="btn ms-3 create-post-button" 
       onClick={handleCreatePost}
-      style={{ minWidth: '130px' }}
     >
       <i className="bi bi-pencil-fill me-1"></i> 發文
     </button>
