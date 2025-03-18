@@ -423,8 +423,8 @@ export default function AppointmentsPage() {
         <Link href="/pets" className="btn btn-primary">
           瀏覽寵物
         </Link>
-      </Card.Body>
-    </Card>
+          </Card.Body>
+        </Card>
   )
 
   // 渲染表格視圖
@@ -436,13 +436,13 @@ export default function AppointmentsPage() {
             <Row>
               <Col md={3}>
                 <div className={styles.petImageContainer}>
-                  <Image
+                <Image
                     src={appointment.pet_image}
                     alt={appointment.pet_name}
                     width={200}
                     height={200}
-                    className={styles.petImage}
-                  />
+                  className={styles.petImage}
+                />
                 </div>
               </Col>
               <Col md={6}>
@@ -495,8 +495,8 @@ export default function AppointmentsPage() {
                 </div>
               </Col>
             </Row>
-          </Card.Body>
-        </Card>
+            </Card.Body>
+          </Card>
       ))}
     </>
   )
