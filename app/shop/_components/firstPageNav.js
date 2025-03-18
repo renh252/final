@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect,useRef } from 'react'
 import Link from 'next/link'
-// data
-import Products from '../_data/data.json'
-import Category from '../_data/category.json'
+
 // style
 import styles from './firstPageNav.module.css'
 import "bootstrap/dist/css/bootstrap.min.css";
