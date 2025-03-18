@@ -4,7 +4,12 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from './review.module.css'
+// 保留localStorage資料
 import { useCheckoutData } from '@/app/shop/_components/useCheckoutData'
+// components
+import {Breadcrumbs} from '@/app/_components/breadcrumbs'
+import { MdOutlinePets } from "react-icons/md";
+
 
 
 export default function ReviewPage() {
@@ -50,44 +55,106 @@ if (!isLoading) {
     {checkoutData?.delivery
     ?(
       <>
-      <div className={styles.reviewContainer}>
-        <div className={styles.containTitle}>
-          <h1>訂單明細</h1>
-        </div>
-        <div className={styles.containBody}>
-          <h2>配送方式: {checkoutData?.delivery}</h2>
-          {checkoutData?.delivery !== 'home' && (
-            <div>
-              <p>門市名稱: {checkoutData?.storeName}</p>
-              <p>門市代號: {checkoutData?.storeId}</p>
+      <Breadcrumbs
+        title='資料確認'
+        items={[
+          { label: '購物車', href: '/shop/cart' },
+          { label: '填寫資料', href: '/shop/checkout' },
+          { label: '資料確認', href: '/shop/checkout/review' },
+        ]}
+        />
+        <div className={styles.main}>
+          
+          {/* review */}
+          <div className={styles.reviewContainer}>
+            <div className={styles.containTitle}>
+              <h1>資訊欄</h1>
             </div>
-          )}
-          <p>收件人: {checkoutData?.recipient_name}</p>
-          <p>手機: {checkoutData?.recipient_phone}</p>
-          <p>電子信箱: {checkoutData?.recipient_email}</p>
-          <p>備註: {checkoutData?.remark}</p>
-          <p>付款方式: {checkoutData?.payment_method}</p>
-          <p>發票: {checkoutData?.invoice_method}</p>
-          {checkoutData?.invoice_method === 'mobile' && (
-            <p>手機條碼: {checkoutData?.mobile_barcode}</p>
-          )}
-          {checkoutData?.invoice_method === 'taxID_number' && (
-            <p>統編: {checkoutData?.taxID_number}</p>
-          )}
-        </div>
-      </div>
+            <div className={styles.containBody}>
+              <div className={styles.group}>
+                <div>
+                  <MdOutlinePets/>
+                  <h1>付款資訊</h1>
+                </div>
+                <div className={styles.groupTitle}>
+                    <div>付款方式</div>
+                    <div>金額</div>
+                    <div>發票</div>
+                </div> 
+                <div className={styles.groupBody}>
+                    <div>{checkoutData?.payment_method}</div>
+                    <div>**</div>
+                    <div>{checkoutData?.invoice_method + checkoutData?.taxID_number + checkoutData?.mobile_barcode  }</div>
+                </div>
+              </div>
+              <div className={styles.group}>
+                <div>
+                  <MdOutlinePets/>
+                  <h1>配送資訊</h1>
+                </div>
+                <div className={styles.groupTitle}>
+                    <div>配送編號</div>
+                    <div>配送方式</div>
+                    <div>配送地址</div>
+                </div> 
+                <div className={styles.groupBody}>
+                    <div>{checkoutData?.payment_method}</div>
+                    <div>{checkoutData?.delivery}</div>
+                    {checkoutData?.storeName
+                    ?<div>{checkoutData?.storeName}</div>
+                    :
+                    <div>{checkoutData?.address?.city + checkoutData?.address?.town + checkoutData?.address?.else}</div>
+                    }
+                    
+                </div>
+              </div>
+              <div className={styles.group}>
+                <div>
+                  <MdOutlinePets/>
+                  <h1>收件人資訊</h1>
+                </div>
+                <div className={styles.groupTitle}>
+                    <div>姓名</div>
+                    <div>電話</div>
+                    <div>電子信箱</div>
+                </div> 
+                <div className={styles.groupBody}>
+                    <div>{checkoutData?.recipient_name}</div>
+                    <div>{checkoutData?.recipient_phone}</div>
+                    <div>{checkoutData?.recipient_email}</div>
+                </div>
+              </div>
+              <div className={styles.group}>
+                <div>
+                  <MdOutlinePets/>
+                  <h1>備註</h1>
+                </div>
+                <div className={styles.remark}>{checkoutData?.remark}</div>
 
-      <div className={styles.reviewContainer}>
-        <div className={styles.containTitle}></div>
-        <div className={styles.containBody}>
+              </div>
 
-        </div>
-      </div>
+            </div>
+          </div>
+          
+          {/* products */}
+          <div className={styles.productContainer}>
+            <div className={styles.containTitle}></div>
+            <div className={styles.containBody}>
 
-      <div className={styles.buttons}>
-        <button type="button" onClick={handleModifyOrder}>修改訂單</button>
-        <button type="button" onClick={handleSubmitOrder}>前往付款</button>
-      </div>
+            </div>
+          </div>
+          
+          {/* buttons */}
+          <div className={styles.buttons}>
+            <button type="button" onClick={handleModifyOrder}>修改訂單</button>
+            <button type="button" onClick={handleSubmitOrder}>前往付款</button>
+          </div>
+
+        </div> 
+        {/* main end */}
+
+
+
       </>
     )
     :''}

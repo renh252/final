@@ -1,11 +1,12 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InputGroup, FormControl, Button } from 'react-bootstrap';
 import { useRouter } from 'next/navigation';
 
 const SearchBox = () => {
     const [query, setQuery] = useState('');
     const [isHovered, setIsHovered] = useState(false);
+    const [width, setWidth] = useState(window.innerWidth);
     const router = useRouter();
 
     const handleSearch = () => {
@@ -14,8 +15,21 @@ const SearchBox = () => {
         }
     };
 
+    useEffect(() => {
+        const handleResize = () => {
+            setWidth(window.innerWidth);
+        };
+
+        window.addEventListener('resize', handleResize);
+        handleResize(); // 初始化檢查
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+
     return (
-        <div style={{ width: "400px" }}> {/* 設置固定寬度 */}
+        <div style={{ width: width > 768 ? "400px" : "200px" }}> {/* 設置RWD寬度 */}
             <InputGroup className="mb-3">
                 <FormControl
                     placeholder="搜尋文章"
