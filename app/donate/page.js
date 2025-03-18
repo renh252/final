@@ -56,7 +56,7 @@ export default function DonatePage() {
       alert('請選擇捐款類型！')
       return
     }
-    if ((donationType === '線上認養' && !selectedPet)) {
+    if (donationType === '線上認養' && !selectedPet) {
       alert('請選擇認養的寵物！')
       return
     }
@@ -116,18 +116,20 @@ export default function DonatePage() {
             </li>
             <li style={{ display: 'flex', alignItems: 'center' }}>
               <h5 style={{ marginRight: '5px' }}>支援付款方式</h5>
-              {cards.map((card) => (
-                <Image
-                  key={card}
-                  src={`/images/credit_card/${card}.png`}
-                  alt={card}
-                  width={45}
-                  height={29}
-                  className={styles.li_image}
-                  priority
-                />
-              ))}
-              / ATM轉帳 / 超商繳款
+              <div>
+                {cards.map((card) => (
+                  <Image
+                    key={card}
+                    src={`/images/credit_card/${card}.png`}
+                    alt={card}
+                    width={45}
+                    height={29}
+                    className={styles.li_image}
+                    priority
+                  />
+                ))}
+                / ATM轉帳 / 超商繳款
+              </div>
             </li>
             <li style={{ display: 'flex', alignItems: 'center' }}>
               <h5 style={{ marginRight: '5px' }}>選擇捐款種類</h5>
