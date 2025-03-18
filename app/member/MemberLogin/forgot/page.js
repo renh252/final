@@ -1,60 +1,95 @@
+'use client';
+
 import React, { useState } from 'react';
-import styles from './forgot-password.module.css'; // 引入 CSS 樣式
+import styles from './forgot.module.css';
 
-export default function ForgotPassword() {
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // 新增加載狀態
+export default function ResetPasswordPage() {
+    const [email, setEmail] = useState('');
+    const [verificationCode, setVerificationCode] = useState('');
+    const [isCodeSent, setIsCodeSent] = useState(false);
+    const [isCodeVerified, setIsCodeVerified] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true); // 開始加載
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value);
+    };
 
-    try {
-      const response = await fetch('/api/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+    const handleSendCode = () => {
+        // 發送驗證碼郵件的邏輯
+        console.log('驗證碼已發送至：', email);
+        setIsCodeSent(true);
+    };
 
-      if (!response.ok) {
-        const errorData = await response.json(); // 嘗試獲取詳細錯誤訊息
-        throw new Error(errorData.error || 'Something went wrong, please try again.');
-      }
+    const handleVerifyCode = () => {
+        // 驗證驗證碼的邏輯
+        console.log('驗證碼：', verificationCode);
+        setIsCodeVerified(true);
+    };
 
-      setMessage('If this email exists in our system, you will receive a password reset link.');
-      setError('');
-    } catch (err) {
-      setError(err.message);
-      setMessage('');
-    } finally {
-      setIsLoading(false); // 結束加載
-    }
-  };
+    const handleResetPassword = () => {
+        // 重設密碼的邏輯
+        console.log('重設密碼');
+    };
 
-  return (
-    <div className={styles['forgot-password-container']}>
-      <form onSubmit={handleSubmit} className={styles['forgot-password-form']}>
-        <h2>Forgot Password</h2>
-
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-
-        <button type="submit" disabled={isLoading}> {/* 根據加載狀態禁用按鈕 */}
-          {isLoading ? 'Sending...' : 'Send Reset Link'} {/* 顯示加載訊息 */}
-        </button>
-
-        {message && <p>{message}</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </form>
-    </div>
-  );
+    return (
+        <>
+            {/* ... 其他程式碼 ... */}
+            <div className={styles.formContainer}>
+                <h2 className={styles.sectionTitle}>重設密碼</h2>
+                <div className={styles.form}>
+                    <div className={styles.formGroup}>
+                        <label htmlFor="email" className={styles.formLabel}>
+                            電子信箱 :
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            className={styles.formInput}
+                            required
+                            value={email}
+                            onChange={handleEmailChange}
+                        />
+                    </div>
+                    {!isCodeSent && (
+                        <button 
+                        className="button" 
+                        style={{ width: '200px', height: '60px', fontSize: '28px' }} 
+                        onClick={handleSendCode}>
+                            發送驗證碼
+                        </button>
+                    )}
+                    {isCodeSent && !isCodeVerified && (
+                        <>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="verificationCode" className={styles.formLabel}>
+                                    驗證碼 :
+                                </label>
+                                <input
+                                    type="text"
+                                    id="verificationCode"
+                                    className={styles.formInput}
+                                    required
+                                    value={verificationCode}
+                                    onChange={(e) => setVerificationCode(e.target.value)}
+                                />
+                            </div>
+                            <button 
+                            className="button" 
+                            style={{ width: '200px', height: '60px', fontSize: '28px' }} 
+                            onClick={handleVerifyCode}>
+                                驗證驗證碼
+                            </button>
+                        </>
+                    )}
+                    {isCodeVerified && (
+                        <button className="button" 
+                        style={{ width: '200px', height: '60px', fontSize: '28px' }} 
+                        onClick={handleResetPassword}>
+                            重設密碼
+                        </button>
+                    )}
+                    {/* ... 其他程式碼 ... */}
+                </div>
+            </div>
+        </>
+    );
 }

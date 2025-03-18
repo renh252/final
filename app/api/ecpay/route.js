@@ -1,20 +1,31 @@
 import * as crypto from 'crypto'
+import { NextResponse } from 'next/server'
+import db from '@/app/lib/db'
 
 export async function POST(req) {
-  const { amount, items, ChoosePayment } = await req.json()
+  const {
+    amount,
+    items,
+    ChoosePayment,
+    petId,
+    donorName,
+    donorPhone,
+    donorEmail,
+  } = await req.json()
 
-  const itemName =
-    items.split(',').length > 1 ? items.split(',').join('#') : items
+  const itemName = items
 
   if (!amount) {
     return new Response(JSON.stringify({ error: '缺少總金額' }), {
       status: 400,
     })
   }
-
-  // ✅ 確保使用最新的 ngrok URL
-  // const ngrokURL =
-  //   ' https://95d7-2402-7500-a59-7e72-40ff-1bac-86de-5c7c.ngrok-free.app'
+  if (!donorName || !donorPhone || !donorEmail) {
+    return NextResponse.json(
+      { error: '請填寫完整的捐款人資料' },
+      { status: 400 }
+    )
+  }
 
   // ECPay 配置
   const MerchantID = '3002607'
@@ -25,16 +36,21 @@ export async function POST(req) {
   const TradeDesc = '商店線上付款' // 訂單描述
   const ItemName = itemName // 商品名稱
 
-  // ✅ 修正 `ReturnURL` & `OrderResultURL` (移除多餘的 `/`)
-  // const ReturnURL = `${ngrokURL}/api/ecpay/notify`
-  const ReturnURL = `http://localhost:3000/api/ecpay/notify`
-  const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
+  // 在localhost上執行
+  //const ReturnURL = `http://localhost:3000/api/ecpay/notify`
+  //const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
+
+  // 使用公開網域執行(ngrok)，無法運行請切換成localhost版本
+  const ReturnURL = `https://2a55-2402-7500-a5b-ee67-4d1d-b161-1fb6-b50.ngrok-free.app/api/ecpay/notify`
+  const OrderResultURL =
+    'https://2a55-2402-7500-a5b-ee67-4d1d-b161-1fb6-b50.ngrok-free.app/api/ecpay/callback'
 
   const stage = isStage ? '-stage' : ''
   const algorithm = 'sha256'
   const digest = 'hex'
   const APIURL = `https://payment${stage}.ecpay.com.tw/Cashier/AioCheckOut/V5`
 
+  // 產生 ECPay 訂單編號
   const MerchantTradeNo = `od${new Date().getFullYear()}${(
     new Date().getMonth() + 1
   )
@@ -63,6 +79,29 @@ export async function POST(req) {
     hour12: false,
   })
 
+  const petIdValue = petId ? petId : null // 確保 NULL 值
+
+  // 2️⃣ **存入 `donations` 表，狀態為 `pending`**
+  const [result] = await db.query(
+    `INSERT INTO donations (donation_type, pet_id, amount, donation_mode, payment_method, donor_name, donor_phone, donor_email, trade_no, transaction_status) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      items,
+      petIdValue,
+      amount,
+      'oneTime',
+      ChoosePayment,
+      donorName,
+      donorPhone,
+      donorEmail,
+      MerchantTradeNo,
+      'pending',
+    ]
+  )
+
+  const ecpayChoosePayment =
+    ChoosePayment === 'CreditPeriod' ? 'Credit' : ChoosePayment
+
   let ParamsBeforeCMV = {
     MerchantID,
     MerchantTradeNo,
@@ -73,7 +112,7 @@ export async function POST(req) {
     TradeDesc,
     ItemName,
     ReturnURL, // ✅ 確保 ECPay 正確通知 `notify.js`
-    ChoosePayment,
+    ChoosePayment: ecpayChoosePayment,
     OrderResultURL, // ✅ 確保交易完成後能正確回到前端
   }
 
