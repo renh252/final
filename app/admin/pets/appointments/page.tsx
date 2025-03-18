@@ -1,454 +1,647 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Container,
   Row,
   Col,
   Card,
-  Button,
   Badge,
-  Spinner,
+  Button,
   Form,
   Alert,
+  Modal,
+  Nav,
 } from 'react-bootstrap'
 import {
-  FaEdit,
-  FaTrash,
-  FaCheck,
-  FaTimes,
   FaSearch,
   FaFilter,
+  FaEdit,
+  FaCheck,
+  FaTimes,
+  FaInfoCircle,
+  FaTable,
   FaCalendarAlt,
 } from 'react-icons/fa'
-import AdminPageLayout from '@/app/admin/_components/AdminPageLayout'
+import styles from './appointments.module.css'
+import dynamic from 'next/dynamic'
 import DataTable from '@/app/admin/_components/DataTable'
-import {
-  ConfirmProvider,
-  useConfirm,
-} from '@/app/admin/_components/ConfirmDialog'
-import { ToastProvider, useToast } from '@/app/admin/_components/Toast'
-import AdminBreadcrumb from '@/app/admin/_components/breadcrumb'
-import { withAuth } from '@/app/admin/_hooks/useAuth'
-import { fetchApi } from '@/app/admin/_lib/api'
-import { formatDate } from '@/app/admin/_lib/utils'
+import type { Column } from '@/app/admin/_components/DataTable'
+
+// 使用動態導入以避免 SSR 錯誤
+const FullCalendarComponent = dynamic(
+  () => {
+    return import('../../_components/FullCalendar')
+  },
+  { ssr: false }
+)
 
 // 定義預約狀態類型
 type AppointmentStatus = 'pending' | 'approved' | 'completed' | 'cancelled'
 
-// 定義預約數據結構
+// 定義預約資料介面
 interface Appointment {
   id: number
-  pet_name: string
+  user_id: number
+  pet_id: number
   user_name: string
-  user_email: string
+  pet_name: string
   appointment_date: string
-  created_at: string
+  appointment_time: string
   status: AppointmentStatus
-  notes?: string
-  type: string
+  house_type: string
+  adult_number: number
+  child_number: number
+  adopted_experience: boolean
+  other_pets: string | null
+  note: string | null
+  store_id: number
+  created_at: string
+  updated_at: string
 }
 
-const PetAppointmentsPage = () => {
-  // 使用確認對話框和通知
-  const { confirm } = useConfirm()
-  const { showToast } = useToast()
-
-  // 狀態設定
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [filteredAppointments, setFilteredAppointments] = useState<
-    Appointment[]
-  >([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [currentAppointment, setCurrentAppointment] =
-    useState<Appointment | null>(null)
-
-  // 篩選狀態
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' })
-
-  // 獲取預約資料
-  const fetchAppointments = async () => {
-    setLoading(true)
-    try {
-      const response = await fetchApi('/api/admin/pets/appointments')
-      if (response.success) {
-        setAppointments(response.data)
-        setFilteredAppointments(response.data)
-      } else {
-        setError(response.message || '獲取預約資料失敗')
+// 定義表格列
+const columns: Column[] = [
+  {
+    key: 'id',
+    label: '申請編號',
+    sortable: true,
+    render: (value) => `#${value}`,
+  },
+  {
+    key: 'user_name',
+    label: '申請者',
+    sortable: true,
+  },
+  {
+    key: 'pet_name',
+    label: '寵物名稱',
+    sortable: true,
+  },
+  {
+    key: 'appointment_date',
+    label: '預約時間',
+    sortable: true,
+    render: (_, row) => `${row.appointment_date} ${row.appointment_time}`,
+  },
+  {
+    key: 'status',
+    label: '狀態',
+    sortable: true,
+    render: (value: AppointmentStatus) => {
+      const variants = {
+        pending: 'warning',
+        approved: 'success',
+        completed: 'info',
+        cancelled: 'danger',
       }
-    } catch (err) {
-      setError('獲取預約資料時發生錯誤')
-      console.error('Error fetching appointments:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
+      const labels = {
+        pending: '待審核',
+        approved: '已確認',
+        completed: '已完成',
+        cancelled: '已取消',
+      }
+      return <Badge bg={variants[value]}>{labels[value]}</Badge>
+    },
+  },
+  {
+    key: 'actions',
+    label: '操作',
+    render: (_, row) => (
+      <div>
+        <Button
+          variant="outline-primary"
+          size="sm"
+          className="me-2"
+          onClick={() => {
+            // 處理詳情按鈕點擊
+          }}
+        >
+          <FaEdit className="me-1" />
+          詳情
+        </Button>
+        {row.status === 'pending' && (
+          <>
+            <Button
+              variant="outline-success"
+              size="sm"
+              className="me-2"
+              onClick={() => {
+                // 處理確認按鈕點擊
+              }}
+            >
+              <FaCheck className="me-1" />
+              確認
+            </Button>
+            <Button
+              variant="outline-danger"
+              size="sm"
+              onClick={() => {
+                // 處理拒絕按鈕點擊
+              }}
+            >
+              <FaTimes className="me-1" />
+              拒絕
+            </Button>
+          </>
+        )}
+      </div>
+    ),
+  },
+]
 
-  // 初始化
+export default function PetAppointmentsPage() {
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string>('')
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'all'>(
+    'all'
+  )
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null)
+  const [showModal, setShowModal] = useState<boolean>(false)
+  const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table')
+  const [sortConfig, setSortConfig] = useState<{
+    key: string
+    direction: 'asc' | 'desc'
+  } | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
+
   useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const response = await fetch('/api/admin/appointments')
+        if (!response.ok) {
+          throw new Error('獲取預約資料失敗')
+        }
+        const data = await response.json()
+        setAppointments(data)
+        setLoading(false)
+      } catch (err) {
+        console.error('Error fetching appointments:', err)
+        setError('獲取預約資料時發生錯誤')
+        setLoading(false)
+      }
+    }
+
     fetchAppointments()
   }, [])
 
-  // 篩選預約
-  useEffect(() => {
-    let filtered = [...appointments]
-
-    // 狀態篩選
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((app) => app.status === statusFilter)
-    }
-
-    // 搜尋篩選
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(
-        (app) =>
-          app.user_name?.toLowerCase().includes(term) ||
-          app.pet_name?.toLowerCase().includes(term) ||
-          app.id?.toString().includes(term)
-      )
-    }
-
-    // 日期範圍篩選
-    if (dateRange.startDate && dateRange.endDate) {
-      const start = new Date(dateRange.startDate)
-      const end = new Date(dateRange.endDate)
-      end.setHours(23, 59, 59) // 設置為當天結束時間
-
-      filtered = filtered.filter((app) => {
-        const appDate = new Date(app.appointment_date)
-        return appDate >= start && appDate <= end
-      })
-    }
-
-    setFilteredAppointments(filtered)
-  }, [appointments, statusFilter, searchTerm, dateRange])
-
-  // 處理更新預約狀態
-  const handleUpdateStatus = async (
-    id: number,
+  // 處理狀態更新
+  const handleStatusUpdate = async (
+    appointmentId: number,
     newStatus: AppointmentStatus
   ) => {
     try {
-      const response = await fetchApi(`/api/admin/pets/appointments/${id}`, {
-        method: 'PUT',
+      const response = await fetch(`/api/admin/appointments/${appointmentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ status: newStatus }),
       })
 
-      if (response.success) {
-        // 更新本地狀態
-        setAppointments((prev) =>
-          prev.map((app) =>
-            app.id === id ? { ...app, status: newStatus } : app
-          )
-        )
-
-        showToast(
-          'success',
-          '狀態已更新',
-          `預約 #${id} 狀態已更新為 ${newStatus}`
-        )
-      } else {
-        showToast('error', '更新失敗', response.message || '無法更新預約狀態')
+      if (!response.ok) {
+        throw new Error('更新狀態失敗')
       }
+
+      setAppointments((prev) =>
+        prev.map((app) =>
+          app.id === appointmentId ? { ...app, status: newStatus } : app
+        )
+      )
     } catch (err) {
-      console.error('Error updating appointment status:', err)
-      showToast('error', '更新失敗', '更新預約狀態時發生錯誤')
+      console.error('Error updating status:', err)
+      setError('更新狀態時發生錯誤')
     }
   }
 
-  // 處理刪除預約
-  const handleDelete = (appointment: Appointment) => {
-    setCurrentAppointment(appointment)
-    confirm({
-      title: '確認刪除',
-      message: `確定要刪除 ${appointment.pet_name} 的預約嗎？此操作無法恢復。`,
-      onConfirm: () => confirmDelete(appointment.id),
-      type: 'danger',
-      confirmText: '刪除',
+  // 處理點擊行事曆事件
+  const handleEventClick = (info: any) => {
+    const appointmentId = parseInt(info.event.id)
+    const appointment = appointments.find((app) => app.id === appointmentId)
+    if (appointment) {
+      setSelectedAppointment(appointment)
+      setShowModal(true)
+    }
+  }
+
+  // 將預約轉換為行事曆事件格式
+  const getCalendarEvents = () => {
+    return appointments.map((appointment) => {
+      const dateTime = `${appointment.appointment_date}T${appointment.appointment_time}:00`
+      let backgroundColor = '#17a2b8' // 默認藍色
+
+      switch (appointment.status) {
+        case 'pending':
+          backgroundColor = '#ffc107' // 黃色
+          break
+        case 'approved':
+          backgroundColor = '#28a745' // 綠色
+          break
+        case 'completed':
+          backgroundColor = '#17a2b8' // 藍色
+          break
+        case 'cancelled':
+          backgroundColor = '#dc3545' // 紅色
+          break
+      }
+
+      return {
+        id: appointment.id.toString(),
+        title: `${appointment.pet_name} - ${appointment.user_name}`,
+        start: dateTime,
+        end: new Date(
+          new Date(dateTime).getTime() + 60 * 60 * 1000
+        ).toISOString(),
+        backgroundColor,
+        borderColor: backgroundColor,
+        textColor: '#fff',
+        extendedProps: {
+          status: appointment.status,
+          pet_name: appointment.pet_name,
+          user_name: appointment.user_name,
+        },
+      }
     })
   }
 
-  // 確認刪除預約
-  const confirmDelete = async (id: number) => {
-    try {
-      const response = await fetchApi(`/api/admin/pets/appointments/${id}`, {
-        method: 'DELETE',
-      })
-
-      if (response.success) {
-        // 更新本地狀態
-        setAppointments((prev) => prev.filter((app) => app.id !== id))
-
-        showToast('success', '刪除成功', `預約 #${id} 已成功刪除`)
-      } else {
-        showToast('error', '刪除失敗', response.message || '無法刪除預約')
-      }
-    } catch (err) {
-      console.error('Error deleting appointment:', err)
-      showToast('error', '刪除失敗', '刪除預約時發生錯誤')
-    } finally {
-      setCurrentAppointment(null)
+  // 處理排序
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc'
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === 'asc'
+    ) {
+      direction = 'desc'
     }
+    setSortConfig({ key, direction })
   }
 
-  // 渲染狀態標籤
-  const renderStatusBadge = (status: AppointmentStatus) => {
+  // 處理分頁
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  // 篩選和排序後的數據
+  const filteredAndSortedAppointments = useMemo(() => {
+    let result = [...appointments]
+
+    // 搜尋過濾
+    if (searchTerm) {
+      result = result.filter(
+        (appointment) =>
+          appointment.user_name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          appointment.pet_name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+
+    // 狀態過濾
+    if (statusFilter !== 'all') {
+      result = result.filter(
+        (appointment) => appointment.status === statusFilter
+      )
+    }
+
+    // 排序
+    if (sortConfig) {
+      result.sort((a, b) => {
+        if (
+          a[sortConfig.key as keyof Appointment] <
+          b[sortConfig.key as keyof Appointment]
+        ) {
+          return sortConfig.direction === 'asc' ? -1 : 1
+        }
+        if (
+          a[sortConfig.key as keyof Appointment] >
+          b[sortConfig.key as keyof Appointment]
+        ) {
+          return sortConfig.direction === 'asc' ? 1 : -1
+        }
+        return 0
+      })
+    }
+
+    return result
+  }, [appointments, searchTerm, statusFilter, sortConfig])
+
+  // 分頁數據
+  const paginatedAppointments = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredAndSortedAppointments.slice(
+      startIndex,
+      startIndex + itemsPerPage
+    )
+  }, [filteredAndSortedAppointments, currentPage, itemsPerPage])
+
+  // 更新表格列定義，添加排序和點擊處理
+  const updatedColumns = useMemo(() => {
+    return columns.map((column) => {
+      if (column.sortable) {
+        return {
+          ...column,
+          onSort: () => handleSort(column.key),
+          sortDirection:
+            sortConfig?.key === column.key ? sortConfig.direction : null,
+        }
+      }
+      return column
+    })
+  }, [sortConfig])
+
+  // 獲取狀態標籤樣式
+  const getStatusBadgeVariant = (status: AppointmentStatus) => {
     switch (status) {
       case 'pending':
-        return <Badge bg="warning">待審核</Badge>
+        return 'warning'
       case 'approved':
-        return <Badge bg="success">已核准</Badge>
+        return 'success'
       case 'completed':
-        return <Badge bg="info">已完成</Badge>
+        return 'info'
       case 'cancelled':
-        return <Badge bg="danger">已取消</Badge>
+        return 'danger'
       default:
-        return <Badge bg="secondary">{status}</Badge>
+        return 'secondary'
     }
   }
 
-  // 表格列定義
-  const columns = [
+  // 獲取狀態標籤文字
+  const getStatusLabel = (status: AppointmentStatus) => {
+    switch (status) {
+      case 'pending':
+        return '待審核'
+      case 'approved':
+        return '已確認'
+      case 'completed':
+        return '已完成'
+      case 'cancelled':
+        return '已取消'
+      default:
+        return status
+    }
+  }
+
+  // 處理批量操作
+  const handleBatchAction = async (
+    action: string,
+    selectedRows: Appointment[]
+  ) => {
+    if (!selectedRows.length) {
+      setError('請先選擇要操作的預約')
+      return
+    }
+
+    try {
+      const promises = selectedRows.map((row) =>
+        handleStatusUpdate(row.id, action as AppointmentStatus)
+      )
+      await Promise.all(promises)
+    } catch (err) {
+      console.error('批量操作失敗:', err)
+      setError('批量操作失敗，請稍後再試')
+    }
+  }
+
+  // 定義批量操作按鈕
+  const batchActions = [
     {
-      key: 'id',
-      label: '預約 ID',
-      render: (value: number, row: Appointment) => <span>#{value}</span>,
+      label: '批量確認',
+      icon: <FaCheck />,
+      onClick: (selectedRows: Appointment[]) =>
+        handleBatchAction('approved', selectedRows),
+      variant: 'success',
     },
     {
-      key: 'pet_name',
-      label: '寵物名稱',
-      render: (value: string, row: Appointment) => (
-        <span className="fw-bold">{value}</span>
-      ),
-    },
-    {
-      key: 'user_name',
-      label: '申請會員',
-      render: (value: string, row: Appointment) => (
-        <div>
-          <div>{value}</div>
-          <small className="text-muted">{row.user_email}</small>
-        </div>
-      ),
-    },
-    {
-      key: 'appointment_date',
-      label: '預約日期',
-      render: (value: string) => formatDate(value),
-    },
-    {
-      key: 'status',
-      label: '狀態',
-      render: (value: AppointmentStatus) => renderStatusBadge(value),
-    },
-    {
-      key: 'type',
-      label: '預約類型',
-    },
-    {
-      key: 'created_at',
-      label: '建立時間',
-      render: (value: string) => formatDate(value),
-    },
-    {
-      key: 'actions',
-      label: '操作',
-      render: (value: any, row: Appointment) => (
-        <div className="d-flex gap-2">
-          {row.status === 'pending' && (
-            <>
-              <Button
-                size="sm"
-                variant="success"
-                onClick={() => handleUpdateStatus(row.id, 'approved')}
-                title="核准預約"
-              >
-                <FaCheck />
-              </Button>
-              <Button
-                size="sm"
-                variant="danger"
-                onClick={() => handleUpdateStatus(row.id, 'cancelled')}
-                title="拒絕預約"
-              >
-                <FaTimes />
-              </Button>
-            </>
-          )}
-          {row.status === 'approved' && (
-            <Button
-              size="sm"
-              variant="info"
-              onClick={() => handleUpdateStatus(row.id, 'completed')}
-              title="標記為已完成"
-            >
-              <FaCheck />
-            </Button>
-          )}
-          <Button
-            size="sm"
-            variant="danger"
-            onClick={() => handleDelete(row)}
-            title="刪除預約"
-          >
-            <FaTrash />
-          </Button>
-        </div>
-      ),
+      label: '批量拒絕',
+      icon: <FaTimes />,
+      onClick: (selectedRows: Appointment[]) =>
+        handleBatchAction('cancelled', selectedRows),
+      variant: 'danger',
     },
   ]
 
-  return (
-    <ConfirmProvider>
-      <ToastProvider>
-        <AdminPageLayout
-          title="寵物預約管理"
-          stats={[
-            {
-              title: '待審核預約',
-              count: appointments.filter((a) => a.status === 'pending').length,
-              color: 'warning',
-              icon: <FaCalendarAlt size={24} />,
-            },
-            {
-              title: '已核准預約',
-              count: appointments.filter((a) => a.status === 'approved').length,
-              color: 'success',
-              icon: <FaCheck size={24} />,
-            },
-            {
-              title: '已完成預約',
-              count: appointments.filter((a) => a.status === 'completed')
-                .length,
-              color: 'info',
-              icon: <FaCheck size={24} />,
-            },
-            {
-              title: '已取消預約',
-              count: appointments.filter((a) => a.status === 'cancelled')
-                .length,
-              color: 'danger',
-              icon: <FaTimes size={24} />,
-            },
-          ]}
-        >
-          <AdminBreadcrumb />
+  // 定義搜尋欄位
+  const searchKeys = ['user_name', 'pet_name']
 
-          {/* 篩選區域 */}
-          <Card className="mb-4">
-            <Card.Body>
+  if (loading) {
+    return (
+      <Container className="py-5">
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p>載入中，請稍候...</p>
+        </div>
+      </Container>
+    )
+  }
+
+  return (
+    <Container className="py-5">
+      <h2 className={styles.pageTitle}>
+        <FaInfoCircle className="me-2" />
+        領養申請管理
+      </h2>
+
+      {error && <Alert variant="danger">{error}</Alert>}
+
+      <Card className="mb-4">
+        <Card.Body>
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  <FaSearch className="me-2" />
+                  搜尋
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="搜尋申請者或寵物名稱"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  <FaFilter className="me-2" />
+                  狀態篩選
+                </Form.Label>
+                <Form.Select
+                  value={statusFilter}
+                  onChange={(e) =>
+                    setStatusFilter(e.target.value as AppointmentStatus | 'all')
+                  }
+                >
+                  <option value="all">全部狀態</option>
+                  <option value="pending">待審核</option>
+                  <option value="approved">已確認</option>
+                  <option value="completed">已完成</option>
+                  <option value="cancelled">已取消</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+
+          {/* 視圖切換控制 */}
+          <div className="d-flex justify-content-end mb-3">
+            <Nav variant="pills">
+              <Nav.Item>
+                <Nav.Link
+                  active={viewMode === 'table'}
+                  onClick={() => setViewMode('table')}
+                  className={styles.viewToggle}
+                >
+                  <FaTable className="me-1" /> 表格視圖
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link
+                  active={viewMode === 'calendar'}
+                  onClick={() => setViewMode('calendar')}
+                  className={styles.viewToggle}
+                >
+                  <FaCalendarAlt className="me-1" /> 行事曆視圖
+                </Nav.Link>
+              </Nav.Item>
+            </Nav>
+          </div>
+        </Card.Body>
+      </Card>
+
+      <Card>
+        <Card.Body>
+          {/* 表格視圖 */}
+          {viewMode === 'table' && (
+            <DataTable
+              columns={columns}
+              data={appointments}
+              loading={loading}
+              searchable={true}
+              searchKeys={searchKeys}
+              onRowClick={(row) => {
+                setSelectedAppointment(row as Appointment)
+                setShowModal(true)
+              }}
+              selectable={true}
+              batchActions={batchActions}
+              itemsPerPage={10}
+              pageSizeOptions={[10, 20, 50, 100]}
+            />
+          )}
+
+          {/* 行事曆視圖 */}
+          {viewMode === 'calendar' && (
+            <div className={styles.calendarContainer}>
+              <FullCalendarComponent
+                events={getCalendarEvents()}
+                onEventClick={handleEventClick}
+              />
+            </div>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* 詳情 Modal */}
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        size="lg"
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>申請詳情</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedAppointment && (
+            <div>
               <Row>
-                <Col md={4}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>狀態篩選</Form.Label>
-                    <Form.Select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                      <option value="all">所有狀態</option>
-                      <option value="pending">待審核</option>
-                      <option value="approved">已核准</option>
-                      <option value="completed">已完成</option>
-                      <option value="cancelled">已取消</option>
-                    </Form.Select>
-                  </Form.Group>
+                <Col md={6}>
+                  <h5>申請者資訊</h5>
+                  <p>姓名：{selectedAppointment.user_name}</p>
+                  <p>成人人數：{selectedAppointment.adult_number}</p>
+                  <p>兒童人數：{selectedAppointment.child_number}</p>
                 </Col>
-                <Col md={4}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>搜尋</Form.Label>
-                    <div className="input-group">
-                      <Form.Control
-                        type="text"
-                        placeholder="搜尋寵物名稱或申請人..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                      <span className="input-group-text">
-                        <FaSearch />
-                      </span>
-                    </div>
-                  </Form.Group>
-                </Col>
-                <Col md={4}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>日期範圍</Form.Label>
-                    <div className="d-flex gap-2">
-                      <Form.Control
-                        type="date"
-                        value={dateRange.startDate}
-                        onChange={(e) =>
-                          setDateRange({
-                            ...dateRange,
-                            startDate: e.target.value,
-                          })
-                        }
-                      />
-                      <Form.Control
-                        type="date"
-                        value={dateRange.endDate}
-                        onChange={(e) =>
-                          setDateRange({
-                            ...dateRange,
-                            endDate: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  </Form.Group>
+                <Col md={6}>
+                  <h5>寵物資訊</h5>
+                  <p>名稱：{selectedAppointment.pet_name}</p>
+                  <p>預約日期：{selectedAppointment.appointment_date}</p>
+                  <p>預約時間：{selectedAppointment.appointment_time}</p>
                 </Col>
               </Row>
-              <div className="d-flex justify-content-end">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setStatusFilter('all')
-                    setSearchTerm('')
-                    setDateRange({ startDate: '', endDate: '' })
-                  }}
-                >
-                  重置篩選
-                </Button>
-              </div>
-            </Card.Body>
-          </Card>
+              <hr />
+              <Row>
+                <Col>
+                  <h5>居住環境</h5>
+                  <p>住宅類型：{selectedAppointment.house_type}</p>
+                  <p>其他寵物：{selectedAppointment.other_pets || '無'}</p>
+                  <p>
+                    養寵經驗：
+                    {selectedAppointment.adopted_experience ? '有' : '無'}
+                  </p>
+                </Col>
+              </Row>
+              <hr />
+              <Row>
+                <Col>
+                  <h5>備註</h5>
+                  <p>{selectedAppointment.note || '無'}</p>
+                </Col>
+              </Row>
 
-          {/* 顯示錯誤訊息 */}
-          {error && <Alert variant="danger">{error}</Alert>}
-
-          {/* 預約表格 */}
-          <Card>
-            <Card.Body>
-              {loading ? (
-                <div className="text-center py-5">
-                  <Spinner animation="border" variant="primary" />
-                  <p className="mt-3">載入預約資料中...</p>
+              {/* 狀態管理按鈕 */}
+              {selectedAppointment.status === 'pending' && (
+                <div className="mt-3 d-flex justify-content-end gap-2">
+                  <Button
+                    variant="success"
+                    onClick={() => {
+                      handleStatusUpdate(selectedAppointment.id, 'approved')
+                      setShowModal(false)
+                    }}
+                  >
+                    <FaCheck className="me-1" />
+                    確認預約
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => {
+                      handleStatusUpdate(selectedAppointment.id, 'cancelled')
+                      setShowModal(false)
+                    }}
+                  >
+                    <FaTimes className="me-1" />
+                    拒絕預約
+                  </Button>
                 </div>
-              ) : filteredAppointments.length === 0 ? (
-                <Alert variant="info">
-                  <div className="text-center py-3">
-                    <p className="mb-0">沒有符合條件的預約資料</p>
-                  </div>
-                </Alert>
-              ) : (
-                <DataTable
-                  columns={columns}
-                  data={filteredAppointments}
-                  loading={loading}
-                  searchable={false}
-                />
               )}
-            </Card.Body>
-          </Card>
-        </AdminPageLayout>
-      </ToastProvider>
-    </ConfirmProvider>
+
+              {selectedAppointment.status === 'approved' && (
+                <div className="mt-3 d-flex justify-content-end">
+                  <Button
+                    variant="info"
+                    onClick={() => {
+                      handleStatusUpdate(selectedAppointment.id, 'completed')
+                      setShowModal(false)
+                    }}
+                  >
+                    <FaCheck className="me-1" />
+                    標記為已完成
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            關閉
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   )
 }
-
-export default withAuth(PetAppointmentsPage, 'pets:appointments:read')

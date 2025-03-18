@@ -1,3 +1,37 @@
+/* 視圖切換樣式 */
+.viewToggleTabs {
+  margin-bottom: 1.5rem;
+}
+
+.viewToggleTabs a {
+  display: flex;
+  align-items: center;
+  color: #6c757d;
+  font-weight: 500;
+  padding: 0.75rem 1.25rem;
+}
+
+.viewToggleTabs a.active {
+  color: #007bff;
+  font-weight: 600;
+}
+
+.viewToggleTabs a:hover:not(.active) {
+  color: #495057;
+}
+
+.viewToggleTabs svg {
+  margin-right: 0.5rem;
+}
+
+/* 日曆相關反應式調整 */
+@media (max-width: 768px) {
+  .viewToggleTabs a {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
 /* 頁面整體樣式 */
 .pageHeader {
   margin-bottom: 2rem;
@@ -191,6 +225,9 @@
 .modalPetInfo {
   display: flex;
   margin-bottom: 1.5rem;
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
 }
 
 .modalPetImageContainer {
@@ -200,6 +237,7 @@
   border-radius: 8px;
   margin-right: 1.5rem;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .modalPetImage {
@@ -213,14 +251,15 @@
 }
 
 .modalPetDetails h3 {
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
   color: #333;
+  font-size: 1.6rem;
 }
 
 .sectionTitle {
   color: #007bff;
   font-size: 1.1rem;
-  margin-bottom: 1rem;
+  margin: 1.5rem 0 1rem;
   border-bottom: 1px solid #eee;
   padding-bottom: 0.5rem;
 }
@@ -235,6 +274,9 @@
   margin-right: 1rem;
   margin-top: 0.25rem;
   font-size: 1.2rem;
+  width: 20px;
+  display: flex;
+  justify-content: center;
 }
 
 .additionalNotes {
@@ -242,6 +284,7 @@
   padding: 1rem;
   border-radius: 4px;
   margin-top: 1rem;
+  border-left: 4px solid #007bff;
 }
 
 /* 無預約時的樣式 */
