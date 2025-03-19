@@ -2,11 +2,13 @@
 
 收藏功能
 
-C:\Users\USER\ispan\final\app\shop\[pid]\page.js
------todo
-圖片滑動
-加入購物車功能
-推薦商品(排除自己、新增其他)
------完成
-商品價格(活動/變體)
-variant可能沒有圖片
+C:\iSpan\final\app\shop\checkout\page.js
+帶入用戶資料功能
+選擇門市功能
+門市欄位驗證
+
+C:\iSpan\final\app\shop
+去掉沒有變體的商品
+
+C:\iSpan\final\app\shop\[pid]
+如果沒有變體顯示查無此商品
