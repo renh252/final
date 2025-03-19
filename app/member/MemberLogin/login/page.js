@@ -52,6 +52,7 @@ export default function MemberPage() {
         }
         router.push('/member');
       } else {
+        console.error('登入失敗:', data);
         setMessage(data.message || '登入失敗，請檢查您的電子郵件和密碼。');
         setIsLoggedIn(false);
       }
