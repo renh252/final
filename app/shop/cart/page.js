@@ -136,8 +136,6 @@ export default function CartPage() {
     )
   }, [data])
 
-  if (error) return <div>獲取購物車時發生錯誤</div>
-  if (!data) return <div>加載中...</div>
 
   if (error) return <div>獲取購物車時發生錯誤</div>
   if (!data) return <div>載入中...</div>
