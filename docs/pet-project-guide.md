@@ -209,6 +209,11 @@
 4. **目錄結構**：必須遵循分層架構，避免跨層級依賴
 5. **UI 開發**：保持組件接口和樣式一致性，避免內聯樣式
 6. **身份驗證**：遵循用戶身份驗證的最佳實踐，確保安全性
+7. **資料表名稱**：API 必須使用正確的資料表名稱，確保與資料庫結構一致，例如：
+   - 使用 `products` 而非 `shop_products`
+   - 使用 `orders` 而非 `shop_orders`
+   - 使用 `order_items` 而非 `shop_order_items`
+   - 使用 `categories` 而非 `shop_categories`
 
 ## 6. 功能開發成功標準檢查
 

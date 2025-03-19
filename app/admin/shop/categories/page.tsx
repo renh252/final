@@ -40,7 +40,7 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true)
-      const response = await fetchApi('/api/admin/categories')
+      const response = await fetchApi('/api/admin/shop/categories')
       if (response.success) {
         setCategories(response.data)
       } else {
@@ -100,7 +100,7 @@ export default function CategoriesPage() {
 
       if (confirmed) {
         const response = await fetchApi(
-          `/api/admin/categories/${category.category_id}`,
+          `/api/admin/shop/categories/${category.category_id}`,
           {
             method: 'DELETE',
           }
@@ -157,8 +157,8 @@ export default function CategoriesPage() {
 
       const apiUrl =
         modalMode === 'add'
-          ? '/api/admin/categories'
-          : `/api/admin/categories/${currentCategory?.category_id}`
+          ? '/api/admin/shop/categories'
+          : `/api/admin/shop/categories/${currentCategory?.category_id}`
 
       const response = await fetchApi(apiUrl, {
         method: modalMode === 'add' ? 'POST' : 'PUT',
