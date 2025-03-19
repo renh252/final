@@ -3,12 +3,11 @@ import React, { useState, useEffect } from 'react';
 import styles from './login.module.css';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Swal from 'sweetalert2';
 
 export default function MemberPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
 
@@ -22,10 +21,14 @@ export default function MemberPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
 
     if (!email || !password) {
-      setMessage('請填寫所有欄位');
+      await Swal.fire({
+        title: '錯誤',
+        text: '請填寫所有欄位',
+        icon: 'error',
+        confirmButtonText: '確定'
+      });
       return;
     }
 
@@ -41,8 +44,6 @@ export default function MemberPage() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setMessage('登入成功！');
-        setIsLoggedIn(true);
         localStorage.setItem('token', data.data.token);
         localStorage.setItem('user', JSON.stringify(data.data.user));
         if (rememberMe) {
@@ -50,16 +51,31 @@ export default function MemberPage() {
         } else {
           localStorage.removeItem('rememberedEmail');
         }
-        router.push('/member');
+        
+        await Swal.fire({
+          title: '登入成功！',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        
+        router.push('/member/MemberCenter');
       } else {
-        console.error('登入失敗:', data);
-        setMessage(data.message || '登入失敗，請檢查您的電子郵件和密碼。');
-        setIsLoggedIn(false);
+        await Swal.fire({
+          title: '登入失敗',
+          text: data.message || '請檢查您的電子郵件和密碼。',
+          icon: 'error',
+          confirmButtonText: '確定'
+        });
       }
     } catch (error) {
       console.error('登入請求失敗:', error);
-      setMessage('登入時發生錯誤，請稍後再試。');
-      setIsLoggedIn(false);
+      await Swal.fire({
+        title: '錯誤',
+        text: '登入時發生錯誤，請稍後再試。',
+        icon: 'error',
+        confirmButtonText: '確定'
+      });
     }
   };
 
@@ -146,7 +162,6 @@ export default function MemberPage() {
           </p>
         </div>
       </div>
-      {message && <p className={styles.message}>{message}</p>}
     </>
   );
 }
