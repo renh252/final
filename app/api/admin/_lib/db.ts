@@ -1,5 +1,17 @@
 import { createPool } from '@/app/lib/db'
 import { RowDataPacket } from 'mysql2/promise'
+import mysql from 'mysql2/promise'
+
+// 資料庫連接設定
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USERNAME || 'root',
+  password: process.env.DB_PASSWORD || 'P@ssw0rd',
+  database: process.env.DB_DATABASE || 'pet_proj',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+})
 
 // 創建管理員專用連接池
 const adminPool = createPool(true)

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../_lib/db'
 import { guard } from '../_lib/guard'
 import { PERMISSIONS } from '../_lib/permissions'
@@ -22,33 +22,31 @@ export const GET = guard.api(async (req: NextRequest, auth) => {
     // 查詢會員列表
     const [members] = await db.query(
       `SELECT 
-        id, user_name, user_email, user_number, 
-        user_level, user_status, created_at 
+        user_id, user_name, user_email, user_number, 
+        user_level, user_status, user_address, user_birthday, profile_picture 
       FROM users 
       WHERE user_name LIKE ? OR user_email LIKE ? 
-      ORDER BY created_at DESC 
+      ORDER BY user_id DESC 
       LIMIT ? OFFSET ?`,
       [`%${search}%`, `%${search}%`, limit, offset]
     )
 
-    return {
+    return NextResponse.json({
       success: true,
-      data: {
-        members,
-        pagination: {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        },
+      members,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-    }
+    })
   } catch (error) {
     console.error('獲取會員列表失敗:', error)
-    return {
+    return NextResponse.json({
       success: false,
       message: '獲取會員列表失敗',
-    }
+    })
   }
 }, PERMISSIONS.MEMBERS.READ)
 
@@ -60,37 +58,37 @@ export const POST = guard.api(async (req: NextRequest) => {
 
     // 檢查 email 是否已存在
     const [existing] = await db.query(
-      'SELECT id FROM users WHERE user_email = ?',
+      'SELECT user_id FROM users WHERE user_email = ?',
       [user_email]
     )
     if (existing.length > 0) {
-      return {
+      return NextResponse.json({
         success: false,
         message: '此 Email 已被使用',
-      }
+      })
     }
 
     // 新增會員
     const [result] = await db.query(
       `INSERT INTO users (
         user_name, user_email, user_number, 
-        user_level, user_status, created_at
-      ) VALUES (?, ?, ?, ?, 1, NOW())`,
-      [user_name, user_email, user_number, user_level]
+        user_level, user_status, user_password
+      ) VALUES (?, ?, ?, ?, '正常', ?)`,
+      [user_name, user_email, user_number, user_level, body.password || '']
     )
 
-    return {
+    return NextResponse.json({
       success: true,
       data: {
-        id: result.insertId,
+        user_id: result.insertId,
       },
       message: '新增會員成功',
-    }
+    })
   } catch (error) {
     console.error('新增會員失敗:', error)
-    return {
+    return NextResponse.json({
       success: false,
       message: '新增會員失敗',
-    }
+    })
   }
 }, PERMISSIONS.MEMBERS.WRITE)
