@@ -9,7 +9,7 @@ export async function GET() {
       phone: '1234567890',
       birthday: '1990-01-01',
       forumId: 'user123',
-      address: '北京市朝陽區台南市永康區南台街一號',
+      address: '台南市永康區南台街一號',
       avatarUrl: 'https://example.com/avatar.jpg',
       nickname: '愛心小天使'
     };
