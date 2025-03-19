@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { Button, Badge, Form } from 'react-bootstrap'
-import { Plus, Edit, Trash, Ticket, Calendar, DollarSign } from 'lucide-react'
+import {
+  Plus,
+  Edit,
+  Trash,
+  Ticket,
+  Calendar,
+  DollarSign,
+  Tag,
+} from 'lucide-react'
 import AdminPageLayout, {
   AdminSection,
   AdminCard,
@@ -12,26 +20,31 @@ import ModalForm from '@/app/admin/_components/ModalForm'
 import { useToast } from '@/app/admin/_components/Toast'
 import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
+import { useAdmin } from '@/app/admin/AdminContext'
+import { useRouter } from 'next/navigation'
+import { fetchApi } from '@/app/admin/_lib/api'
 
-// 優惠券類型選項
-const COUPON_TYPE_OPTIONS = [
+// 折扣類型選項
+const DISCOUNT_TYPE_OPTIONS = [
   { value: 'percentage', label: '百分比折扣' },
   { value: 'fixed', label: '固定金額折扣' },
   { value: 'shipping', label: '免運費' },
+  { value: 'bundle', label: '組合優惠' },
 ]
 
-// 優惠券狀態選項
-const COUPON_STATUS_OPTIONS = [
+// 折扣狀態選項
+const DISCOUNT_STATUS_OPTIONS = [
   { value: 'active', label: '啟用中', color: 'success' },
   { value: 'inactive', label: '未啟用', color: 'secondary' },
   { value: 'expired', label: '已過期', color: 'danger' },
+  { value: 'scheduled', label: '已排程', color: 'info' },
 ]
 
-// 模擬優惠券數據
-const MOCK_COUPONS = [
+// 模擬折扣活動數據
+const MOCK_DISCOUNTS = [
   {
     id: 'WELCOME10',
-    name: '新會員歡迎券',
+    name: '新會員歡迎活動',
     description: '新會員首次購物可享10%折扣',
     type: 'percentage',
     value: 10,
@@ -43,10 +56,11 @@ const MOCK_COUPONS = [
     used_count: 125,
     status: 'active',
     created_at: '2023-02-15',
+    coupon_required: false,
   },
   {
     id: 'SUMMER100',
-    name: '夏季促銷券',
+    name: '夏季促銷活動',
     description: '夏季促銷活動，訂單滿1000元折100元',
     type: 'fixed',
     value: 100,
@@ -58,10 +72,12 @@ const MOCK_COUPONS = [
     used_count: 78,
     status: 'active',
     created_at: '2023-05-15',
+    coupon_required: true,
+    coupon_code: 'SUMMER100',
   },
   {
     id: 'FREESHIP',
-    name: '免運費券',
+    name: '免運費活動',
     description: '訂單滿1500元免運費',
     type: 'shipping',
     value: 0,
@@ -73,10 +89,11 @@ const MOCK_COUPONS = [
     used_count: 210,
     status: 'active',
     created_at: '2023-03-20',
+    coupon_required: false,
   },
   {
     id: 'SPRING20',
-    name: '春季特惠券',
+    name: '春季特惠活動',
     description: '春季特惠活動，全館商品8折',
     type: 'percentage',
     value: 20,
@@ -88,14 +105,15 @@ const MOCK_COUPONS = [
     used_count: 950,
     status: 'expired',
     created_at: '2023-02-20',
+    coupon_required: false,
   },
   {
-    id: 'VIP200',
-    name: 'VIP會員專屬券',
-    description: 'VIP會員專屬優惠，訂單滿2000元折200元',
-    type: 'fixed',
-    value: 200,
-    min_purchase: 2000,
+    id: 'BUNDLE3',
+    name: '買三送一',
+    description: '指定商品買三送一',
+    type: 'bundle',
+    value: 0,
+    min_purchase: 0,
     max_discount: null,
     start_date: '2023-07-01',
     end_date: '2023-12-31',
@@ -103,64 +121,91 @@ const MOCK_COUPONS = [
     used_count: 45,
     status: 'active',
     created_at: '2023-06-25',
+    coupon_required: false,
+    target_products: '1,2,3',
   },
 ]
 
-export default function CouponsPage() {
-  const [coupons, setCoupons] = useState(MOCK_COUPONS)
+export default function DiscountsPage() {
+  const [discounts, setDiscounts] = useState(MOCK_DISCOUNTS)
   const [showModal, setShowModal] = useState(false)
-  const [currentCoupon, setCurrentCoupon] = useState<any>(null)
+  const [currentDiscount, setCurrentDiscount] = useState<any>(null)
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
   const { showToast } = useToast()
   const { confirm } = useConfirm()
   const { isDarkMode } = useTheme()
   const [loading, setLoading] = useState(false)
+  const { admin, hasPermission, checkAuth } = useAdmin()
+  const router = useRouter()
 
-  // 獲取優惠券數據
+  // 檢查權限
   useEffect(() => {
-    // 這裡可以實現從API獲取優惠券數據的邏輯
+    const checkAccess = async () => {
+      const isAuthenticated = await checkAuth()
+      if (!isAuthenticated) {
+        router.push('/admin/login')
+        return
+      }
+
+      if (!hasPermission('shop:promotions:read')) {
+        showToast('error', '權限不足', '您沒有權限訪問折扣活動管理頁面')
+        router.push('/admin')
+        return
+      }
+    }
+
+    checkAccess()
+  }, [checkAuth, hasPermission, router, showToast])
+
+  // 獲取折扣活動數據
+  useEffect(() => {
+    // 這裡可以實現從API獲取折扣活動數據的邏輯
     // 目前使用模擬數據
   }, [])
 
-  // 處理新增優惠券
-  const handleAddCoupon = () => {
-    setCurrentCoupon(null)
+  // 處理新增折扣活動
+  const handleAddDiscount = () => {
+    setCurrentDiscount(null)
     setModalMode('add')
     setShowModal(true)
   }
 
-  // 處理編輯優惠券
-  const handleEditCoupon = (coupon: any) => {
-    setCurrentCoupon(coupon)
+  // 處理編輯折扣活動
+  const handleEditDiscount = (discount: any) => {
+    setCurrentDiscount(discount)
     setModalMode('edit')
     setShowModal(true)
   }
 
-  // 處理刪除優惠券
-  const handleDeleteCoupon = (coupon: any) => {
+  // 處理刪除折扣活動
+  const handleDeleteDiscount = (discount: any) => {
     confirm({
-      title: '刪除優惠券',
-      message: `確定要刪除優惠券 ${coupon.name} (${coupon.id}) 嗎？此操作無法撤銷。`,
+      title: '刪除折扣活動',
+      message: `確定要刪除折扣活動 ${discount.name} (${discount.id}) 嗎？此操作無法撤銷。`,
       type: 'danger',
       confirmText: '刪除',
       onConfirm: () => {
         // 模擬刪除操作
-        setCoupons((prev) => prev.filter((c) => c.id !== coupon.id))
-        showToast('success', '刪除成功', `優惠券 ${coupon.name} 已成功刪除`)
+        setDiscounts((prev) => prev.filter((c) => c.id !== discount.id))
+        showToast('success', '刪除成功', `折扣活動 ${discount.name} 已成功刪除`)
       },
     })
   }
 
-  // 處理啟用/停用優惠券
-  const handleToggleStatus = (coupon: any) => {
-    const newStatus = coupon.status === 'active' ? 'inactive' : 'active'
+  // 處理啟用/停用折扣活動
+  const handleToggleStatus = (discount: any) => {
+    const newStatus = discount.status === 'active' ? 'inactive' : 'active'
 
-    setCoupons((prev) =>
-      prev.map((c) => (c.id === coupon.id ? { ...c, status: newStatus } : c))
+    setDiscounts((prev) =>
+      prev.map((c) => (c.id === discount.id ? { ...c, status: newStatus } : c))
     )
 
     const statusText = newStatus === 'active' ? '啟用' : '停用'
-    showToast('success', '狀態更新', `優惠券 ${coupon.name} 已${statusText}`)
+    showToast(
+      'success',
+      '狀態更新',
+      `折扣活動 ${discount.name} 已${statusText}`
+    )
   }
 
   // 處理表單提交
@@ -180,26 +225,38 @@ export default function CouponsPage() {
     }
 
     if (modalMode === 'add') {
-      // 檢查優惠券代碼是否已存在
-      if (coupons.some((c) => c.id === formData.id)) {
-        showToast('error', '代碼重複', '此優惠券代碼已存在')
+      // 檢查折扣活動代碼是否已存在
+      if (
+        formData.coupon_required &&
+        discounts.some((c) => c.coupon_code === formData.coupon_code)
+      ) {
+        showToast('error', '代碼重複', '此折扣碼已存在')
         return
       }
 
-      // 模擬新增優惠券
-      const newCoupon = {
+      // 模擬新增折扣活動
+      const newDiscount = {
         ...formData,
+        id: formData.coupon_required
+          ? formData.coupon_code
+          : `DISC${new Date().getTime()}`,
         used_count: 0,
         created_at: new Date().toISOString().split('T')[0],
       }
-      setCoupons((prev) => [...prev, newCoupon])
-      showToast('success', '新增成功', `優惠券 ${formData.name} 已成功新增`)
+      setDiscounts((prev) => [...prev, newDiscount])
+      showToast('success', '新增成功', `折扣活動 ${formData.name} 已成功新增`)
     } else {
-      // 模擬更新優惠券
-      setCoupons((prev) =>
-        prev.map((c) => (c.id === currentCoupon.id ? { ...c, ...formData } : c))
+      // 模擬更新折扣活動
+      setDiscounts((prev) =>
+        prev.map((c) =>
+          c.id === currentDiscount.id ? { ...c, ...formData } : c
+        )
       )
-      showToast('success', '更新成功', `優惠券 ${formData.name} 資料已成功更新`)
+      showToast(
+        'success',
+        '更新成功',
+        `折扣活動 ${formData.name} 資料已成功更新`
+      )
     }
 
     setShowModal(false)
@@ -207,16 +264,26 @@ export default function CouponsPage() {
 
   // 表格列定義
   const columns = [
-    { key: 'id', label: '優惠券代碼', sortable: true },
-    { key: 'name', label: '名稱', sortable: true },
+    { key: 'name', label: '活動名稱', sortable: true },
+    {
+      key: 'coupon_required',
+      label: '折扣碼',
+      sortable: true,
+      render: (value: boolean, row: any) =>
+        value ? (
+          <Badge bg="info">{row.coupon_code}</Badge>
+        ) : (
+          <Badge bg="secondary">無需折扣碼</Badge>
+        ),
+    },
     {
       key: 'type',
       label: '類型',
       sortable: true,
       filterable: true,
-      filterOptions: COUPON_TYPE_OPTIONS,
+      filterOptions: DISCOUNT_TYPE_OPTIONS,
       render: (value: string) => {
-        const type = COUPON_TYPE_OPTIONS.find((t) => t.value === value)
+        const type = DISCOUNT_TYPE_OPTIONS.find((t) => t.value === value)
         return type ? type.label : value
       },
     },
@@ -232,6 +299,8 @@ export default function CouponsPage() {
             return `NT$ ${value}`
           case 'shipping':
             return '免運費'
+          case 'bundle':
+            return '組合優惠'
           default:
             return value
         }
@@ -249,31 +318,27 @@ export default function CouponsPage() {
       sortable: true,
       render: (value: string) => {
         const endDate = new Date(value)
-        const today = new Date()
-        const isExpired = endDate < today
-
+        const now = new Date()
         return (
-          <span className={isExpired ? 'text-danger' : ''}>
-            {new Date(value).toLocaleDateString('zh-TW')}
-          </span>
+          <div className="d-flex align-items-center">
+            {endDate.toLocaleDateString()}
+            {endDate < now ? (
+              <Badge bg="danger" className="ms-2">
+                已過期
+              </Badge>
+            ) : null}
+          </div>
         )
       },
-    },
-    {
-      key: 'used_count',
-      label: '使用次數',
-      sortable: true,
-      render: (value: number, row: any) =>
-        `${value} / ${row.usage_limit || '∞'}`,
     },
     {
       key: 'status',
       label: '狀態',
       sortable: true,
       filterable: true,
-      filterOptions: COUPON_STATUS_OPTIONS,
+      filterOptions: DISCOUNT_STATUS_OPTIONS,
       render: (value: string) => {
-        const status = COUPON_STATUS_OPTIONS.find((s) => s.value === value)
+        const status = DISCOUNT_STATUS_OPTIONS.find((s) => s.value === value)
         return status ? (
           <Badge bg={status.color}>{status.label}</Badge>
         ) : (
@@ -283,213 +348,260 @@ export default function CouponsPage() {
     },
   ]
 
-  // 表單欄位定義
-  const formFields = [
+  // 渲染操作按鈕
+  const renderActions = (discount: any) => (
+    <div className="d-flex gap-1">
+      <Button
+        variant="light"
+        size="sm"
+        title={discount.status === 'active' ? '停用' : '啟用'}
+        onClick={() => handleToggleStatus(discount)}
+      >
+        {discount.status === 'active' ? (
+          <Tag size={16} className="text-danger" />
+        ) : (
+          <Tag size={16} className="text-success" />
+        )}
+      </Button>
+      <Button
+        variant="light"
+        size="sm"
+        title="編輯"
+        onClick={() => handleEditDiscount(discount)}
+      >
+        <Edit size={16} className="text-primary" />
+      </Button>
+      <Button
+        variant="light"
+        size="sm"
+        title="刪除"
+        onClick={() => handleDeleteDiscount(discount)}
+      >
+        <Trash size={16} className="text-danger" />
+      </Button>
+    </div>
+  )
+
+  // 活動統計
+  const discountStats = [
     {
-      name: 'id',
-      label: '優惠券代碼',
-      type: 'text' as const,
-      required: true,
-      placeholder: '請輸入優惠券代碼',
-      disabled: modalMode === 'edit',
+      title: '啟用中活動',
+      count: discounts.filter((c) => c.status === 'active').length,
+      color: 'success',
+      icon: <Tag size={24} />,
     },
     {
+      title: '即將過期活動',
+      count: discounts.filter(
+        (c) =>
+          c.status === 'active' &&
+          new Date(c.end_date) > new Date() &&
+          new Date(c.end_date) <
+            new Date(new Date().setDate(new Date().getDate() + 30))
+      ).length,
+      color: 'warning',
+      icon: <Calendar size={24} />,
+    },
+    {
+      title: '已過期活動',
+      count: discounts.filter(
+        (c) => c.status === 'expired' || new Date(c.end_date) < new Date()
+      ).length,
+      color: 'danger',
+      icon: <Calendar size={24} />,
+    },
+    {
+      title: '總節省金額',
+      count: 'NT$ 125,789',
+      color: 'primary',
+      icon: <DollarSign size={24} />,
+    },
+  ]
+
+  // 表單字段定義
+  const formFields = [
+    {
       name: 'name',
-      label: '優惠券名稱',
-      type: 'text' as const,
+      label: '活動名稱',
+      type: 'text',
+      placeholder: '請輸入折扣活動名稱',
       required: true,
-      placeholder: '請輸入優惠券名稱',
+      value: currentDiscount?.name || '',
     },
     {
       name: 'description',
-      label: '描述',
-      type: 'textarea' as const,
-      placeholder: '請輸入優惠券描述',
+      label: '活動描述',
+      type: 'textarea',
+      placeholder: '請輸入活動描述',
+      value: currentDiscount?.description || '',
     },
     {
       name: 'type',
-      label: '優惠券類型',
-      type: 'select' as const,
+      label: '折扣類型',
+      type: 'select',
+      options: DISCOUNT_TYPE_OPTIONS,
       required: true,
-      options: COUPON_TYPE_OPTIONS,
+      value: currentDiscount?.type || 'percentage',
     },
     {
       name: 'value',
       label: '折扣值',
-      type: 'number' as const,
-      required: true,
+      type: 'number',
       placeholder: '請輸入折扣值',
-      validation: (value: number, formData: any) => {
-        if (formData.type === 'percentage' && (value <= 0 || value > 100)) {
-          return '百分比折扣必須在1-100之間'
-        }
-        if (formData.type === 'fixed' && value <= 0) {
-          return '固定金額折扣必須大於0'
-        }
-        return null
+      required: true,
+      value: currentDiscount?.value || 0,
+      conditional: {
+        field: 'type',
+        values: ['percentage', 'fixed'],
       },
     },
     {
       name: 'min_purchase',
-      label: '最低消費金額',
-      type: 'number' as const,
+      label: '最低消費',
+      type: 'number',
       placeholder: '請輸入最低消費金額',
-      validation: (value: number) => {
-        return value < 0 ? '最低消費金額不能為負數' : null
-      },
+      value: currentDiscount?.min_purchase || 0,
     },
     {
       name: 'max_discount',
       label: '最高折扣金額',
-      type: 'number' as const,
-      placeholder: '請輸入最高折扣金額 (可選)',
-      validation: (value: number) => {
-        return value < 0 ? '最高折扣金額不能為負數' : null
+      type: 'number',
+      placeholder: '請輸入最高折扣金額',
+      value: currentDiscount?.max_discount || '',
+      conditional: {
+        field: 'type',
+        values: ['percentage'],
+      },
+    },
+    {
+      name: 'coupon_required',
+      label: '需要折扣碼',
+      type: 'switch',
+      value: currentDiscount?.coupon_required || false,
+    },
+    {
+      name: 'coupon_code',
+      label: '折扣碼',
+      type: 'text',
+      placeholder: '請輸入折扣碼',
+      value: currentDiscount?.coupon_code || '',
+      conditional: {
+        field: 'coupon_required',
+        values: [true],
+      },
+      required: {
+        dependsOn: 'coupon_required',
+        value: true,
       },
     },
     {
       name: 'start_date',
       label: '開始日期',
-      type: 'date' as const,
+      type: 'date',
       required: true,
+      value:
+        currentDiscount?.start_date || new Date().toISOString().split('T')[0],
     },
     {
       name: 'end_date',
       label: '結束日期',
-      type: 'date' as const,
+      type: 'date',
       required: true,
+      value:
+        currentDiscount?.end_date ||
+        new Date(new Date().setMonth(new Date().getMonth() + 1))
+          .toISOString()
+          .split('T')[0],
     },
     {
       name: 'usage_limit',
       label: '使用次數限制',
-      type: 'number' as const,
-      placeholder: '請輸入使用次數限制 (可選)',
-      validation: (value: number) => {
-        return value < 0 ? '使用次數限制不能為負數' : null
-      },
+      type: 'number',
+      placeholder: '請輸入使用次數限制',
+      value: currentDiscount?.usage_limit || 0,
     },
     {
       name: 'status',
-      label: '狀態',
-      type: 'select' as const,
+      label: '活動狀態',
+      type: 'select',
+      options: DISCOUNT_STATUS_OPTIONS,
       required: true,
-      options: [
-        { value: 'active', label: '啟用' },
-        { value: 'inactive', label: '停用' },
-      ],
-    },
-  ]
-
-  // 渲染操作按鈕
-  const renderActions = (coupon: any) => (
-    <div className="d-flex gap-2">
-      <Button
-        variant="outline-secondary"
-        size="sm"
-        onClick={() => handleEditCoupon(coupon)}
-        title="編輯優惠券"
-      >
-        <Edit size={16} />
-      </Button>
-      <Button
-        variant={
-          coupon.status === 'active' ? 'outline-warning' : 'outline-success'
-        }
-        size="sm"
-        onClick={() => handleToggleStatus(coupon)}
-        title={coupon.status === 'active' ? '停用優惠券' : '啟用優惠券'}
-      >
-        {coupon.status === 'active' ? '停用' : '啟用'}
-      </Button>
-      <Button
-        variant="outline-danger"
-        size="sm"
-        onClick={() => handleDeleteCoupon(coupon)}
-        title="刪除優惠券"
-      >
-        <Trash size={16} />
-      </Button>
-    </div>
-  )
-
-  // 優惠券統計數據
-  const couponStats = [
-    {
-      title: '總優惠券數',
-      count: coupons.length,
-      color: 'primary',
-      icon: <Ticket size={24} />,
+      value: currentDiscount?.status || 'inactive',
     },
     {
-      title: '啟用中優惠券',
-      count: coupons.filter((c) => c.status === 'active').length,
-      color: 'success',
-      icon: <Ticket size={24} />,
-    },
-    {
-      title: '即將到期',
-      count: coupons.filter((c) => {
-        const endDate = new Date(c.end_date)
-        const today = new Date()
-        const diffTime = endDate.getTime() - today.getTime()
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        return c.status === 'active' && diffDays <= 30 && diffDays > 0
-      }).length,
-      color: 'warning',
-      icon: <Calendar size={24} />,
-    },
-    {
-      title: '已過期',
-      count: coupons.filter((c) => c.status === 'expired').length,
-      color: 'danger',
-      icon: <Calendar size={24} />,
+      name: 'target_products',
+      label: '適用商品',
+      type: 'text',
+      placeholder: '請輸入商品ID，多個以逗號分隔',
+      value: currentDiscount?.target_products || '',
+      conditional: {
+        field: 'type',
+        values: ['bundle'],
+      },
     },
   ]
 
   return (
     <AdminPageLayout
-      title="優惠券管理"
-      description="創建和管理優惠券，設定折扣規則"
-      breadcrumbs={[
-        { label: '管理區', href: '/admin' },
-        { label: '商城管理', href: '/admin/shop' },
-        { label: '優惠券管理', href: '/admin/shop/coupons' },
-      ]}
-      actions={
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleAddCoupon}
-          className="d-flex align-items-center"
-        >
-          <Plus size={16} className="me-1" /> 新增優惠券
-        </Button>
-      }
-      stats={couponStats}
+      title="折扣活動管理"
+      breadcrumb={[{ name: '商城管理' }, { name: '折扣活動管理' }]}
     >
-      <AdminSection title="優惠券列表">
-        <AdminCard>
-          <DataTable
-            columns={columns}
-            data={coupons}
-            loading={loading}
-            searchable={true}
-            searchKeys={['id', 'name', 'description']}
-            actions={renderActions}
-            advancedFiltering={true}
-          />
-        </AdminCard>
+      <div className="mb-4">
+        <AdminSection title="活動統計">
+          <div className="row">
+            {discountStats.map((stat, index) => (
+              <div key={index} className="col-md-3 mb-3">
+                <AdminCard>
+                  <div className="d-flex align-items-center">
+                    <div
+                      className={`me-3 rounded p-3 bg-${stat.color} bg-opacity-10`}
+                    >
+                      {stat.icon}
+                    </div>
+                    <div>
+                      <h6 className="mb-0">{stat.title}</h6>
+                      <h3 className="mb-0">{stat.count}</h3>
+                    </div>
+                  </div>
+                </AdminCard>
+              </div>
+            ))}
+          </div>
+        </AdminSection>
+      </div>
+
+      <AdminSection
+        title="折扣活動列表"
+        action={
+          hasPermission('shop:promotions:create') && (
+            <Button variant="primary" onClick={handleAddDiscount}>
+              <Plus size={16} className="me-1" />
+              新增折扣活動
+            </Button>
+          )
+        }
+      >
+        <DataTable
+          columns={columns}
+          data={discounts}
+          renderActions={renderActions}
+          isLoading={loading}
+          showSearch
+          searchPlaceholder="搜尋活動名稱或折扣碼..."
+          searchKeys={['name', 'coupon_code', 'description']}
+          sortable
+          pageSize={10}
+        />
       </AdminSection>
 
-      {/* 優惠券表單模態框 */}
       <ModalForm
         show={showModal}
         onHide={() => setShowModal(false)}
-        title={modalMode === 'add' ? '新增優惠券' : '編輯優惠券'}
+        title={modalMode === 'add' ? '新增折扣活動' : '編輯折扣活動'}
         fields={formFields}
         onSubmit={handleSubmit}
-        initialData={currentCoupon}
-        submitText={modalMode === 'add' ? '新增' : '更新'}
+        isLoading={loading}
+        size="lg"
       />
     </AdminPageLayout>
   )

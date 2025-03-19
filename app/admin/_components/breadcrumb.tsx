@@ -20,7 +20,7 @@ const routeMap = {
       products: { title: '商品管理' },
       orders: { title: '訂單管理' },
       categories: { title: '分類管理' },
-      coupons: { title: '優惠券管理' },
+      promotions: { title: '折扣活動管理' },
     },
   },
   pets: {

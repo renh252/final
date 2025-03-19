@@ -287,6 +287,279 @@ return NextResponse.json({
 
 > **注意**: 此設置僅應用於開發或測試環境，生產環境應始終啟用適當的授權檢查。
 
-## 9. 結論
+## 9. 認證系統優化
+
+### 9.1 重複驗證請求問題
+
+目前系統在頁面刷新時會出現兩次驗證請求的問題：
+
+1. 首次請求: `GET /api/admin/auth/verify` - 執行用戶身份驗證
+2. 次要請求: `GET /api/admin/members` (或其他資料獲取) - 執行資料獲取
+
+這種重複驗證不僅增加伺服器負載，也影響前端效能和用戶體驗。
+
+#### 問題根本原因
+
+1. **驗證與資料獲取邏輯分離**
+
+   - 在頁面載入時，先執行全局身份驗證
+   - 驗證成功後，再次觸發資料獲取，導致雙重請求
+
+2. **React 生命週期管理不當**
+
+   - 可能在多個 `useEffect` 中重複執行驗證邏輯
+   - `withAuth` HOC 與組件內部可能重複驗證
+
+3. **缺乏有效的請求緩存機制**
+   - 每次頁面切換或刷新都重新進行驗證
+   - 缺少短期有效的驗證結果緩存策略
+
+### 9.2 優化方案
+
+#### 9.2.1 短期修復方案
+
+1. **整合驗證與資料獲取**
+
+   ```typescript
+   // 統一的認證與資料獲取狀態管理
+   const [authState, setAuthState] = useState({
+     isAuthenticated: false,
+     isVerifying: true,
+     error: null,
+   })
+   const [membersData, setMembersData] = useState({
+     data: [],
+     isLoading: false,
+     error: null,
+   })
+
+   useEffect(() => {
+     const verifyAndFetch = async () => {
+       try {
+         // 驗證身份
+         await fetchApi('/api/admin/auth/verify')
+         setAuthState({
+           isAuthenticated: true,
+           isVerifying: false,
+           error: null,
+         })
+
+         // 身份驗證成功後獲取資料
+         setMembersData((prev) => ({ ...prev, isLoading: true }))
+         const data = await fetchApi('/api/admin/members')
+         setMembersData({ data: data.members, isLoading: false, error: null })
+       } catch (error) {
+         if (error.status === 401) {
+           setAuthState({ isAuthenticated: false, isVerifying: false, error })
+         } else {
+           setMembersData((prev) => ({ ...prev, error, isLoading: false }))
+         }
+       }
+     }
+
+     verifyAndFetch()
+   }, [])
+   ```
+
+2. **使用本地存儲暫存驗證狀態**
+
+   ```typescript
+   // 使用本地存儲及過期時間管理
+   const checkAndSetAuth = () => {
+     const storedAuth = localStorage.getItem('auth_status')
+     const expiry = localStorage.getItem('auth_expiry')
+
+     if (storedAuth && expiry && new Date().getTime() < parseInt(expiry)) {
+       return JSON.parse(storedAuth)
+     }
+     return null
+   }
+
+   const storeAuth = (authData) => {
+     localStorage.setItem('auth_status', JSON.stringify(authData))
+     localStorage.setItem('auth_expiry', new Date().getTime() + 5 * 60 * 1000) // 5分鐘有效期
+   }
+   ```
+
+#### 9.2.2 中長期重構方案
+
+1. **引入專業狀態管理庫**
+
+   ```typescript
+   // 使用 React Query 實現驗證與資料獲取緩存
+   import { useQuery } from 'react-query'
+
+   // 驗證查詢
+   const { data: authData, isLoading: authLoading } = useQuery(
+     'auth',
+     () => fetchApi('/api/admin/auth/verify'),
+     {
+       staleTime: 5 * 60 * 1000, // 5分鐘內不重新驗證
+       retry: false,
+     }
+   )
+
+   // 會員資料查詢
+   const { data: members, isLoading: membersLoading } = useQuery(
+     'members',
+     () => fetchApi('/api/admin/members'),
+     {
+       enabled: !!authData, // 只有在驗證成功後才獲取
+       staleTime: 30 * 1000, // 30秒內不重新獲取
+     }
+   )
+   ```
+
+2. **優化 `withAuth` HOC 設計**
+
+   ```typescript
+   // 增強 withAuth 高階組件，整合資料獲取
+   export function withAuth<P, D = any>(
+     Component: React.ComponentType<P & { data?: D }>,
+     requiredPerm: string,
+     dataFetcher?: () => Promise<D>
+   ) {
+     return function AuthComponent(props: P) {
+       const [authState, setAuthState] = useState({
+         auth: null,
+         loading: true,
+         error: null,
+       })
+       const [data, setData] = useState<D | null>(null)
+       const [dataLoading, setDataLoading] = useState(false)
+
+       useEffect(() => {
+         const verify = async () => {
+           try {
+             // 檢查本地存儲中的驗證狀態
+             const cachedAuth = checkAndSetAuth()
+             if (cachedAuth) {
+               setAuthState({ auth: cachedAuth, loading: false, error: null })
+
+               // 有緩存的驗證狀態，直接獲取資料
+               if (dataFetcher) {
+                 setDataLoading(true)
+                 try {
+                   const result = await dataFetcher()
+                   setData(result)
+                 } catch (error) {
+                   console.error('Data fetching error:', error)
+                 } finally {
+                   setDataLoading(false)
+                 }
+               }
+               return
+             }
+
+             // 無緩存，執行驗證
+             const authData = await fetchApi('/api/admin/auth/verify')
+
+             // 驗證成功，緩存結果
+             storeAuth(authData)
+             setAuthState({ auth: authData, loading: false, error: null })
+
+             // 獲取資料
+             if (dataFetcher) {
+               setDataLoading(true)
+               try {
+                 const result = await dataFetcher()
+                 setData(result)
+               } catch (error) {
+                 console.error('Data fetching error:', error)
+               } finally {
+                 setDataLoading(false)
+               }
+             }
+           } catch (error) {
+             setAuthState({ auth: null, loading: false, error })
+           }
+         }
+
+         verify()
+       }, [])
+
+       if (authState.loading || dataLoading) return <LoadingSpinner />
+       if (!authState.auth) return null
+
+       return <Component {...props} auth={authState.auth} data={data} />
+     }
+   }
+   ```
+
+3. **統一前後台認證機制**
+
+   ```typescript
+   // 統一的認證服務
+   const AuthService = {
+     // 後台管理員驗證
+     verifyAdmin: async () => {
+       const cachedAuth = checkAndSetAuth('admin')
+       if (cachedAuth) return cachedAuth
+
+       const authData = await fetchApi('/api/admin/auth/verify')
+       storeAuth('admin', authData)
+       return authData
+     },
+
+     // 前台會員驗證
+     verifyMember: async () => {
+       const cachedAuth = checkAndSetAuth('member')
+       if (cachedAuth) return cachedAuth
+
+       const authData = await fetchApi('/api/auth/verify')
+       storeAuth('member', authData)
+       return authData
+     },
+
+     // 共用邏輯
+     refreshToken: async (token) => {
+       // 實現刷新令牌邏輯
+     },
+
+     // 緩存管理
+     checkAndSetAuth: (type) => {
+       const key = `${type}_auth_status`
+       const expiryKey = `${type}_auth_expiry`
+
+       const storedAuth = localStorage.getItem(key)
+       const expiry = localStorage.getItem(expiryKey)
+
+       if (storedAuth && expiry && new Date().getTime() < parseInt(expiry)) {
+         return JSON.parse(storedAuth)
+       }
+       return null
+     },
+
+     storeAuth: (type, authData) => {
+       const key = `${type}_auth_status`
+       const expiryKey = `${type}_auth_expiry`
+
+       localStorage.setItem(key, JSON.stringify(authData))
+       localStorage.setItem(expiryKey, new Date().getTime() + 5 * 60 * 1000)
+     },
+   }
+   ```
+
+### 9.3 實施建議
+
+1. **優先級劃分**:
+
+   - **高優先級**: 整合驗證與資料獲取邏輯，避免重複請求
+   - **中優先級**: 實現本地緩存機制，減少不必要的驗證請求
+   - **低優先級**: 引入狀態管理庫，重構 `withAuth` HOC
+
+2. **實施步驟**:
+
+   1. 首先進行短期修復，快速解決重複請求問題
+   2. 在開發前台會員登入系統時，一併實現統一的驗證服務
+   3. 最後考慮引入專業狀態管理庫進行全面優化
+
+3. **注意事項**:
+   - 確保與現有權限檢查機制保持兼容
+   - 遵循系統的安全標準，特別是 JWT 令牌管理
+   - 本地存儲中不應保存敏感資訊
+   - 適當設置緩存過期時間，避免長時間無效驗證
+
+## 10. 結論
 
 本文檔詳細說明了寵物領養平台中用戶身份驗證系統的實現方法和最佳實踐。開發者在實作或維護相關功能時應參考本文檔，確保認證系統的安全性和可靠性。
