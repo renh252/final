@@ -88,14 +88,35 @@ export async function POST(req) {
       ? data.PaymentType.split('_')[0]
       : data.PaymentType
 
+    const orderType = data.CustomField1 // 讀取 orderType
+
+    let updateResult
     // ✅ 更新資料庫的交易狀態
-    const [result] = await db.query(
-      `UPDATE donations 
-      SET transaction_status = ?, payment_method = ? 
-      WHERE trade_no = ?`,
-      [transactionStatus, paymentMethod, tradeNo]
-    )
-    if (result.affectedRows === 0) {
+    if (orderType === 'shop') {
+      // **商城訂單**
+      updateResult = await db.query(
+        `UPDATE orders 
+         SET payment_status = ?
+         WHERE order_id = ?`,
+        [transactionStatus === 'success' ? '已付款' : '付款失敗', tradeNo]
+      )
+    } else if (orderType === 'donation') {
+      // **捐款**
+      updateResult = await db.query(
+        `UPDATE donations 
+         SET transaction_status = ?, payment_method = ? 
+         WHERE trade_no = ?`,
+        [transactionStatus, paymentMethod, tradeNo]
+      )
+    } else {
+      console.error(`❌ 無效的訂單類型: ${orderType}`)
+      return NextResponse.json(
+        { message: 'ERROR: 無效的訂單類型' },
+        { status: 400 }
+      )
+    }
+
+    if (updateResult.affectedRows === 0) {
       console.error(`❌ 未找到對應的交易: ${tradeNo}`)
       return NextResponse.json(
         { message: 'ERROR: 交易不存在' },
@@ -104,7 +125,7 @@ export async function POST(req) {
     }
 
     console.log(
-      `✅ 交易 ${tradeNo} 狀態更新為: ${transactionStatus}, 付款方式: ${paymentMethod}`
+      `✅ 交易 ${tradeNo} 更新成功，狀態: ${transactionStatus}, 付款方式: ${paymentMethod}`
     )
 
     return new Response('1|OK', { status: 200 }) // ✅ 確保 ECPay 正確接收

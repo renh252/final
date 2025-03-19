@@ -8,8 +8,8 @@ import Image from 'next/image'
 export default function FlowPage() {
   const searchParams = useSearchParams()
   const [items, setItems] = useState('')
-  const [amount, setAmount] = useState('0')
-  const [selectedPaymentMode, setSelectedPaymentMode] = useState('oneTime') // 預設選擇一次付清
+  const [amount, setAmount] = useState('100')
+  const [selectedPaymentMode, setSelectedPaymentMode] = useState('一次性捐款') // 預設選擇一次性捐款
   const [paymentType, setPaymentType] = useState('Credit') // 預設信用卡
   const [paymentData, setPaymentData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -22,7 +22,7 @@ export default function FlowPage() {
   const [donorEmail, setDonorEmail] = useState('')
 
   useEffect(() => {
-    const donationType = searchParams.get('donationType') || '一般捐款'
+    const donationType = searchParams.get('donationType') || '捐給我們'
     const pet = searchParams.get('pet') || ''
     const petIdFromQuery = searchParams.get('petId') || null
     setItems(donationType)
@@ -30,24 +30,48 @@ export default function FlowPage() {
     setPetId(petIdFromQuery) // 直接使用 `donate` 頁面傳來的 `petId`
   }, [searchParams])
 
+  const validateFields = () => {
+    // 驗證姓名
+    if (!/^[\u4e00-\u9fa5]{2,}$/.test(donorName)) {
+      alert('請輸入至少兩個中文字的姓名')
+      return false
+    }
+
+    // 驗證手機號碼
+    if (!/^09\d{2}[- ]?\d{3}[- ]?\d{3}$/.test(donorPhone)) {
+      alert('請輸入有效的手機號碼 (例: 0912345678)')
+      return false
+    }
+
+    // 驗證電子郵件
+    if (
+      !/^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z]+\.[a-zA-Z]+$/.test(donorEmail)
+    ) {
+      alert('請輸入有效的電子郵件地址 (格式錯誤)')
+      return false
+    }
+
+    return true
+  }
+
   const handleAmountChange = (e) => setAmount(e.target.value)
 
   // 切換付款模式時，自動設置對應的 paymentType
   const selectOneTimePayment = () => {
-    setSelectedPaymentMode('oneTime')
+    setSelectedPaymentMode('一次性捐款')
     setPaymentType('Credit') // 預設信用卡
   }
 
   const selectRecurringPayment = () => {
-    setSelectedPaymentMode('recurring')
+    setSelectedPaymentMode('定期定額')
     setPaymentType('CreditPeriod') // 定期定額僅限信用卡
   }
 
   // 設定付款方式
   const handlePaymentMethodClick = (method) => {
-    if (selectedPaymentMode === 'oneTime') {
-      setPaymentType(method) // 一次付清模式
-    } else if (selectedPaymentMode === 'recurring') {
+    if (selectedPaymentMode === '一次性捐款') {
+      setPaymentType(method) // 一次性捐款模式
+    } else if (selectedPaymentMode === '定期定額') {
       setPaymentType('CreditPeriod') // 定期定額只能用信用卡
     }
   }
@@ -56,12 +80,17 @@ export default function FlowPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!amount || !items || !paymentType) {
-      alert('請填寫金額、商品項目並選擇付款方式！')
+    // 驗證表單
+    if (!validateFields()) {
       return
     }
-    if (!donorName || !donorPhone || !donorEmail) {
-      alert('請填寫正確的捐款人資料！')
+    if (Number(amount) < 100) {
+      alert('捐款金額至少為 100 元')
+      return
+    }
+
+    if (!amount || !items || !paymentType) {
+      alert('請填寫金額、商品項目並選擇付款方式！')
       return
     }
 
@@ -69,6 +98,7 @@ export default function FlowPage() {
 
     try {
       let paymentRequest = {
+        orderType: 'donation',
         amount: Number(amount),
         items,
         ChoosePayment: paymentType,
@@ -143,7 +173,7 @@ export default function FlowPage() {
               </tr>
               <tr>
                 <td className={styles.order_label}>捐款金額</td>
-                <td className={styles.order_value}>
+                <td className={styles.order_value_money}>
                   <input
                     type="number"
                     value={amount}
@@ -151,6 +181,7 @@ export default function FlowPage() {
                     placeholder="請輸入金額"
                     required
                   />
+                  <p>(金額最低需為100元)</p>
                 </td>
               </tr>
               <tr className={styles.order_total_row}>
@@ -170,12 +201,12 @@ export default function FlowPage() {
               onClick={selectOneTimePayment}
               style={{
                 backgroundColor:
-                  selectedPaymentMode === 'oneTime' ? '#cda274' : '',
+                  selectedPaymentMode === '一次性捐款' ? '#cda274' : '',
               }}
             >
               <Image
                 src="/images/donate/icon/card1.svg"
-                alt="一次付清"
+                alt="一次性捐款"
                 width={50}
                 height={50}
               />
@@ -187,7 +218,7 @@ export default function FlowPage() {
               onClick={selectRecurringPayment}
               style={{
                 backgroundColor:
-                  selectedPaymentMode === 'recurring' ? '#cda274' : '',
+                  selectedPaymentMode === '定期定額' ? '#cda274' : '',
               }}
             >
               <Image
@@ -202,7 +233,7 @@ export default function FlowPage() {
 
           <hr />
           <div className={styles.order_payment_method}>
-            {selectedPaymentMode === 'recurring' ? (
+            {selectedPaymentMode === '定期定額' ? (
               <>
                 <div className={styles.payment_item}>
                   <button
@@ -267,18 +298,21 @@ export default function FlowPage() {
                 className={styles.input}
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
-                required
               />
             </div>
-            <div>
-              <label>認養寵物</label>
-              <input
-                type="text"
-                className={styles.readOnlyInput}
-                value={petName}
-                readOnly
-              />
-            </div>
+            {petName ? (
+              <div>
+                <label>認養寵物</label>
+                <input
+                  type="text"
+                  className={styles.readOnlyInput}
+                  value={petName}
+                  readOnly
+                />
+              </div>
+            ) : (
+              ''
+            )}
             <div>
               <label>手機號碼</label>
               <input
@@ -286,7 +320,6 @@ export default function FlowPage() {
                 className={styles.input}
                 value={donorPhone}
                 onChange={(e) => setDonorPhone(e.target.value)}
-                required
               />
             </div>
             <div>
@@ -296,7 +329,6 @@ export default function FlowPage() {
                 className={styles.input}
                 value={donorEmail}
                 onChange={(e) => setDonorEmail(e.target.value)}
-                required
               />
             </div>
           </div>
@@ -305,14 +337,12 @@ export default function FlowPage() {
           <button type="submit" className="button" disabled={isLoading}>
             {isLoading ? '處理中...' : '開始支付'}
           </button>
+          {paymentData && (
+            <div>
+              <p>即將進行支付，請稍候...</p>
+            </div>
+          )}
         </div>
-
-        {paymentData && (
-          <div>
-            <h2>支付參數已準備好！</h2>
-            <p>即將進行支付，請稍候...</p>
-          </div>
-        )}
       </form>
     </>
   )
