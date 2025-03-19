@@ -24,7 +24,9 @@ export const GET = guard.api(async (request: NextRequest, authData) => {
     }
 
     // 從資料庫獲取會員資訊
-    const [members] = await db.query('SELECT * FROM users WHERE id = ?', [mid])
+    const [members] = await db.query('SELECT * FROM users WHERE user_id = ?', [
+      mid,
+    ])
 
     const member = members?.[0]
     if (!member) {
@@ -36,7 +38,7 @@ export const GET = guard.api(async (request: NextRequest, authData) => {
 
     return NextResponse.json({
       success: true,
-      data: { member },
+      member,
     })
   } catch (error) {
     console.error('獲取會員詳情錯誤:', error)
@@ -69,7 +71,10 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
     const body = await request.json()
 
     // 檢查會員是否存在
-    const [members] = await db.query('SELECT id FROM users WHERE id = ?', [mid])
+    const [members] = await db.query(
+      'SELECT user_id FROM users WHERE user_id = ?',
+      [mid]
+    )
 
     if (!members?.[0]) {
       return NextResponse.json(
@@ -79,7 +84,7 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
     }
 
     // 更新會員資料
-    await db.query('UPDATE users SET ? WHERE id = ?', [body, mid])
+    await db.query('UPDATE users SET ? WHERE user_id = ?', [body, mid])
 
     return NextResponse.json({
       success: true,
@@ -114,7 +119,10 @@ export const DELETE = guard.api(async (request: NextRequest, authData) => {
     }
 
     // 檢查會員是否存在
-    const [members] = await db.query('SELECT id FROM users WHERE id = ?', [mid])
+    const [members] = await db.query(
+      'SELECT user_id FROM users WHERE user_id = ?',
+      [mid]
+    )
 
     if (!members?.[0]) {
       return NextResponse.json(
@@ -124,7 +132,7 @@ export const DELETE = guard.api(async (request: NextRequest, authData) => {
     }
 
     // 刪除會員
-    await db.query('DELETE FROM users WHERE id = ?', [mid])
+    await db.query('DELETE FROM users WHERE user_id = ?', [mid])
 
     return NextResponse.json({
       success: true,
