@@ -8,8 +8,8 @@ import Image from 'next/image'
 export default function FlowPage() {
   const searchParams = useSearchParams()
   const [items, setItems] = useState('')
-  const [amount, setAmount] = useState('0')
-  const [selectedPaymentMode, setSelectedPaymentMode] = useState('oneTime') // 預設選擇一次付清
+  const [amount, setAmount] = useState('100')
+  const [selectedPaymentMode, setSelectedPaymentMode] = useState('一次性捐款') // 預設選擇一次性捐款
   const [paymentType, setPaymentType] = useState('Credit') // 預設信用卡
   const [paymentData, setPaymentData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -58,20 +58,20 @@ export default function FlowPage() {
 
   // 切換付款模式時，自動設置對應的 paymentType
   const selectOneTimePayment = () => {
-    setSelectedPaymentMode('oneTime')
+    setSelectedPaymentMode('一次性捐款')
     setPaymentType('Credit') // 預設信用卡
   }
 
   const selectRecurringPayment = () => {
-    setSelectedPaymentMode('recurring')
+    setSelectedPaymentMode('定期定額')
     setPaymentType('CreditPeriod') // 定期定額僅限信用卡
   }
 
   // 設定付款方式
   const handlePaymentMethodClick = (method) => {
-    if (selectedPaymentMode === 'oneTime') {
-      setPaymentType(method) // 一次付清模式
-    } else if (selectedPaymentMode === 'recurring') {
+    if (selectedPaymentMode === '一次性捐款') {
+      setPaymentType(method) // 一次性捐款模式
+    } else if (selectedPaymentMode === '定期定額') {
       setPaymentType('CreditPeriod') // 定期定額只能用信用卡
     }
   }
@@ -98,6 +98,7 @@ export default function FlowPage() {
 
     try {
       let paymentRequest = {
+        orderType: 'donation',
         amount: Number(amount),
         items,
         ChoosePayment: paymentType,
@@ -200,12 +201,12 @@ export default function FlowPage() {
               onClick={selectOneTimePayment}
               style={{
                 backgroundColor:
-                  selectedPaymentMode === 'oneTime' ? '#cda274' : '',
+                  selectedPaymentMode === '一次性捐款' ? '#cda274' : '',
               }}
             >
               <Image
                 src="/images/donate/icon/card1.svg"
-                alt="一次付清"
+                alt="一次性捐款"
                 width={50}
                 height={50}
               />
@@ -217,7 +218,7 @@ export default function FlowPage() {
               onClick={selectRecurringPayment}
               style={{
                 backgroundColor:
-                  selectedPaymentMode === 'recurring' ? '#cda274' : '',
+                  selectedPaymentMode === '定期定額' ? '#cda274' : '',
               }}
             >
               <Image
@@ -232,7 +233,7 @@ export default function FlowPage() {
 
           <hr />
           <div className={styles.order_payment_method}>
-            {selectedPaymentMode === 'recurring' ? (
+            {selectedPaymentMode === '定期定額' ? (
               <>
                 <div className={styles.payment_item}>
                   <button
@@ -336,14 +337,12 @@ export default function FlowPage() {
           <button type="submit" className="button" disabled={isLoading}>
             {isLoading ? '處理中...' : '開始支付'}
           </button>
+          {paymentData && (
+            <div>
+              <p>即將進行支付，請稍候...</p>
+            </div>
+          )}
         </div>
-
-        {paymentData && (
-          <div>
-            <h2>支付參數已準備好！</h2>
-            <p>即將進行支付，請稍候...</p>
-          </div>
-        )}
       </form>
     </>
   )
