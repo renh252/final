@@ -57,7 +57,7 @@ export default function MemberPage() {
                 className="button"
                 style={{ width: '200px', height: '50px', fontSize: '28px' }}
               >
-                <Link href="/shop">我的購物車</Link>
+                <Link href="/member/orders">我的訂單</Link>
               </button>
               <button
                 className="button"
