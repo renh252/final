@@ -17,6 +17,7 @@
 4. **錯誤處理**：必須妥善處理資料庫錯誤並提供明確的錯誤訊息
 5. **避免 N+1 問題**：使用適當的 JOIN 和關聯加載
 6. **權限控制**：所有資料庫操作必須經過權限檢查
+7. **表名使用**：必須使用正確的資料表名稱，不添加任何前綴
 
 > 🔴 **嚴禁**:
 >
@@ -24,6 +25,22 @@
 > - 在前端直接執行資料庫操作
 > - 繞過 ORM 或查詢構建器
 > - 修改生產環境中的表結構(必須通過正確的遷移流程)
+> - 使用不正確的表名前綴 (如 `shop_products` 而非 `products`)
+
+## 資料庫表名映射
+
+所有 API 在引用資料表時必須使用這些正確的表名：
+
+| 領域     | 正確表名             | 錯誤表名 (禁止使用)       |
+| -------- | -------------------- | ------------------------- |
+| 商品     | `products`           | `shop_products`           |
+| 訂單     | `orders`             | `shop_orders`             |
+| 訂單項目 | `order_items`        | `shop_order_items`        |
+| 商品分類 | `categories`         | `shop_categories`         |
+| 促銷活動 | `promotions`         | `shop_promotions`         |
+| 促銷商品 | `promotion_products` | `shop_promotion_products` |
+
+使用正確的表名是避免資料庫查詢錯誤的關鍵。
 
 ## 資料表概覽
 
@@ -258,313 +275,5 @@ CREATE TABLE `orders` (
   `order_id` varchar(30) NOT NULL,
   `user_id` int DEFAULT NULL,
   `total_price` decimal(10,0) DEFAULT NULL,
-  `order_status` varchar(50) DEFAULT NULL,
-  `payment_method` varchar(50) DEFAULT NULL,
-  `payment_status` varchar(50) DEFAULT NULL,
-  `invoice_method` varchar(50) DEFAULT NULL,
-  `invoice` varchar(50) DEFAULT NULL,
-  `mobile_barcode` varchar(50) DEFAULT NULL,
-  `taxID_number` varchar(50) DEFAULT NULL,
-  `recipient_name` varchar(50) DEFAULT NULL,
-  `recipient_phone` int DEFAULT NULL,
-  `recipient_email` varchar(255) DEFAULT NULL,
-  `remark` text,
-  `shipping_method` varchar(50) DEFAULT NULL,
-  `shipping_address` varchar(255) DEFAULT NULL,
-  `tracking_number` varchar(50) DEFAULT NULL,
-  `shipped_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
-  `finish_at` datetime DEFAULT NULL,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`order_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-```
-
-### `order_items` 表 - 訂單項目明細
-
-```sql
-CREATE TABLE `order_items` (
-  `order_item_id` int NOT NULL AUTO_INCREMENT,
-  `order_id` varchar(30) DEFAULT NULL,
-  `product_id` int DEFAULT NULL,
-  `variant_id` int DEFAULT NULL,
-  `quantity` int DEFAULT NULL,
-  `price` decimal(10,0) DEFAULT NULL,
-  `return_status` varchar(50) DEFAULT NULL,
-  `returned_quantity` int DEFAULT '0',
-  PRIMARY KEY (`order_item_id`),
-  KEY `variant_id` (`variant_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-```
-
-### `donations` 表 - 捐款記錄
-
-```sql
-CREATE TABLE `donations` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `donation_type` varchar(50) DEFAULT NULL,
-  `pet_id` int DEFAULT NULL,
-  `amount` decimal(10,0) DEFAULT NULL,
-  `donation_mode` varchar(50) DEFAULT NULL,
-  `regular_payment_date` date DEFAULT NULL,
-  `is_anonymous` tinyint(1) DEFAULT NULL,
-  `payment_method` varchar(50) DEFAULT NULL,
-  `create_datetime` datetime DEFAULT NULL,
-  `user_id` int DEFAULT NULL,
-  `is_receipt_needed` tinyint(1) DEFAULT NULL,
-  `donor_name` varchar(50) DEFAULT NULL,
-  `donor_phone` varchar(20) DEFAULT NULL,
-  `donor_email` varchar(80) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-```
-
-### `manager` 表 - 後台管理員
-
-```sql
-CREATE TABLE `manager` (
-  `id` int NOT NULL,
-  `manager_account` varchar(255) DEFAULT NULL,
-  `manager_password` varchar(255) DEFAULT NULL,
-  `manager_privileges` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `manager_account_2` (`manager_account`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-```
-
-### `cases` 表 - 救援案例
-
-```sql
-CREATE TABLE `cases` (
-  `id` int NOT NULL,
-  `title` varchar(255) DEFAULT NULL,
-  `content` text NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-```
-
-### `case_images` 表 - 案例圖片
-
-```sql
-CREATE TABLE `case_images` (
-  `id` int NOT NULL,
-  `case_id` int DEFAULT NULL,
-  `image_url` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `case_id` (`case_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-```
-
-### `pet_trait_list` 表 - 寵物特徵定義
-
-```sql
-CREATE TABLE `pet_trait_list` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `trait_tag` varchar(50) DEFAULT NULL,
-  `description` text,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-```
-
-### `pet_trait` 表 - 寵物特徵關聯
-
-```sql
-CREATE TABLE `pet_trait` (
-  `pet_id` int NOT NULL,
-  `trait_id` int NOT NULL,
-  PRIMARY KEY (`pet_id`,`trait_id`),
-  KEY `trait_id` (`trait_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-```
-
-## 新增的資料表
-
-### `pet_photos` 表 - 寵物照片
-
-```sql
-CREATE TABLE `pet_photos` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `pet_id` int DEFAULT NULL,
-  `photo_url` varchar(255) DEFAULT NULL,
-  `is_main` tinyint(1) DEFAULT NULL,
-  `sort_order` int DEFAULT NULL,
-  `title` varchar(100) DEFAULT NULL,
-  `description` text,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `pet_id` (`pet_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-```
-
-### `shopping_cart` 表 - 購物車
-
-```sql
-CREATE TABLE `shopping_cart` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int DEFAULT NULL,
-  `product_id` int DEFAULT NULL,
-  `variant_id` int DEFAULT NULL,
-  `quantity` int DEFAULT NULL,
-  `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `variant_id` (`variant_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-```
-
-### `promotions` 表 - 促銷活動
-
-```sql
-CREATE TABLE `promotions` (
-  `promotion_id` int NOT NULL AUTO_INCREMENT,
-  `promotion_name` varchar(255) DEFAULT NULL,
-  `promotion_description` text,
-  `start_date` date DEFAULT NULL,
-  `end_date` date DEFAULT NULL,
-  `discount_percentage` int DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  `photo` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`promotion_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-```
-
-## 表格關聯圖
-
-```
-pets ────┬────> pet_photos
-         │
-         ├────> pet_trait ────> pet_trait_list
-         │
-         │
-         ▼
-     pet_store <───── pet_appointment
-         ▲
-         │
-users ───┬────> pets_like
-   │     │
-   │     └────> pet_recommendation
-   │
-   ├────> posts <───── comments
-   │        │
-   │        ├────> posts_likes
-   │        │
-   │        └────> bookmarks
-   │
-   ├────> orders <───── order_items ────> products
-   │                                        │
-   │                                        ├────> product_variants
-   │                                        │
-   │                                        ├────> product_reviews
-   │                                        │
-   │                                        ├────> product_like
-   │                                        │
-   │                                        └────> product_img
-   │
-   ├────> donations ────> receipts
-   │        │
-   │        └────> bank_transfer_details
-   │
-   ├────> shopping_cart
-   │
-   ├────> follows
-   │
-   ├────> cases ────> case_images
-   │
-   └────> reports
-
-manager ────> admin_operation_logs
-
-categories ────> products <────> promotion_products <──── promotions
-```
-
-## 資料庫統計資訊
-
-- 資料表總數: 52
-- 所有表格均使用 InnoDB 引擎，支援外鍵和交易
-- 大多數表格使用 utf8mb4 字符集與排序規則
-- 大多數表格包含 created_at 和 updated_at 時間戳記欄位，方便追蹤記錄的創建和更新時間
-
-## 常見查詢模式
-
-### 寵物相關查詢
-
-```sql
--- 獲取可收養的寵物列表
-SELECT p.*, ps.name as store_name, ps.address
-FROM pets p
-JOIN pet_store ps ON p.store_id = ps.id
-WHERE p.adopt_status = 'available'
-ORDER BY p.created_at DESC;
-
--- 獲取寵物詳細資料及特徵
-SELECT p.*,
-       GROUP_CONCAT(DISTINCT ptl.trait_name) as traits
-FROM pets p
-LEFT JOIN pet_trait pt ON p.id = pt.pet_id
-LEFT JOIN pet_trait_list ptl ON pt.trait_id = ptl.id
-WHERE p.id = ?
-GROUP BY p.id;
-```
-
-### 用戶相關查詢
-
-```sql
--- 獲取用戶收藏的寵物
-SELECT p.*
-FROM pets p
-JOIN pets_like pl ON p.id = pl.pet_id
-WHERE pl.user_id = ?;
-
--- 用戶發布的貼文
-SELECT p.*, u.username, u.profile_image
-FROM posts p
-JOIN users u ON p.user_id = u.id
-WHERE u.id = ?
-ORDER BY p.created_at DESC;
-```
-
-### 訂單相關查詢
-
-```sql
--- 獲取訂單詳情和訂單項目
-SELECT o.*, oi.product_id, oi.quantity, oi.price, p.product_name
-FROM orders o
-JOIN order_items oi ON o.order_id = oi.order_id
-JOIN products p ON oi.product_id = p.product_id
-WHERE o.order_id = ?;
-```
-
-### 寵物特徵查詢
-
-```sql
--- 獲取寵物及其所有特徵
-SELECT p.*, GROUP_CONCAT(ptl.trait_tag) as traits
-FROM pets p
-LEFT JOIN pet_trait pt ON p.id = pt.pet_id
-LEFT JOIN pet_trait_list ptl ON pt.trait_id = ptl.id
-WHERE p.id = ?
-GROUP BY p.id;
-
--- 根據特徵篩選寵物
-SELECT p.*
-FROM pets p
-JOIN pet_trait pt ON p.id = pt.pet_id
-JOIN pet_trait_list ptl ON pt.trait_id = ptl.id
-WHERE ptl.trait_tag IN (?, ?, ?)
-GROUP BY p.id
-HAVING COUNT(DISTINCT ptl.trait_tag) = 3;
-```
-
-### 促銷活動查詢
-
-```sql
--- 獲取當前有效的促銷活動
-SELECT * FROM promotions
-WHERE start_date <= CURRENT_DATE AND end_date >= CURRENT_DATE;
-
--- 獲取促銷活動的相關商品
-SELECT p.*
-FROM products p
-JOIN promotion_products pp ON p.product_id = pp.product_id
-WHERE pp.promotion_id = ?;
+  `order_status`
 ```

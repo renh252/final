@@ -81,7 +81,7 @@ export default function OrdersPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetchApi('/api/admin/orders')
+      const response = await fetchApi('/api/admin/shop/orders')
       if (response.orders && Array.isArray(response.orders)) {
         setOrders(response.orders)
       } else {
