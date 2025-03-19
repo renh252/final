@@ -23,9 +23,9 @@ export const ALL_PERMISSIONS = [
   'shop:categories:read',
   'shop:categories:write',
   'shop:categories:delete',
-  'shop:coupons:read',
-  'shop:coupons:write',
-  'shop:coupons:delete',
+  'shop:promotions:read',
+  'shop:promotions:write',
+  'shop:promotions:delete',
 
   // 寵物管理權限
   'pets:read',
@@ -89,7 +89,7 @@ export const PERMISSION_GROUPS = {
     'shop:products:read',
     'shop:orders:read',
     'shop:categories:read',
-    'shop:coupons:read',
+    'shop:promotions:read',
   ],
   'shop:write': [
     'shop:read',
@@ -100,8 +100,8 @@ export const PERMISSION_GROUPS = {
     'shop:orders:write',
     'shop:categories:read',
     'shop:categories:write',
-    'shop:coupons:read',
-    'shop:coupons:write',
+    'shop:promotions:read',
+    'shop:promotions:write',
   ],
   'shop:delete': [
     'shop:read',
@@ -116,9 +116,9 @@ export const PERMISSION_GROUPS = {
     'shop:categories:read',
     'shop:categories:write',
     'shop:categories:delete',
-    'shop:coupons:read',
-    'shop:coupons:write',
-    'shop:coupons:delete',
+    'shop:promotions:read',
+    'shop:promotions:write',
+    'shop:promotions:delete',
   ],
 
   // 寵物管理權限組
@@ -234,6 +234,11 @@ export const PERMISSION_GROUPS = {
 // 用於跟踪已經警告過的權限格式
 const warnedPrivileges = new Set<string>()
 
+// 權限別名映射，用於相容舊版權限
+const PERMISSION_ALIASES = {
+  // 已移除coupon相關別名，完全使用promotion
+}
+
 // 檢查管理員是否有特定權限
 export function checkPermission(
   privileges: string,
@@ -250,60 +255,36 @@ export function checkPermission(
     return false
   }
 
-  try {
-    // 檢查權限字串格式是否正確 - 應該含有冒號或為111
-    if (privileges !== '111' && !privileges.includes(':')) {
-      // 只在第一次警告，避免重複日誌
-      if (!warnedPrivileges.has(privileges)) {
-        warnedPrivileges.add(privileges)
-        console.warn('警告: 權限字串使用了舊格式:', privileges)
-      }
+  // 獲取該管理員的所有權限
+  let adminPermissions = privileges.split(',')
 
-      // 針對舊式格式特別處理 - 這只是一個臨時解決方案
-      // 例如，如果為 'donation'，給予適當的權限
-      if (privileges === 'donation') {
-        return ['finance:read', 'finance:transactions:read'].includes(
-          Array.isArray(requiredPrivilege)
-            ? requiredPrivilege[0]
-            : requiredPrivilege
-        )
-      }
+  // 轉換為數組以便統一處理
+  const required = Array.isArray(requiredPrivilege)
+    ? requiredPrivilege
+    : [requiredPrivilege]
 
-      // 'general' 可能對應基本權限
-      if (privileges === 'general') {
-        return ['members:read', 'shop:read'].includes(
-          Array.isArray(requiredPrivilege)
-            ? requiredPrivilege[0]
-            : requiredPrivilege
-        )
-      }
+  // 檢查每個需要的權限
+  return required.some((permission) => {
+    // 檢查直接匹配
+    if (adminPermissions.includes(permission)) {
+      return true
     }
 
-    // 獲取擴展後的所有權限
-    const managerPerms = getManagerPermissions(privileges)
-
-    // 如果權限列表為空，立即返回false
-    if (managerPerms.length === 0) {
-      return false
+    // 檢查權限別名（如果有）
+    const aliases = PERMISSION_ALIASES[permission]
+    if (aliases && aliases.length > 0) {
+      return aliases.some((alias) => adminPermissions.includes(alias))
     }
 
-    // 檢查是否有必要的權限
-    if (Array.isArray(requiredPrivilege)) {
-      return requiredPrivilege.some((p) => {
-        // 特殊處理超級管理員代碼
-        if (p === '111') return privileges === '111'
-        return managerPerms.includes(p)
-      })
+    // 從整個權限層級中尋找對應的權限集
+    if (PERMISSION_GROUPS[permission]) {
+      // 檢查此權限組的每個權限
+      const subPermissions = PERMISSION_GROUPS[permission]
+      return subPermissions.some((p) => adminPermissions.includes(p))
     }
 
-    // 特殊處理超級管理員代碼
-    if (requiredPrivilege === '111') return privileges === '111'
-
-    return managerPerms.includes(requiredPrivilege)
-  } catch (error) {
-    console.error('權限檢查錯誤:', error)
     return false
-  }
+  })
 }
 
 // 從原始權限字串解析並標準化權限

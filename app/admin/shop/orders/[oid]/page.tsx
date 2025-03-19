@@ -545,11 +545,11 @@ export default function OrderDetailPage() {
                       </tfoot>
                     </Table>
                   </div>
-                  {order?.coupon_code && (
+                  {order?.promotion_code && (
                     <div className="mt-2">
                       <Badge bg="info" className="p-2">
-                        <Ticket size={14} className="me-1" /> 優惠券:{' '}
-                        {order.coupon_code}
+                        <Ticket size={14} className="me-1" /> 折扣碼:{' '}
+                        {order.promotion_code}
                       </Badge>
                     </div>
                   )}

@@ -56,7 +56,7 @@ const MOCK_DISCOUNTS = [
     used_count: 125,
     status: 'active',
     created_at: '2023-02-15',
-    coupon_required: false,
+    promotion_code_required: false,
   },
   {
     id: 'SUMMER100',
@@ -72,8 +72,8 @@ const MOCK_DISCOUNTS = [
     used_count: 78,
     status: 'active',
     created_at: '2023-05-15',
-    coupon_required: true,
-    coupon_code: 'SUMMER100',
+    promotion_code_required: true,
+    promotion_code: 'SUMMER100',
   },
   {
     id: 'FREESHIP',
@@ -89,7 +89,7 @@ const MOCK_DISCOUNTS = [
     used_count: 210,
     status: 'active',
     created_at: '2023-03-20',
-    coupon_required: false,
+    promotion_code_required: false,
   },
   {
     id: 'SPRING20',
@@ -105,7 +105,7 @@ const MOCK_DISCOUNTS = [
     used_count: 950,
     status: 'expired',
     created_at: '2023-02-20',
-    coupon_required: false,
+    promotion_code_required: false,
   },
   {
     id: 'BUNDLE3',
@@ -121,12 +121,12 @@ const MOCK_DISCOUNTS = [
     used_count: 45,
     status: 'active',
     created_at: '2023-06-25',
-    coupon_required: false,
+    promotion_code_required: false,
     target_products: '1,2,3',
   },
 ]
 
-export default function DiscountsPage() {
+export default function PromotionsPage() {
   const [discounts, setDiscounts] = useState(MOCK_DISCOUNTS)
   const [showModal, setShowModal] = useState(false)
   const [currentDiscount, setCurrentDiscount] = useState<any>(null)
@@ -227,8 +227,8 @@ export default function DiscountsPage() {
     if (modalMode === 'add') {
       // 檢查折扣活動代碼是否已存在
       if (
-        formData.coupon_required &&
-        discounts.some((c) => c.coupon_code === formData.coupon_code)
+        formData.promotion_code_required &&
+        discounts.some((c) => c.promotion_code === formData.promotion_code)
       ) {
         showToast('error', '代碼重複', '此折扣碼已存在')
         return
@@ -237,8 +237,8 @@ export default function DiscountsPage() {
       // 模擬新增折扣活動
       const newDiscount = {
         ...formData,
-        id: formData.coupon_required
-          ? formData.coupon_code
+        id: formData.promotion_code_required
+          ? formData.promotion_code
           : `DISC${new Date().getTime()}`,
         used_count: 0,
         created_at: new Date().toISOString().split('T')[0],
@@ -266,12 +266,12 @@ export default function DiscountsPage() {
   const columns = [
     { key: 'name', label: '活動名稱', sortable: true },
     {
-      key: 'coupon_required',
+      key: 'promotion_code_required',
       label: '折扣碼',
       sortable: true,
       render: (value: boolean, row: any) =>
         value ? (
-          <Badge bg="info">{row.coupon_code}</Badge>
+          <Badge bg="info">{row.promotion_code}</Badge>
         ) : (
           <Badge bg="secondary">無需折扣碼</Badge>
         ),
@@ -474,23 +474,23 @@ export default function DiscountsPage() {
       },
     },
     {
-      name: 'coupon_required',
+      name: 'promotion_code_required',
       label: '需要折扣碼',
       type: 'switch',
-      value: currentDiscount?.coupon_required || false,
+      value: currentDiscount?.promotion_code_required || false,
     },
     {
-      name: 'coupon_code',
+      name: 'promotion_code',
       label: '折扣碼',
       type: 'text',
       placeholder: '請輸入折扣碼',
-      value: currentDiscount?.coupon_code || '',
+      value: currentDiscount?.promotion_code || '',
       conditional: {
-        field: 'coupon_required',
+        field: 'promotion_code_required',
         values: [true],
       },
       required: {
-        dependsOn: 'coupon_required',
+        dependsOn: 'promotion_code_required',
         value: true,
       },
     },
@@ -588,7 +588,7 @@ export default function DiscountsPage() {
           isLoading={loading}
           showSearch
           searchPlaceholder="搜尋活動名稱或折扣碼..."
-          searchKeys={['name', 'coupon_code', 'description']}
+          searchKeys={['name', 'promotion_code', 'description']}
           sortable
           pageSize={10}
         />
