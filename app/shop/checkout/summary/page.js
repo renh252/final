@@ -1,47 +1,76 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import Link from 'next/link';
-// styles
+import React from 'react'
+import { useRouter } from 'next/navigation'
 import styles from './summary.module.css'
-import { BsPatchCheck } from "react-icons/bs";
+import { MdCheckCircle } from 'react-icons/md'
 
-// components
-import {Breadcrumbs} from '@/app/_components/breadcrumbs'
+export default function SummaryPage({ orderData }) {
+  const router = useRouter()
 
-
-
-export default function SummaryPage(props) {
   return (
-    <> 
-      <Breadcrumbs
-        title='訂單明細'
-        items={[
-          { label: '購物車', href: '/shop/cart' },
-          { label: '訂單明細', href: '/shop/checkout/summary' },
-        ]}
-        />
-        <div className={styles.main}>
-          <div>
-            <BsPatchCheck />
-            <p>訂單成立</p>
-          </div>
-          <div>
-            <Link href=''>查看訂單</Link>
-            <Link href='/shop'>繼續逛逛</Link>
-          </div>
-          <div className={styles.container}>
-            <div className={styles.containTitle}>
+    <div className={styles.container}>
+      {/* 訂單成功標誌 */}
+      <MdCheckCircle className={styles.successIcon} />
+      <h1 className={styles.title}>訂單完成</h1>
 
-            </div>
-            <div className={styles.containBody}>
+      {/* 按鈕區塊 */}
+      <div className={styles.buttonGroup}>
+        <button
+          className={styles.button}
+          onClick={() => router.push('/orders')}
+        >
+          查看訂單
+        </button>
+        <button className={styles.button} onClick={() => router.push('/shop')}>
+          繼續逛逛
+        </button>
+      </div>
 
+      {/* 收件人資訊表格 */}
+      <div className={styles.tableContainer}>
+        {orderData && (
+          <>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>收件人</th>
+                  <th>電話</th>
+                  <th>Email</th>
+                  <th>備註</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{orderData.recipientName}</td>
+                  <td>{orderData.recipientPhone}</td>
+                  <td>{orderData.recipientEmail}</td>
+                  <td>{orderData.remark || '無'}</td>
+                </tr>
+              </tbody>
+            </table>
+            {/* 訂單金額明細 */}
+            <div className={styles.summaryContainer}>
+              <div className={styles.summaryRow}>
+                <span>小計</span>
+                <span>${orderData.totalOriginalPrice}</span>
+              </div>
+              <div className={styles.summaryRow}>
+                <span>優惠</span>
+                <span>- ${orderData.totalDiscount}</span>
+              </div>
+              <div className={styles.summaryRow}>
+                <span>運費</span>
+                <span>${orderData.shippingFee}</span>
+              </div>
+              <div className={styles.summaryRow}>
+                <span>合計</span>
+                <span>${orderData.totalAmount}</span>
+              </div>
             </div>
-            <div className={styles.containFooter}>
-              
-            </div>
-          </div>
-        </div>
-    </>
+          </>
+        )}
+      </div>
+    </div>
   )
 }
