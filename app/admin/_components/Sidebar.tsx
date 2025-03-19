@@ -166,9 +166,9 @@ export default function Sidebar({ collapsed = false, onToggle }) {
             requiredPrivilege: 'shop:categories:read',
           },
           {
-            label: '優惠券管理',
-            path: '/admin/shop/coupons',
-            requiredPrivilege: 'shop:coupons:read',
+            label: '折扣活動管理',
+            path: '/admin/shop/promotions',
+            requiredPrivilege: 'shop:promotions:read',
           },
         ],
       },
@@ -409,7 +409,6 @@ export default function Sidebar({ collapsed = false, onToggle }) {
       })
     }
   }
-
 
   // 調用權限調試信息日誌
   logPermissionDebugInfo()
