@@ -1,112 +1,112 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import styles from './summary.module.css'
-import { MdCheckCircle, MdCancel } from 'react-icons/md'
+import { MdCheckCircle } from 'react-icons/md'
 
 export default function SummaryPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const orderNo = searchParams.get('order') // 從 URL 取得訂單號
-  const paymentStatus = searchParams.get('status') // 取得付款狀態
-
+  const orderId = searchParams.get('order') // 從 URL 讀取 `orderId`
   const [orderData, setOrderData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!orderNo) {
+    if (!orderId) {
+      setError('找不到訂單編號')
       setIsLoading(false)
       return
     }
 
     const fetchOrderData = async () => {
       try {
-        const response = await fetch(`/api/orders/${orderNo}`)
-        if (!response.ok) throw new Error('無法獲取訂單資訊')
-
-        const order = await response.json()
-        setOrderData(order)
-      } catch (error) {
-        console.error('❌ 獲取訂單資訊失敗:', error)
+        const response = await fetch(`/api/shop/checkout/order/${orderId}`)
+        if (!response.ok) {
+          throw new Error('無法獲取訂單資料')
+        }
+        const data = await response.json()
+        setOrderData(data)
+      } catch (err) {
+        setError(err.message)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchOrderData()
-  }, [orderNo])
+  }, [orderId])
 
-  if (isLoading) {
-    return <div className={styles.container}>載入中...</div>
-  }
+  if (isLoading) return <div>載入中...</div>
+  if (error) return <div>錯誤: {error}</div>
+  if (!orderData) return <div>找不到訂單資料</div>
 
   return (
     <div className={styles.container}>
-      {paymentStatus === 'success' ? (
-        <>
-          <MdCheckCircle className={styles.successIcon} />
-          <h1 className={styles.title}>訂單完成</h1>
-        </>
-      ) : (
-        <>
-          <MdCancel className={styles.errorIcon} />
-          <h1 className={styles.title}>付款失敗</h1>
-        </>
-      )}
+      {/* 訂單成功標誌 */}
+      <MdCheckCircle className={styles.successIcon} />
+      <h1 className={styles.title}>訂單完成</h1>
 
+      {/* 訂單資訊 */}
+      <div className={styles.orderInfo}>
+        <p>
+          <strong>訂單編號：</strong>
+          {orderData.orderId}
+        </p>
+        <p>
+          <strong>總金額：</strong>${orderData.totalAmount}
+        </p>
+        <p>
+          <strong>付款方式：</strong>
+          {orderData.paymentMethod}
+        </p>
+        <p>
+          <strong>配送方式：</strong>
+          {orderData.shippingMethod}
+        </p>
+        <p>
+          <strong>付款狀態：</strong>
+          {orderData.paymentStatus}
+        </p>
+      </div>
+
+      {/* 收件人資訊表格 */}
+      <div className={styles.tableContainer}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>收件人</th>
+              <th>電話</th>
+              <th>Email</th>
+              <th>備註</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{orderData.recipientName}</td>
+              <td>{orderData.recipientPhone}</td>
+              <td>{orderData.recipientEmail}</td>
+              <td>{orderData.remark || '無'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* 按鈕區塊 */}
       <div className={styles.buttonGroup}>
         <button
           className={styles.button}
-          onClick={() => router.push('/orders')}
+          onClick={() => (window.location.href = '/orders')}
         >
           查看訂單
         </button>
-        <button className={styles.button} onClick={() => router.push('/shop')}>
+        <button
+          className={styles.button}
+          onClick={() => (window.location.href = '/shop')}
+        >
           繼續逛逛
         </button>
       </div>
-
-      {orderData && (
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>收件人</th>
-                <th>電話</th>
-                <th>Email</th>
-                <th>備註</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{orderData.recipientName}</td>
-                <td>{orderData.recipientPhone}</td>
-                <td>{orderData.recipientEmail}</td>
-                <td>{orderData.remark || '無'}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div className={styles.summaryContainer}>
-            <div className={styles.summaryRow}>
-              <span>小計</span>
-              <span>${orderData.totalOriginalPrice}</span>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>優惠</span>
-              <span>- ${orderData.totalDiscount}</span>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>運費</span>
-              <span>${orderData.shippingFee}</span>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>合計</span>
-              <span>${orderData.totalAmount}</span>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
