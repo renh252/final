@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal, Button, Form, Spinner } from 'react-bootstrap'
 import { useTheme } from '../ThemeContext'
 
@@ -28,11 +28,13 @@ interface ModalFormProps {
   show: boolean
   onHide: () => void
   title: string
-  fields: FormField[]
-  onSubmit: (formData: Record<string, any>) => Promise<void>
+  fields?: FormField[]
+  onSubmit?: (formData: Record<string, any>) => Promise<void>
   initialData?: Record<string, any>
   submitText?: string
   size?: 'sm' | 'lg' | 'xl'
+  children?: React.ReactNode
+  footer?: React.ReactNode
 }
 
 export default function ModalForm({
@@ -44,6 +46,8 @@ export default function ModalForm({
   initialData = {},
   submitText = '儲存',
   size = 'lg',
+  children,
+  footer,
 }: ModalFormProps) {
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -55,7 +59,7 @@ export default function ModalForm({
     if (show) {
       const initialFormData: Record<string, any> = {}
 
-      fields.forEach((field) => {
+      fields?.forEach((field) => {
         if (initialData && initialData[field.name] !== undefined) {
           // 處理日期格式
           if (field.type === 'date' && initialData[field.name]) {
@@ -146,7 +150,7 @@ export default function ModalForm({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
-    fields.forEach((field) => {
+    fields?.forEach((field) => {
       // 必填檢查
       if (
         field.required &&
@@ -185,7 +189,7 @@ export default function ModalForm({
     setIsSubmitting(true)
 
     try {
-      await onSubmit(formData)
+      await onSubmit?.(formData)
       onHide()
     } catch (error) {
       console.error('表單提交錯誤:', error)
@@ -349,35 +353,55 @@ export default function ModalForm({
       <Modal.Header closeButton>
         <Modal.Title>{title}</Modal.Title>
       </Modal.Header>
-      <Form onSubmit={handleSubmit}>
-        <Modal.Body>{fields.map(renderField)}</Modal.Body>
-        <Modal.Footer>
-          <Button
-            variant={isDarkMode ? 'dark' : 'light'}
-            onClick={onHide}
-            disabled={isSubmitting}
-          >
-            取消
-          </Button>
-          <Button variant="primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
+      {onSubmit ? (
+        <Form onSubmit={handleSubmit}>
+          <Modal.Body>
+            {fields?.map(renderField)}
+            {children}
+          </Modal.Body>
+          <Modal.Footer>
+            {footer || (
               <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="me-2"
-                />
-                處理中...
+                <Button
+                  variant={isDarkMode ? 'dark' : 'light'}
+                  onClick={onHide}
+                  disabled={isSubmitting}
+                >
+                  取消
+                </Button>
+                <Button variant="primary" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                        className="me-2"
+                      />
+                      處理中...
+                    </>
+                  ) : (
+                    submitText
+                  )}
+                </Button>
               </>
-            ) : (
-              submitText
             )}
-          </Button>
-        </Modal.Footer>
-      </Form>
+          </Modal.Footer>
+        </Form>
+      ) : (
+        <>
+          <Modal.Body>{children}</Modal.Body>
+          <Modal.Footer>
+            {footer || (
+              <Button variant={isDarkMode ? 'dark' : 'light'} onClick={onHide}>
+                關閉
+              </Button>
+            )}
+          </Modal.Footer>
+        </>
+      )}
     </Modal>
   )
 }
