@@ -1,9 +1,7 @@
-// FILEPATH: /app/api/member/route.js
-
 import { NextResponse } from 'next/server';
 import { pool } from '@/app/lib/db'
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt'; // Added bcrypt import
 console.log('JWT_SECRET:', process.env.JWT_SECRET);
 export async function GET(request) {
   try {
@@ -67,10 +65,10 @@ export async function POST(request) {
     const connection = await pool.getConnection(); // 獲取資料庫連接
     // 查詢用戶
     try {
-    const [users] = await connection.execute(
-      'SELECT * FROM `pet-database0317`.`users` WHERE `user_email` = ? LIMIT 1',
-      [email]
-    );
+      const [users] = await connection.execute(
+        'SELECT * FROM `users` WHERE `user_email` = ? LIMIT 1',
+        [email]
+      );
     console.log('Query result:', users);
 
     if (users.length === 0) {
@@ -85,7 +83,7 @@ export async function POST(request) {
     // 驗證密碼
     const isPasswordValid = await bcrypt.compare(password, user.user_password);
 
-    if (!isPasswordValid) {
+    if  (!isPasswordValid) {
       return NextResponse.json(
         { success: false, message: '電子郵件或密碼錯誤' },
         { status: 401 }
@@ -112,9 +110,9 @@ export async function POST(request) {
       data: {
         token,
         user: {
-          id: user.user_id,
-          name: user.user_name,
-          email: user.user_email,
+          user_id: user.user_id,
+          user_name: user.user_name,
+          user_email: user.user_email,
         },
       },
     });
