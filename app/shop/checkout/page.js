@@ -13,24 +13,47 @@ export default function CheckoutPage() {
   const router = useRouter()
   // 表單資料
   const [checkoutData, setCheckoutData] = useCheckoutData()
+  // 新增 totalAmount 状态
+  const [productPrice, setProductPrice] = useState(0)
   // 縣市區域
   const cities = Object.keys(areaData)
   const [districts, setDistricts] = useState([])
 
   console.log(cities)
-  console.log(areaData['臺中市'])
 
   // 表單驗證錯誤信息
   const [errors, setErrors] = useState({})
+
+  // 獲取localStorage的資料
   useEffect(() => {
-    const storedAmount = localStorage.getItem('totalAmount')
-    if (storedAmount) {
-      setCheckoutData((prev) => ({
-        ...prev,
-        totalAmount: Number(storedAmount),
-      }))
+    const storedProductPrice = localStorage.getItem('productPrice')
+    if (storedProductPrice) {
+      setProductPrice(JSON.parse(storedProductPrice))
     }
   }, [])
+
+  useEffect(() => {
+    if (productPrice) {
+      let newShippingFee = 0 // 默认运费为 0
+
+      if (checkoutData.delivery === '宅配') {
+        newShippingFee = 60
+      } else if (checkoutData.delivery === '7-ELEVEN' || checkoutData.delivery === '全家') {
+        newShippingFee = 45
+      }
+
+      if (productPrice.shippingFee !== newShippingFee) {
+        const updatedProductPrice = {
+          ...productPrice,
+          shippingFee: newShippingFee,
+          totalAmount: productPrice.totalOriginalPrice - productPrice.totalDiscount + newShippingFee
+        }
+
+        setProductPrice(updatedProductPrice)
+        localStorage.setItem('productPrice', JSON.stringify(updatedProductPrice))
+      }
+    }
+  }, [checkoutData.delivery, productPrice])
 
   useEffect(() => {
     if (checkoutData.address.city) {
@@ -355,10 +378,10 @@ export default function CheckoutPage() {
             <div className={styles.containBody}>
               {checkoutData.delivery === '宅配' ? (
                 <>
-                  <label className={styles.user}>
+                  {/* <label className={styles.user}>
                     <input type="checkbox" />
                     <p>帶入用戶資料</p>
-                  </label>
+                  </label> */}
                   <div className={styles.address}>
                     <p>配送地址</p>
                     <div className={styles.select}>

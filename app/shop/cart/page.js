@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 // styles
 import styles from './cart.module.css'
 import { FaPlus, FaMinus, FaX } from 'react-icons/fa6'
@@ -18,6 +19,7 @@ const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function CartPage() {
   const { data, error } = useSWR('/api/shop/cart', fetcher)
+  const router = useRouter()
 
   // 清除購物車
   const handleClick = () => {
@@ -135,6 +137,22 @@ export default function CartPage() {
       { totalAmount: 0, totalDiscount: 0, totalOriginalPrice: 0 }
     )
   }, [data])
+
+  // 前往结帳"按钮的点击事件
+  const handleCheckout = () => {
+    const shippingFee = 0; // 假设运费为 0
+    // 将价格信息存入 localStorage
+    const productPrice = {
+      totalDiscount,
+      totalOriginalPrice,
+      shippingFee,
+      totalAmount:totalOriginalPrice-totalDiscount-shippingFee,
+    }
+    localStorage.setItem('productPrice', JSON.stringify(productPrice))
+
+    // 跳转到结账页面
+    router.push('/shop/checkout')
+  }
 
 
   if (error) return <div>獲取購物車時發生錯誤</div>
@@ -277,7 +295,7 @@ export default function CartPage() {
               </div>
               <div className={styles.item}>
                 <p>折扣</p>
-                <p>- {totalDiscount}</p>
+                <p>- {totalAmount}</p>
               </div>
               {/* <div className={styles.item}>
                 <p>運費</p>
@@ -292,9 +310,7 @@ export default function CartPage() {
             <div className={styles.detailBtn}>
               <Link
                 href={'/shop/checkout'}
-                onClick={() => {
-                  localStorage.setItem('totalAmount', totalAmount)
-                }}
+                onClick={handleCheckout}
               >
                 前往結帳
               </Link>
