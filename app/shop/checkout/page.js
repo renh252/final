@@ -77,7 +77,7 @@ export default function CheckoutPage() {
     setErrors((prev) => ({ ...prev, [name]: '' }))
 
     if (name === 'delivery') {
-      if (value === '宅配到府') {
+      if (value === '宅配') {
         setCheckoutData((prev) => ({ ...prev, storeName: '', storeId: '' }))
       }
       if (value === '7-ELEVEN') {
@@ -275,7 +275,7 @@ export default function CheckoutPage() {
       }
     }
 
-    if (checkoutData.delivery === '宅配到府') {
+    if (checkoutData.delivery === '宅配') {
       // 地址
       if (
         !checkoutData.address.city ||
@@ -323,11 +323,11 @@ export default function CheckoutPage() {
                 <input
                   type="radio"
                   name="delivery"
-                  value="宅配到府"
-                  checked={checkoutData.delivery === '宅配到府'}
+                  value="宅配"
+                  checked={checkoutData.delivery === '宅配'}
                   onChange={handleInputChange}
                 />
-                宅配到府
+                宅配
               </label>
               <label>
                 <input
@@ -353,7 +353,7 @@ export default function CheckoutPage() {
           </div>
           {checkoutData.delivery ? (
             <div className={styles.containBody}>
-              {checkoutData.delivery === '宅配到府' ? (
+              {checkoutData.delivery === '宅配' ? (
                 <>
                   <label className={styles.user}>
                     <input type="checkbox" />
