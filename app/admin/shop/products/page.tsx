@@ -77,6 +77,9 @@ export default function ProductsPage() {
     stockWarning: false,
     showDeleted: false,
   })
+  const [isImporting, setIsImporting] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+  const [importResult, setImportResult] = useState<any>(null)
 
   // 獲取 token
   const getToken = () => Cookies.get('admin_token') || ''
@@ -87,7 +90,7 @@ export default function ProductsPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetchApi('/api/admin/products')
+      const response = await fetchApi('/api/admin/shop/products')
       if (response.products && Array.isArray(response.products)) {
         setProducts(response.products)
       } else {
@@ -106,7 +109,7 @@ export default function ProductsPage() {
   // 獲取分類列表
   const fetchCategories = async () => {
     try {
-      const response = await fetchApi('/api/admin/products/categories')
+      const response = await fetchApi('/api/admin/shop/products/categories')
       if (response.categories && Array.isArray(response.categories)) {
         setCategories(response.categories)
       } else {
@@ -166,11 +169,11 @@ export default function ProductsPage() {
 
       if (!confirmResult) return
 
-      const response = await fetchApi('/api/admin/products/bulk', {
-        method: 'POST',
+      const response = await fetchApi('/api/admin/shop/products/bulk', {
+        method: 'PUT',
         body: JSON.stringify({
           action,
-          productIds: selectedIds,
+          ids: selectedIds,
         }),
       })
 
@@ -431,7 +434,7 @@ export default function ProductsPage() {
 
       if (modalMode === 'add') {
         // 新增商品
-        const response = await fetchApi('/api/admin/products', {
+        const response = await fetchApi('/api/admin/shop/products', {
           method: 'POST',
           body: JSON.stringify(processedData),
         })
@@ -459,7 +462,7 @@ export default function ProductsPage() {
       } else {
         // 更新商品
         const response = await fetchApi(
-          `/api/admin/products/${currentProduct.product_id}`,
+          `/api/admin/shop/products/${currentProduct.product_id}`,
           {
             method: 'PUT',
             body: JSON.stringify(processedData),
@@ -554,7 +557,7 @@ export default function ProductsPage() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await fetchApi('/api/admin/products/import', {
+      const response = await fetchApi('/api/admin/shop/products/import', {
         method: 'POST',
         body: formData,
       })
