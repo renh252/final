@@ -7,23 +7,13 @@ import styles from "@/app/member/MemberCenter/member.module.css";
 export default function MemberLayout({ children }) {
   return (
     <div className="member-layout">
-        <header>
-              {/* <Image 
-              src="../images\member\Frame 312.jpg" 
-              alt='會員頁面'
-              style={{ width: '1340px', height: '600px'}}
-              height={600}
-              width={1340}
-               /> */}
-        </header>
-
 
       <div className={styles.logos_grid}>
       <button
                 className="button"
                 style={{ width: '200px', height: '50px', fontSize: '28px' }}
               >
-                <Link href="/shop">我的購物車</Link>
+                <Link href="/member/orders">我的訂單</Link>
               </button>
               <button
                 className="button"
@@ -56,7 +46,7 @@ export default function MemberLayout({ children }) {
                 <Link href="/">登出</Link>
               </button>
       </div>
-      <main className="member-content">
+      <main style={{ margin: '30px auto'}} >
         {children}
       </main>
     </div>
