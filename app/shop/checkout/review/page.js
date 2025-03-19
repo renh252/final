@@ -1,19 +1,41 @@
 // FILEPATH: c:/iSpan/final/app/shop/checkout/review/page.js
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from './review.module.css'
+import Image from 'next/image'
 // 保留localStorage資料
 import { useCheckoutData } from '@/app/shop/_components/useCheckoutData'
 // components
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import { MdOutlinePets } from 'react-icons/md'
+// api
+import useSWR, { mutate } from 'swr'
+const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function ReviewPage() {
   const [checkoutData] = useCheckoutData()
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const { data, error } = useSWR('/api/shop/cart', fetcher)
+
+    // 計算總金額和總折扣
+    const { totalDiscount ,totalOriginalPrice} = useMemo(() => {
+      if (!data?.data) return { totalDiscount: 0 , totalOriginalPrice: 0};
+      return data.data.reduce((acc, item) => {
+        const originalPrice = item.price * item.quantity;
+        const discountedPrice = item.promotion 
+          ? Math.ceil(item.price * (100 - item.promotion.discount_percentage) / 100) * item.quantity
+          : originalPrice;
+  
+        acc.totalOriginalPrice += originalPrice;
+        acc.totalDiscount += originalPrice - discountedPrice;
+        
+        return acc;
+      }, {totalDiscount: 0 , totalOriginalPrice: 0});
+    }, [data]);
+  
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -68,6 +90,7 @@ export default function ReviewPage() {
 
     console.log('🔍 送出商城付款請求:', orderData)
 
+
     try {
       const response = await fetch('/api/ecpay', {
         method: 'POST',
@@ -109,6 +132,11 @@ export default function ReviewPage() {
     console.log('🔍 送出商城付款請求:', orderData)
     console.log('🔍 checkoutData:', checkoutData)
   }
+
+  if (error) return <div>獲取購物車時發生錯誤</div>
+  if (!data) return <div>載入中...</div>
+
+  const cart = data.data
 
   return (
     <form className={styles.main}>
@@ -201,9 +229,70 @@ export default function ReviewPage() {
 
             {/* products */}
             <div className={styles.productContainer}>
-              <div className={styles.containTitle}></div>
-              <div className={styles.containBody}></div>
+            <div className={styles.containTitle}>
+              <div>#</div>
+              <div>商品</div>
+              <div>款式</div>
+              <div>單價</div>
+              <div>數量</div>
+              <div>價格</div>
             </div>
+            <div className={styles.containBody}>
+                {cart?.map((product, index) => {return (
+                  <React.Fragment key={index}>
+                    <div>
+                      <div>{index + 1}</div>
+                      <div className={styles.image}>
+                        <Image   
+                          src={product.image_url || '/images/default_no_pet.jpg'} 
+                          alt={product.product_name}   
+                          width={100}   
+                          height={100}   
+                        />
+                      </div>
+                      {product.product_name}
+                      <div>{product.variant_name}</div>
+                      <div>
+                        {product?.promotion
+                          ? <p>${Math.ceil(product.price * (100-product.promotion.discount_percentage)/100)}</p>
+                          : <p className={styles.h2}>${product.price}</p>
+                        }
+                      </div>
+                      <div>{product.quantity}</div>
+                      <div>
+                        {product?.promotion
+                          ? <p>${Math.ceil(product.price * (100-product.promotion.discount_percentage)/100)*product.quantity}</p>
+                          : <p>${product.price*product.quantity}</p>
+                        }
+                      </div>
+                    </div>
+                    {index < cart.length - 1 && <hr />} {/* 添加水平线，但不包括最后一个产品后 */}
+                  </React.Fragment>
+                )})}
+            </div>
+            <div className={styles.containFooter}>
+                <div>
+                  <p>小計 :</p>
+                  <p>$ {totalOriginalPrice}</p>
+                </div>
+                <div>
+                  <p>優惠 :</p>
+                  <p>- $ {totalDiscount}</p>
+                </div>
+                <div>
+                  <p>運費 :</p>
+                  <p>- $ {checkoutData?.delivery
+                  ? 60
+                  : 0}</p>
+                </div>
+                <div>
+                  <p>合計 :</p>
+                  <p>$ {checkoutData?.delivery !== '宅配'
+                  ? totalOriginalPrice - totalDiscount-60
+                  : totalOriginalPrice - totalDiscount}</p>
+                </div>
+            </div>
+          </div>
 
             {/* buttons */}
             <div className={styles.buttons}>
