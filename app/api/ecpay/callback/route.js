@@ -17,7 +17,7 @@ export async function POST(req) {
       )
     }
     // **檢查交易是否成功**
-    const isSuccess = params.RtnCode === '1' || params.RtnCode === 1
+    const isSuccess = params.RtnCode === '1'
     const orderType = params.CustomField1 // 🔹 讀取交易類型
     let redirectUrl
 
