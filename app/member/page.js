@@ -4,18 +4,18 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import styles from "./member.module.css";
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/context/AuthContext';
+import { useAuth } from '@/app/context/AuthContext'; // 引入 useAuth
+import { useRouter } from 'next/navigation';// 導向到登入頁面
 
 export default function MemberPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!user) {
       router.push('/member/MemberLogin/login');
     }
-  }, [user, loading, router]);
+  }, [user, router]);
 
   const handleNicknameChange = async (event) => {
     const newNickname = event.target.value;
