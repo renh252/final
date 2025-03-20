@@ -1,0 +1,54 @@
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #fefaf5;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.header {
+  font-size: 24px;
+  color: #6b4f37;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.detailBox {
+  background: #fff6e6;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.detailBox p {
+  font-size: 18px;
+  color: #6b4f37;
+  margin-bottom: 10px;
+}
+
+.success {
+  color: green;
+  font-weight: bold;
+}
+
+.pending {
+  color: orange;
+  font-weight: bold;
+}
+
+.backButton {
+  background: #cda274;
+  color: white;
+  font-size: 18px;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.backButton:hover {
+  background: #b38560;
+}
