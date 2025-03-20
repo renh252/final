@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Button } from 'react-bootstrap';
 import CreatePostModal from './components/CreatePostModal';
 import PostList from './components/PostList';
@@ -13,14 +13,54 @@ export default function ForumPage() {
   const [sortBy, setSortBy] = useState<'latest' | 'hot'>('latest');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [error, setError] = useState(null);
 
-  const { categories, posts, pagination, loading, error, refetch } = useForumData({
+  const { categories, posts, pagination, loading, refetch } = useForumData({
     category: selectedCategory,
     sort: sortBy,
     search: searchTerm,
     page: currentPage,
     limit: 10
   });
+
+  useEffect(() => {
+    const fetchForumData = async () => {
+      try {
+        const response = await fetch('/api/forum/data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: selectedCategory,
+            sort: sortBy,
+            search: searchTerm,
+            page: currentPage,
+            limit: 10
+          })
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || '論壇資料載入失敗');
+        }
+        const data = await response.json();
+        // Update state with fetched data
+      } catch (err) {
+        console.error('Error fetching forum data:', err);
+        setError(err.message);
+      }
+    };
+
+    fetchForumData();
+  }, [selectedCategory, sortBy, searchTerm, currentPage]);
+
+  if (error) {
+    return (
+      <Container className="py-4">
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container className="py-4">
@@ -40,12 +80,6 @@ export default function ForumPage() {
         onSortChange={setSortBy}
         onSearchChange={setSearchTerm}
       />
-
-      {error && (
-        <div className="alert alert-danger" role="alert">
-          {error}
-        </div>
-      )}
 
       {loading ? (
         <div className="text-center py-4">

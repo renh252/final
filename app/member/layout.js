@@ -2,7 +2,7 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import styles from "@/app/member/MemberCenter/member.module.css";
+import styles from "@/app/member/member.module.css";
 
 export default function MemberLayout({ children }) {
   return (
