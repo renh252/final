@@ -97,7 +97,7 @@ export async function POST(req) {
         amount,
         '待出貨', // 初始狀態
         '信用卡',
-        '未付款', // 尚未付款
+        '已付款', // 尚未付款，先將已付款寫死
         invoiceMethod,
         invoice,
         mobileBarcode,
