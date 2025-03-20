@@ -7,10 +7,17 @@
   overflow: hidden;
 
   .title{
-    background-color: rgba(89, 62, 47, 1);  
+    background-color: #c2bc9b;  
     color: #fff;
-    font-size: 36px;
+    font-size: 24px;
     padding: 10px 20px;
+
+    >div{
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
   }
   .body{
     max-height: 500px;
@@ -21,5 +28,6 @@
     flex-direction: column;
     gap: 20px; */
   }
+
   
 }
