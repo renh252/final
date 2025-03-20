@@ -340,8 +340,8 @@ export default function CheckoutPage() {
           { label: '填寫資料', href: '/shop/checkout' },
         ]}
       />
-      <div className={styles.row}>
         <form className={styles.main} onSubmit={handleSubmit}>
+        <div className={styles.row}>
           <div className={styles.container}>
             <div className={styles.containTitle}>
               <p>配送方式</p>
@@ -608,21 +608,7 @@ export default function CheckoutPage() {
               <div className={styles.containBody}>請先選擇配送方式</div>
             )}
           </div>
-
-          {checkoutData.delivery ? (
-            <div className={styles.btns}>
-              <button type="button" onClick={handleCancelPurchase}>
-                返回購物車
-              </button>
-              <button type="submit">下一步</button>
-            </div>
-          ) : (
-            <button type="button" onClick={handleCancelPurchase}>
-              返回購物車
-            </button>
-          )}
-        </form>
-        <div className={styles.detail}>
+          <div className={styles.detail}>
             <div className={styles.detailTitle}>
               <p>訂單明細</p>
             </div>
@@ -649,7 +635,24 @@ export default function CheckoutPage() {
               </div>
             </div>
           </div>
-      </div>
+
+        </div>
+
+          {checkoutData.delivery ? (
+            <div className={styles.btns}>
+              <button type="button" onClick={handleCancelPurchase}>
+                返回購物車
+              </button>
+              <button type="submit">下一步</button>
+            </div>
+          ) : (
+            <button type="button" onClick={handleCancelPurchase}>
+              返回購物車
+            </button>
+          )}
+        </form>
+        
+      
     </>
   )
 }
