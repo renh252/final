@@ -1,6 +1,13 @@
 'use client'
 
-import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react'
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useTransition,
+} from 'react'
 import styles from './pets.module.css'
 import Card from '@/app/_components/ui/Card'
 import Link from 'next/link'
@@ -317,6 +324,15 @@ export default function PetsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10 // 每頁顯示的寵物數量改為10筆
 
+  // 使用 useTransition 處理非緊急更新
+  const [isPending, startTransition] = useTransition()
+
+  // 保存滾動位置
+  const scrollPositionRef = useRef(0)
+
+  // 保存上一次的數據，避免重新渲染時的閃爍
+  const [previousPetsData, setPreviousPetsData] = useState(null)
+
   // 優化API調用: 合併基礎資料請求
   const { data: metaData } = useSWR('/api/pets?type=meta', fetcher)
 
@@ -388,22 +404,302 @@ export default function PetsPage() {
     }
   }, [petsData])
 
-  // 處理篩選結果的寵物
+  // 自定義防抖函數 - 不使用套件
+  const useDebounce = (fn, delay) => {
+    const timerRef = useRef(null)
+
+    return useCallback(
+      (...args) => {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current)
+        }
+
+        timerRef.current = setTimeout(() => {
+          fn(...args)
+        }, delay)
+      },
+      [fn, delay]
+    )
+  }
+
+  // 為 mutatePets 創建一個防抖版本
+  const debouncedMutatePets = useDebounce(() => {
+    mutatePets()
+  }, 300)
+
+  // 記錄當前滾動位置的事件監聽器
+  useEffect(() => {
+    const handleScroll = () => {
+      scrollPositionRef.current = window.scrollY
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
+  // 處理篩選更新的統一函數
+  const handleFilterUpdate = useCallback(
+    (updateFn) => {
+      // 保存當前滾動位置
+      const currentScrollPosition = window.scrollY
+
+      // 保存當前數據以避免閃爍
+      if (petsData) {
+        setPreviousPetsData(petsData)
+      }
+
+      // 使用 startTransition 將更新標記為非緊急
+      startTransition(() => {
+        // 執行實際的狀態更新
+        updateFn()
+
+        // 延遲恢復滾動位置
+        requestAnimationFrame(() => {
+          window.scrollTo({
+            top: currentScrollPosition,
+            behavior: 'auto',
+          })
+        })
+      })
+    },
+    [petsData]
+  )
+
+  // 在數據更新後更新 previousPetsData
+  useEffect(() => {
+    if (petsData && !isPending) {
+      setPreviousPetsData(petsData)
+    }
+  }, [petsData, isPending])
+
+  // 修改為使用 previousPetsData 優先於 petsData
+  const displayPetsData = useMemo(() => {
+    // 如果正在更新且有之前的數據，使用之前的數據
+    if (isPending && previousPetsData) {
+      return previousPetsData
+    }
+    // 否則使用當前數據
+    return petsData
+  }, [isPending, previousPetsData, petsData])
+
+  // 修改處理篩選結果的寵物
   const filteredPets = useMemo(() => {
-    if (!petsData?.pets || !Array.isArray(petsData.pets)) return []
+    if (!displayPetsData?.pets || !Array.isArray(displayPetsData.pets))
+      return []
 
     // 如果顯示收藏，需要額外篩選
     if (showFavorites) {
-      return petsData.pets.filter((pet) => pet.isFavorite)
+      return displayPetsData.pets.filter((pet) => pet.isFavorite)
     }
 
-    return petsData.pets
-  }, [petsData, showFavorites])
+    return displayPetsData.pets
+  }, [displayPetsData, showFavorites])
 
-  // 使用伺服器返回的分頁資訊
+  // 修改使用伺服器返回的分頁資訊 - 基於 displayPetsData
   const totalPages = useMemo(() => {
-    return petsData?.pagination?.totalPages || 1
-  }, [petsData])
+    return displayPetsData?.pagination?.totalPages || 1
+  }, [displayPetsData])
+
+  // 修改物種篩選函數
+  const handleSpeciesChange = useCallback(
+    (e) => {
+      const newSpecies = e.target.value
+
+      handleFilterUpdate(() => {
+        setSelectedSpecies(newSpecies)
+        setSelectedBreed('') // 重置品種選擇
+        setCurrentPage(1) // 重置頁碼
+        debouncedMutatePets()
+      })
+    },
+    [
+      handleFilterUpdate,
+      setSelectedSpecies,
+      setSelectedBreed,
+      setCurrentPage,
+      debouncedMutatePets,
+    ]
+  )
+
+  // 修改品種篩選函數
+  const handleBreedChange = useCallback(
+    (value) => {
+      handleFilterUpdate(() => {
+        setSelectedBreed(value)
+        setCurrentPage(1) // 重置頁碼
+        debouncedMutatePets()
+      })
+    },
+    [handleFilterUpdate, setSelectedBreed, setCurrentPage, debouncedMutatePets]
+  )
+
+  // 修改收藏顯示切換
+  const handleFavoritesToggle = useCallback(
+    (e) => {
+      const checked = e.target.checked
+
+      handleFilterUpdate(() => {
+        setShowFavorites(checked)
+        setCurrentPage(1) // 重置頁碼
+        debouncedMutatePets()
+      })
+    },
+    [handleFilterUpdate, setShowFavorites, setCurrentPage, debouncedMutatePets]
+  )
+
+  // 修改地區選擇函數
+  const handleRegionChange = useCallback(
+    (e) => {
+      const region = e.target.value
+
+      handleFilterUpdate(() => {
+        setSelectedRegion(region)
+        setSelectedStore('') // 清除商店選擇
+        setCurrentPage(1) // 重置頁碼
+
+        if (region && locationData[region]) {
+          const { lat, lng, zoom } = locationData[region]
+          setMapCenter([lat, lng])
+          setMapZoom(zoom)
+          // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
+          setMapMarkers([
+            { lat, lng, name: region, isRegion: true, id: Date.now() },
+          ])
+          // 清除手動選擇的位置
+          setSelectedLocation(null)
+        } else {
+          // 如果選擇了「請選擇地區」，清除標記
+          setMapMarkers([])
+        }
+
+        debouncedMutatePets()
+      })
+    },
+    [
+      handleFilterUpdate,
+      setSelectedRegion,
+      setSelectedStore,
+      setCurrentPage,
+      setMapCenter,
+      setMapZoom,
+      setMapMarkers,
+      setSelectedLocation,
+      debouncedMutatePets,
+    ]
+  )
+
+  // 修改商店選擇函數
+  const handleStoreChange = useCallback(
+    (e) => {
+      const storeId = e.target.value
+
+      handleFilterUpdate(() => {
+        setSelectedStore(storeId)
+        setSelectedRegion('')
+        setCurrentPage(1) // 重置頁碼
+
+        if (storeId && storesData?.stores) {
+          const store = storesData.stores.find(
+            (store) => store.id.toString() === storeId
+          )
+
+          if (store && store.lat && store.lng) {
+            setMapCenter([parseFloat(store.lat), parseFloat(store.lng)])
+            setMapZoom(15)
+            setMapMarkers([
+              {
+                lat: parseFloat(store.lat),
+                lng: parseFloat(store.lng),
+                name: store.name,
+                description: `${store.address} (${store.phone})`,
+                isStore: true,
+                id: Date.now(),
+              },
+            ])
+            setSelectedLocation(null)
+          } else {
+            // 如果商店沒有有效的坐標，使用預設值
+            setMapCenter([25.033, 121.5654])
+            setMapZoom(13)
+            setMapMarkers([])
+          }
+        } else {
+          // 重置地圖狀態
+          setMapMarkers([])
+          setMapCenter([25.033, 121.5654])
+          setMapZoom(13)
+        }
+
+        debouncedMutatePets()
+      })
+    },
+    [
+      handleFilterUpdate,
+      storesData,
+      setSelectedStore,
+      setSelectedRegion,
+      setCurrentPage,
+      setMapCenter,
+      setMapZoom,
+      setMapMarkers,
+      setSelectedLocation,
+      debouncedMutatePets,
+    ]
+  )
+
+  // 修改清除所有篩選條件的函數
+  const clearAllFilters = useCallback(() => {
+    handleFilterUpdate(() => {
+      setSelectedSpecies('')
+      setSelectedBreed('')
+      setSelectedRegion('')
+      setSelectedStore('')
+      setShowFavorites(false)
+      setCurrentPage(1) // 重置回第一頁
+      debouncedMutatePets()
+    })
+  }, [
+    handleFilterUpdate,
+    setSelectedSpecies,
+    setSelectedBreed,
+    setSelectedRegion,
+    setSelectedStore,
+    setShowFavorites,
+    setCurrentPage,
+    debouncedMutatePets,
+  ])
+
+  // 延遲 URL 更新
+  const debouncedUpdateUrl = useDebounce(() => {
+    const params = new URLSearchParams()
+    if (selectedSpecies) params.set('species', selectedSpecies)
+    if (selectedBreed) params.set('breed', selectedBreed)
+    if (selectedRegion) params.set('region', selectedRegion)
+    if (selectedStore) params.set('store', selectedStore)
+    if (showFavorites) params.set('favorites', 'true')
+    if (currentPage > 1) params.set('page', currentPage.toString())
+
+    window.history.replaceState(
+      {},
+      '',
+      `${window.location.pathname}?${params.toString()}`
+    )
+  }, 500)
+
+  // 修改 URL 更新效果
+  useEffect(() => {
+    debouncedUpdateUrl()
+  }, [
+    selectedSpecies,
+    selectedBreed,
+    selectedRegion,
+    selectedStore,
+    showFavorites,
+    currentPage,
+    debouncedUpdateUrl,
+  ])
 
   // 使用useCallback記憶化函數
   // 尋找附近商店
@@ -441,6 +737,9 @@ export default function PetsPage() {
 
   // 獲取用戶位置
   const getUserLocation = useCallback(() => {
+    // 保存當前滾動位置
+    const currentScrollPosition = window.scrollY
+
     // 重置錯誤狀態
     setLocationError(null)
     setNearbyStores([]) // 重置附近商店
@@ -491,6 +790,14 @@ export default function PetsPage() {
           setMapZoom(15)
           setMapMarkers(markersArray)
           setIsGettingLocation(false)
+
+          // 恢復滾動位置
+          requestAnimationFrame(() => {
+            window.scrollTo({
+              top: currentScrollPosition,
+              behavior: 'auto',
+            })
+          })
         }, 200)
       },
       (error) => {
@@ -558,7 +865,7 @@ export default function PetsPage() {
             [petId]: newFavoriteStatus,
           }))
           // 重新獲取寵物列表以更新收藏狀態
-          mutatePets()
+          debouncedMutatePets()
         } else {
           console.error('收藏操作失敗')
         }
@@ -566,101 +873,14 @@ export default function PetsPage() {
         console.error('收藏操作錯誤:', error)
       }
     },
-    [favorites, mutatePets]
-  )
-
-  // 處理地區選擇
-  const handleRegionChange = useCallback(
-    (e) => {
-      const region = e.target.value
-      setSelectedRegion(region)
-      // 清除商店選擇
-      setSelectedStore('')
-      // 重新刷新寵物資料以應用篩選
-      mutatePets()
-
-      if (region && locationData[region]) {
-        const { lat, lng, zoom } = locationData[region]
-        setMapCenter([lat, lng])
-        setMapZoom(zoom)
-        // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
-        setMapMarkers([
-          { lat, lng, name: region, isRegion: true, id: Date.now() },
-        ])
-        // 清除手動選擇的位置
-        setSelectedLocation(null)
-      } else {
-        // 如果選擇了「請選擇地區」，清除標記
-        setMapMarkers([])
-      }
-    },
-    [
-      mutatePets,
-      setSelectedRegion,
-      setSelectedStore,
-      setMapCenter,
-      setMapZoom,
-      setMapMarkers,
-      setSelectedLocation,
-    ]
-  )
-
-  // 處理商店選擇
-  const handleStoreChange = useCallback(
-    (e) => {
-      const storeId = e.target.value
-      setSelectedStore(storeId)
-      setSelectedRegion('')
-      // 重新刷新寵物資料以應用篩選
-      mutatePets()
-
-      if (storeId && storesData?.stores) {
-        const store = storesData.stores.find(
-          (store) => store.id.toString() === storeId
-        )
-
-        if (store && store.lat && store.lng) {
-          setMapCenter([parseFloat(store.lat), parseFloat(store.lng)])
-          setMapZoom(15)
-          setMapMarkers([
-            {
-              lat: parseFloat(store.lat),
-              lng: parseFloat(store.lng),
-              name: store.name,
-              description: `${store.address} (${store.phone})`,
-              isStore: true,
-              id: Date.now(),
-            },
-          ])
-          setSelectedLocation(null)
-        } else {
-          // 如果商店沒有有效的坐標，使用預設值
-          setMapCenter([25.033, 121.5654])
-          setMapZoom(13)
-          setMapMarkers([])
-        }
-      } else {
-        // 重置地圖狀態
-        setMapMarkers([])
-        setMapCenter([25.033, 121.5654])
-        setMapZoom(13)
-      }
-    },
-    [
-      storesData,
-      mutatePets,
-      setSelectedStore,
-      setSelectedRegion,
-      setMapCenter,
-      setMapZoom,
-      setMapMarkers,
-      setSelectedLocation,
-    ]
+    [favorites, debouncedMutatePets]
   )
 
   // 修改視圖切換邏輯
   const handleViewModeChange = useCallback(() => {
     const newViewMode = viewMode === 'map' ? 'list' : 'map'
+    // 保存當前滾動位置
+    const currentScrollPosition = window.scrollY
 
     // 確保切換回列表視圖時重置地圖狀態
     if (newViewMode === 'list') {
@@ -709,6 +929,14 @@ export default function PetsPage() {
             },
           ])
         }
+
+        // 恢復滾動位置
+        requestAnimationFrame(() => {
+          window.scrollTo({
+            top: currentScrollPosition,
+            behavior: 'auto',
+          })
+        })
       }, 100)
     }
 
@@ -743,40 +971,23 @@ export default function PetsPage() {
   // 頁面變更
   const handlePageChange = useCallback(
     (pageNumber) => {
+      // 防止重複操作
+      if (pageNumber === currentPage) return
+
       setCurrentPage(pageNumber)
-      // 滾動到頂部
+      // 滾動到頂部 - 頁面變更時需要滾動
       window.scrollTo({
         top: document.querySelector(`.${styles.contain_title}`).offsetTop - 100,
         behavior: 'smooth',
       })
     },
-    [setCurrentPage]
+    [currentPage, setCurrentPage]
   )
-
-  // 清除所有篩選條件
-  const clearAllFilters = useCallback(() => {
-    setSelectedSpecies('')
-    setSelectedBreed('')
-    setSelectedRegion('')
-    setSelectedStore('')
-    setShowFavorites(false)
-    setCurrentPage(1) // 重置回第一頁
-    // 重新刷新寵物資料
-    mutatePets()
-  }, [
-    mutatePets,
-    setSelectedSpecies,
-    setSelectedBreed,
-    setSelectedRegion,
-    setSelectedStore,
-    setShowFavorites,
-    setCurrentPage,
-  ])
 
   // 在結果區塊加入篩選結果統計
   const ResultsHeader = () => (
     <div className={styles.resultsHeader}>
-      <h2>寵物搜尋結果 ({petsData?.pagination?.total || 0})</h2>
+      <h2>寵物搜尋結果 ({displayPetsData?.pagination?.total || 0})</h2>
       <div className={styles.activeFilters}>
         {selectedSpecies && (
           <span className={styles.filterTag}>
@@ -813,35 +1024,16 @@ export default function PetsPage() {
     // 初始不設置任何標記，只在用戶選擇時才顯示
   }, [])
 
-  // 更新 URL 查詢參數
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (selectedSpecies) params.set('species', selectedSpecies)
-    if (selectedBreed) params.set('breed', selectedBreed)
-    if (selectedRegion) params.set('region', selectedRegion)
-    if (selectedStore) params.set('store', selectedStore)
-    if (showFavorites) params.set('favorites', 'true')
-    if (currentPage > 1) params.set('page', currentPage.toString())
-
-    window.history.replaceState(
-      {},
-      '',
-      `${window.location.pathname}?${params.toString()}`
-    )
-  }, [
-    selectedSpecies,
-    selectedBreed,
-    selectedRegion,
-    selectedStore,
-    showFavorites,
-    currentPage,
-  ])
-
-  if (!petsData) return <div>載入中...</div>
-  if (petsError) return <div>發生錯誤</div>
+  // 使用 displayPetsData 替代 petsData 在條件渲染
+  if (!displayPetsData && !previousPetsData) return <div>載入中...</div>
+  if (petsError && !displayPetsData && !previousPetsData)
+    return <div>發生錯誤</div>
 
   return (
     <div className={styles.petsContainer}>
+      {/* 添加加載指示器 */}
+      {isPending && <div className={styles.updatingIndicator}>正在更新...</div>}
+
       <Breadcrumbs
         title="寵物領養"
         items={[
@@ -901,7 +1093,7 @@ export default function PetsPage() {
                       label="已收藏"
                       className="mb-0"
                       checked={showFavorites}
-                      onChange={(e) => setShowFavorites(e.target.checked)}
+                      onChange={handleFavoritesToggle}
                     />
                     <div className={styles.viewModeSwitchWrapper}>
                       <Form.Check
@@ -919,7 +1111,7 @@ export default function PetsPage() {
                     <Form.Label>物種</Form.Label>
                     <Form.Select
                       value={selectedSpecies}
-                      onChange={(e) => setSelectedSpecies(e.target.value)}
+                      onChange={handleSpeciesChange}
                     >
                       <option value="">請選擇物種</option>
                       {speciesData?.map((species) => (
@@ -932,11 +1124,11 @@ export default function PetsPage() {
 
                   <Form.Group className="mb-3">
                     <Form.Label>品種</Form.Label>
-                    {/* 使用自定義的可搜尋下拉選單 */}
+                    {/* 使用自定義的可搜尋下拉選單，更新 onChange 處理函數 */}
                     <SearchableSelect
                       options={varietiesData || []}
                       value={selectedBreed}
-                      onChange={setSelectedBreed}
+                      onChange={handleBreedChange}
                       placeholder="請選擇品種"
                       disabled={!varietiesData || varietiesData.length === 0}
                     />
@@ -1010,9 +1202,19 @@ export default function PetsPage() {
                           max={100}
                           step={1}
                           value={searchRadius}
-                          onChange={(e) =>
-                            setSearchRadius(parseInt(e.target.value))
-                          }
+                          onChange={(e) => {
+                            const newRadius = parseInt(e.target.value)
+                            handleFilterUpdate(() => {
+                              setSearchRadius(newRadius)
+                              if (selectedLocation) {
+                                const nearby = findNearbyStores(
+                                  selectedLocation.lat,
+                                  selectedLocation.lng
+                                )
+                                setNearbyStores(nearby)
+                              }
+                            })
+                          }}
                         />
                       </div>
                     )}
@@ -1032,9 +1234,12 @@ export default function PetsPage() {
                         variant="outline-secondary"
                         size="sm"
                         onClick={() => {
-                          setSelectedLocation(null)
-                          setSelectedStoreLocation(null)
-                          setMapMarkers([])
+                          handleFilterUpdate(() => {
+                            setSelectedLocation(null)
+                            setSelectedStoreLocation(null)
+                            setMapMarkers([])
+                            setNearbyStores([])
+                          })
                         }}
                       >
                         清除位置
@@ -1205,15 +1410,15 @@ export default function PetsPage() {
               </div>
 
               {/* 分頁控制 */}
-              {petsData.pagination &&
-                petsData.pagination.total > itemsPerPage && (
+              {displayPetsData?.pagination &&
+                displayPetsData.pagination.total > itemsPerPage && (
                   <div className={styles.pagination}>
                     <div className={styles.paginationInfo}>
-                      顯示 {petsData.pagination.total} 個結果中的
+                      顯示 {displayPetsData.pagination.total} 個結果中的
                       {(currentPage - 1) * itemsPerPage + 1} -
                       {Math.min(
                         currentPage * itemsPerPage,
-                        petsData.pagination.total
+                        displayPetsData.pagination.total
                       )}{' '}
                       項
                     </div>
