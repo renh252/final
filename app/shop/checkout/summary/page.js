@@ -65,7 +65,7 @@ export default function SummaryPage() {
         <div className={styles.buttonGroup}>
           <button
             className={styles.button}
-            onClick={() => (window.location.href = '/orders')}
+            onClick={() => (window.location.href = '/member/orders')}
           >
             查看訂單
           </button>
