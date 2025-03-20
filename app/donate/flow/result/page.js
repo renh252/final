@@ -12,7 +12,7 @@ export default function ResultPage(props) {
 
   useEffect(() => {
     if (countdown === 0) {
-      router.push('/') // 倒數結束後跳轉首頁
+      router.push('/member/donations') // 倒數結束後跳轉捐款紀錄頁
       return
     }
 
@@ -39,9 +39,9 @@ export default function ResultPage(props) {
           <div>
             <h1>捐款成功</h1>
             <p>
-              將於<span style={{ color: 'red' }}>{countdown}</span>秒後跳回
-              <Link href="/" style={{ color: 'blue' }}>
-                首頁
+              將於<span style={{ color: 'red' }}>{countdown}</span>秒後跳至
+              <Link href="/member/donations" style={{ color: 'blue' }}>
+                捐款紀錄頁面
               </Link>
             </p>
           </div>
