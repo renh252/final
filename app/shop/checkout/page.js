@@ -15,6 +15,7 @@ export default function CheckoutPage() {
   const [checkoutData, setCheckoutData] = useCheckoutData()
   // 新增 totalAmount 状态
   const [productPrice, setProductPrice] = useState(0)
+  
   // 縣市區域
   const cities = Object.keys(areaData)
   const [districts, setDistricts] = useState([])
@@ -31,6 +32,7 @@ export default function CheckoutPage() {
       setProductPrice(JSON.parse(storedProductPrice))
     }
   }, [])
+  
 
   useEffect(() => {
     if (productPrice) {
@@ -328,6 +330,7 @@ export default function CheckoutPage() {
     router.push('/shop/cart')
   }
 
+
   return (
     <>
       <Breadcrumbs
@@ -337,287 +340,319 @@ export default function CheckoutPage() {
           { label: '填寫資料', href: '/shop/checkout' },
         ]}
       />
-      <form className={styles.main} onSubmit={handleSubmit}>
-        <div className={styles.container}>
-          <div className={styles.containTitle}>
-            <p>配送方式</p>
-            <div className={styles.delivery}>
-              <label>
-                <input
-                  type="radio"
-                  name="delivery"
-                  value="宅配"
-                  checked={checkoutData.delivery === '宅配'}
-                  onChange={handleInputChange}
-                />
-                宅配
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="delivery"
-                  value="7-ELEVEN"
-                  checked={checkoutData.delivery === '7-ELEVEN'}
-                  onChange={handleInputChange}
-                />
-                7-ELEVEN
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="delivery"
-                  value="全家"
-                  checked={checkoutData.delivery === '全家'}
-                  onChange={handleInputChange}
-                />
-                全家
-              </label>
+        <form className={styles.main} onSubmit={handleSubmit}>
+        <div className={styles.row}>
+          <div className={styles.container}>
+            <div className={styles.containTitle}>
+              <p>配送方式</p>
+              <div className={styles.delivery}>
+                <label>
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="宅配"
+                    checked={checkoutData.delivery === '宅配'}
+                    onChange={handleInputChange}
+                  />
+                  宅配
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="7-ELEVEN"
+                    checked={checkoutData.delivery === '7-ELEVEN'}
+                    onChange={handleInputChange}
+                  />
+                  7-ELEVEN
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="全家"
+                    checked={checkoutData.delivery === '全家'}
+                    onChange={handleInputChange}
+                  />
+                  全家
+                </label>
+              </div>
+            </div>
+            {checkoutData.delivery ? (
+              <div className={styles.containBody}>
+                {checkoutData.delivery === '宅配' ? (
+                  <>
+                    {/* <label className={styles.user}>
+                      <input type="checkbox" />
+                      <p>帶入用戶資料</p>
+                    </label> */}
+                    <div className={styles.address}>
+                      <p>配送地址</p>
+                      <div className={styles.select}>
+                        <select
+                          id="city"
+                          name="city"
+                          value={checkoutData.address.city}
+                          onChange={handleInputChange}
+                        >
+                          <option value="">縣市</option>
+                          {cities.map((city) => (
+                            <option key={city} value={city}>
+                              {city}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          id="town"
+                          name="town"
+                          value={checkoutData.address.town}
+                          onChange={handleInputChange}
+                          disabled={!checkoutData.address.city}
+                        >
+                          <option value="">區域</option>
+                          {districts.map((district) => (
+                            <option key={district} value={district}>
+                              {district}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          name="address"
+                          type="text"
+                          value={checkoutData.address.else}
+                          onChange={handleInputChange}
+                          placeholder="詳細地址"
+                        />
+                        <span className={styles.warn}>{errors.address}</span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <button type="button" onClick={() => {}}>
+                      選擇門市
+                    </button>
+                    <label>
+                      門市名稱：
+                      <input
+                        type="text"
+                        value={checkoutData.CVSStoreName}
+                        readOnly
+                      />
+                    </label>
+                    <label>
+                      門市代號：
+                      <input
+                        type="text"
+                        value={checkoutData.CVSStoreID}
+                        readOnly
+                      />
+                    </label>
+                  </>
+                )}
+
+                <label>
+                  <p>收件人 :</p>
+                  <input
+                    name="recipient_name"
+                    type="text"
+                    value={checkoutData.recipient_name}
+                    onChange={handleInputChange}
+                  />
+                  <span className={styles.warn}>{errors.recipient_name}</span>
+                </label>
+                <label>
+                  <p>電話 :</p>
+                  <input
+                    name="recipient_phone"
+                    type="text"
+                    placeholder="09xxxxxxxx"
+                    value={checkoutData.recipient_phone}
+                    onChange={handleInputChange}
+                  />
+                  <span className={styles.warn}>{errors.recipient_phone}</span>
+                </label>
+                <label>
+                  <p>電子信箱 :</p>
+                  <input
+                    name="recipient_email"
+                    type="text"
+                    value={checkoutData.recipient_email}
+                    onChange={handleInputChange}
+                  />
+                  <span className={styles.warn}>{errors.recipient_email}</span>
+                </label>
+                <label>
+                  <p>備註 :</p>
+                  <input
+                    name="remark"
+                    type="text"
+                    value={checkoutData.remark}
+                    onChange={handleInputChange}
+                  />
+                </label>
+                <div>
+                  <p>付款方式 :</p>
+
+                  <div className={styles.paymentMethod}>
+                    <label>
+                      <input
+                        name="payment_method"
+                        type="radio"
+                        value="信用卡"
+                        checked={checkoutData.payment_method === '信用卡'}
+                        onChange={handleInputChange}
+                      />
+                      信用卡
+                    </label>
+                    <label>
+                      <input
+                        name="payment_method"
+                        type="radio"
+                        value="linePay"
+                        checked={checkoutData.payment_method === 'linePay'}
+                        onChange={handleInputChange}
+                      />
+                      line pay
+                    </label>
+                  </div>
+                  <span className={styles.warn}>{errors.payment_method}</span>
+                </div>
+                <div className={styles.invoiceMethod}>
+                  <div className={styles.invoiceTitle}>
+                    <p>發票 :</p>
+                    <span className={styles.warn}>{errors.invoice_method}</span>
+                  </div>
+                  <div className={styles.invoiceBody}>
+                    <label>
+                      <input
+                        name="invoice_method"
+                        type="radio"
+                        value="紙本"
+                        checked={checkoutData.invoice_method === '紙本'}
+                        onChange={handleInputChange}
+                      />
+                      紙本
+                    </label>
+                    <div>
+                      <label>
+                        <input
+                          name="invoice_method"
+                          type="radio"
+                          value="手機載具"
+                          checked={checkoutData.invoice_method === '手機載具'}
+                          onChange={handleInputChange}
+                        />
+                        手機載具
+                      </label>
+                      {checkoutData.invoice_method === '手機載具' && (
+                        <div>
+                          <label>
+                            :
+                            <input
+                              type="text"
+                              name="mobile_barcode"
+                              value={checkoutData.mobile_barcode}
+                              onChange={handleInputChange}
+                            />
+                          </label>
+                          <span className={styles.warn}>
+                            {errors.mobile_barcode}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label>
+                        <input
+                          name="invoice_method"
+                          type="radio"
+                          value="統編"
+                          checked={checkoutData.invoice_method === '統編'}
+                          onChange={handleInputChange}
+                        />
+                        統編
+                      </label>
+                      {checkoutData.invoice_method === '統編' && (
+                        <>
+                          <label>
+                            :
+                            <input
+                              type="text"
+                              name="taxID_number"
+                              value={checkoutData.taxID_number}
+                              onChange={handleInputChange}
+                            />
+                          </label>
+                          <span className={styles.warn}>
+                            {errors.taxID_number}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <label>
+                      <input
+                        name="invoice_method"
+                        type="radio"
+                        value="捐贈發票"
+                        checked={checkoutData.invoice_method === '捐贈發票'}
+                        onChange={handleInputChange}
+                      />
+                      捐贈發票
+                    </label>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.containBody}>請先選擇配送方式</div>
+            )}
+          </div>
+          <div className={styles.detail}>
+            <div className={styles.detailTitle}>
+              <p>訂單明細</p>
+            </div>
+            <hr />
+            <div className={styles.detailContent}>
+              <div className={styles.item}>
+                <p>商品金額</p>
+                <p>{productPrice.totalOriginalPrice}</p>
+              </div>
+              <div className={styles.item}>
+                <p>折扣</p>
+                <p>- {productPrice.totalDiscount}</p>
+              </div>
+              <div className={styles.item}>
+                <p>運費</p>
+                <p>{productPrice.shippingFee
+                ?('+'+ productPrice.shippingFee)
+                : '--'}</p>
+              </div>
+              <hr />
+              <div className={styles.item}>
+                <p>合計</p>
+                <p>{productPrice.totalAmount}</p>
+              </div>
             </div>
           </div>
-          {checkoutData.delivery ? (
-            <div className={styles.containBody}>
-              {checkoutData.delivery === '宅配' ? (
-                <>
-                  {/* <label className={styles.user}>
-                    <input type="checkbox" />
-                    <p>帶入用戶資料</p>
-                  </label> */}
-                  <div className={styles.address}>
-                    <p>配送地址</p>
-                    <div className={styles.select}>
-                      <select
-                        id="city"
-                        name="city"
-                        value={checkoutData.address.city}
-                        onChange={handleInputChange}
-                      >
-                        <option value="">縣市</option>
-                        {cities.map((city) => (
-                          <option key={city} value={city}>
-                            {city}
-                          </option>
-                        ))}
-                      </select>
 
-                      <select
-                        id="town"
-                        name="town"
-                        value={checkoutData.address.town}
-                        onChange={handleInputChange}
-                        disabled={!checkoutData.address.city}
-                      >
-                        <option value="">區域</option>
-                        {districts.map((district) => (
-                          <option key={district} value={district}>
-                            {district}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        name="address"
-                        type="text"
-                        value={checkoutData.address.else}
-                        onChange={handleInputChange}
-                        placeholder="詳細地址"
-                      />
-                      <span className={styles.warn}>{errors.address}</span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <button type="button" onClick={() => {}}>
-                    選擇門市
-                  </button>
-                  <label>
-                    門市名稱：
-                    <input
-                      type="text"
-                      value={checkoutData.CVSStoreName}
-                      readOnly
-                    />
-                  </label>
-                  <label>
-                    門市代號：
-                    <input
-                      type="text"
-                      value={checkoutData.CVSStoreID}
-                      readOnly
-                    />
-                  </label>
-                </>
-              )}
-
-              <label>
-                <p>收件人 :</p>
-                <input
-                  name="recipient_name"
-                  type="text"
-                  value={checkoutData.recipient_name}
-                  onChange={handleInputChange}
-                />
-                <span className={styles.warn}>{errors.recipient_name}</span>
-              </label>
-              <label>
-                <p>電話 :</p>
-                <input
-                  name="recipient_phone"
-                  type="text"
-                  placeholder="09xxxxxxxx"
-                  value={checkoutData.recipient_phone}
-                  onChange={handleInputChange}
-                />
-                <span className={styles.warn}>{errors.recipient_phone}</span>
-              </label>
-              <label>
-                <p>電子信箱 :</p>
-                <input
-                  name="recipient_email"
-                  type="text"
-                  value={checkoutData.recipient_email}
-                  onChange={handleInputChange}
-                />
-                <span className={styles.warn}>{errors.recipient_email}</span>
-              </label>
-              <label>
-                <p>備註 :</p>
-                <input
-                  name="remark"
-                  type="text"
-                  value={checkoutData.remark}
-                  onChange={handleInputChange}
-                />
-              </label>
-              <div>
-                <p>付款方式 :</p>
-
-                <div className={styles.paymentMethod}>
-                  <label>
-                    <input
-                      name="payment_method"
-                      type="radio"
-                      value="信用卡"
-                      checked={checkoutData.payment_method === '信用卡'}
-                      onChange={handleInputChange}
-                    />
-                    信用卡
-                  </label>
-                  <label>
-                    <input
-                      name="payment_method"
-                      type="radio"
-                      value="linePay"
-                      checked={checkoutData.payment_method === 'linePay'}
-                      onChange={handleInputChange}
-                    />
-                    line pay
-                  </label>
-                </div>
-                <span className={styles.warn}>{errors.payment_method}</span>
-              </div>
-              <div className={styles.invoiceMethod}>
-                <div className={styles.invoiceTitle}>
-                  <p>發票 :</p>
-                  <span className={styles.warn}>{errors.invoice_method}</span>
-                </div>
-                <div className={styles.invoiceBody}>
-                  <label>
-                    <input
-                      name="invoice_method"
-                      type="radio"
-                      value="紙本"
-                      checked={checkoutData.invoice_method === '紙本'}
-                      onChange={handleInputChange}
-                    />
-                    紙本
-                  </label>
-                  <div>
-                    <label>
-                      <input
-                        name="invoice_method"
-                        type="radio"
-                        value="手機載具"
-                        checked={checkoutData.invoice_method === '手機載具'}
-                        onChange={handleInputChange}
-                      />
-                      手機載具
-                    </label>
-                    {checkoutData.invoice_method === '手機載具' && (
-                      <div>
-                        <label>
-                          :
-                          <input
-                            type="text"
-                            name="mobile_barcode"
-                            value={checkoutData.mobile_barcode}
-                            onChange={handleInputChange}
-                          />
-                        </label>
-                        <span className={styles.warn}>
-                          {errors.mobile_barcode}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label>
-                      <input
-                        name="invoice_method"
-                        type="radio"
-                        value="統編"
-                        checked={checkoutData.invoice_method === '統編'}
-                        onChange={handleInputChange}
-                      />
-                      統編
-                    </label>
-                    {checkoutData.invoice_method === '統編' && (
-                      <>
-                        <label>
-                          :
-                          <input
-                            type="text"
-                            name="taxID_number"
-                            value={checkoutData.taxID_number}
-                            onChange={handleInputChange}
-                          />
-                        </label>
-                        <span className={styles.warn}>
-                          {errors.taxID_number}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <label>
-                    <input
-                      name="invoice_method"
-                      type="radio"
-                      value="捐贈發票"
-                      checked={checkoutData.invoice_method === '捐贈發票'}
-                      onChange={handleInputChange}
-                    />
-                    捐贈發票
-                  </label>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className={styles.containBody}>請先選擇配送方式</div>
-          )}
         </div>
 
-        {checkoutData.delivery ? (
-          <div className={styles.btns}>
+          {checkoutData.delivery ? (
+            <div className={styles.btns}>
+              <button type="button" onClick={handleCancelPurchase}>
+                返回購物車
+              </button>
+              <button type="submit">下一步</button>
+            </div>
+          ) : (
             <button type="button" onClick={handleCancelPurchase}>
               返回購物車
             </button>
-            <button type="submit">下一步</button>
-          </div>
-        ) : (
-          <button type="button" onClick={handleCancelPurchase}>
-            返回購物車
-          </button>
-        )}
-      </form>
+          )}
+        </form>
+        
+      
     </>
   )
 }

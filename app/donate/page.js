@@ -36,6 +36,15 @@ export default function DonatePage() {
   const [selectedPet, setSelectedPet] = useState('')
   const [selectedPetId, setSelectedPetId] = useState('')
 
+  const [searchTerm, setSearchTerm] = useState('') // 搜尋字串
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false) // 選單狀態
+  const [highlightIndex, setHighlightIndex] = useState(-1) // 鍵盤選擇索引
+
+  // 過濾符合搜尋條件的寵物
+  const filteredPets = pets.filter((pet) =>
+    pet.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   // 救援醫療
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedCase, setSelectedCase] = useState(null)
@@ -69,6 +78,27 @@ export default function DonatePage() {
     }
 
     router.push(`/donate/flow?${query}`)
+  }
+
+  // 選擇寵物
+  const handleSelectPet = (pet) => {
+    setSelectedPet(pet.name)
+    setSelectedPetId(pet.id)
+    setSearchTerm('')
+    setIsDropdownOpen(false) // 確保關閉選單
+  }
+
+  // 監聽鍵盤操作
+  const handleKeyDown = (e) => {
+    if (!isDropdownOpen) return
+
+    if (e.key === 'ArrowDown') {
+      setHighlightIndex((prev) => Math.min(prev + 1, filteredPets.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      setHighlightIndex((prev) => Math.max(prev - 1, 0))
+    } else if (e.key === 'Enter' && highlightIndex >= 0) {
+      handleSelectPet(filteredPets[highlightIndex])
+    }
   }
 
   const [activeSection, setActiveSection] = useState('method') // 控制主選單（捐款方式/種類說明）
@@ -138,41 +168,43 @@ export default function DonatePage() {
                 onChange={setDonationType}
               />
             </li>
-            {donationType === '線上認養' ? (
+            {donationType === '線上認養' && (
               <li style={{ display: 'flex', alignItems: 'center' }}>
                 <h5 style={{ marginRight: '5px' }}>選擇認養寵物</h5>
-                <Form.Select
-                  aria-label="Default select example"
-                  style={{
-                    width: '150px',
-                    backgroundColor: '#092C4C',
-                    color: 'white',
-                    textAlign: 'center',
-                  }}
-                  value={selectedPet}
-                  onChange={(e) => {
-                    const petName = e.target.value
-                    setSelectedPet(petName)
+                <div className={styles.searchableDropdown}>
+                  {/* 點擊顯示輸入框 */}
+                  <input
+                    type="text"
+                    className={styles.input}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleKeyDown} // 確保 `keydown` 事件作用於輸入框
+                    onFocus={() => setIsDropdownOpen(true)}
+                    placeholder={selectedPet || '請選擇'}
+                  />
 
-                    // 找到對應的 petId
-                    const pet = pets.find((p) => p.name === petName)
-                    if (pet) {
-                      setSelectedPetId(pet.id)
-                    } else {
-                      setSelectedPetId('') // 若沒找到，清空 petId
-                    }
-                  }}
-                >
-                  <option value="">－ 請選擇 －</option>
-                  {pets.map((pet) => (
-                    <option key={pet.id} value={pet.name}>
-                      {pet.name}
-                    </option>
-                  ))}
-                </Form.Select>
+                  {/* 選單內容 */}
+                  {isDropdownOpen && (
+                    <ul className={styles.list}>
+                      {filteredPets.length > 0 ? (
+                        filteredPets.map((pet, index) => (
+                          <li key={pet.id} className={styles.listItem}>
+                            <button
+                              type="button"
+                              onClick={() => handleSelectPet(pet)}
+                              className={styles.selectPetButton}
+                            >
+                              {pet.name}
+                            </button>
+                          </li>
+                        ))
+                      ) : (
+                        <li className={styles.noResults}>找不到匹配的寵物</li>
+                      )}
+                    </ul>
+                  )}
+                </div>
               </li>
-            ) : (
-              ''
             )}
 
             <li style={{ display: 'flex', justifyContent: 'end' }}>
