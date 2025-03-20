@@ -7,7 +7,7 @@ export function useCheckoutData() {
     if (typeof window !== 'undefined') {
       const savedData = localStorage.getItem('checkoutData');
       return savedData ? JSON.parse(savedData) : {
-        delivery: '',
+        delivery: '宅配',
         address:{
           city: '',
           town:'',
