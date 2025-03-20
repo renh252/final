@@ -27,3 +27,25 @@
 .menu .active {
   background-color: #690606;
 }
+
+.menubar {
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.menubar.hidden {
+  transform: translateY(-100%);
+}
+
+.notificationWrapper {
+  display: flex;
+  align-items: center;
+  margin: 0 8px;
+}
+
+@media (max-width: 991px) {
+  .notificationWrapper {
+    margin: 8px 0;
+  }
+}

@@ -5,6 +5,7 @@ import styles from './menubar.module.css'
 import Link from 'next/link'
 import { Navbar, Nav, NavDropdown, Button, Container } from 'react-bootstrap'
 import { usePathname } from 'next/navigation'
+import NotificationBell from './NotificationBell'
 
 export default function Menubar() {
   const pathname = usePathname()
@@ -47,6 +48,9 @@ export default function Menubar() {
               <Nav.Link href="/pets">寵物列表</Nav.Link>
               <Nav.Link href="/forum">論壇</Nav.Link>
               <Nav.Link href="/donate">捐款</Nav.Link>
+              <div className={styles.notificationWrapper}>
+                <NotificationBell />
+              </div>
               <Nav.Link href="/member">會員</Nav.Link>
               <Nav.Link href="/shop/cart">購物車</Nav.Link>
               <Nav.Link href="/contact">聯絡我們</Nav.Link>

@@ -22,10 +22,8 @@ export async function POST(req) {
     let redirectUrl
 
     if (orderType === 'shop') {
-      // 商城付款完成，導回購物結帳結果頁面
-      redirectUrl = `http://localhost:3000/shop/checkout/summary?status=${
-        isSuccess ? 'success' : 'fail'
-      }`
+      // 商城付款完成，導回 `summary` 並帶上 `MerchantTradeNo`**
+      redirectUrl = `http://localhost:3000/shop/checkout/summary?order=${params.MerchantTradeNo}`
     } else if (orderType === 'donation') {
       // 捐款付款完成，導回捐款結果頁面
       redirectUrl = `http://localhost:3000/donate/flow/result?status=${
