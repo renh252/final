@@ -9,6 +9,10 @@ function SelectBasicExample({ value, onChange }) {
         backgroundColor: '#092C4C',
         color: 'white',
         textAlign: 'center',
+        border: 'none',
+        paddingRight: '15px',
+        backgroundImage: 'none', // ✅ 隱藏下拉箭頭
+        fontSize:'18px',
       }}
       value={value} // 設定目前選擇的值
       onChange={(e) => onChange(e.target.value)} // 當選擇變更時回傳值
