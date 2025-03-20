@@ -8,14 +8,14 @@ import { useAuth } from '@/app/context/AuthContext'; // 引入 useAuth
 import { useRouter } from 'next/navigation';// 導向到登入頁面
 
 export default function MemberPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, updateUser  } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !loading) {
       router.push('/member/MemberLogin/login');
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
   const handleNicknameChange = async (event) => {
     const newNickname = event.target.value;
@@ -42,6 +42,9 @@ export default function MemberPage() {
     }
   };
 
+  if (loading) {
+    return <div>Loading...</div>; // 顯示加載指示器
+  }
 
 
   if (!user) {

@@ -1,3 +1,4 @@
+//app\api\user\route.js
 import { NextResponse } from 'next/server';
 import { pool } from '@/app/lib/db';
 import jwt from 'jsonwebtoken';
