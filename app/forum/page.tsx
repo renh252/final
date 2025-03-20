@@ -1,22 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { Container, Row, Col, Button, Form, Card } from 'react-bootstrap';
-import { Heart, MessageCircle, Share2, Search, Plus } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Container, Row, Col, Button, Form, Card, Spinner } from 'react-bootstrap';
+import { Heart, MessageCircle, Share2, Plus } from 'lucide-react';
 import Carousel from 'react-bootstrap/Carousel';
 import Image from 'next/image';
 import CreatePostModal from './components/CreatePostModal';
+import { useForumData, ForumFilters } from './hooks/useForumData';
 import styles from './styles.module.css';
 
-// 模擬資料，之後會從API獲取
-const categories = [
-  { id: 1, name: '貓咪' },
-  { id: 2, name: '狗狗' },
-  { id: 3, name: '鳥類' },
-  { id: 4, name: '爬蟲' },
-  { id: 5, name: '其他' },
-];
-
+// 輪播圖資料
 const carouselItems = [
   {
     id: 1,
@@ -26,24 +19,78 @@ const carouselItems = [
   // 其他輪播項目...
 ];
 
-const pinnedPosts = [
-  {
-    id: 1,
-    title: '【必知】寵物認養前必須知道的準備事項',
-    content: '準備迎接新成員了嗎？這裡有完整的認養指南...',
-    likes: 156,
-    comments: 45,
-    shares: 23,
-    image: '/images/pets/cat1.jpg'
-  },
-  // 其他置頂文章...
-];
-
 export default function ForumPage() {
-  const [sortBy, setSortBy] = useState('hot');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentCategory, setCurrentCategory] = useState('all');
+  const {
+    categories,
+    tags,
+    posts,
+    pagination,
+    loading,
+    error,
+    fetchPosts
+  } = useForumData();
+
+  const [filters, setFilters] = useState<ForumFilters>({
+    category: 'all',
+    tags: [],
+    sort: 'latest',
+    search: '',
+    page: 1,
+    limit: 10
+  });
+
   const [showCreatePost, setShowCreatePost] = useState(false);
+
+  // 處理分類變更
+  const handleCategoryChange = useCallback((categorySlug: string) => {
+    setFilters(prev => ({
+      ...prev,
+      category: categorySlug,
+      page: 1 // 重置頁碼
+    }));
+  }, []);
+
+  // 處理標籤選擇
+  const handleTagSelect = useCallback((tagSlug: string) => {
+    setFilters(prev => ({
+      ...prev,
+      tags: prev.tags?.includes(tagSlug)
+        ? prev.tags.filter(t => t !== tagSlug)
+        : [...(prev.tags || []), tagSlug],
+      page: 1 // 重置頁碼
+    }));
+  }, []);
+
+  // 處理排序變更
+  const handleSortChange = useCallback((sort: 'latest' | 'hot') => {
+    setFilters(prev => ({
+      ...prev,
+      sort,
+      page: 1 // 重置頁碼
+    }));
+  }, []);
+
+  // 處理搜尋
+  const handleSearch = useCallback((search: string) => {
+    setFilters(prev => ({
+      ...prev,
+      search,
+      page: 1 // 重置頁碼
+    }));
+  }, []);
+
+  // 處理分頁
+  const handlePageChange = useCallback((page: number) => {
+    setFilters(prev => ({
+      ...prev,
+      page
+    }));
+  }, []);
+
+  // 監聽篩選條件變更，重新獲取文章
+  useEffect(() => {
+    fetchPosts(filters);
+  }, [filters, fetchPosts]);
 
   return (
     <Container fluid className={styles['forum-container']}>
@@ -70,19 +117,47 @@ export default function ForumPage() {
 
       {/* 分類選單 */}
       <div className={styles['category-menu']}>
-        <Row className="g-2">
+        <Row className="g-2 mb-3">
+          <Col>
+            <Button
+              variant={filters.category === 'all' ? 'primary' : 'outline-primary'}
+              className="w-100"
+              onClick={() => handleCategoryChange('all')}
+            >
+              全部分類
+            </Button>
+          </Col>
           {categories.map((category) => (
             <Col key={category.id}>
               <Button
-                variant={currentCategory === category.id ? 'primary' : 'outline-primary'}
+                variant={filters.category === category.slug ? 'primary' : 'outline-primary'}
                 className="w-100"
-                onClick={() => setCurrentCategory(category.id)}
+                onClick={() => handleCategoryChange(category.slug)}
               >
                 {category.name}
               </Button>
             </Col>
           ))}
         </Row>
+
+        {/* 標籤選擇區 */}
+        <div className={styles['tags-container']}>
+          <h6 className="mb-2">熱門標籤</h6>
+          <div className="d-flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <Button
+                key={tag.id}
+                variant={filters.tags?.includes(tag.slug) ? 'secondary' : 'outline-secondary'}
+                size="sm"
+                onClick={() => handleTagSelect(tag.slug)}
+                className={styles['tag-button']}
+              >
+                #{tag.name}
+                <span className="ms-1 opacity-75">({tag.post_count})</span>
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* 功能列 */}
@@ -90,108 +165,111 @@ export default function ForumPage() {
         <Col md={6}>
           <div className="d-flex gap-2">
             <Button
-              variant={sortBy === 'hot' ? 'primary' : 'outline-primary'}
-              onClick={() => setSortBy('hot')}
+              variant={filters.sort === 'hot' ? 'primary' : 'outline-primary'}
+              onClick={() => handleSortChange('hot')}
             >
               熱門
             </Button>
             <Button
-              variant={sortBy === 'new' ? 'primary' : 'outline-primary'}
-              onClick={() => setSortBy('new')}
+              variant={filters.sort === 'latest' ? 'primary' : 'outline-primary'}
+              onClick={() => handleSortChange('latest')}
             >
               最新
             </Button>
-            <Button
-              variant={sortBy === 'rules' ? 'primary' : 'outline-primary'}
-              onClick={() => setSortBy('rules')}
-            >
-              板規
-            </Button>
           </div>
         </Col>
-        <Col md={4}>
-          <Form.Group className="d-flex gap-2">
-            <Form.Control
-              type="search"
-              placeholder="搜尋文章..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Button variant="outline-primary">
-              <Search size={20} />
-            </Button>
-          </Form.Group>
-        </Col>
-        <Col md={2} className="text-end">
-          <Button 
-            variant="primary" 
-            className="d-flex align-items-center gap-2"
-            onClick={() => setShowCreatePost(true)}
-          >
-            <Plus size={20} />
+        <Col md={6} className="d-flex justify-content-end gap-2">
+          <Form.Control
+            type="search"
+            placeholder="搜尋文章..."
+            className={styles['search-box']}
+            value={filters.search}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+          <Button variant="primary" onClick={() => setShowCreatePost(true)}>
+            <Plus className="me-1" size={18} />
             發文
           </Button>
         </Col>
       </Row>
 
-      {/* 置頂文章 */}
-      <div className={styles['pinned-posts']}>
-        {pinnedPosts.map((post) => (
-          <Card key={post.id} className="mb-3">
-            <Card.Body>
-              <Row>
-                <Col md={9}>
+      {/* 文章列表 */}
+      {loading.posts ? (
+        <div className="text-center py-5">
+          <Spinner animation="border" variant="primary" />
+        </div>
+      ) : error ? (
+        <div className="text-center py-5 text-danger">{error}</div>
+      ) : (
+        <Row className="g-4">
+          {posts.map((post) => (
+            <Col key={post.id} xs={12}>
+              <Card>
+                <Card.Body>
+                  <div className="d-flex align-items-center mb-3">
+                    {post.author_avatar && (
+                      <Image
+                        src={post.author_avatar}
+                        alt={post.author_name}
+                        width={40}
+                        height={40}
+                        className="rounded-circle me-2"
+                      />
+                    )}
+                    <div>
+                      <div className="fw-bold">{post.author_name}</div>
+                      <small className="text-muted">
+                        {new Date(post.created_at).toLocaleString()}
+                      </small>
+                    </div>
+                  </div>
                   <Card.Title>{post.title}</Card.Title>
                   <Card.Text>{post.content}</Card.Text>
-                  <div className="d-flex gap-4">
-                    <span className="d-flex align-items-center gap-1">
-                      <Heart size={18} />
-                      {post.likes}
-                    </span>
-                    <span className="d-flex align-items-center gap-1">
-                      <MessageCircle size={18} />
-                      {post.comments}
-                    </span>
-                    <span className="d-flex align-items-center gap-1">
-                      <Share2 size={18} />
-                      {post.shares}
-                    </span>
+                  <div className="d-flex gap-3">
+                    <Button variant="link" className="text-muted p-0">
+                      <Heart size={18} className="me-1" />
+                      {post.like_count}
+                    </Button>
+                    <Button variant="link" className="text-muted p-0">
+                      <MessageCircle size={18} className="me-1" />
+                      {post.comment_count}
+                    </Button>
+                    <Button variant="link" className="text-muted p-0">
+                      <Share2 size={18} className="me-1" />
+                      分享
+                    </Button>
                   </div>
-                </Col>
-                <Col md={3}>
-                  <div className={styles['post-image-container']}>
-                    <Image
-                      src={post.image}
-                      alt={post.title}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      className="rounded"
-                    />
-                  </div>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-        ))}
-      </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
 
-      {/* 分頁導航 */}
-      <div className="d-flex justify-content-center">
-        <Button variant="outline-primary" className="mx-1">上一頁</Button>
-        {[1, 2, 3, 4, 5].map((page) => (
+      {/* 分頁控制 */}
+      {pagination.totalPages > 1 && (
+        <div className="d-flex justify-content-center mt-4">
           <Button
-            key={page}
             variant="outline-primary"
-            className="mx-1"
+            disabled={pagination.page === 1}
+            onClick={() => handlePageChange(pagination.page - 1)}
           >
-            {page}
+            上一頁
           </Button>
-        ))}
-        <Button variant="outline-primary" className="mx-1">下一頁</Button>
-      </div>
+          <div className="mx-3">
+            第 {pagination.page} 頁，共 {pagination.totalPages} 頁
+          </div>
+          <Button
+            variant="outline-primary"
+            disabled={pagination.page === pagination.totalPages}
+            onClick={() => handlePageChange(pagination.page + 1)}
+          >
+            下一頁
+          </Button>
+        </div>
+      )}
 
-      {/* 發文 Modal */}
+      {/* 發文表單 Modal */}
       <CreatePostModal
         show={showCreatePost}
         onHide={() => setShowCreatePost(false)}
