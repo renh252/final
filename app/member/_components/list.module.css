@@ -6,6 +6,11 @@
   background-color: #fff;
   overflow: hidden;
 
+  p{
+    padding: 0;
+    margin: 0;
+  }
+  
   .title{
     background-color: #c2bc9b;  
     color: #fff;
@@ -24,9 +29,19 @@
     overflow-y: auto;
     padding: 20px;
     font-size: 24px;
-    /* display: flex;
-    flex-direction: column;
-    gap: 20px; */
+
+    >div{
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+
+      >div{
+        display: flex;
+        flex-direction: row;
+        align-items: center; 
+        justify-content: space-between;
+      }
+    }
   }
 
   
