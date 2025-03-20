@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useState, useMemo } from 'react'
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import styles from './pets.module.css'
 import Card from '@/app/_components/ui/Card'
 import Link from 'next/link'
@@ -33,6 +33,58 @@ const MapComponent = dynamic(
   () => import('@/app/pets/_components/MapComponent'),
   { ssr: false }
 )
+
+// 計算兩點之間的距離（使用 Haversine 公式）- 移到組件外部
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371 // 地球半徑（公里）
+  const dLat = (lat2 - lat1) * (Math.PI / 180)
+  const dLon = (lon2 - lon1) * (Math.PI / 180)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+// 計算適合同時顯示用戶位置和店家位置的最佳縮放等級 - 移到組件外部
+const calculateOptimalZoom = (point1, point2) => {
+  if (!point1 || !point2) return 15 // 預設值
+
+  // 計算兩點的距離 (公里)
+  const distance = calculateDistance(
+    point1.lat,
+    point1.lng,
+    point2.lat,
+    point2.lng
+  )
+
+  // 根據距離決定縮放等級
+  if (distance < 0.5) return 16 // 500米以內
+  if (distance < 1) return 15 // 1公里以內
+  if (distance < 3) return 14 // 3公里以內
+  if (distance < 7) return 13 // 7公里以內
+  if (distance < 15) return 12 // 15公里以內
+  if (distance < 30) return 11 // 30公里以內
+  if (distance < 70) return 10 // 70公里以內
+  return 9 // 更大距離
+}
+
+// 計算地圖的中心點 - 移到組件外部
+const calculateMapCenter = (point1, point2) => {
+  if (!point1 || !point2) {
+    return point1
+      ? [point1.lat, point1.lng]
+      : point2
+      ? [point2.lat, point2.lng]
+      : [25.033, 121.5654] // 預設台北市中心
+  }
+
+  // 計算兩點的中心
+  return [(point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2]
+}
 
 // 附近商店列表組件
 const NearbyStoresList = ({ stores, searchRadius, handleNearbyStoreClick }) => (
@@ -265,277 +317,349 @@ export default function PetsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10 // 每頁顯示的寵物數量改為10筆
 
-  // 使用 SWR 獲取資料，根據選擇的物種和品種更新查詢參數
-  const { data: petsData, error: petsError, mutate: mutatePets } = useSWR(() => {
+  // 優化API調用: 合併基礎資料請求
+  const { data: metaData } = useSWR('/api/pets?type=meta', fetcher)
+
+  // 從metaData中獲取數據
+  const speciesData = useMemo(() => {
+    return metaData?.species || null
+  }, [metaData])
+
+  const varietiesData = useMemo(() => {
+    if (!metaData?.varieties) return null
+
+    // 如果選擇了特定物種，則過濾品種
+    if (selectedSpecies === '1') {
+      return metaData.varieties.filter((variety) => {
+        // 根據狗的品種過濾邏輯，可能需要調整
+        return true
+      })
+    } else if (selectedSpecies === '2') {
+      return metaData.varieties.filter((variety) => {
+        // 根據貓的品種過濾邏輯，可能需要調整
+        return true
+      })
+    }
+    return metaData.varieties
+  }, [metaData, selectedSpecies])
+
+  const storesData = useMemo(() => {
+    if (!metaData?.stores) return null
+    return {
+      stores: metaData.stores,
+      storesByRegion: metaData.storesByRegion,
+    }
+  }, [metaData])
+
+  // 從metaData中獲取最新寵物資料
+  const latestPets = useMemo(() => {
+    if (!metaData?.latestPets || !Array.isArray(metaData.latestPets)) return []
+    return metaData.latestPets
+  }, [metaData])
+
+  // 使用服務器端分頁獲取寵物資料
+  const {
+    data: petsData,
+    error: petsError,
+    mutate: mutatePets,
+  } = useSWR(() => {
     const params = new URLSearchParams()
     params.set('type', 'pets')
     if (selectedSpecies) params.set('species_id', selectedSpecies)
     if (selectedBreed) params.set('breed', selectedBreed)
     if (selectedRegion) params.set('region', selectedRegion)
     if (selectedStore) params.set('store', selectedStore)
+    params.set('page', currentPage.toString())
+    params.set('pageSize', itemsPerPage.toString())
+    params.set('userId', '1') // 暫時hardcode userId=1
     return `/api/pets?${params.toString()}`
   }, fetcher)
 
-  // 修改獨立獲取最新上架寵物的邏輯
-  const { data: latestPetsData } = useSWR('/api/pets?type=latest', fetcher)
-
-  const { data: speciesData } = useSWR('/api/pets?type=species', fetcher)
-
-  // 獲取所有不重複的品種資料
-  const { data: varietiesData, mutate: mutateVarieties } = useSWR(
-    selectedSpecies
-      ? `/api/pets?type=varieties&species_id=${selectedSpecies}`
-      : '/api/pets?type=varieties',
-    fetcher
-  )
-  // 獲取寵物商店資料
-  const { data: storesData } = useSWR('/api/pets?type=stores', fetcher)
-  // 獲取用戶的收藏列表
-  const { data: favoritesData, mutate: mutateFavorites } = useSWR(
-    '/api/pets?type=favorites&userId=1', // 暫時hardcode userId=1
-    fetcher
-  )
-
-  // 確保在頁面載入時就獲取所有品種資料
+  // 使用useMemo處理收藏狀態
   useEffect(() => {
-    if (!varietiesData) {
-      mutateVarieties()
-    }
-  }, [varietiesData, mutateVarieties])
-
-  // 初始化收藏狀態
-  useEffect(() => {
-    if (favoritesData?.favorites) {
+    if (petsData?.pets) {
       const favoritesMap = {}
-      favoritesData.favorites.forEach((fav) => {
-        favoritesMap[fav.pet_id] = true
+      petsData.pets.forEach((pet) => {
+        if (pet.isFavorite) {
+          favoritesMap[pet.id] = true
+        }
       })
       setFavorites(favoritesMap)
     }
-  }, [favoritesData])
-
-  // 處理最新上架的寵物（取API直接返回的資料）
-  const latestPets = useMemo(() => {
-    if (!latestPetsData?.pets || !Array.isArray(latestPetsData.pets)) return []
-    return latestPetsData.pets
-  }, [latestPetsData])
+  }, [petsData])
 
   // 處理篩選結果的寵物
   const filteredPets = useMemo(() => {
     if (!petsData?.pets || !Array.isArray(petsData.pets)) return []
 
-    return petsData.pets.filter((pet) => {
-      // 物種篩選 - 直接比較 species 欄位
-      if (selectedSpecies) {
-        const speciesName = pet.species || pet.species_name
-        if (selectedSpecies === '1' && speciesName !== '狗') return false
-        if (selectedSpecies === '2' && speciesName !== '貓') return false
-        if (selectedSpecies === '3' && (speciesName === '狗' || speciesName === '貓')) return false
-      }
+    // 如果顯示收藏，需要額外篩選
+    if (showFavorites) {
+      return petsData.pets.filter((pet) => pet.isFavorite)
+    }
 
-      // 品種篩選
-      if (selectedBreed && pet.variety !== selectedBreed) {
-        return false
-      }
+    return petsData.pets
+  }, [petsData, showFavorites])
 
-      // 地區篩選
-      if (selectedRegion && !pet.location?.includes(selectedRegion)) {
-        return false
-      }
-
-      // 商店篩選
-      if (selectedStore && pet.store_id !== parseInt(selectedStore)) {
-        return false
-      }
-
-      // 收藏篩選
-      if (showFavorites && !favorites[pet.id]) {
-        return false
-      }
-
-      return true
-    })
-  }, [
-    petsData,
-    selectedSpecies,
-    selectedBreed,
-    selectedRegion,
-    selectedStore,
-    showFavorites,
-    favorites,
-  ])
-
-  // 處理分頁的寵物資料
-  const paginatedPets = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    return filteredPets.slice(startIndex, endIndex)
-  }, [filteredPets, currentPage, itemsPerPage])
-
-  // 計算總頁數
+  // 使用伺服器返回的分頁資訊
   const totalPages = useMemo(() => {
-    return Math.ceil(filteredPets.length / itemsPerPage)
-  }, [filteredPets, itemsPerPage])
+    return petsData?.pagination?.totalPages || 1
+  }, [petsData])
 
-  // 清除所有篩選條件
-  const clearAllFilters = () => {
-    setSelectedSpecies('')
-    setSelectedBreed('')
-    setSelectedRegion('')
-    setSelectedStore('')
-    setShowFavorites(false)
-    setCurrentPage(1) // 重置回第一頁
-    // 重新刷新寵物資料
-    mutatePets()
-  }
+  // 使用useCallback記憶化函數
+  // 尋找附近商店
+  const findNearbyStores = useCallback(
+    (latitude, longitude) => {
+      if (!storesData?.stores || storesData.stores.length === 0) {
+        return []
+      }
 
-  // 頁面變更
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber)
-    // 滾動到頂部
-    window.scrollTo({
-      top: document.querySelector(`.${styles.contain_title}`).offsetTop - 100,
-      behavior: 'smooth',
-    })
-  }
+      if (searchRadius < 1) {
+        return [] // 當搜尋範圍小於1公里時，返回空列表
+      }
 
-  // 更新 URL 查詢參數
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (selectedSpecies) params.set('species', selectedSpecies)
-    if (selectedBreed) params.set('breed', selectedBreed)
-    if (selectedRegion) params.set('region', selectedRegion)
-    if (selectedStore) params.set('store', selectedStore)
-    if (showFavorites) params.set('favorites', 'true')
-    if (currentPage > 1) params.set('page', currentPage.toString())
+      // 計算所有商店的距離
+      const storesWithDistance = storesData.stores
+        .filter((store) => store.lat && store.lng) // 確保商店有坐標
+        .map((store) => {
+          const distance = calculateDistance(
+            latitude,
+            longitude,
+            store.lat,
+            store.lng
+          )
+          return { ...store, distance }
+        })
 
-    window.history.replaceState(
-      {},
-      '',
-      `${window.location.pathname}?${params.toString()}`
+      // 按距離排序並根據搜尋範圍篩選
+      return storesWithDistance
+        .sort((a, b) => a.distance - b.distance)
+        .filter((store) => store.distance <= searchRadius)
+        .slice(0, 10) // 最多顯示10個最近的商店
+    },
+    [storesData, searchRadius]
+  )
+
+  // 獲取用戶位置
+  const getUserLocation = useCallback(() => {
+    // 重置錯誤狀態
+    setLocationError(null)
+    setNearbyStores([]) // 重置附近商店
+    setIsGettingLocation(true)
+
+    // 檢查瀏覽器是否支持地理位置 API
+    if (!navigator.geolocation) {
+      setLocationError('您的瀏覽器不支持地理位置功能')
+      setIsGettingLocation(false)
+      return
+    }
+
+    // 獲取用戶位置
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // 成功獲取位置
+        const { latitude, longitude } = position.coords
+
+        // 清除商店和地區選擇
+        setSelectedRegion('')
+        setSelectedStore('')
+
+        // 設置用戶位置
+        const userLocation = { lat: latitude, lng: longitude }
+        setSelectedLocation(userLocation)
+
+        // 查找附近商店但不直接顯示標記
+        const nearby = findNearbyStores(latitude, longitude)
+        setNearbyStores(nearby)
+
+        // 切換到地圖視圖模式
+        setViewMode('map')
+
+        // 延遲更新地圖相關狀態
+        setTimeout(() => {
+          const markersArray = [
+            {
+              lat: latitude,
+              lng: longitude,
+              name: '您的位置',
+              isSelected: true,
+              id: 'user-location',
+              isUserLocation: true,
+            },
+          ]
+
+          setMapCenter([latitude, longitude])
+          setMapZoom(15)
+          setMapMarkers(markersArray)
+          setIsGettingLocation(false)
+        }, 200)
+      },
+      (error) => {
+        // 處理錯誤
+        let errorMessage = '無法獲取您的位置'
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = '您拒絕了位置請求，請在瀏覽器設置中允許位置訪問'
+            break
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = '位置信息不可用'
+            break
+          case error.TIMEOUT:
+            errorMessage = '獲取位置超時'
+            break
+        }
+        setLocationError(errorMessage)
+        setIsGettingLocation(false)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
     )
   }, [
-    selectedSpecies,
-    selectedBreed,
-    selectedRegion,
-    selectedStore,
-    showFavorites,
-    currentPage,
+    findNearbyStores,
+    setLocationError,
+    setNearbyStores,
+    setIsGettingLocation,
+    setSelectedRegion,
+    setSelectedStore,
+    setSelectedLocation,
+    setViewMode,
+    setMapCenter,
+    setMapZoom,
+    setMapMarkers,
   ])
 
-  // 在結果區塊加入篩選結果統計
-  const ResultsHeader = () => (
-    <div className={styles.resultsHeader}>
-      <h2>寵物搜尋結果 ({filteredPets.length})</h2>
-      <div className={styles.activeFilters}>
-        {selectedSpecies && (
-          <span className={styles.filterTag}>
-            物種:{' '}
-            {selectedSpecies === '1'
-              ? '狗'
-              : selectedSpecies === '2'
-              ? '貓'
-              : '其他'}
-          </span>
-        )}
-        {selectedBreed && (
-          <span className={styles.filterTag}>品種: {selectedBreed}</span>
-        )}
-        {selectedRegion && (
-          <span className={styles.filterTag}>地區: {selectedRegion}</span>
-        )}
-        {selectedStore && storesData?.stores && (
-          <span className={styles.filterTag}>
-            商店:{' '}
-            {
-              storesData.stores.find((s) => s.id === parseInt(selectedStore))
-                ?.name
-            }
-          </span>
-        )}
-      </div>
-    </div>
+  // 處理收藏功能
+  const handleToggleFavorite = useCallback(
+    async (event, petId) => {
+      event.preventDefault()
+      event.stopPropagation()
+
+      const userId = 1 // 暫時hardcode userId=1
+      const newFavoriteStatus = !favorites[petId]
+
+      try {
+        const response = await fetch('/api/pets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            petId,
+            action: newFavoriteStatus ? 'add' : 'remove',
+          }),
+        })
+
+        if (response.ok) {
+          setFavorites((prev) => ({
+            ...prev,
+            [petId]: newFavoriteStatus,
+          }))
+          // 重新獲取寵物列表以更新收藏狀態
+          mutatePets()
+        } else {
+          console.error('收藏操作失敗')
+        }
+      } catch (error) {
+        console.error('收藏操作錯誤:', error)
+      }
+    },
+    [favorites, mutatePets]
   )
 
   // 處理地區選擇
-  const handleRegionChange = (e) => {
-    const region = e.target.value
-    setSelectedRegion(region)
-    // 清除商店選擇
-    setSelectedStore('')
-    // 重新刷新寵物資料以應用篩選
-    mutatePets()
+  const handleRegionChange = useCallback(
+    (e) => {
+      const region = e.target.value
+      setSelectedRegion(region)
+      // 清除商店選擇
+      setSelectedStore('')
+      // 重新刷新寵物資料以應用篩選
+      mutatePets()
 
-    if (region && locationData[region]) {
-      const { lat, lng, zoom } = locationData[region]
-      setMapCenter([lat, lng])
-      setMapZoom(zoom)
-      // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
-      setMapMarkers([
-        { lat, lng, name: region, isRegion: true, id: Date.now() },
-      ])
-      // 清除手動選擇的位置
-      setSelectedLocation(null)
-    } else {
-      // 如果選擇了「請選擇地區」，清除標記
-      setMapMarkers([])
-    }
-  }
-
-  // 處理商店選擇
-  const handleStoreChange = (e) => {
-    const storeId = e.target.value
-    setSelectedStore(storeId)
-    setSelectedRegion('')
-    // 重新刷新寵物資料以應用篩選
-    mutatePets()
-
-    if (storeId && storesData?.stores) {
-      const store = storesData.stores.find(
-        (store) => store.id.toString() === storeId
-      )
-
-      if (store && store.lat && store.lng) {
-        setMapCenter([parseFloat(store.lat), parseFloat(store.lng)])
-        setMapZoom(15)
+      if (region && locationData[region]) {
+        const { lat, lng, zoom } = locationData[region]
+        setMapCenter([lat, lng])
+        setMapZoom(zoom)
+        // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
         setMapMarkers([
-          {
-            lat: parseFloat(store.lat),
-            lng: parseFloat(store.lng),
-            name: store.name,
-            description: `${store.address} (${store.phone})`,
-            isStore: true,
-            id: Date.now(),
-          },
+          { lat, lng, name: region, isRegion: true, id: Date.now() },
         ])
+        // 清除手動選擇的位置
         setSelectedLocation(null)
       } else {
-        // 如果商店沒有有效的坐標，使用預設值
-        setMapCenter([25.033, 121.5654])
-        setMapZoom(13)
+        // 如果選擇了「請選擇地區」，清除標記
         setMapMarkers([])
       }
-    } else {
-      // 重置地圖狀態
-      setMapMarkers([])
-      setMapCenter([25.033, 121.5654])
-      setMapZoom(13)
-    }
-  }
+    },
+    [
+      mutatePets,
+      setSelectedRegion,
+      setSelectedStore,
+      setMapCenter,
+      setMapZoom,
+      setMapMarkers,
+      setSelectedLocation,
+    ]
+  )
 
-  // 處理地圖位置選擇
-  const handleLocationSelect = (location) => {
-    setSelectedLocation(location)
-    // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
-    setMapMarkers([
-      { ...location, name: '已選擇的位置', isSelected: true, id: Date.now() },
-    ])
-    // 當手動選擇位置時，清除地區選擇
-    setSelectedRegion('')
-  }
+  // 處理商店選擇
+  const handleStoreChange = useCallback(
+    (e) => {
+      const storeId = e.target.value
+      setSelectedStore(storeId)
+      setSelectedRegion('')
+      // 重新刷新寵物資料以應用篩選
+      mutatePets()
+
+      if (storeId && storesData?.stores) {
+        const store = storesData.stores.find(
+          (store) => store.id.toString() === storeId
+        )
+
+        if (store && store.lat && store.lng) {
+          setMapCenter([parseFloat(store.lat), parseFloat(store.lng)])
+          setMapZoom(15)
+          setMapMarkers([
+            {
+              lat: parseFloat(store.lat),
+              lng: parseFloat(store.lng),
+              name: store.name,
+              description: `${store.address} (${store.phone})`,
+              isStore: true,
+              id: Date.now(),
+            },
+          ])
+          setSelectedLocation(null)
+        } else {
+          // 如果商店沒有有效的坐標，使用預設值
+          setMapCenter([25.033, 121.5654])
+          setMapZoom(13)
+          setMapMarkers([])
+        }
+      } else {
+        // 重置地圖狀態
+        setMapMarkers([])
+        setMapCenter([25.033, 121.5654])
+        setMapZoom(13)
+      }
+    },
+    [
+      storesData,
+      mutatePets,
+      setSelectedStore,
+      setSelectedRegion,
+      setMapCenter,
+      setMapZoom,
+      setMapMarkers,
+      setSelectedLocation,
+    ]
+  )
 
   // 修改視圖切換邏輯
-  const handleViewModeChange = () => {
+  const handleViewModeChange = useCallback(() => {
     const newViewMode = viewMode === 'map' ? 'list' : 'map'
 
     // 確保切換回列表視圖時重置地圖狀態
@@ -589,10 +713,19 @@ export default function PetsPage() {
     }
 
     setViewMode(newViewMode)
-  }
+  }, [
+    viewMode,
+    selectedLocation,
+    selectedStoreLocation,
+    selectedRegion,
+    setViewMode,
+    setMapMarkers,
+    setMapCenter,
+    setMapZoom,
+  ])
 
   // 滾動功能
-  const scroll = (direction, ref) => {
+  const scroll = useCallback((direction, ref) => {
     const container = ref.current
     const cardWidth = 280 // 卡片寬度
     const gap = 30 // gap 值轉換為像素
@@ -605,7 +738,74 @@ export default function PetsPage() {
       left: targetScroll,
       behavior: 'smooth',
     })
-  }
+  }, [])
+
+  // 頁面變更
+  const handlePageChange = useCallback(
+    (pageNumber) => {
+      setCurrentPage(pageNumber)
+      // 滾動到頂部
+      window.scrollTo({
+        top: document.querySelector(`.${styles.contain_title}`).offsetTop - 100,
+        behavior: 'smooth',
+      })
+    },
+    [setCurrentPage]
+  )
+
+  // 清除所有篩選條件
+  const clearAllFilters = useCallback(() => {
+    setSelectedSpecies('')
+    setSelectedBreed('')
+    setSelectedRegion('')
+    setSelectedStore('')
+    setShowFavorites(false)
+    setCurrentPage(1) // 重置回第一頁
+    // 重新刷新寵物資料
+    mutatePets()
+  }, [
+    mutatePets,
+    setSelectedSpecies,
+    setSelectedBreed,
+    setSelectedRegion,
+    setSelectedStore,
+    setShowFavorites,
+    setCurrentPage,
+  ])
+
+  // 在結果區塊加入篩選結果統計
+  const ResultsHeader = () => (
+    <div className={styles.resultsHeader}>
+      <h2>寵物搜尋結果 ({petsData?.pagination?.total || 0})</h2>
+      <div className={styles.activeFilters}>
+        {selectedSpecies && (
+          <span className={styles.filterTag}>
+            物種:{' '}
+            {selectedSpecies === '1'
+              ? '狗'
+              : selectedSpecies === '2'
+              ? '貓'
+              : '其他'}
+          </span>
+        )}
+        {selectedBreed && (
+          <span className={styles.filterTag}>品種: {selectedBreed}</span>
+        )}
+        {selectedRegion && (
+          <span className={styles.filterTag}>地區: {selectedRegion}</span>
+        )}
+        {selectedStore && storesData?.stores && (
+          <span className={styles.filterTag}>
+            商店:{' '}
+            {
+              storesData.stores.find((s) => s.id === parseInt(selectedStore))
+                ?.name
+            }
+          </span>
+        )}
+      </div>
+    </div>
+  )
 
   // 初始化地圖標記 - 已經不需要，在選擇地區時會自動設置標記
   useEffect(() => {
@@ -613,400 +813,29 @@ export default function PetsPage() {
     // 初始不設置任何標記，只在用戶選擇時才顯示
   }, [])
 
-  // 計算兩點之間的距離（使用 Haversine 公式）
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371 // 地球半徑（公里）
-    const dLat = (lat2 - lat1) * (Math.PI / 180)
-    const dLon = (lon2 - lon1) * (Math.PI / 180)
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * (Math.PI / 180)) *
-        Math.cos(lat2 * (Math.PI / 180)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    const distance = R * c
-    return distance
-  }
-
-  // 尋找附近商店
-  const findNearbyStores = (latitude, longitude) => {
-    if (!storesData?.stores || storesData.stores.length === 0) {
-      return []
-    }
-
-    if (searchRadius < 1) {
-      return [] // 當搜尋範圍小於1公里時，返回空列表
-    }
-
-    // 計算所有商店的距離
-    const storesWithDistance = storesData.stores
-      .filter((store) => store.lat && store.lng) // 確保商店有坐標
-      .map((store) => {
-        const distance = calculateDistance(
-          latitude,
-          longitude,
-          store.lat,
-          store.lng
-        )
-        return { ...store, distance }
-      })
-
-    // 按距離排序並根據搜尋範圍篩選
-    return storesWithDistance
-      .sort((a, b) => a.distance - b.distance)
-      .filter((store) => store.distance <= searchRadius)
-      .slice(0, 10) // 最多顯示10個最近的商店
-  }
-
-  // 獲取用戶位置 - 更新函數
-  const getUserLocation = () => {
-    // 重置錯誤狀態
-    setLocationError(null)
-    setNearbyStores([]) // 重置附近商店
-    // 設置正在獲取位置狀態
-    setIsGettingLocation(true)
-
-    // 檢查瀏覽器是否支持地理位置 API
-    if (!navigator.geolocation) {
-      setLocationError('您的瀏覽器不支持地理位置功能')
-      setIsGettingLocation(false)
-      return
-    }
-
-    // 獲取用戶位置
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        // 成功獲取位置
-        const { latitude, longitude } = position.coords
-
-        // 清除商店和地區選擇
-        setSelectedRegion('')
-        setSelectedStore('')
-
-        // 設置用戶位置
-        const userLocation = { lat: latitude, lng: longitude }
-        setSelectedLocation(userLocation)
-
-        // 查找附近商店但不直接顯示標記
-        const nearby = findNearbyStores(latitude, longitude)
-        setNearbyStores(nearby)
-
-        // 切換到地圖視圖模式，所有的地圖更新在視圖切換後進行
-        setViewMode('map')
-
-        // 延遲更新地圖相關狀態，確保視圖切換完成後再更新
-        setTimeout(() => {
-          // 只添加用戶位置標記，不添加店家標記
-          const markersArray = [
-            {
-              lat: latitude,
-              lng: longitude,
-              name: '您的位置',
-              isSelected: true,
-              id: 'user-location', // 使用固定的ID
-              isUserLocation: true,
-            },
-          ]
-
-          // 設置地圖中心和縮放級別
-          setMapCenter([latitude, longitude])
-          setMapZoom(15)
-
-          // 更新所有標記
-          setMapMarkers(markersArray)
-
-          // 完成位置獲取
-          setIsGettingLocation(false)
-        }, 200) // 稍微延長等待時間，確保視圖切換完成
-      },
-      (error) => {
-        // 處理錯誤
-        let errorMessage = '無法獲取您的位置'
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = '您拒絕了位置請求，請在瀏覽器設置中允許位置訪問'
-            break
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = '位置信息不可用'
-            break
-          case error.TIMEOUT:
-            errorMessage = '獲取位置超時'
-            break
-        }
-        setLocationError(errorMessage)
-        setIsGettingLocation(false)
-      },
-      {
-        enableHighAccuracy: true, // 高精度
-        timeout: 10000, // 10 秒超時
-        maximumAge: 0, // 不使用緩存
-      }
-    )
-  }
-
-  // 計算適合同時顯示用戶位置和店家位置的最佳縮放等級
-  const calculateOptimalZoom = (point1, point2) => {
-    if (!point1 || !point2) return 15 // 預設值
-
-    // 計算兩點的距離 (公里)
-    const distance = calculateDistance(
-      point1.lat,
-      point1.lng,
-      point2.lat,
-      point2.lng
-    )
-
-    // 根據距離決定縮放等級
-    if (distance < 0.5) return 16 // 500米以內
-    if (distance < 1) return 15 // 1公里以內
-    if (distance < 3) return 14 // 3公里以內
-    if (distance < 7) return 13 // 7公里以內
-    if (distance < 15) return 12 // 15公里以內
-    if (distance < 30) return 11 // 30公里以內
-    if (distance < 70) return 10 // 70公里以內
-    return 9 // 更大距離
-  }
-
-  // 計算地圖的中心點
-  const calculateMapCenter = (point1, point2) => {
-    if (!point1 || !point2) {
-      return point1
-        ? [point1.lat, point1.lng]
-        : point2
-        ? [point2.lat, point2.lng]
-        : [25.033, 121.5654] // 預設台北市中心
-    }
-
-    // 計算兩點的中心
-    return [(point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2]
-  }
-
-  // 處理附近商店點擊事件
-  const handleNearbyStoreClick = (store) => {
-    if (!store.lat || !store.lng) return // 如果沒有有效座標，直接返回
-
-    const storeMarkerId = `store-${store.id}`
-    const needsViewChange = viewMode === 'list'
-
-    // 設置選中的店家位置，用於繪製直線
-    setSelectedStoreLocation({
-      lat: store.lat,
-      lng: store.lng,
-      name: store.name,
-    })
-
-    // 如果是列表視圖，先切換到地圖視圖
-    if (needsViewChange) {
-      setViewMode('map')
-    }
-
-    // 使用 setTimeout 確保視圖切換完成後再更新地圖
-    setTimeout(
-      () => {
-        // 計算最佳縮放等級和中心點
-        const optimalZoom = selectedLocation
-          ? calculateOptimalZoom(selectedLocation, store)
-          : 16
-
-        const optimalCenter = selectedLocation
-          ? calculateMapCenter(selectedLocation, store)
-          : [store.lat, store.lng]
-
-        // 更新地圖中心和縮放等級
-        setMapCenter(optimalCenter)
-        setMapZoom(optimalZoom)
-
-        // 創建新的標記數組，只保留用戶位置和當前選中的店家
-        let newMarkers = []
-
-        // 添加用戶位置標記（如果存在）
-        if (selectedLocation) {
-          // 查找現有的用戶位置標記
-          const userMarker = mapMarkers.find(
-            (marker) => marker.id === 'user-location' || marker.isUserLocation
-          )
-
-          if (userMarker) {
-            // 如果已存在用戶標記，則保留它
-            newMarkers.push(userMarker)
-          } else {
-            // 否則創建新的用戶位置標記
-            newMarkers.push({
-              lat: selectedLocation.lat,
-              lng: selectedLocation.lng,
-              name: '您的位置',
-              isSelected: false,
-              id: 'user-location',
-              isUserLocation: true,
-            })
-          }
-        }
-
-        // 添加當前選中的店家標記
-        newMarkers.push({
-          lat: store.lat,
-          lng: store.lng,
-          name: store.name,
-          description: `${store.address} (${
-            store.phone
-          }) - 距離: ${store.distance.toFixed(2)}公里`,
-          isStore: true,
-          id: storeMarkerId,
-          distance: store.distance, // 存儲距離信息
-        })
-
-        // 更新標記數組
-        setMapMarkers(newMarkers)
-
-        // 滾動到地圖位置
-        if (fullMapRef.current) {
-          requestAnimationFrame(() => {
-            fullMapRef.current.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start',
-            })
-          })
-        }
-      },
-      needsViewChange ? 300 : 50
-    ) // 視圖切換需要更長的延遲
-  }
-
-  // 清除位置時也清除選中的店家位置
-  const clearLocation = () => {
-    setSelectedLocation(null)
-    setSelectedStoreLocation(null)
-    // 如果有選擇地區，恢復地區標記
-    if (selectedRegion && locationData[selectedRegion]) {
-      const { lat, lng } = locationData[selectedRegion]
-      // 添加一個唯一的 id，確保標記更新時彈出窗口會重新打開
-      setMapMarkers([
-        {
-          lat,
-          lng,
-          name: selectedRegion,
-          isRegion: true,
-          id: Date.now(),
-        },
-      ])
-    } else {
-      setMapMarkers([])
-    }
-  }
-
-  // 搜尋範圍變更處理函數
-  const handleSearchRadiusChange = (e) => {
-    const newRadius = parseInt(e.target.value)
-    setSearchRadius(newRadius)
-
-    // 如果搜尋範圍太小或沒有位置資訊，不進行更新
-    if (newRadius < 1 || !selectedLocation) {
-      return
-    }
-
-    // 保存當前地圖中心和縮放級別
-    const currentCenter = [...mapCenter]
-    const currentZoom = mapZoom
-
-    // 查找用戶位置標記
-    const userMarker = mapMarkers.find(
-      (marker) => marker.id === 'user-location'
-    )
-
-    // 獲取新的附近商店列表
-    const nearby = findNearbyStores(selectedLocation.lat, selectedLocation.lng)
-    setNearbyStores(nearby)
-
-    // 開始構建新的標記數組
-    let newMarkers = []
-
-    // 確保用戶位置標記始終存在
-    if (userMarker) {
-      newMarkers.push({ ...userMarker })
-    } else if (selectedLocation) {
-      // 如果沒有找到用戶位置標記但有位置資訊，創建新的
-      newMarkers.push({
-        lat: selectedLocation.lat,
-        lng: selectedLocation.lng,
-        name: '您的位置',
-        isSelected: true,
-        id: 'user-location',
-        isUserLocation: true,
-      })
-    }
-
-    // 添加附近商店標記
-    nearby.forEach((store) => {
-      const storeId = `store-${store.id}`
-      newMarkers.push({
-        lat: store.lat,
-        lng: store.lng,
-        name: store.name,
-        description: `${store.address} (${
-          store.phone
-        }) - 距離: ${store.distance.toFixed(2)}公里`,
-        isStore: true,
-        id: storeId,
-      })
-    })
-
-    // 一次性更新所有標記
-    setMapMarkers(newMarkers)
-  }
-
-  // 處理收藏功能
-  const handleToggleFavorite = async (event, petId) => {
-    event.preventDefault()
-    event.stopPropagation()
-
-    const userId = 1 // 暫時hardcode userId=1
-    const newFavoriteStatus = !favorites[petId]
-
-    try {
-      const response = await fetch('/api/pets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          petId,
-          action: newFavoriteStatus ? 'add' : 'remove',
-        }),
-      })
-
-      if (response.ok) {
-        setFavorites((prev) => ({
-          ...prev,
-          [petId]: newFavoriteStatus,
-        }))
-        // 重新獲取收藏列表
-        mutateFavorites()
-      } else {
-        console.error('收藏操作失敗')
-      }
-    } catch (error) {
-      console.error('收藏操作錯誤:', error)
-    }
-  }
-
-  // 從URL讀取查詢參數
+  // 更新 URL 查詢參數
   useEffect(() => {
-    // 只在客戶端環境中執行
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
+    const params = new URLSearchParams()
+    if (selectedSpecies) params.set('species', selectedSpecies)
+    if (selectedBreed) params.set('breed', selectedBreed)
+    if (selectedRegion) params.set('region', selectedRegion)
+    if (selectedStore) params.set('store', selectedStore)
+    if (showFavorites) params.set('favorites', 'true')
+    if (currentPage > 1) params.set('page', currentPage.toString())
 
-      // 從URL讀取分頁參數
-      const pageParam = params.get('page')
-      if (pageParam) {
-        const page = parseInt(pageParam)
-        if (!isNaN(page) && page > 0) {
-          setCurrentPage(page)
-        }
-      }
-    }
-  }, []) // 空依賴數組，僅在組件掛載時執行一次
+    window.history.replaceState(
+      {},
+      '',
+      `${window.location.pathname}?${params.toString()}`
+    )
+  }, [
+    selectedSpecies,
+    selectedBreed,
+    selectedRegion,
+    selectedStore,
+    showFavorites,
+    currentPage,
+  ])
 
   if (!petsData) return <div>載入中...</div>
   if (petsError) return <div>發生錯誤</div>
@@ -1093,7 +922,7 @@ export default function PetsPage() {
                       onChange={(e) => setSelectedSpecies(e.target.value)}
                     >
                       <option value="">請選擇物種</option>
-                      {speciesData?.species?.map((species) => (
+                      {speciesData?.map((species) => (
                         <option key={species.id} value={species.id}>
                           {species.name}
                         </option>
@@ -1105,21 +934,15 @@ export default function PetsPage() {
                     <Form.Label>品種</Form.Label>
                     {/* 使用自定義的可搜尋下拉選單 */}
                     <SearchableSelect
-                      options={varietiesData?.varieties || []}
+                      options={varietiesData || []}
                       value={selectedBreed}
                       onChange={setSelectedBreed}
                       placeholder="請選擇品種"
-                      disabled={
-                        !varietiesData ||
-                        !varietiesData.varieties ||
-                        varietiesData.varieties.length === 0
-                      }
+                      disabled={!varietiesData || varietiesData.length === 0}
                     />
                     <div className={styles.varietyInfo}>
                       {varietiesData
-                        ? `已找到 ${
-                            varietiesData.varieties?.length || 0
-                          } 個品種`
+                        ? `已找到 ${varietiesData.length} 個品種`
                         : '正在載入品種資料...'}
                     </div>
                   </Form.Group>
@@ -1187,7 +1010,9 @@ export default function PetsPage() {
                           max={100}
                           step={1}
                           value={searchRadius}
-                          onChange={handleSearchRadiusChange}
+                          onChange={(e) =>
+                            setSearchRadius(parseInt(e.target.value))
+                          }
                         />
                       </div>
                     )}
@@ -1206,7 +1031,11 @@ export default function PetsPage() {
                         className="mx-2"
                         variant="outline-secondary"
                         size="sm"
-                        onClick={clearLocation}
+                        onClick={() => {
+                          setSelectedLocation(null)
+                          setSelectedStoreLocation(null)
+                          setMapMarkers([])
+                        }}
                       >
                         清除位置
                       </Button>
@@ -1234,7 +1063,19 @@ export default function PetsPage() {
                     center={mapCenter}
                     zoom={mapZoom}
                     markers={mapMarkers}
-                    onLocationSelect={handleLocationSelect}
+                    onLocationSelect={(location) => {
+                      setSelectedLocation(location)
+                      setSelectedStoreLocation(null)
+                      setMapMarkers([
+                        {
+                          ...location,
+                          name: '已選擇的位置',
+                          isSelected: true,
+                          id: Date.now(),
+                        },
+                      ])
+                      setSelectedRegion('')
+                    }}
                     regionName={selectedRegion}
                     showLegend={false}
                     searchRadius={searchRadius}
@@ -1250,7 +1091,10 @@ export default function PetsPage() {
                       <NearbyStoresList
                         stores={nearbyStores}
                         searchRadius={searchRadius}
-                        handleNearbyStoreClick={handleNearbyStoreClick}
+                        handleNearbyStoreClick={(store) => {
+                          setSelectedStoreLocation(store)
+                          setViewMode('map')
+                        }}
                       />
                     </>
                   ) : (
@@ -1273,7 +1117,19 @@ export default function PetsPage() {
             center={mapCenter}
             zoom={mapZoom}
             markers={mapMarkers}
-            onLocationSelect={handleLocationSelect}
+            onLocationSelect={(location) => {
+              setSelectedLocation(location)
+              setSelectedStoreLocation(null)
+              setMapMarkers([
+                {
+                  ...location,
+                  name: '已選擇的位置',
+                  isSelected: true,
+                  id: Date.now(),
+                },
+              ])
+              setSelectedRegion('')
+            }}
             regionName={selectedRegion}
             showLegend={true}
             searchRadius={searchRadius}
@@ -1293,8 +1149,8 @@ export default function PetsPage() {
                 <div
                   className={`${styles.gridContainer} ${styles.flexContainer}`}
                 >
-                  {paginatedPets.length > 0 ? (
-                    paginatedPets.map((pet) => (
+                  {filteredPets.length > 0 ? (
+                    filteredPets.map((pet) => (
                       <Link
                         href={`/pets/${pet.id}`}
                         key={pet.id}
@@ -1302,8 +1158,8 @@ export default function PetsPage() {
                       >
                         <Card
                           image={
-                            pet.image_url ||
                             pet.main_photo ||
+                            pet.image_url ||
                             '/images/default_no_pet.jpg'
                           }
                           title={pet.name}
@@ -1349,81 +1205,88 @@ export default function PetsPage() {
               </div>
 
               {/* 分頁控制 */}
-              {filteredPets.length > itemsPerPage && (
-                <div className={styles.pagination}>
-                  <div className={styles.paginationInfo}>
-                    顯示 {filteredPets.length} 個結果中的
-                    {(currentPage - 1) * itemsPerPage + 1} -
-                    {Math.min(currentPage * itemsPerPage, filteredPets.length)}{' '}
-                    項
-                  </div>
-                  <div className={styles.paginationControls}>
-                    <Button
-                      variant="outline-secondary"
-                      onClick={() => handlePageChange(1)}
-                      disabled={currentPage === 1}
-                      className={styles.paginationButton}
-                    >
-                      首頁
-                    </Button>
-                    <Button
-                      variant="outline-secondary"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className={styles.paginationButton}
-                    >
-                      &laquo; 上一頁
-                    </Button>
+              {petsData.pagination &&
+                petsData.pagination.total > itemsPerPage && (
+                  <div className={styles.pagination}>
+                    <div className={styles.paginationInfo}>
+                      顯示 {petsData.pagination.total} 個結果中的
+                      {(currentPage - 1) * itemsPerPage + 1} -
+                      {Math.min(
+                        currentPage * itemsPerPage,
+                        petsData.pagination.total
+                      )}{' '}
+                      項
+                    </div>
+                    <div className={styles.paginationControls}>
+                      <Button
+                        variant="outline-secondary"
+                        onClick={() => handlePageChange(1)}
+                        disabled={currentPage === 1}
+                        className={styles.paginationButton}
+                      >
+                        首頁
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className={styles.paginationButton}
+                      >
+                        &laquo; 上一頁
+                      </Button>
 
-                    {/* 頁碼按鈕 */}
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      // 計算要顯示的頁碼，確保當前頁在中間
-                      let pageNum
-                      if (totalPages <= 5) {
-                        pageNum = i + 1
-                      } else if (currentPage <= 3) {
-                        pageNum = i + 1
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i
-                      } else {
-                        pageNum = currentPage - 2 + i
-                      }
-
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={
-                            currentPage === pageNum
-                              ? 'primary'
-                              : 'outline-secondary'
+                      {/* 頁碼按鈕 */}
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          // 計算要顯示的頁碼，確保當前頁在中間
+                          let pageNum
+                          if (totalPages <= 5) {
+                            pageNum = i + 1
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i
+                          } else {
+                            pageNum = currentPage - 2 + i
                           }
-                          onClick={() => handlePageChange(pageNum)}
-                          className={styles.paginationButton}
-                        >
-                          {pageNum}
-                        </Button>
-                      )
-                    })}
 
-                    <Button
-                      variant="outline-secondary"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className={styles.paginationButton}
-                    >
-                      下一頁 &raquo;
-                    </Button>
-                    <Button
-                      variant="outline-secondary"
-                      onClick={() => handlePageChange(totalPages)}
-                      disabled={currentPage === totalPages}
-                      className={styles.paginationButton}
-                    >
-                      末頁
-                    </Button>
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={
+                                currentPage === pageNum
+                                  ? 'primary'
+                                  : 'outline-secondary'
+                              }
+                              onClick={() => handlePageChange(pageNum)}
+                              className={styles.paginationButton}
+                            >
+                              {pageNum}
+                            </Button>
+                          )
+                        }
+                      )}
+
+                      <Button
+                        variant="outline-secondary"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className={styles.paginationButton}
+                      >
+                        下一頁 &raquo;
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className={styles.paginationButton}
+                      >
+                        末頁
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
 
             {/* 最新上架區 */}
@@ -1451,8 +1314,8 @@ export default function PetsPage() {
                         >
                           <Card
                             image={
-                              pet.image_url ||
                               pet.main_photo ||
+                              pet.image_url ||
                               '/images/default_no_pet.jpg'
                             }
                             title={pet.name}
