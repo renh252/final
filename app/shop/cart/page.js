@@ -295,7 +295,7 @@ export default function CartPage() {
               </div>
               <div className={styles.item}>
                 <p>折扣</p>
-                <p>- {totalAmount}</p>
+                <p>- {totalDiscount}</p>
               </div>
               {/* <div className={styles.item}>
                 <p>運費</p>
