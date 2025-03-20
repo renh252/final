@@ -11,14 +11,18 @@ import { useRouter } from 'next/navigation';// 導向到登入頁面
 
 
 export default function MemberLayout({ children }) {
-  const { logout } = useAuth(); // 從 useAuth 中獲取 logout
+  const { user,logout } = useAuth(); // 從 useAuth 中獲取 logout
   const router = useRouter();
 
   const handleLogout = () => {
     logout(); // 呼叫登出函數
-    router.push('/login'); // 確保登出後導向登入頁面
+    router.push('/member/MemberLogin/login'); // 確保登出後導向登入頁面
   };
 
+  if (!user) {
+    return <main>{children}</main>; // 如果使用者未登入，只渲染 children
+  }
+  
   return (
     <div className="member-layout">
       <div className={styles.logos_grid}>

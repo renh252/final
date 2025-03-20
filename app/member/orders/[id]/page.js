@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react'
 
-export default function LogoutPage(props) {
+export default function IdPage(props) {
   return (
     <>
-      <div>會員登出</div>
+      <div>Id Page</div>
     </>
   )
 }
