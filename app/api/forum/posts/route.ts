@@ -128,16 +128,35 @@ export async function GET(request: Request) {
 
     console.log('總文章數:', total)
 
-    return NextResponse.json({
+    // 在回傳前確保資料能被正確序列化
+    const responseData = {
       status: 'success',
       data: {
-        posts,
+        posts: posts.map(post => ({
+          ...post,
+          // 確保 content 能被正確序列化
+          content: typeof post.content === 'string' ? post.content : String(post.content),
+          // 將日期轉為 ISO 字串格式
+          created_at: post.created_at instanceof Date ? post.created_at.toISOString() : post.created_at,
+          updated_at: post.updated_at instanceof Date ? post.updated_at.toISOString() : post.updated_at
+        })),
         pagination: {
           total,
           page,
           limit,
           totalPages: Math.ceil(total / limit)
         }
+      }
+    }
+
+    // 新增更多日誌以便追蹤
+    console.log('Response payload sample:', JSON.stringify(responseData).substring(0, 200) + '...')
+
+    // 明確設定內容類型
+    return new NextResponse(JSON.stringify(responseData), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
       }
     })
   } catch (error) {
@@ -220,3 +239,22 @@ export async function POST(request: Request) {
     )
   }
 }
+
+const fetchPosts = async () => {
+  try {
+    const response = await fetch('/api/forum/posts?sort=latest&page=1&limit=10');
+    const contentType = response.headers.get('content-type');
+    
+    // 檢查回應類型
+    console.log('Response content type:', contentType);
+    
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error(`非預期的回應類型: ${contentType}`);
+    }
+
+    const data = await response.json();
+    // 處理資料...
+  } catch (error) {
+    console.error('獲取文章失敗:', error);
+  }
+};
