@@ -130,9 +130,9 @@ export async function POST(req) {
   // const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
 
   // 使用公開網域執行(ngrok)，無法運行請切換成localhost版本
-  const ReturnURL = ` https://e306-122-121-193-230.ngrok-free.app/api/ecpay/notify`
+  const ReturnURL = `  https://6b16-36-239-230-138.ngrok-free.app/api/ecpay/notify`
   const OrderResultURL =
-    ' https://e306-122-121-193-230.ngrok-free.app/api/ecpay/callback'
+    '  https://6b16-36-239-230-138.ngrok-free.app/api/ecpay/callback'
 
   const stage = isStage ? '-stage' : ''
   const algorithm = 'sha256'
