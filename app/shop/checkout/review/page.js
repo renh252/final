@@ -19,31 +19,28 @@ export default function ReviewPage() {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const { data, error } = useSWR('/api/shop/cart', fetcher)
-  // 計算總金額和總折扣
-  const { totalDiscount, totalOriginalPrice } = useMemo(() => {
-    if (!data?.data) return { totalDiscount: 0, totalOriginalPrice: 0 }
-    return data.data.reduce(
-      (acc, item) => {
-        const originalPrice = item.price * item.quantity
-        const discountedPrice = item.promotion
-          ? Math.ceil(
-              (item.price * (100 - item.promotion.discount_percentage)) / 100
-            ) * item.quantity
-          : originalPrice
 
-        acc.totalOriginalPrice += originalPrice
-        acc.totalDiscount += originalPrice - discountedPrice
-
-        return acc
-      },
-      { totalDiscount: 0, totalOriginalPrice: 0 }
-    )
-  }, [data])
-
-  const totalAmount =
-    checkoutData?.delivery !== '宅配'
-      ? totalOriginalPrice - totalDiscount - 60
-      : totalOriginalPrice - totalDiscount
+  const [productPrice, setProductPrice] = useState({
+    shippingFee: 0,
+    totalAmount: 0,
+    totalDiscount: 0,
+    totalOriginalPrice: 0
+  })
+  useEffect(() => {
+      if (!checkoutData?.delivery) {
+        router.push('/shop/checkout')
+        setIsLoading(false)
+      } else {
+        // 从 localStorage 获取数据
+        const storedProductPrice = localStorage.getItem('productPrice')
+        if (storedProductPrice) {
+          setProductPrice(JSON.parse(storedProductPrice))
+        }
+      }
+    
+  }, [checkoutData, router])
+  
+  
       
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -76,7 +73,7 @@ export default function ReviewPage() {
 
     const orderData = {
       orderType: 'shop',
-      amount: totalAmount || 0, // ✅ 確保金額存在
+      amount: productPrice.totalAmount || 0, // ✅ 確保金額存在
       items: '商城商品',
       userId: checkoutData?.userId || 1, // ✅ 確保 userId 正確
       ChoosePayment: 'Credit', // ✅ 預設信用卡
@@ -176,7 +173,7 @@ export default function ReviewPage() {
                   </div>
                   <div className={styles.groupBody}>
                     <div>{checkoutData?.payment_method}</div>
-                    <div>{totalAmount}</div>
+                    <div>{productPrice.totalAmount}</div>
                     <div>
                       {checkoutData?.invoice_method +
                         checkoutData?.taxID_number +
@@ -259,8 +256,8 @@ export default function ReviewPage() {
                             width={100}
                             height={100}
                           />
+                          {product.product_name}
                         </div>
-                        {product.product_name}
                         <div>{product.variant_name}</div>
                         <div>
                           {product?.promotion ? (
@@ -301,25 +298,25 @@ export default function ReviewPage() {
                 })}
               </div>
               <div className={styles.containFooter}>
+              <div>
                 <div>
                   <p>小計 :</p>
-                  <p>$ {totalOriginalPrice}</p>
+                  <p>$ {productPrice.totalOriginalPrice}</p>
                 </div>
                 <div>
                   <p>優惠 :</p>
-                  <p>- $ {totalDiscount}</p>
+                  <p>$ {productPrice.totalDiscount}</p>
                 </div>
                 <div>
                   <p>運費 :</p>
-                  <p>- $ {checkoutData?.delivery ? 60 : 0}</p>
+                  <p>$ {productPrice.shippingFee}</p>
                 </div>
+              </div>
+                <hr />
                 <div>
                   <p>合計 :</p>
                   <p>
-                    ${' '}
-                    {checkoutData?.delivery !== '宅配'
-                      ? totalOriginalPrice - totalDiscount - 60
-                      : totalOriginalPrice - totalDiscount}
+                    ${productPrice.totalAmount}
                   </p>
                 </div>
               </div>
