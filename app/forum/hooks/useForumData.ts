@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 export interface Category {
@@ -27,6 +27,7 @@ export interface Post {
   author_avatar: string | null;
   like_count: number;
   comment_count: number;
+  view_count: number;
   tags: string;
 }
 
@@ -46,9 +47,8 @@ export interface ForumFilters {
   limit: number;
 }
 
-export function useForumData() {
+export function useForumData(filters: ForumFilters) {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
     total: 0,
@@ -56,46 +56,20 @@ export function useForumData() {
     limit: 10,
     totalPages: 0
   });
-  const [loading, setLoading] = useState({
-    categories: false,
-    tags: false,
-    posts: false
-  });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCategories = async () => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(prev => ({ ...prev, categories: true }));
-      const { data } = await axios.get('/api/forum/categories');
-      if (data.status === 'success') {
-        setCategories(data.data);
+      // 獲取分類
+      const categoriesResponse = await axios.get('/api/forum/categories');
+      if (categoriesResponse.data.status === 'success') {
+        setCategories(categoriesResponse.data.data);
       }
-    } catch (err) {
-      setError('無法載入分類');
-      console.error('Error fetching categories:', err);
-    } finally {
-      setLoading(prev => ({ ...prev, categories: false }));
-    }
-  };
 
-  const fetchTags = async () => {
-    try {
-      setLoading(prev => ({ ...prev, tags: true }));
-      const { data } = await axios.get('/api/forum/tags');
-      if (data.status === 'success') {
-        setTags(data.data);
-      }
-    } catch (err) {
-      setError('無法載入標籤');
-      console.error('Error fetching tags:', err);
-    } finally {
-      setLoading(prev => ({ ...prev, tags: false }));
-    }
-  };
-
-  const fetchPosts = async (filters: ForumFilters) => {
-    try {
-      setLoading(prev => ({ ...prev, posts: true }));
+      // 獲取文章列表
       const params = new URLSearchParams();
       if (filters.category) params.append('category', filters.category);
       if (filters.tags?.length) params.append('tags', filters.tags.join(','));
@@ -104,52 +78,28 @@ export function useForumData() {
       params.append('page', filters.page.toString());
       params.append('limit', filters.limit.toString());
 
-      const { data } = await axios.get(`/api/forum/posts?${params.toString()}`);
-      if (data.status === 'success') {
-        setPosts(data.data.posts);
-        setPagination(data.data.pagination);
+      const postsResponse = await axios.get(`/api/forum/posts?${params}`);
+      if (postsResponse.data.status === 'success') {
+        setPosts(postsResponse.data.data);
+        setPagination(postsResponse.data.pagination);
       }
-    } catch (err) {
-      setError('無法載入文章');
-      console.error('Error fetching posts:', err);
+    } catch (err: any) {
+      setError(err.response?.data?.message || '載入資料失敗');
     } finally {
-      setLoading(prev => ({ ...prev, posts: false }));
+      setLoading(false);
     }
-  };
-
-  const createPost = async (postData: {
-    title: string;
-    content: string;
-    categorySlug: string;
-    tags?: number[];
-  }) => {
-    try {
-      const { data } = await axios.post('/api/forum/posts', postData);
-      if (data.status === 'success') {
-        return data.data.id;
-      }
-      throw new Error(data.message);
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.data?.message) {
-        throw new Error(err.response.data.message);
-      }
-      throw err;
-    }
-  };
+  }, [filters]);
 
   useEffect(() => {
-    fetchCategories();
-    fetchTags();
-  }, []);
+    fetchData();
+  }, [fetchData]);
 
   return {
     categories,
-    tags,
     posts,
     pagination,
     loading,
     error,
-    fetchPosts,
-    createPost
+    refetch: fetchData
   };
 }
