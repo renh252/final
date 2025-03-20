@@ -36,7 +36,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    router.push('/login');
+    router.push('/member/MemberLogin/login');
+  };
+
+  const updateUser = (updatedUser) => {
+    localStorage.setItem('user', JSON.stringify(updatedUser)); // 更新 localStorage
+    setUser(updatedUser); // 更新 Context 中的 user 狀態
   };
 
   const value = {
@@ -44,6 +49,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     loading,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
