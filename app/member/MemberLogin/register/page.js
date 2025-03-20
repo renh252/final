@@ -6,17 +6,7 @@ import styles from './Register.module.css';
 export default function RegisterPage() {
   return (
     <>
-          <header className={styles.headerSection}>
-            <img
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/c961159506ebe222e2217510289e3eee7203e02a0affe719332fe812045a0061?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
-              alt="Header background"
-              className={styles.headerBackground}
-            />
-            <h1 className={styles.pageTitle}>會員註冊</h1>
-          </header>
-          
-
-            <div className={styles.formContainer}>
+                      <div className={styles.formContainer}>
 
               <h2 className={styles.sectionTitle}>快速註冊</h2>
               <div className={styles.form}>

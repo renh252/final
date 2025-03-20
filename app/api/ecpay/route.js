@@ -87,7 +87,7 @@ export async function POST(req) {
     if (!userId || !recipientName || !recipientPhone || !recipientEmail) {
       return NextResponse.json({ error: '訂單資料不完整' }, { status: 400 })
     }
-
+    // 新增訂單
     let tableInsertResult = await db.query(
       `INSERT INTO orders (order_id, user_id, total_price, order_status, payment_method, payment_status, invoice_method, invoice, mobile_barcode, taxID_number, recipient_name, recipient_phone, recipient_email, remark, shipping_method, shipping_address, tracking_number, created_at, updated_at) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
@@ -112,6 +112,68 @@ export async function POST(req) {
       ]
     )
 
+    // 從購物車獲取商品並插入 order_items
+    const [cartItems] = await db.execute(`
+      SELECT 
+        cart.id AS cart_id,
+        cart.product_id,
+        cart.variant_id,
+        cart.quantity,
+        COALESCE(variants.price, products.price) AS price,
+        promo.discount_percentage
+      FROM 
+        shopping_cart AS cart
+      JOIN 
+        products ON cart.product_id = products.product_id
+      LEFT JOIN 
+        product_variants AS variants ON cart.variant_id = variants.variant_id
+      LEFT JOIN (
+        SELECT 
+          pp.product_id,
+          p.promotion_id,
+          p.discount_percentage,
+          ROW_NUMBER() OVER (PARTITION BY pp.product_id ORDER BY p.start_date DESC) as rn
+        FROM 
+          promotion_products pp
+        JOIN 
+          promotions p ON pp.promotion_id = p.promotion_id
+        WHERE 
+          p.start_date <= CURDATE() AND (p.end_date IS NULL OR p.end_date >= CURDATE())
+      ) AS promo ON cart.product_id = promo.product_id AND promo.rn = 1
+      WHERE 
+        cart.user_id = ?
+    `, [userId]);
+ 
+    for (const item of cartItems) {
+      // 计算折扣后的价格
+      const discountedPrice = item.discount_percentage 
+        ? Math.ceil(item.price * (1 - item.discount_percentage / 100)) 
+        : item.price;
+
+      await db.execute(
+        `INSERT INTO order_items(
+        order_id, 
+        product_id, 
+        variant_id,
+        quantity,
+        price) 
+        VALUES (?, ?, ?, ?, ?)`,
+        [
+          MerchantTradeNo, 
+          item.product_id,
+          item.variant_id, 
+          item.quantity,
+          discountedPrice
+        ]
+      );
+    }
+
+    // 清空購物車
+    // await db.query('DELETE FROM cart WHERE user_id = ?', [userId])
+
+    
+
+
     TradeDesc = '商城購物支付'
   } else {
     return NextResponse.json({ error: '未知的 orderType' }, { status: 400 })
@@ -130,9 +192,9 @@ export async function POST(req) {
   // const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
 
   // 使用公開網域執行(ngrok)，無法運行請切換成localhost版本
-  const ReturnURL = `  https://6b16-36-239-230-138.ngrok-free.app/api/ecpay/notify`
+  const ReturnURL = `  https://5173-36-239-230-138.ngrok-free.app/api/ecpay/notify`
   const OrderResultURL =
-    '  https://6b16-36-239-230-138.ngrok-free.app/api/ecpay/callback'
+    '  https://5173-36-239-230-138.ngrok-free.app/api/ecpay/callback'
 
   const stage = isStage ? '-stage' : ''
   const algorithm = 'sha256'
