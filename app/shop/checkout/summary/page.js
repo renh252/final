@@ -11,8 +11,20 @@ export default function SummaryPage() {
   const [orderData, setOrderData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [productPrice, setProductPrice] = useState({
+    totalOriginalPrice: 0,
+    totalDiscount: 0,
+    shippingFee: 0,
+    totalAmount: 0,
+  })
 
   useEffect(() => {
+    // 🔹 讀取 `localStorage` 內的金額資訊
+    const storedPrice = localStorage.getItem('productPrice')
+    if (storedPrice) {
+      setProductPrice(JSON.parse(storedPrice))
+    }
+
     if (!orderId) {
       setError('找不到訂單編號')
       setIsLoading(false)
@@ -21,7 +33,7 @@ export default function SummaryPage() {
 
     const fetchOrderData = async () => {
       try {
-        const response = await fetch(`/api/shop/checkout/order/${orderId}`)
+        const response = await fetch(`/api/shop/order/${orderId}`)
         if (!response.ok) {
           throw new Error('無法獲取訂單資料')
         }
@@ -43,31 +55,27 @@ export default function SummaryPage() {
 
   return (
     <div className={styles.container}>
-      {/* 訂單成功標誌 */}
-      <MdCheckCircle className={styles.successIcon} />
-      <h1 className={styles.title}>訂單完成</h1>
-
-      {/* 訂單資訊 */}
-      <div className={styles.orderInfo}>
-        <p>
-          <strong>訂單編號：</strong>
-          {orderData.orderId}
-        </p>
-        <p>
-          <strong>總金額：</strong>${orderData.totalAmount}
-        </p>
-        <p>
-          <strong>付款方式：</strong>
-          {orderData.paymentMethod}
-        </p>
-        <p>
-          <strong>配送方式：</strong>
-          {orderData.shippingMethod}
-        </p>
-        <p>
-          <strong>付款狀態：</strong>
-          {orderData.paymentStatus}
-        </p>
+      <div className={styles.infoContainer}>
+        {/* 訂單成功標誌 */}
+        <div>
+          <MdCheckCircle className={styles.successIcon} />
+          <h1 className={styles.title}>訂購完成</h1>
+        </div>
+        {/* 按鈕區塊 */}
+        <div className={styles.buttonGroup}>
+          <button
+            className={styles.button}
+            onClick={() => (window.location.href = '/orders')}
+          >
+            查看訂單
+          </button>
+          <button
+            className={styles.button}
+            onClick={() => (window.location.href = '/shop')}
+          >
+            繼續逛逛
+          </button>
+        </div>
       </div>
 
       {/* 收件人資訊表格 */}
@@ -92,20 +100,24 @@ export default function SummaryPage() {
         </table>
       </div>
 
-      {/* 按鈕區塊 */}
-      <div className={styles.buttonGroup}>
-        <button
-          className={styles.button}
-          onClick={() => (window.location.href = '/orders')}
-        >
-          查看訂單
-        </button>
-        <button
-          className={styles.button}
-          onClick={() => (window.location.href = '/shop')}
-        >
-          繼續逛逛
-        </button>
+      {/* 訂單金額明細（從 localStorage 取得） */}
+      <div className={styles.summaryContainer}>
+        <div className={styles.summaryRow}>
+          <span>小計</span>
+          <span>${productPrice.totalOriginalPrice}</span>
+        </div>
+        <div className={styles.summaryRow}>
+          <span>優惠</span>
+          <span>- ${productPrice.totalDiscount}</span>
+        </div>
+        <div className={styles.summaryRow}>
+          <span>運費</span>
+          <span>${productPrice.shippingFee}</span>
+        </div>
+        <div className={styles.summaryRow}>
+          <span>合計</span>
+          <span>${orderData.totalAmount}</span>
+        </div>
       </div>
     </div>
   )
