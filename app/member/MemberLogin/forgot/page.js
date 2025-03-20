@@ -32,7 +32,6 @@ export default function ResetPasswordPage() {
 
     return (
         <>
-            {/* ... 其他程式碼 ... */}
             <div className={styles.formContainer}>
                 <h2 className={styles.sectionTitle}>重設密碼</h2>
                 <div className={styles.form}>

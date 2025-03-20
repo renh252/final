@@ -1,47 +1,21 @@
+//app/member/page.js
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import styles from "./member.module.css";
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/context/AuthContext';
 
 export default function MemberPage() {
-  const [userData, setUserData] = useState(null);
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      // 如果沒有 token，表示使用者未登入，導向登入頁面
-      router.push('/login');
-      return;
+    if (!loading && !user) {
+      router.push('/member/MemberLogin/login');
     }
-
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch('/api/user', { // 修改為 /api/user
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          // 如果 API 返回錯誤，表示 token 無效或過期，導向登入頁面
-          router.push('/login');
-          return;
-        }
-
-        const data = await response.json();
-        setUserData(data);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        router.push('/login');
-      }
-    };
-
-    fetchUserData();
-  }, [router]);
+  }, [user, loading, router]);
 
   const handleNicknameChange = async (event) => {
     const newNickname = event.target.value;
@@ -56,7 +30,10 @@ export default function MemberPage() {
         body: JSON.stringify({ nickname: newNickname }),
       });
       if (response.ok) {
-        setUserData(prevData => ({ ...prevData, nickname: newNickname }));
+        // 更新 Context 中的 user 資料
+        const updatedUser = { ...user, nickname: newNickname };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        // 觸發重新渲染，確保頁面顯示最新暱稱 (如果你的 AuthContext 有提供更新user的方法，可以使用context提供的方法更新)
       } else {
         throw new Error('Failed to update nickname');
       }
@@ -65,9 +42,10 @@ export default function MemberPage() {
     }
   };
 
-  if (!userData) {
-    // 如果 userData 為 null，表示正在載入或驗證，顯示載入中訊息或不顯示任何內容
-    return <div>載入中...</div>;
+
+
+  if (!user) {
+    return null;
   }
 
   return (
@@ -77,7 +55,7 @@ export default function MemberPage() {
           <section className={styles.profile_section}>
             <div className={styles.profile_photos}>
               <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/c07e5bb4325caeb94efd091416f6964123f3611a" alt="大頭照" className="profile-photo" />
-              <select value={userData?.nickname || ""} onChange={handleNicknameChange}>
+              <select value={user?.nickname || ""} onChange={handleNicknameChange}>
                 <option value="">暱稱</option>
                 <option value="愛心小天使">愛心小天使</option>
                 <option value="乾爹乾媽">乾爹乾媽</option>
@@ -89,15 +67,15 @@ export default function MemberPage() {
             <div className={styles.profile_content}>
               <h3 className={styles.profile_title}>個人資料</h3>
               <div className={styles.profile_group}>
-                <label className={styles.form_label}>姓名 : {userData?.user_name}</label>
+                <label className={styles.form_label}>姓名 : {user?.user_name}</label>
                 <hr />
-                <label className={styles.form_label}>電話 : {userData?.user_phone}</label>
+                <label className={styles.form_label}>電話 : {user?.user_number}</label>
                 <hr />
-                <label className={styles.form_label}>生日 : {userData?.user_birthday}</label>
+                <label className={styles.form_label}>生日 : {user?.user_birthday}</label>
                 <hr />
-                <label className={styles.form_label}>論壇ID : {userData?.user_id}</label>
+                <label className={styles.form_label}>論壇ID : {user?.user_id}</label>
                 <hr />
-                <label className={styles.form_label}>地址 : {userData?.user_address}</label>
+                <label className={styles.form_label}>地址 : {user?.user_address}</label>
                 <hr />
               </div>
 
