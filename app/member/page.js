@@ -1,43 +1,47 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import styles from "./member.module.css";
+import { useRouter } from 'next/navigation';
 
 export default function MemberPage() {
   const [userData, setUserData] = useState(null);
-  
+  const router = useRouter();
+
   useEffect(() => {
-    // 從API獲取用戶數據
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      // 如果沒有 token，表示使用者未登入，導向登入頁面
+      router.push('/login');
+      return;
+    }
+
     const fetchUserData = async () => {
       try {
-        // 從 localStorage 獲取 token
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          console.error('No token found, user might not be logged in');
-          return;
-        }
-
-        const response = await fetch('/api/member', {
+        const response = await fetch('/api/user', { // 修改為 /api/user
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch user data');
+          // 如果 API 返回錯誤，表示 token 無效或過期，導向登入頁面
+          router.push('/login');
+          return;
         }
 
         const data = await response.json();
         setUserData(data);
       } catch (error) {
         console.error('Error fetching user data:', error);
+        router.push('/login');
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [router]);
 
   const handleNicknameChange = async (event) => {
     const newNickname = event.target.value;
@@ -61,6 +65,11 @@ export default function MemberPage() {
     }
   };
 
+  if (!userData) {
+    // 如果 userData 為 null，表示正在載入或驗證，顯示載入中訊息或不顯示任何內容
+    return <div>載入中...</div>;
+  }
+
   return (
     <>
       <main className={styles.profile_page}>
@@ -76,7 +85,7 @@ export default function MemberPage() {
                 <option value="超級拔鼻媽咪">超級拔鼻媽咪</option>
               </select>
             </div>
-                      
+
             <div className={styles.profile_content}>
               <h3 className={styles.profile_title}>個人資料</h3>
               <div className={styles.profile_group}>
@@ -91,7 +100,7 @@ export default function MemberPage() {
                 <label className={styles.form_label}>地址 : {userData?.user_address}</label>
                 <hr />
               </div>
-              
+
               <div className={styles.edit_but}>
                 <button
                   className="button"
@@ -104,5 +113,5 @@ export default function MemberPage() {
         </div>
       </main>
     </>
-  )
+  );
 }
