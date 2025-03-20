@@ -155,6 +155,7 @@
       display: flex;
       flex-direction: column;
       align-items: end;
+      font-size: 36px;
       
       hr{
         width: 100%;
@@ -162,19 +163,44 @@
         border: 1px solid #fff;
       }
 
-      >div{
-        width: 200px;
+      >div:first-child{
+        min-width: 250px;
+        >div{
+          display: flex;
+          flex-direction: row;
+          justify-content: start;
+          gap: 20px;
+  
+          >:first-child{
+            width: 100px;
+          }
+        }
+      }
+      >div:last-child{
+        min-width: 250px;
         display: flex;
         flex-direction: row;
         justify-content: start;
-
-        >:first-child{
-          width: 100px;
-        }
+        gap: 20px;
       }
     }
 
   }
 
+  .buttons{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 100px;
+    button{
+      width: 200px;
+      padding: 12px 30px;
+      background-color: rgba(205, 162, 116, 1);
+      color: #fff;
+      border: none;
+      border-radius: 57px;
+    }
+  }
 
 }
