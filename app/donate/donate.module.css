@@ -157,6 +157,81 @@
   margin: 15px;
 }
 
+.searchableDropdown {
+  position: relative;
+  width: 150px;
+}
+
+.input {
+  width: 100%;
+  height: 38px;
+  padding: 10px;
+  font-size: 18px;
+  border: 2px solid #092c4c;
+  background-color: #092c4c;
+  border-radius: 4px;
+  outline: none;
+}
+
+.list {
+  position: absolute;
+  width: 100%;
+  background-color: #092c4c;
+  border: 1px solid #ccc;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.list li {
+  padding: 10px;
+  cursor: pointer;
+  list-style: none;
+  text-align: center;
+  font-size: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.list li:hover,
+.highlighted {
+  background-color: #1d62ce;
+  color: white;
+}
+.input {
+  width: 150px; /* 設定寬度 */
+  background-color: #092c4c; /* 背景色 */
+  color: white; /* 文字顏色變白 */
+  text-align: center; /* 文字置中 */
+  border: 1px solid #ccc; /* 邊框顏色 */
+  padding: 8px;
+  border-radius: 5px; /* 圓角 */
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255); /* 淡色的佔位文字 */
+  text-align: center; /* 讓佔位文字也置中 */
+  font-size: 18px;
+}
+
+.noResults {
+  padding: 10px;
+  text-align: center;
+  color: gray;
+}
+
+.selectPetButton {
+  width: 100%;
+  background-color: #092c4c;
+  border: none;
+  color: white;
+  font-size: 18px;
+}
+.selectPetButton:hover {
+  background-color: #1d62ce;
+}
+
 /* 原始樣式保持不變，針對手機板進行調整 */
 
 @media (max-width: 768px) {
