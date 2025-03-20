@@ -1,0 +1,41 @@
+.containTitle{
+    >:first-child{
+      width: 50px;
+    }
+    >:nth-child(2){
+      width: 30%;
+    }
+    >div{
+      width: 20%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+    }
+}
+.containBody{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  >div{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+
+    >:first-child{
+      width: 50px;
+    }
+    >:nth-child(2){
+      width: 30%;
+    }
+    >div{
+      width: 20%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+}
