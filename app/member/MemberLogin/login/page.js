@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/app/context/AuthContext'; // 引入 AuthContext
 import styles from './login.module.css';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -8,9 +9,11 @@ import Swal from 'sweetalert2';
 export default function MemberPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const { login } = useAuth(); // 使用 Context 的 login 函式
   const router = useRouter();
+  console.log(useAuth());
 
+  const [rememberMe, setRememberMe] = useState(false);
   useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
@@ -27,7 +30,7 @@ export default function MemberPage() {
         title: '錯誤',
         text: '請填寫所有欄位',
         icon: 'error',
-        confirmButtonText: '確定'
+        confirmButtonText: '確定',
       });
       return;
     }
@@ -38,34 +41,33 @@ export default function MemberPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, rememberMe }),
+        body: JSON.stringify({ email, password }), // 移除 rememberMe，因為 API 不需要
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        localStorage.setItem('token', data.data.token);
-        localStorage.setItem('user', JSON.stringify(data.data.user));
+        login(data.data); // 使用 Context 的 login 函式
         if (rememberMe) {
           localStorage.setItem('rememberedEmail', email);
         } else {
           localStorage.removeItem('rememberedEmail');
         }
-        
+
         await Swal.fire({
           title: '登入成功！',
           icon: 'success',
           timer: 1500,
-          showConfirmButton: false
+          showConfirmButton: false,
         });
-        
-        router.push('/member/MemberCenter');
+
+        router.push('/member');
       } else {
         await Swal.fire({
           title: '登入失敗',
           text: data.message || '請檢查您的電子郵件和密碼。',
           icon: 'error',
-          confirmButtonText: '確定'
+          confirmButtonText: '確定',
         });
       }
     } catch (error) {
@@ -74,22 +76,13 @@ export default function MemberPage() {
         title: '錯誤',
         text: '登入時發生錯誤，請稍後再試。',
         icon: 'error',
-        confirmButtonText: '確定'
+        confirmButtonText: '確定',
       });
     }
   };
 
   return (
     <>
-      <header className={styles.headerSection}>
-        <img
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/c961159506ebe222e2217510289e3eee7203e02a0affe719332fe812045a0061?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
-          alt="Header background"
-          className={styles.headerBackground}
-        />
-        <h1 className={styles.pageTitle}>會員登入</h1>
-      </header>
-
       <div className={styles.formContainer}>
         <h2 className={styles.sectionTitle}>登入會員</h2>
         <form onSubmit={handleSubmit} className={styles.form}>

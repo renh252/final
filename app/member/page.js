@@ -13,7 +13,7 @@ export default function MemberPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.push('/member/MemberLogin/login');
     }
   }, [user, loading, router]);
 
