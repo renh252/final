@@ -298,6 +298,7 @@ export default function ReviewPage() {
                 })}
               </div>
               <div className={styles.containFooter}>
+              <div>
                 <div>
                   <p>小計 :</p>
                   <p>$ {productPrice.totalOriginalPrice}</p>
@@ -310,6 +311,7 @@ export default function ReviewPage() {
                   <p>運費 :</p>
                   <p>$ {productPrice.shippingFee}</p>
                 </div>
+              </div>
                 <hr />
                 <div>
                   <p>合計 :</p>
