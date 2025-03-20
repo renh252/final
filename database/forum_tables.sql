@@ -1,6 +1,8 @@
 -- 刪除現有的表（如果存在）
 DROP TABLE IF EXISTS forum_likes;
 DROP TABLE IF EXISTS forum_comments;
+DROP TABLE IF EXISTS forum_post_tags;
+DROP TABLE IF EXISTS forum_tags;
 DROP TABLE IF EXISTS forum_posts;
 DROP TABLE IF EXISTS forum_categories;
 
@@ -23,7 +25,6 @@ CREATE TABLE IF NOT EXISTS forum_posts (
     content TEXT NOT NULL,
     user_id INT NOT NULL,
     category_id INT NOT NULL,
-    tags VARCHAR(255),
     view_count INT DEFAULT 0,
     like_count INT DEFAULT 0,
     comment_count INT DEFAULT 0,
@@ -31,6 +32,21 @@ CREATE TABLE IF NOT EXISTS forum_posts (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES forum_categories(id) ON DELETE CASCADE
+);
+
+-- 創建論壇標籤表
+CREATE TABLE IF NOT EXISTS forum_tags (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- 創建論壇文章與標籤的關聯表
+CREATE TABLE IF NOT EXISTS forum_post_tags (
+    post_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    PRIMARY KEY (post_id, tag_id),
+    FOREIGN KEY (post_id) REFERENCES forum_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES forum_tags(id) ON DELETE CASCADE
 );
 
 -- 創建論壇評論表
@@ -65,11 +81,25 @@ INSERT INTO forum_categories (name, slug, description, `order`) VALUES
 ('寵物用品', 'pet-products', '討論寵物用品推薦與心得', 5);
 
 -- 插入測試文章
-INSERT INTO forum_posts (title, content, user_id, category_id, tags, view_count, like_count, comment_count) VALUES
-('新手養貓需要準備什麼？', '我想領養一隻貓，請問需要準備哪些用品？希望大家可以分享經驗。', 1, 1, '新手,貓咪,準備工作', 0, 0, 0),
-('狗狗不吃飯怎麼辦？', '我家的狗狗最近食慾不太好，有什麼建議嗎？', 1, 2, '狗狗,健康,飲食', 0, 0, 0);
+INSERT INTO forum_posts (title, content, user_id, category_id, view_count, like_count, comment_count) VALUES
+('新手養貓需要準備什麼？', '我想領養一隻貓，請問需要準備哪些用品？希望大家可以分享經驗。', 1, 1, 0, 0, 0),
+('狗狗不吃飯怎麼辦？', '我家的狗狗最近食慾不太好，有什麼建議嗎？', 1, 2, 0, 0, 0);
+
+-- 插入標籤
+INSERT INTO forum_tags (name) VALUES 
+('新手'), ('貓咪'), ('準備工作'), ('狗狗'), ('健康'), ('飲食');
+
+-- 插入文章與標籤的關聯
+INSERT INTO forum_post_tags (post_id, tag_id) VALUES
+(1, 1), (1, 2), (1, 3), -- 文章 1: 新手, 貓咪, 準備工作
+(2, 4), (2, 5), (2, 6); -- 文章 2: 狗狗, 健康, 飲食
 
 -- 插入測試評論
 INSERT INTO forum_comments (post_id, user_id, content) VALUES
 (1, 1, '建議準備貓砂盆、貓砂、飼料、飲水器、貓抓板等基本用品。'),
 (2, 1, '建議帶去獸醫院檢查，可能是身體不適。');
+
+-- 插入測試點讚
+INSERT INTO forum_likes (post_id, user_id) VALUES
+(1, 1), -- 文章 1 被使用者 1 點讚
+(2, 1); -- 文章 2 被使用者 1 點讚
