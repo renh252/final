@@ -1,5 +1,6 @@
 'use client'
 import styles from './orders.module.css'
+import Link from 'next/link'
 
 import React, { useState, useEffect } from 'react'
 // components
@@ -54,21 +55,21 @@ export default function OrdersPage() {
           <div><FaList /></div>
           <div>編號</div>
           <div>訂單狀態</div>
-          <div>付款狀態</div>
+          {/* <div>付款狀態</div> */}
           <div>金額</div>
-          {/* <div>備註</div> */}
+          <div>備註</div>
           <div>日期</div>
         </div>
         body=        
         <div className={styles.containBody}>
         {orders.map((order)=>{return (
           <div className={styles.order} key={order.order_id }>
-            <div><FaList /></div>
+            <div><Link href={`/member/orders/${order.order_id}`}><FaList /></Link></div>
             <div>{order.order_id }</div>
             <div>{order.order_status}</div>
-            <div>{order.payment_status}</div>
+            {/* <div>{order.payment_status}</div> */}
             <div>${order.total_price}</div>
-            {/* <div>{order.remark}</div> */}
+            <div>{order.remark}</div>
             <div>{formatDate(order.created_at)}</div>
           </div>
         )})}
