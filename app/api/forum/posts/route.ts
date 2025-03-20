@@ -77,6 +77,9 @@ export async function GET(request: Request) {
 
     const posts = await executeQuery(query, []) as any[]
 
+    // 增加這段檢查和日誌
+    console.log('查詢結果:', posts.length ? `找到 ${posts.length} 篇文章` : '沒有找到任何文章')
+
     // 獲取每篇文章的評論數和點讚數
     for (const post of posts) {
       const likeResults = await executeQuery(
@@ -122,6 +125,8 @@ export async function GET(request: Request) {
 
     const totalResults = await executeQuery(countQuery, []) as any[]
     const total = totalResults[0].total
+
+    console.log('總文章數:', total)
 
     return NextResponse.json({
       status: 'success',
