@@ -6,7 +6,6 @@ import Menubar from './_components/menubar'
 import Footer from './_components/footer'
 import Banner from './_components/banner'
 import { Container } from 'react-bootstrap'
-import RouteGuard from './_components/RouteGuard'
 import { requiresAuth } from './config/routes'
 import { useAuth } from './context/AuthContext'
 
@@ -14,7 +13,7 @@ export default function LayoutWrapper({ children }) {
   const pathname = usePathname()
   const router = useRouter()
   const isAdminRoute = pathname?.startsWith('/admin')
-  const { user, loading, isAuthenticated } = useAuth()
+  const { user, loading } = useAuth()
   const [authorized, setAuthorized] = useState(false)
 
   // 使用useEffect來動態調整body樣式，只在前台路由才執行
@@ -39,7 +38,7 @@ export default function LayoutWrapper({ children }) {
   // 內建中間件機制：檢查路由權限
   useEffect(() => {
     if (!loading) {
-      // 檢查當前路徑是否需要身份驗證
+      // 檢查當前路徑是否需要身份驗證 (通過 config/routes.js)
       const needsAuth = requiresAuth(pathname)
 
       if (needsAuth && !user) {
@@ -63,12 +62,12 @@ export default function LayoutWrapper({ children }) {
     return null
   }
 
-  // 如果是後台路由，直接返回（不需要額外的 RouteGuard）
+  // 如果是後台路由，直接返回
   if (isAdminRoute) {
     return children
   }
 
-  // 如果是前台路由，渲染完整佈局（不需要額外的 RouteGuard）
+  // 如果是前台路由，渲染完整佈局
   return (
     <>
       <Menubar />
