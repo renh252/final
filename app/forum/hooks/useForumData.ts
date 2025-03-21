@@ -29,6 +29,8 @@ export interface Post {
   comment_count: number;
   view_count: number;
   tags: string;
+  category_id: number;
+  category_name: string;
 }
 
 export interface Pagination {
@@ -58,8 +60,14 @@ export function useForumData(filters: ForumFilters) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [stats, setStats] = useState({
+    totalPosts: 0,
+    totalUsers: 0,
+    totalCategories: 0
+  });
 
-  const { category, tags, sort, search, page, limit } = filters;
+  const { category, tags: tagFilters, sort, search, page, limit } = filters;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -69,12 +77,25 @@ export function useForumData(filters: ForumFilters) {
       const categoriesResponse = await axios.get('/api/forum/categories');
       if (categoriesResponse.data.status === 'success') {
         setCategories(categoriesResponse.data.data);
+        setStats(prev => ({ ...prev, totalCategories: categoriesResponse.data.data.length }));
+      }
+
+      // 獲取標籤
+      const tagsResponse = await axios.get('/api/forum/tags');
+      if (tagsResponse.data.status === 'success') {
+        setTags(tagsResponse.data.data);
+      }
+
+      // 獲取統計數據
+      const statsResponse = await axios.get('/api/forum/stats');
+      if (statsResponse.data.status === 'success') {
+        setStats(statsResponse.data.data);
       }
 
       // 獲取文章列表
       const params = new URLSearchParams();
       if (category) params.append('category', category);
-      if (tags?.length) params.append('tags', tags.join(','));
+      if (tagFilters?.length) params.append('tags', tagFilters.join(','));
       if (sort) params.append('sort', sort);
       if (search) params.append('search', search);
       params.append('page', page.toString());
@@ -91,7 +112,7 @@ export function useForumData(filters: ForumFilters) {
     } finally {
       setLoading(false);
     }
-  }, [category, tags, sort, search, page, limit]);
+  }, [category, tagFilters, sort, search, page, limit]);
 
   useEffect(() => {
     fetchData();
@@ -107,6 +128,8 @@ export function useForumData(filters: ForumFilters) {
     pagination,
     loading,
     error,
-    refetch
+    refetch,
+    tags,
+    stats
   };
 }

@@ -61,7 +61,7 @@ export default function MemberPage() {
           showConfirmButton: false,
         });
 
-        router.push('/member/AuthTest');
+        router.push('/member');
       } else {
         await Swal.fire({
           title: '登入失敗',
