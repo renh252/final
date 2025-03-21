@@ -65,14 +65,15 @@ export async function POST(req) {
     }
     const petIdValue = petId ? petId : null // 確保 NULL 值
     let tableInsertResult = await db.query(
-      `INSERT INTO donations (donation_type, pet_id, amount, donation_mode, payment_method, donor_name, donor_phone, donor_email, trade_no, transaction_status) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO donations (donation_type, pet_id, amount, donation_mode, payment_method, user_id, donor_name, donor_phone, donor_email, trade_no, transaction_status) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         items,
         petIdValue,
         amount,
         selectedPaymentMode,
         ChoosePayment,
+        1,
         donorName,
         donorPhone,
         donorEmail,
@@ -192,9 +193,9 @@ export async function POST(req) {
   // const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
 
   // 使用公開網域執行(ngrok)，無法運行請切換成localhost版本
-  const ReturnURL = `  https://5173-36-239-230-138.ngrok-free.app/api/ecpay/notify`
+  const ReturnURL = ` https://b01c-36-239-230-138.ngrok-free.app/api/ecpay/notify`
   const OrderResultURL =
-    '  https://5173-36-239-230-138.ngrok-free.app/api/ecpay/callback'
+    ' https://b01c-36-239-230-138.ngrok-free.app/api/ecpay/callback'
 
   const stage = isStage ? '-stage' : ''
   const algorithm = 'sha256'
