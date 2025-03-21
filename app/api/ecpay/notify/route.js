@@ -82,7 +82,7 @@ export async function POST(req) {
     // 資料庫更新邏輯，例如：
     // ✅ 取得交易編號 & 付款狀態
     const tradeNo = data.MerchantTradeNo
-    const transactionStatus = data.RtnCode === '1' ? 'success' : 'failed'
+    const transactionStatus = data.RtnCode === '1' ? '已付款' : '付款失敗'
     // ✅ 取得付款方式
     const paymentMethod = data.PaymentType.includes('_')
       ? data.PaymentType.split('_')[0]
