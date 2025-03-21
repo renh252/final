@@ -14,20 +14,24 @@
     }
 }
 .containBody{
-  display: flex;
+  /* display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 20px; */
   >div{
-    display: flex;
+    /* display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-between; */
 
     >:first-child{
       width: 50px;
     }
     >:nth-child(2){
       width: 30%;
+      overflow-wrap: break-word;
+      word-break: break-all;
+      white-space: normal;
+      hyphens: auto;
     }
     >div{
       width: 20%;

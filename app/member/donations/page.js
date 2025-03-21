@@ -5,6 +5,7 @@ import useSWR from 'swr'
 import List from '../_components/list'
 import styles from './donations.module.css'
 import Link from 'next/link'
+import FilterBar from '../_components/FilterBar'
 
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
@@ -46,42 +47,15 @@ export default function DonationPage() {
     <div className={styles.container}>
       <h2 className={styles.header}>我的捐款紀錄</h2>
 
-      {/* 🔹 篩選區 */}
-      <div className={styles.filterContainer}>
-        <div className={styles.filterItem}>
-          <label htmlFor="statusFilter">付款狀態</label>
-          <select
-            id="statusFilter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="全部">全部</option>
-            <option value="已付款">已付款</option>
-            <option value="處理中">處理中</option>
-            <option value="失敗">失敗</option>
-          </select>
-        </div>
-
-        <div className={styles.filterItem}>
-          <label htmlFor="startDate">起始日期</label>
-          <input
-            id="startDate"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </div>
-
-        <div className={styles.filterItem}>
-          <label htmlFor="endDate">結束日期</label>
-          <input
-            id="endDate"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-      </div>
+      {/* 篩選區（使用 FilterBar 元件） */}
+      <FilterBar
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        startDate={startDate}
+        setStartDate={setStartDate}
+        endDate={endDate}
+        setEndDate={setEndDate}
+      />
 
       {/* 🔹 統計資訊 */}
       <div className={styles.summary}>
