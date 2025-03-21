@@ -1,11 +1,12 @@
 'use client'
 import styles from './orders.module.css'
 import Link from 'next/link'
-
 import React, { useState, useEffect } from 'react'
 // components
 import List from '../_components/list'
 import { FaList  } from "react-icons/fa6";
+import RecordPage from '../_components/RecordPage'
+import StatusBadge from '../_components/StatusBadge'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -40,41 +41,23 @@ export default function OrdersPage() {
 
   return (
     <>
-    <div className={styles.top}>
-      <select name="" id="">
-        <option value="">訂單狀態</option>
-      </select>
-      <select name="" id="">
-        <option value="">日期</option>
-      </select>
-      <p>共{totalOrders}筆資料</p>
-    </div>
-      <List 
-        title=        
-        <div className={styles.containTitle}>
-          <div><FaList /></div>
-          <div>編號</div>
-          <div>訂單狀態</div>
-          <div>付款狀態</div>
-          <div>金額</div>
-          <div>備註</div>
-          <div>日期</div>
-        </div>
-        body=        
-        <div className={styles.containBody}>
-        {orders.map((order)=>{return (
-          <div className={styles.order} key={order.order_id }>
-            <div><Link href={`/member/orders/${order.order_id}`}><FaList /></Link></div>
-            <div>{order.order_id }</div>
-            <div>{order.order_status}</div>
-            <div>{order.payment_status}</div>
-            <div>${order.total_price}</div>
-            <div>{order.remark}</div>
-            <div>{formatDate(order.created_at)}</div>
+    <RecordPage
+      titleText="訂單紀錄"
+      fetchUrl="/api/shop/orders"
+      recordKey='orders'
+      detailPagePath='/member/orders'
+      statusOptions={['全部', '已付款', '處理中', '失敗']}
+      formatRecord={(order)=>(
+        <div>
+            <p>{order.order_status}</p> 
+            <p>金額 : NT$  {order.total_price}</p>
+            <p>備註 :  {order.remark}</p>
+            <p>日期 : {formatDate(order.created_at)}</p>
+            <p>狀態 : <StatusBadge status={order.payment_status} /></p>
           </div>
-        )})}
-        </div>
-      />
+      )
+      }
+    />
     </>
   ) 
 }
