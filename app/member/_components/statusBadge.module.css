@@ -1,0 +1,25 @@
+.badge {
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.success {
+  color: white;
+  background: green;
+}
+
+.pending {
+  color: white;
+  background: orange;
+}
+
+.failed {
+  color: white;
+  background: red;
+}
+
+.default {
+  color: black;
+  background: lightgray;
+}
