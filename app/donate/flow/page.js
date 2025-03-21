@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import styles from './flow.module.css'
 import Image from 'next/image'
+import { useAuth } from '@/app/context/AuthContext'
 
 export default function FlowPage() {
   const searchParams = useSearchParams()
@@ -75,6 +76,12 @@ export default function FlowPage() {
       setPaymentType('CreditPeriod') // 定期定額只能用信用卡
     }
   }
+  const { user, loading, logout, updateUser } = useAuth()
+  
+  if (loading) return <div>載入中...</div>
+  if (!user) return <div>請先登入</div>
+  
+  const userId = user.id
 
   // 提交表單
   const handleSubmit = async (e) => {
@@ -99,6 +106,7 @@ export default function FlowPage() {
     try {
       let paymentRequest = {
         orderType: 'donation',
+        userId,
         amount: Number(amount),
         items,
         ChoosePayment: paymentType,
@@ -155,7 +163,6 @@ export default function FlowPage() {
       setIsLoading(false)
     }
   }
-
   return (
     <>
       <div className={styles.flow_container}>
