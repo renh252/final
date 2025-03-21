@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { executeQuery } from '@/lib/db'
 import { getErrorMessage } from '@/lib/utils'
-import { auth } from '@/lib/auth'
 
 // 偵錯函數：輸出完整的 SQL 語法和參數
 function debugSQL(query: string, params: any[]) {
@@ -165,74 +164,94 @@ export async function GET(request: Request) {
 }
 
 // POST /api/forum/posts
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json(
-        {
-          status: 'error',
-          message: '請先登入',
-        },
-        { status: 401 }
-      )
+    const body = await req.json();
+    const { title, content, categoryId, tags, userId } = body;
+
+    // 基本驗證
+    if (!title || !content || !categoryId || !userId) {
+      return NextResponse.json({
+        status: 'error',
+        message: '請填寫所有必要欄位'
+      }, { status: 400 });
     }
 
-    const body = await request.json()
-    const { title, content, categorySlug, tags } = body
-
-    if (!title || !content || !categorySlug) {
-      return NextResponse.json(
-        {
-          status: 'error',
-          message: '缺少必要欄位',
-        },
-        { status: 400 }
-      )
-    }
-
-    // Start transaction
-    await executeQuery('START TRANSACTION')
+    // 開始資料庫交易
+    await executeQuery('START TRANSACTION');
 
     try {
-      // Insert post
-      const [postResult]: any = await executeQuery(
-        `INSERT INTO forum_posts (title, content, user_id, category_id) 
-         VALUES (?, ?, ?, ?)`,
-        [title, content, session.user.id, categorySlug]
-      )
+      // 1. 插入文章
+      const insertPostQuery = `
+        INSERT INTO forum_posts (title, content, user_id, category_id)
+        VALUES (?, ?, ?, ?)
+      `;
+      const postResult = await executeQuery(insertPostQuery, [title, content, userId, categoryId]) as any;
+      const postId = postResult.insertId;
 
-      // Insert tags if provided
+      // 2. 如果有標籤，處理標籤
       if (tags && tags.length > 0) {
-        const tagValues = tags.map((tagId: number) => [
-          postResult.insertId,
-          tagId,
-        ])
-        await executeQuery(
-          `INSERT INTO forum_post_tags (post_id, tag_id) VALUES ?`,
-          [tagValues]
-        )
+        // 為每個標籤創建插入語句
+        const tagValues = tags.map(tag => [tag.name, tag.slug || tag.name.toLowerCase().replace(/\s+/g, '-')]);
+        const insertTagsQuery = `
+          INSERT IGNORE INTO forum_tags (name, slug)
+          VALUES ?
+        `;
+        await executeQuery(insertTagsQuery, [tagValues]);
+
+        // 獲取標籤 ID
+        const tagNames = tags.map(tag => tag.name);
+        const getTagIdsQuery = `
+          SELECT id, name FROM forum_tags
+          WHERE name IN (?)
+        `;
+        const existingTags = await executeQuery(getTagIdsQuery, [tagNames]) as any[];
+
+        // 建立文章和標籤的關聯
+        if (existingTags.length > 0) {
+          const postTagValues = existingTags.map(tag => [postId, tag.id]);
+          const insertPostTagsQuery = `
+            INSERT INTO forum_post_tags (post_id, tag_id)
+            VALUES ?
+          `;
+          await executeQuery(insertPostTagsQuery, [postTagValues]);
+        }
       }
 
-      await executeQuery('COMMIT')
+      // 提交交易
+      await executeQuery('COMMIT');
+
+      // 獲取完整的文章資訊
+      const getPostQuery = `
+        SELECT 
+          p.*,
+          u.user_nickname as author_name,
+          u.profile_picture as author_avatar,
+          GROUP_CONCAT(t.name) as tags
+        FROM forum_posts p
+        LEFT JOIN users u ON p.user_id = u.user_id
+        LEFT JOIN forum_post_tags pt ON p.id = pt.post_id
+        LEFT JOIN forum_tags t ON pt.tag_id = t.id
+        WHERE p.id = ?
+        GROUP BY p.id
+      `;
+      const [post] = (await executeQuery(getPostQuery, [postId])) as any[];
 
       return NextResponse.json({
         status: 'success',
-        data: { id: postResult.insertId },
-      })
+        data: post
+      });
     } catch (error) {
-      await executeQuery('ROLLBACK')
-      throw error
+      // 如果出錯，回滾交易
+      await executeQuery('ROLLBACK');
+      throw error;
     }
   } catch (error) {
-    console.error('Error creating post:', error)
-    return NextResponse.json(
-      {
-        status: 'error',
-        message: getErrorMessage(error),
-      },
-      { status: 500 }
-    )
+    console.error('Error creating post:', error);
+    return NextResponse.json({
+      status: 'error',
+      message: getErrorMessage(error)
+    }, { status: 500 });
   }
 }
 
