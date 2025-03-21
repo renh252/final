@@ -23,6 +23,7 @@ const routes = [
   { path: '/member', type: RouteType.PROTECTED }, // 會員中心
   { path: '/shop/cart', type: RouteType.PROTECTED }, // 購物車
   { path: '/shop/checkout', type: RouteType.PROTECTED }, // 結帳
+  { path: '/donate/flow', type: RouteType.PROTECTED }, // 捐款流程
 ]
 
 /**
