@@ -63,22 +63,3 @@ export const AuthProvider = ({ children }) => {
 }
 
 export const useAuth = () => useContext(AuthContext)
-
-// 保留 withAuth 高階組件作為輔助方法，用於特定頁面的權限保護
-export const withAuth = (Component) => {
-  return function ProtectedRoute(props) {
-    const { user, loading } = useAuth()
-    const router = useRouter()
-
-    useEffect(() => {
-      if (!loading && !user) {
-        router.push('/member/MemberLogin/login')
-      }
-    }, [user, loading, router])
-
-    if (loading) return <div>載入中...</div>
-    if (!user) return null
-
-    return <Component {...props} />
-  }
-}
