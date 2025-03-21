@@ -11,7 +11,7 @@ export default function RegisterPage() {
               <h2 className={styles.sectionTitle}>快速註冊</h2>
               <div className={styles.form}>
               <div className={styles.GFbutton}>
-<button
+                <button
                   className="button"
                   style={{ width: '350px', height: '60px', fontSize: '20px' }}
                 >
@@ -21,17 +21,6 @@ export default function RegisterPage() {
                     style={{ width: '100px', height: '50px' }}
                   />
                   以Google帳號註冊
-                </button>
-                <button
-                  className="button"
-                  style={{ width: '350px', height: '60px', fontSize: '20px' }}
-                >
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/947deca3304a13703edd669f75def30df7a6bad1d73408cb9ee3fa21c3d9e912?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
-                    alt="Facebook icon"
-                    style={{ width: '100px', height: '50px' }}
-                  />
-                  以Facebook帳號註冊
                 </button>
               </div>
               
@@ -71,15 +60,14 @@ export default function RegisterPage() {
                     required
                   />
                     <br />  <br />
-                    <br />  <br />
-                    <br />
+                    <br />  
               <button
                 className="button"
                 style={{ width: '200px', height: '50px', fontSize: '28px' }}
               >
                 註冊
               </button>
-              <br />
+              <br /><br />
               <div>
                 <p className={styles.loginLink}>
                 已經是會員?
