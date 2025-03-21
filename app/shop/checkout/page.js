@@ -32,8 +32,6 @@ export default function CheckoutPage() {
       setProductPrice(JSON.parse(storedProductPrice))
     }
   }, [])
-  
-
   useEffect(() => {
     if (productPrice) {
       let newShippingFee = 0 // 默认运费为 0
@@ -104,16 +102,17 @@ export default function CheckoutPage() {
     if (name === 'delivery') {
       if (value === '宅配') {
         setCheckoutData((prev) => ({ ...prev, storeName: '', storeId: '' }))
+        setPayload({ ...Payload, CvsType: '' })
       }
       if (value === '7-ELEVEN') {
         setCheckoutData((prev) => ({ ...prev, storeName: '', storeId: '' }))
         setPayload({ ...Payload, CvsType: 'UNIMART' })
-        SendParams()
+        // SendParams()
       }
       if (value === '全家') {
         setCheckoutData((prev) => ({ ...prev, storeName: '', storeId: '' }))
         setPayload({ ...Payload, CvsType: 'FAMI' })
-        SendParams()
+        // SendParams()
       }
     }
 
@@ -138,11 +137,106 @@ export default function CheckoutPage() {
     CvsType: '',
     CheckMacValue: '',
   })
-  const CreateCMVURL = 'http://localhost:3000/api/shop/checkout'
-  const APIURL = 'https://logistics-stage.ecpay.com.tw/Helper/GetStoreList'
+  // const CreateCMVURL = 'http://localhost:3000/api/shop/checkout'
+  // const APIURL = 'https://logistics-stage.ecpay.com.tw/Helper/GetStoreList'
 
   // ------------串超商地圖
-  async function SendParams() {
+
+  //  計算CheckMacValue
+  const crypto = require('crypto');
+
+  function calculateCheckMacValue(params, hashKey, hashIV) {
+    // 按参数名字母顺序排序并拼接
+    const sortedParams = Object.keys(params).sort().map(key => `${key}=${params[key]}`).join('&');
+  
+    // 加上 HashKey 和 HashIV
+    const checkString = `HashKey=${hashKey}&${sortedParams}&HashIV=${hashIV}`;
+  
+    // URL encode
+    const encodedString = encodeURIComponent(checkString).toLowerCase();
+  
+    // MD5 加密
+    return crypto.createHash('md5').update(encodedString).digest('hex').toUpperCase();
+  }
+  
+  // 使用示例
+  const params = {
+    MerchantID: '3002607',
+    MerchantTradeNo: 'Test1234',
+    // ... 其他参数
+  };
+  
+  const hashKey = 'pwFHCqoQZGmho4w6';
+  const hashIV = 'EkRm7iFT261dpevs';
+  
+  const checkMacValue = calculateCheckMacValue(params, hashKey, hashIV);
+  console.log(checkMacValue);
+
+
+  const handleSelectStore = async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
+  
+    const merchantTradeNo = `ECpay${Date.now()}`;
+  
+    const apiParams = {
+      MerchantID: '3002607',
+      MerchantTradeNo: merchantTradeNo,
+      LogisticsType: 'CVS',
+      LogisticsSubType: Payload.CvsType,
+      IsCollection: 'N',
+      ServerReplyURL: `${window.location.origin}/api/shop/ecpay-callback`,
+      ExtraData: '',
+      Device: 0,
+      LogisticsID: '0'
+    };
+  
+    try {
+      const response = await fetch('/api/shop/ecpay-redirect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiParams),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Server responded with an error');
+      }
+  
+      const data = await response.json();
+      window.location.href = data.redirectUrl;
+    } catch (error) {
+      console.error('Error:', error);
+      alert('发生错误，请稍后再试');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // 在组件加载时检查URL参数
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const CVSStoreID = urlParams.get('CVSStoreID');
+    const CVSStoreName = urlParams.get('CVSStoreName');
+    const CVSAddress = urlParams.get('CVSAddress');
+  
+    if (CVSStoreID && CVSStoreName && CVSAddress) {
+      setCheckoutData(prev => ({
+        ...prev,
+        CVSStoreID,
+        CVSStoreName,
+        CVSAddress
+      }));
+  
+      // 清除URL中的参数
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+
+
+ /* async function SendParams() {
     try {
       const params = {
         action: 'createCMV',
@@ -235,6 +329,7 @@ export default function CheckoutPage() {
     // 移除事件監聽器
     window.removeEventListener('message', handleStoreSelection)
   }
+    */
   // -----------------
 
   // 存儲表單資料到 LocalStorage
@@ -430,14 +525,15 @@ export default function CheckoutPage() {
                   </>
                 ) : (
                   <>
-                    <button type="button" onClick={() => {}}>
+                    <button type="button" onClick={handleSelectStore} disabled={isLoading}>
                       選擇門市
                     </button>
+                    {isLoading ? '加载中...' : '选择门市'}
                     <label>
                       門市名稱：
                       <input
                         type="text"
-                        value={checkoutData.CVSStoreName}
+                        value={checkoutData.CVSStoreName || ''}
                         readOnly
                       />
                     </label>
@@ -445,7 +541,15 @@ export default function CheckoutPage() {
                       門市代號：
                       <input
                         type="text"
-                        value={checkoutData.CVSStoreID}
+                        value={checkoutData.CVSStoreID || ''}
+                        readOnly
+                      />
+                    </label>
+                    <label>
+                      門市代號：
+                      <input
+                        type="text"
+                        value={checkoutData.CVSAddress || ''}
                         readOnly
                       />
                     </label>
