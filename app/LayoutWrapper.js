@@ -6,7 +6,7 @@ import Menubar from './_components/menubar'
 import Footer from './_components/footer'
 import Banner from './_components/banner'
 import { Container } from 'react-bootstrap'
-import RouteGuard from './components/RouteGuard'
+import RouteGuard from './_components/RouteGuard'
 
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname()
