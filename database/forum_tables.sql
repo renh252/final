@@ -1,5 +1,8 @@
 -- 刪除現有的表（如果存在）
+SET FOREIGN_KEY_CHECKS = 0;
+
 DROP TABLE IF EXISTS forum_likes;
+DROP TABLE IF EXISTS forum_comment_replies;
 DROP TABLE IF EXISTS forum_comments;
 DROP TABLE IF EXISTS forum_post_tags;
 DROP TABLE IF EXISTS forum_tags;
@@ -30,14 +33,17 @@ CREATE TABLE IF NOT EXISTS forum_posts (
     comment_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES forum_categories(id) ON DELETE CASCADE
 );
+
 
 -- 創建論壇標籤表
 CREATE TABLE IF NOT EXISTS forum_tags (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL UNIQUE
+    name VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 創建論壇文章與標籤的關聯表
@@ -58,7 +64,7 @@ CREATE TABLE IF NOT EXISTS forum_comments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (post_id) REFERENCES forum_posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 -- 創建論壇點讚表
@@ -69,7 +75,7 @@ CREATE TABLE IF NOT EXISTS forum_likes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY unique_like (post_id, user_id),
     FOREIGN KEY (post_id) REFERENCES forum_posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 -- 插入基本分類數據
@@ -86,8 +92,13 @@ INSERT INTO forum_posts (title, content, user_id, category_id, view_count, like_
 ('狗狗不吃飯怎麼辦？', '我家的狗狗最近食慾不太好，有什麼建議嗎？', 1, 2, 0, 0, 0);
 
 -- 插入標籤
-INSERT INTO forum_tags (name) VALUES 
-('新手'), ('貓咪'), ('準備工作'), ('狗狗'), ('健康'), ('飲食');
+INSERT INTO forum_tags (name, slug, created_at) VALUES 
+('新手', 'newbie', CURRENT_TIMESTAMP),
+('貓咪', 'cat', CURRENT_TIMESTAMP),
+('準備工作', 'preparation', CURRENT_TIMESTAMP),
+('狗狗', 'dog', CURRENT_TIMESTAMP),
+('健康', 'health', CURRENT_TIMESTAMP),
+('飲食', 'diet', CURRENT_TIMESTAMP);
 
 -- 插入文章與標籤的關聯
 INSERT INTO forum_post_tags (post_id, tag_id) VALUES
@@ -103,3 +114,6 @@ INSERT INTO forum_comments (post_id, user_id, content) VALUES
 INSERT INTO forum_likes (post_id, user_id) VALUES
 (1, 1), -- 文章 1 被使用者 1 點讚
 (2, 1); -- 文章 2 被使用者 1 點讚
+
+
+SET FOREIGN_KEY_CHECKS = 1;
