@@ -17,7 +17,7 @@ export async function GET() {
     const [usersResult] = await executeQuery(usersQuery) as any[];
     
     // 獲取分類總數
-    const categoriesQuery = `SELECT COUNT(*) as count FROM forum_categories WHERE is_active = 1`;
+    const categoriesQuery = `SELECT COUNT(*) as count FROM forum_categories`;
     const [categoriesResult] = await executeQuery(categoriesQuery) as any[];
     
     return NextResponse.json({
