@@ -41,47 +41,47 @@ export default function RecordPage({
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.header}>我的{titleText}</h2>
-
-      <FilterBar
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        startDate={startDate}
-        setStartDate={setStartDate}
-        endDate={endDate}
-        setEndDate={setEndDate}
-        statusOptions={statusOptions}
-      />
-
-      <div className={styles.summary}>
-        <p>
-          符合條件：<strong>{filteredRecords.length}</strong> 筆 ／ 總數：
-          <strong>{total}</strong> 筆
-        </p>
+      <div>
+        <h2 className={styles.header}>我的{titleText}</h2>{' '}
+        <FilterBar
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          statusOptions={statusOptions}
+        />{' '}
+        <div className={styles.summary}>
+          <p>
+            符合條件：<strong>{filteredRecords.length}</strong> 筆 ／ 總數：
+            <strong>{total}</strong> 筆
+          </p>
+        </div>
       </div>
 
-      <div className={styles.listContainer}>
-        {filteredRecords.length > 0 ? (
-          filteredRecords.map((record) => (
-            <List
-              key={record.id}
-              title={`編號：${record.trade_no || record.order_id}`}
-              body={formatRecord(record)}
-              onClick={() => {
-                if (record.trade_no) {
-                  router.push(`/member/donations/${record.trade_no}`)
-                } 
-                else if (record.order_id) {
-                  router.push(`/member/orders/${record.order_id}`)
-                }else {
-                  alert('此筆紀錄缺少編號，無法查看詳細資料')
-                }
-              }} // 🔹 用傳入的 `detailPagePath`
-            />
-          ))
-        ) : (
-          <p className={styles.noData}>目前沒有資料</p>
-        )}
+      <div className={styles.list}>
+        <div className={styles.listContainer}>
+          {filteredRecords.length > 0 ? (
+            filteredRecords.map((record) => (
+              <List
+                key={record.id}
+                title={`編號：${record.trade_no || record.order_id}`}
+                body={formatRecord(record)}
+                onClick={() => {
+                  if (record.trade_no) {
+                    router.push(`/member/donations/${record.trade_no}`)
+                  } else {
+                    alert('此筆紀錄缺少捐款編號，無法查看詳細資料')
+                  }
+                }} // 🔹 用傳入的 `detailPagePath`
+              />
+            ))
+          ) : (
+            <p className={styles.noData}>目前沒有資料</p>
+          )}
+        </div>
+
       </div>
     </div>
   )
