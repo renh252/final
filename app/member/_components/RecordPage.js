@@ -70,8 +70,11 @@ export default function RecordPage({
               onClick={() => {
                 if (record.trade_no) {
                   router.push(`/member/donations/${record.trade_no}`)
-                } else {
-                  alert('此筆紀錄缺少捐款編號，無法查看詳細資料')
+                } 
+                else if (record.order_id) {
+                  router.push(`/member/orders/${record.order_id}`)
+                }else {
+                  alert('此筆紀錄缺少編號，無法查看詳細資料')
                 }
               }} // 🔹 用傳入的 `detailPagePath`
             />
