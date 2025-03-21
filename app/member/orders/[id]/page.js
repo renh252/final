@@ -6,6 +6,8 @@ import Image from 'next/image'
 // 引入樣式
 import styles from '@/app/shop/checkout/review/review.module.css'
 import { MdOutlinePets } from 'react-icons/md'
+import RecordPage from '@/app/member/_components/RecordPage'
+import StatusBadge from '@/app/member/_components/StatusBadge'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -34,7 +36,6 @@ export default function IdPage(props) {
 
   return (
     <div className={styles.main}>
-      
       <div className={styles.reviewContainer}>
               <div className={styles.containTitle}>
                 <h1>資訊欄</h1>
