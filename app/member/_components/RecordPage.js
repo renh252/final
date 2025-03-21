@@ -31,9 +31,14 @@ export default function RecordPage({
   const total = data.total || records.length
 
   const filteredRecords = records.filter((record) => {
-    if (statusFilter !== '全部' && record.transaction_status !== statusFilter)
+    if (statusFilter !== '全部' && (record.transaction_status !== statusFilter && record.payment_status !== statusFilter	))
       return false
-    const date = new Date(record.create_datetime)
+    let date = ''
+    if (record.create_datetime) {
+      date = new Date(record.create_datetime) 
+    }else if (record.created_at) {
+      date = new Date(record.created_at) 
+    }
     if (startDate && date < new Date(startDate)) return false
     if (endDate && date > new Date(endDate)) return false
     return true
