@@ -8,10 +8,14 @@ export async function GET(request) {
 
     const user_id = 1
 
-    // 獲取活動商品資料
+    // 獲取訂單資料
     const [orders]= await connection.execute(`
       SELECT * FROM orders 
-      WHERE user_id = ? AND payment_status = '已付款'
+      WHERE user_id = ?
+        AND EXISTS (
+          SELECT 1 FROM order_items 
+          WHERE order_items.order_id = orders.order_id
+        )
       ORDER BY created_at DESC
       `
     ,[user_id])
@@ -21,7 +25,11 @@ export async function GET(request) {
     const [totalResult] = await connection.execute(`
       SELECT COUNT(*) as totalOrders
       FROM orders
-      WHERE user_id = ? AND payment_status = '已付款'
+      WHERE user_id = ? 
+      AND EXISTS (
+        SELECT 1 FROM order_items 
+        WHERE order_items.order_id = orders.order_id
+      )
     `, [user_id])
     responseData.totalOrders = totalResult[0].totalOrders
 
