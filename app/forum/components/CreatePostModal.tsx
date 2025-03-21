@@ -8,12 +8,14 @@ interface CreatePostModalProps {
   show: boolean
   onHide: () => void
   categories: Category[]
+  onPostCreated?: () => void
 }
 
 export default function CreatePostModal({
   show,
   onHide,
   categories,
+  onPostCreated,
 }: CreatePostModalProps) {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -44,8 +46,12 @@ export default function CreatePostModal({
       })
 
       if (response.data.status === 'success') {
-        onHide()
-        router.refresh() // 重新整理頁面以顯示新文章
+        if (onPostCreated) {
+          onPostCreated()
+        } else {
+          onHide()
+        }
+        router.refresh() 
         setFormData({ title: '', content: '', categoryId: '', tags: '' })
       } else {
         setError(response.data.message || '發布失敗，請稍後再試')
