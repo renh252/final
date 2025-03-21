@@ -77,11 +77,11 @@ export default function FlowPage() {
     }
   }
   const { user, loading, logout, updateUser } = useAuth()
-  const userId = user.id
   
-
   if (loading) return <div>載入中...</div>
   if (!user) return <div>請先登入</div>
+  
+  const userId = user.id
 
   // 提交表單
   const handleSubmit = async (e) => {

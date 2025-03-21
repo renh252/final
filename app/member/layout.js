@@ -9,7 +9,8 @@ import { useRouter } from 'next/navigation' // 導向到登入頁面
 
 export default function MemberLayout({ children }) {
   const { user, logout } = useAuth() // 從 useAuth 中獲取 logout
-  const user_id = user.id
+  let user_id = user ? user.id : null
+
   const router = useRouter()
 
   const handleLogout = () => {
@@ -46,7 +47,9 @@ export default function MemberLayout({ children }) {
           className="button"
           style={{ width: '200px', height: '50px', fontSize: '28px' }}
         >
-          <Link href={`/member/donations?user_id=${user_id}`}>
+          <Link
+            href={user ? `/member/donations?=${user_id}` : '/member/donations'}
+          >
             我的捐款
           </Link>
         </button>
