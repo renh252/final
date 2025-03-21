@@ -1,6 +1,6 @@
-/* 📌 主要容器 */
+/* 主要容器 */
 .container {
-  width: 90%;
+  width: 100%;
   max-width: 800px;
   margin: 20px auto;
   padding: 20px;
@@ -9,7 +9,7 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* 📌 頁面標題 */
+/* 頁面標題 */
 .header {
   text-align: center;
   font-size: 24px;
@@ -18,9 +18,39 @@
   font-weight: bold;
 }
 
+/* 篩選區 */
+.filterContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  background: #fff6e6;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.filterContainer label {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: #6b4f37;
+  font-weight: bold;
+}
+
+.filterContainer select,
+.filterContainer input {
+  margin-left: 5px;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
 /* 統計資訊 */
 .summary {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 18px;
   color: #8b5e34;
   font-weight: bold;
@@ -28,6 +58,7 @@
   padding: 10px;
   border-radius: 8px;
   margin-bottom: 20px;
+  text-align: center;
 }
 
 /* 列表容器 */
@@ -45,7 +76,16 @@
   margin-top: 20px;
 }
 
-/* 📌 捐款詳細資訊 */
+/* 錯誤與載入狀態 */
+.loading,
+.error {
+  text-align: center;
+  font-size: 16px;
+  color: #b85c5c;
+  margin-top: 20px;
+}
+
+/* 詳細資訊 */
 .details {
   display: flex;
   flex-direction: column;
@@ -54,7 +94,7 @@
   color: #444;
 }
 
-/* 📌 付款狀態樣式 */
+/* 狀態樣式 */
 .status {
   font-weight: bold;
 }
@@ -65,4 +105,8 @@
 
 .pending {
   color: orange;
+}
+
+.failed {
+  color: red;
 }
