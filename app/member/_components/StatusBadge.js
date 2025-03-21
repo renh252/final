@@ -7,10 +7,10 @@ export default function StatusBadge({ status }) {
       case '已付款':
       case '已完成':
         return styles.success
-      case '處理中':
+      case '未付款':
       case '待出貨':
         return styles.pending
-      case '失敗':
+      case '付款失敗':
       case '取消':
         return styles.failed
       default:

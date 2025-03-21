@@ -2,6 +2,7 @@
 
 import React from 'react'
 import RecordPage from '../_components/RecordPage'
+import StatusBadge from '../_components/StatusBadge'
 
 export default function DonationPage() {
   return (
@@ -20,7 +21,8 @@ export default function DonationPage() {
           </p>
           <p>付款方式：{donate.payment_method}</p>
           <p>
-            狀態：<span>{donate.transaction_status}</span>
+            狀態：
+            <StatusBadge status={donate.transaction_status} />
           </p>
         </div>
       )}
