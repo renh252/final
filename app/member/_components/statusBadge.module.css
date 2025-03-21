@@ -6,17 +6,17 @@
 
 .success {
   color: white;
-  background: green;
+  background: rgb(73, 194, 73);
 }
 
 .pending {
   color: white;
-  background: orange;
+  background: rgb(233, 184, 93);
 }
 
 .failed {
   color: white;
-  background: red;
+  background: rgb(219, 82, 82);
 }
 
 .default {
