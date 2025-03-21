@@ -6,6 +6,7 @@ import Menubar from './_components/menubar'
 import Footer from './_components/footer'
 import Banner from './_components/banner'
 import { Container } from 'react-bootstrap'
+import RouteGuard from './components/RouteGuard'
 
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname()
@@ -30,20 +31,21 @@ export default function LayoutWrapper({ children }) {
     }
   }, [isAdminRoute])
 
-  // 如果是後台路由，直接返回
+  // 如果是後台路由，直接返回（帶有路由保護）
   if (isAdminRoute) {
-    return <>{children}</>
+    // 後台路由也需要權限保護
+    return <RouteGuard>{children}</RouteGuard>
   }
 
-  // 如果是前台路由，渲染完整佈局
+  // 如果是前台路由，渲染完整佈局（帶有路由保護）
   return (
-    <>
+    <RouteGuard>
       <Menubar />
       <Banner />
       <Container fluid="lg" className="flex-grow-1 px-3 py-4">
         {children}
       </Container>
       <Footer />
-    </>
+    </RouteGuard>
   )
 }
