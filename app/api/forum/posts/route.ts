@@ -35,15 +35,11 @@ export async function GET(request: Request) {
     // 使用直接的數值而不是參數佔位符
     let query = `
       SELECT 
-        p.id,
-        p.title,
-        p.content,
-        p.created_at,
-        p.updated_at,
-        u.nickname as author_name,
-        u.avatar as author_avatar
+        p.*,
+        u.user_nickname as author_name,
+        u.profile_picture as author_avatar
       FROM forum_posts p
-      LEFT JOIN users u ON p.user_id = u.id
+      LEFT JOIN users u ON p.user_id = u.user_id
       WHERE 1 = 1
     `
 

@@ -40,7 +40,7 @@ const selectedIcon = createCustomIcon('#dc3545', 30)
 // 商店圖標 - 紫色
 const storeIcon = createCustomIcon('#8e44ad', 30)
 
-// 用戶位置圖標 - 綠色，帶有脈衝效果
+// 用戶位置圖標 - 藍色，帶有脈衝效果
 const userLocationIcon = L.divIcon({
   html: `
     <div class="user-location-marker">
@@ -49,9 +49,9 @@ const userLocationIcon = L.divIcon({
     </div>
   `,
   className: 'custom-div-icon',
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
-  popupAnchor: [0, -15],
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+  popupAnchor: [0, -10],
 })
 
 export { defaultIcon, regionIcon, selectedIcon, storeIcon, userLocationIcon }
