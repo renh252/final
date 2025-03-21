@@ -59,6 +59,8 @@ export function useForumData(filters: ForumFilters) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { category, tags, sort, search, page, limit } = filters;
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -71,26 +73,31 @@ export function useForumData(filters: ForumFilters) {
 
       // 獲取文章列表
       const params = new URLSearchParams();
-      if (filters.category) params.append('category', filters.category);
-      if (filters.tags?.length) params.append('tags', filters.tags.join(','));
-      if (filters.sort) params.append('sort', filters.sort);
-      if (filters.search) params.append('search', filters.search);
-      params.append('page', filters.page.toString());
-      params.append('limit', filters.limit.toString());
+      if (category) params.append('category', category);
+      if (tags?.length) params.append('tags', tags.join(','));
+      if (sort) params.append('sort', sort);
+      if (search) params.append('search', search);
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
 
       const postsResponse = await axios.get(`/api/forum/posts?${params}`);
       if (postsResponse.data.status === 'success') {
-        setPosts(postsResponse.data.data);
-        setPagination(postsResponse.data.pagination);
+        setPosts(postsResponse.data.data.posts);
+        setPagination(postsResponse.data.data.pagination);
       }
     } catch (err: any) {
+      console.error('Error fetching forum data:', err);
       setError(err.response?.data?.message || '載入資料失敗');
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [category, tags, sort, search, page, limit]);
 
   useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const refetch = useCallback(() => {
     fetchData();
   }, [fetchData]);
 
@@ -100,6 +107,6 @@ export function useForumData(filters: ForumFilters) {
     pagination,
     loading,
     error,
-    refetch: fetchData
+    refetch
   };
 }

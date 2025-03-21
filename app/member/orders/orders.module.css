@@ -1,4 +1,5 @@
 .containTitle{
+  gap: 5px;
     >:first-child{
       width: 50px;
     }
@@ -22,12 +23,19 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between; */
+    gap: 5px;
 
     >:first-child{
       width: 50px;
     }
     >:nth-child(2){
       width: 30%;
+      overflow-wrap: break-word;
+      word-break: break-all;
+      white-space: normal;
+      hyphens: auto;
+    }
+    >:last-child{
       overflow-wrap: break-word;
       word-break: break-all;
       white-space: normal;
