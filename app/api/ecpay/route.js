@@ -77,7 +77,7 @@ export async function POST(req) {
         donorPhone,
         donorEmail,
         MerchantTradeNo,
-        'pending',
+        '未付款',
       ]
     )
 
