@@ -31,7 +31,18 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('token', userData.token)
     localStorage.setItem('user', JSON.stringify(userData.user))
     setUser(userData.user)
-    router.push('/member')
+
+    // 檢查是否存在登入前的頁面路徑
+    const redirectPath = sessionStorage.getItem('redirectAfterLogin')
+    if (redirectPath) {
+      // 清除存儲的路徑
+      sessionStorage.removeItem('redirectAfterLogin')
+      // 跳轉回原來的頁面
+      router.push(redirectPath)
+    } else {
+      // 如果沒有存儲的頁面，則跳轉到會員中心
+      router.push('/member')
+    }
   }
 
   // 登出方法
@@ -39,6 +50,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setUser(null)
+    // 確保不會因為有 redirectAfterLogin 而返回到登出前頁面
+    sessionStorage.removeItem('redirectAfterLogin')
     router.push('/member/MemberLogin/login')
   }
 
