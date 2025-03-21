@@ -1,16 +1,20 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import Menubar from './_components/menubar'
 import Footer from './_components/footer'
 import Banner from './_components/banner'
 import { Container } from 'react-bootstrap'
-import RouteGuard from './_components/RouteGuard'
+import { requiresAuth } from './config/routes'
+import { useAuth } from './context/AuthContext'
 
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname()
+  const router = useRouter()
   const isAdminRoute = pathname?.startsWith('/admin')
+  const { user, loading } = useAuth()
+  const [authorized, setAuthorized] = useState(false)
 
   // 使用useEffect來動態調整body樣式，只在前台路由才執行
   useEffect(() => {
@@ -31,21 +35,47 @@ export default function LayoutWrapper({ children }) {
     }
   }, [isAdminRoute])
 
-  // 如果是後台路由，直接返回（帶有路由保護）
-  if (isAdminRoute) {
-    // 後台路由也需要權限保護
-    return <RouteGuard>{children}</RouteGuard>
+  // 內建中間件機制：檢查路由權限
+  useEffect(() => {
+    if (!loading) {
+      // 檢查當前路徑是否需要身份驗證 (通過 config/routes.js)
+      const needsAuth = requiresAuth(pathname)
+
+      if (needsAuth && !user) {
+        // 需要登入但未登入，重定向到登入頁面
+        setAuthorized(false)
+        router.push('/member/MemberLogin/login')
+      } else {
+        // 不需要登入或已登入，允許訪問
+        setAuthorized(true)
+      }
+    }
+  }, [pathname, user, loading, router])
+
+  // 如果正在加載用戶數據，顯示加載中
+  if (loading) {
+    return <div>載入中...</div>
   }
 
-  // 如果是前台路由，渲染完整佈局（帶有路由保護）
+  // 如果未授權，不顯示任何內容 (已在上面的 useEffect 中處理重定向)
+  if (!authorized) {
+    return null
+  }
+
+  // 如果是後台路由，直接返回
+  if (isAdminRoute) {
+    return children
+  }
+
+  // 如果是前台路由，渲染完整佈局
   return (
-    <RouteGuard>
+    <>
       <Menubar />
       <Banner />
       <Container fluid="lg" className="flex-grow-1 px-3 py-4">
         {children}
       </Container>
       <Footer />
-    </RouteGuard>
+    </>
   )
 }

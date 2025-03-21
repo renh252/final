@@ -98,7 +98,7 @@ export async function POST(req) {
         `UPDATE orders 
          SET payment_status = ?
          WHERE order_id = ?`,
-        [transactionStatus === 'success' ? '已付款' : '付款失敗', tradeNo]
+        [transactionStatus, tradeNo]
       )
     } else if (orderType === 'donation') {
       // **捐款**
