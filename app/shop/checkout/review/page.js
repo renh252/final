@@ -20,6 +20,7 @@ export default function ReviewPage() {
   const router = useRouter()
   const { data, error } = useSWR('/api/shop/cart', fetcher)
 
+  // 取得localStorage-productPrice資料
   const [productPrice, setProductPrice] = useState({
     shippingFee: 0,
     totalAmount: 0,
@@ -27,7 +28,7 @@ export default function ReviewPage() {
     totalOriginalPrice: 0
   })
   useEffect(() => {
-      if (!checkoutData?.delivery) {
+      if (!checkoutData?.recipient_name) {
         router.push('/shop/checkout')
         setIsLoading(false)
       } else {
@@ -41,7 +42,7 @@ export default function ReviewPage() {
   }, [checkoutData, router])
   
   
-      
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (!checkoutData?.delivery) {
@@ -52,7 +53,8 @@ export default function ReviewPage() {
   })
 
   if (!isLoading) {
-    return <div>沒有訂單數據，正在跳轉...</div>
+    <div>沒有訂單數據，正在跳轉...</div>
+    router.push('/shop/checkout')
   }
 
   // 修改订单
@@ -139,7 +141,7 @@ export default function ReviewPage() {
 
   if (error) return <div>獲取購物車時發生錯誤</div>
   if (!data) return <div>載入中...</div>
-
+  // 購物車資料
   const cart = data.data
 
   return (
