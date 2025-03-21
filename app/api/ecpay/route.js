@@ -5,6 +5,7 @@ import db from '@/app/lib/db'
 export async function POST(req) {
   const {
     orderType, // 用來區分是 "shop" 還是 "donation"
+    userId,
     amount,
     items,
     ChoosePayment,
@@ -13,7 +14,6 @@ export async function POST(req) {
     donorName,
     donorPhone,
     donorEmail,
-    userId, // 商城訂單的使用者 ID
     invoiceMethod,
     invoice,
     mobileBarcode,
@@ -73,7 +73,7 @@ export async function POST(req) {
         amount,
         selectedPaymentMode,
         ChoosePayment,
-        1,
+        userId,
         donorName,
         donorPhone,
         donorEmail,
@@ -114,7 +114,8 @@ export async function POST(req) {
     )
 
     // 從購物車獲取商品並插入 order_items
-    const [cartItems] = await db.execute(`
+    const [cartItems] = await db.execute(
+      `
       SELECT 
         cart.id AS cart_id,
         cart.product_id,
@@ -143,13 +144,15 @@ export async function POST(req) {
       ) AS promo ON cart.product_id = promo.product_id AND promo.rn = 1
       WHERE 
         cart.user_id = ?
-    `, [userId]);
- 
+    `,
+      [userId]
+    )
+
     for (const item of cartItems) {
       // 计算折扣后的价格
-      const discountedPrice = item.discount_percentage 
-        ? Math.ceil(item.price * (1 - item.discount_percentage / 100)) 
-        : item.price;
+      const discountedPrice = item.discount_percentage
+        ? Math.ceil(item.price * (1 - item.discount_percentage / 100))
+        : item.price
 
       await db.execute(
         `INSERT INTO order_items(
@@ -160,20 +163,17 @@ export async function POST(req) {
         price) 
         VALUES (?, ?, ?, ?, ?)`,
         [
-          MerchantTradeNo, 
+          MerchantTradeNo,
           item.product_id,
-          item.variant_id, 
+          item.variant_id,
           item.quantity,
-          discountedPrice
+          discountedPrice,
         ]
-      );
+      )
     }
 
     // 清空購物車
     // await db.query('DELETE FROM cart WHERE user_id = ?', [userId])
-
-    
-
 
     TradeDesc = '商城購物支付'
   } else {
