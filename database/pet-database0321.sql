@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2025-03-21 10:05:28
+-- 產生時間： 2025-03-21 11:59:15
 -- 伺服器版本： 8.0.40
 -- PHP 版本： 8.2.12
 
@@ -92,24 +92,6 @@ CREATE TABLE `bank_transfer_details` (
   `account_last_5` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `reconciliation_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '未核對'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- 傾印資料表的資料 `bank_transfer_details`
---
-
-INSERT INTO `bank_transfer_details` (`id`, `donation_id`, `transfer_date`, `transfer_amount`, `donor_name`, `account_last_5`, `reconciliation_status`) VALUES
-(1, 1, '2025-01-01', 500, '王小明', '12345', '未核對'),
-(2, 2, '2025-01-02', 1000, '匿名', '23456', '未核對'),
-(3, 3, '2025-01-03', 200, '張美美', '34567', '未核對'),
-(4, 4, '2025-01-04', 1500, '林志強', '45678', '未核對'),
-(5, 5, '2025-01-05', 300, '匿名', '56789', '未核對'),
-(6, 6, '2025-01-06', 800, '李華', '67890', '未核對'),
-(7, 7, '2025-01-07', 700, '陳志宏', '78901', '未核對'),
-(8, 8, '2025-01-08', 1200, '黃淑芬', '89012', '未核對'),
-(9, 9, '2025-01-09', 600, '許志宏', '90123', '未核對'),
-(10, 10, '2025-01-10', 1400, '周杰倫', '01234', '未核對'),
-(11, 11, '2025-01-16', 800, '王曉明', '12345', '未核對'),
-(12, 12, '2025-01-16', 800, '王曉明', '85423', '不成立');
 
 -- --------------------------------------------------------
 
@@ -805,14 +787,14 @@ CREATE TABLE `donations` (
   `pet_id` int DEFAULT NULL,
   `amount` int NOT NULL,
   `donation_mode` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `payment_method` enum('ATM','Credit','CVS','CreditPeriod') COLLATE utf8mb4_general_ci NOT NULL,
+  `payment_method` enum('ATM','Credit','CVS','CreditPeriod') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `create_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` int DEFAULT NULL,
   `donor_name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `donor_phone` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `donor_email` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `trade_no` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `transaction_status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pending'
+  `trade_no` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `transaction_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -820,18 +802,16 @@ CREATE TABLE `donations` (
 --
 
 INSERT INTO `donations` (`id`, `donation_type`, `pet_id`, `amount`, `donation_mode`, `payment_method`, `create_datetime`, `user_id`, `donor_name`, `donor_phone`, `donor_email`, `trade_no`, `transaction_status`) VALUES
-(1, '醫療救援', NULL, 800, '一次性捐款', 'Credit', '2025-01-10 10:00:00', 1, '王小明', '0911111111', 'wang@gmail.com', NULL, 'pending'),
-(2, '線上認養', 2, 1200, '一次性捐款', 'Credit', '2025-01-11 11:00:00', 2, '匿名', '匿名', '匿名', NULL, 'pending'),
-(3, '醫療救援', NULL, 1500, '定期捐款', 'Credit', '2025-01-12 12:00:00', 10, '孫小美', '0945678678', 'a45678@gmail.com', NULL, 'pending'),
-(4, '捐予平台', NULL, 600, '一次性捐款', 'Credit', '2025-01-13 13:00:00', 11, '李浩偉', '0912789456', 'a789456@yahoo.com', NULL, 'pending'),
-(5, '醫療救援', NULL, 900, '一次性捐款', 'Credit', '2025-01-14 14:00:00', NULL, '匿名', '匿名', '匿名', NULL, 'pending'),
-(6, '線上認養', 3, 1000, '一次性捐款', 'Credit', '2025-01-15 15:00:00', NULL, '李華', '0944444444', 'li@gmail.com', NULL, 'pending'),
-(7, '醫療救援', NULL, 500, '定期捐款', 'Credit', '2025-01-16 16:00:00', NULL, '陳志宏', '0955555555', 'chen@gmail.com', NULL, 'pending'),
-(8, '捐予平台', NULL, 2000, '一次性捐款', 'Credit', '2025-01-17 17:00:00', NULL, '匿名', '匿名', '匿名', NULL, 'pending'),
-(9, '醫療救援', NULL, 700, '一次性捐款', 'Credit', '2025-01-18 18:00:00', NULL, '黃淑芬', '0966666666', 'huang@gmail.com', NULL, 'pending'),
-(10, '線上認養', 4, 300, '一次性捐款', 'Credit', '2025-01-19 19:00:00', NULL, '周杰倫', '0977777777', 'zhou@gmail.com', NULL, 'pending'),
-(11, '線上認養', 90, 800, '定期捐款', 'Credit', '2025-01-16 13:23:32', NULL, '王曉明', '0981745555', 'sjka@gjkam.vom', NULL, 'pending'),
-(12, '醫療救援', NULL, 800, '一次性捐款', 'Credit', '2025-01-16 13:44:40', NULL, '王曉明', '0981745555', 'sjka@gjkam.vom', NULL, 'pending');
+(1001, '醫療救援', NULL, 500, '一次性捐款', 'Credit', '2025-03-20 10:01:00', 1, '王小明', '0912345678', 'ming@example.com', 'od20250321090100101', '已付款'),
+(1002, '線上認養', 1, 300, '一次性捐款', 'ATM', '2025-03-19 15:20:00', 1, '李小美', '0922333444', 'mei@example.com', 'od20250321090100102', '未付款'),
+(1003, '捐給我們', NULL, 450, '定期定額', 'CVS', '2025-03-18 12:40:00', 1, '陳志強', '0933222111', 'chiang@example.com', 'od20250321090100103', '付款失敗'),
+(1004, '醫療救援', NULL, 200, '一次性捐款', 'Credit', '2025-03-17 08:30:00', 1, '張怡君', '0966888999', 'yi@example.com', 'od20250321090100104', '已付款'),
+(1005, '線上認養', 12, 1000, '定期定額', 'CreditPeriod', '2025-03-16 17:15:00', 1, '林大華', '0955111222', 'hua@example.com', 'od20250321090100105', '未付款'),
+(1006, '捐給我們', NULL, 650, '一次性捐款', 'CVS', '2025-03-15 09:10:00', 1, '黃淑芬', '0988777666', 'shufen@example.com', 'od20250321090100106', '已付款'),
+(1007, '醫療救援', NULL, 880, '一次性捐款', 'Credit', '2025-03-14 11:25:00', 1, '許志偉', '0977666555', 'wei@example.com', 'od20250321090100107', '付款失敗'),
+(1008, '線上認養', 13, 300, '一次性捐款', 'ATM', '2025-03-13 14:45:00', 1, '邱小安', '0933999888', 'an@example.com', 'od20250321090100108', '已付款'),
+(1009, '捐給我們', NULL, 120, '定期定額', 'CreditPeriod', '2025-03-12 13:35:00', 1, '曾信宏', '0911222333', 'xin@example.com', 'od20250321090100109', '未付款'),
+(1010, '醫療救援', NULL, 770, '一次性捐款', 'Credit', '2025-03-11 19:50:00', 1, '簡若琳', '0922111000', 'jo@example.com', 'od20250321090100110', '已付款');
 
 -- --------------------------------------------------------
 
@@ -1019,32 +999,148 @@ CREATE TABLE `forum_article_likes` (
 -- --------------------------------------------------------
 
 --
+-- 資料表結構 `forum_categories`
+--
+
+CREATE TABLE `forum_categories` (
+  `id` int NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `slug` varchar(100) NOT NULL,
+  `description` text,
+  `parent_id` int DEFAULT NULL,
+  `order` int DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- 傾印資料表的資料 `forum_categories`
+--
+
+INSERT INTO `forum_categories` (`id`, `name`, `slug`, `description`, `parent_id`, `order`, `created_at`) VALUES
+(1, '寵物照護', 'pet-care', '分享寵物日常照護經驗與建議', NULL, 1, '2025-03-21 03:57:27'),
+(2, '寵物健康', 'pet-health', '討論寵物健康相關議題', NULL, 2, '2025-03-21 03:57:27'),
+(3, '寵物行為', 'pet-behavior', '探討寵物行為與訓練方法', NULL, 3, '2025-03-21 03:57:27'),
+(4, '領養資訊', 'adoption', '分享領養經驗與資訊', NULL, 4, '2025-03-21 03:57:27'),
+(5, '寵物用品', 'pet-products', '討論寵物用品推薦與心得', NULL, 5, '2025-03-21 03:57:27');
+
+-- --------------------------------------------------------
+
+--
 -- 資料表結構 `forum_comments`
 --
 
 CREATE TABLE `forum_comments` (
   `id` int NOT NULL,
-  `article_id` int NOT NULL,
+  `post_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `is_deleted` tinyint(1) DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `content` text NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- 傾印資料表的資料 `forum_comments`
+--
+
+INSERT INTO `forum_comments` (`id`, `post_id`, `user_id`, `content`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, '建議準備貓砂盆、貓砂、飼料、飲水器、貓抓板等基本用品。', '2025-03-21 03:57:27', '2025-03-21 03:57:27'),
+(2, 2, 1, '建議帶去獸醫院檢查，可能是身體不適。', '2025-03-21 03:57:27', '2025-03-21 03:57:27');
 
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `forum_comment_replies`
+-- 資料表結構 `forum_likes`
 --
 
-CREATE TABLE `forum_comment_replies` (
+CREATE TABLE `forum_likes` (
   `id` int NOT NULL,
-  `comment_id` int NOT NULL,
+  `post_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `is_deleted` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- 傾印資料表的資料 `forum_likes`
+--
+
+INSERT INTO `forum_likes` (`id`, `post_id`, `user_id`, `created_at`) VALUES
+(1, 1, 1, '2025-03-21 03:57:27'),
+(2, 2, 1, '2025-03-21 03:57:27');
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `forum_posts`
+--
+
+CREATE TABLE `forum_posts` (
+  `id` int NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `content` text NOT NULL,
+  `user_id` int NOT NULL,
+  `category_id` int NOT NULL,
+  `view_count` int DEFAULT '0',
+  `like_count` int DEFAULT '0',
+  `comment_count` int DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- 傾印資料表的資料 `forum_posts`
+--
+
+INSERT INTO `forum_posts` (`id`, `title`, `content`, `user_id`, `category_id`, `view_count`, `like_count`, `comment_count`, `created_at`, `updated_at`) VALUES
+(1, '新手養貓需要準備什麼？', '我想領養一隻貓，請問需要準備哪些用品？希望大家可以分享經驗。', 1, 1, 0, 0, 0, '2025-03-21 03:57:27', '2025-03-21 03:57:27'),
+(2, '狗狗不吃飯怎麼辦？', '我家的狗狗最近食慾不太好，有什麼建議嗎？', 1, 2, 0, 0, 0, '2025-03-21 03:57:27', '2025-03-21 03:57:27');
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `forum_post_tags`
+--
+
+CREATE TABLE `forum_post_tags` (
+  `post_id` int NOT NULL,
+  `tag_id` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- 傾印資料表的資料 `forum_post_tags`
+--
+
+INSERT INTO `forum_post_tags` (`post_id`, `tag_id`) VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(2, 4),
+(2, 5),
+(2, 6);
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `forum_tags`
+--
+
+CREATE TABLE `forum_tags` (
+  `id` int NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `slug` varchar(50) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- 傾印資料表的資料 `forum_tags`
+--
+
+INSERT INTO `forum_tags` (`id`, `name`, `slug`, `created_at`) VALUES
+(1, '新手', 'newbie', '2025-03-21 03:57:27'),
+(2, '貓咪', 'cat', '2025-03-21 03:57:27'),
+(3, '準備工作', 'preparation', '2025-03-21 03:57:27'),
+(4, '狗狗', 'dog', '2025-03-21 03:57:27'),
+(5, '健康', 'health', '2025-03-21 03:57:27'),
+(6, '飲食', 'diet', '2025-03-21 03:57:27');
 
 -- --------------------------------------------------------
 
@@ -1187,7 +1283,7 @@ CREATE TABLE `orders` (
   `mobile_barcode` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `taxID_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `recipient_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `recipient_phone` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `recipient_phone` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `recipient_email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `remark` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `shipping_method` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -1423,15 +1519,15 @@ CREATE TABLE `pet_appointment` (
   `pet_id` int NOT NULL,
   `appointment_date` date DEFAULT NULL,
   `appointment_time` time DEFAULT NULL,
-  `status` varchar(50) COLLATE utf8mb4_general_ci DEFAULT 'pending',
+  `status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `house_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `house_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `adult_number` int DEFAULT NULL,
   `child_number` int DEFAULT NULL,
   `adopted_experience` tinyint(1) DEFAULT NULL,
-  `other_pets` text COLLATE utf8mb4_general_ci,
-  `note` text COLLATE utf8mb4_general_ci,
+  `other_pets` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `note` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `store_id` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -2413,24 +2509,6 @@ CREATE TABLE `receipts` (
   `receipt_address` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- 傾印資料表的資料 `receipts`
---
-
-INSERT INTO `receipts` (`id`, `donation_id`, `receipt_name`, `receipt_phone`, `receipt_address`) VALUES
-(1, 1, '王小明', '0911111111', '台北市中山區南京東路一段100號'),
-(2, 2, NULL, NULL, NULL),
-(3, 3, '張美美', '0922222222', '台北市信義區松山路200號'),
-(4, 4, '林志強', '0933333333', '高雄市前鎮區民生路300號'),
-(5, 5, NULL, NULL, NULL),
-(6, 6, '李華', '0944444444', '台中市北屯區文心路400號'),
-(7, 7, '陳志宏', '0955555555', '新竹市東區光復路500號'),
-(8, 8, NULL, NULL, NULL),
-(9, 9, '黃淑芬', '0966666666', '台南市中西區中正路600號'),
-(10, 10, '周杰倫', '0977777777', '桃園市中壢區中山路700號'),
-(11, 11, '王曉明', '0123456789', '台南'),
-(13, 12, '', '', '');
-
 -- --------------------------------------------------------
 
 --
@@ -2747,20 +2825,50 @@ ALTER TABLE `forum_article_likes`
   ADD KEY `article_id` (`article_id`);
 
 --
+-- 資料表索引 `forum_categories`
+--
+ALTER TABLE `forum_categories`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `slug` (`slug`),
+  ADD KEY `parent_id` (`parent_id`);
+
+--
 -- 資料表索引 `forum_comments`
 --
 ALTER TABLE `forum_comments`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `article_id` (`article_id`),
+  ADD KEY `post_id` (`post_id`),
   ADD KEY `user_id` (`user_id`);
 
 --
--- 資料表索引 `forum_comment_replies`
+-- 資料表索引 `forum_likes`
 --
-ALTER TABLE `forum_comment_replies`
+ALTER TABLE `forum_likes`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `comment_id` (`comment_id`),
+  ADD UNIQUE KEY `unique_like` (`post_id`,`user_id`),
   ADD KEY `user_id` (`user_id`);
+
+--
+-- 資料表索引 `forum_posts`
+--
+ALTER TABLE `forum_posts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `category_id` (`category_id`);
+
+--
+-- 資料表索引 `forum_post_tags`
+--
+ALTER TABLE `forum_post_tags`
+  ADD PRIMARY KEY (`post_id`,`tag_id`),
+  ADD KEY `tag_id` (`tag_id`);
+
+--
+-- 資料表索引 `forum_tags`
+--
+ALTER TABLE `forum_tags`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `slug` (`slug`);
 
 --
 -- 資料表索引 `manager`
@@ -3086,7 +3194,7 @@ ALTER TABLE `comments`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `donations`
 --
 ALTER TABLE `donations`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1011;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `expenses`
@@ -3119,16 +3227,34 @@ ALTER TABLE `forum_article_likes`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- 使用資料表自動遞增(AUTO_INCREMENT) `forum_categories`
+--
+ALTER TABLE `forum_categories`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- 使用資料表自動遞增(AUTO_INCREMENT) `forum_comments`
 --
 ALTER TABLE `forum_comments`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- 使用資料表自動遞增(AUTO_INCREMENT) `forum_comment_replies`
+-- 使用資料表自動遞增(AUTO_INCREMENT) `forum_likes`
 --
-ALTER TABLE `forum_comment_replies`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+ALTER TABLE `forum_likes`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `forum_posts`
+--
+ALTER TABLE `forum_posts`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `forum_tags`
+--
+ALTER TABLE `forum_tags`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `manager`
@@ -3410,18 +3536,38 @@ ALTER TABLE `forum_article_likes`
   ADD CONSTRAINT `forum_article_likes_ibfk_2` FOREIGN KEY (`article_id`) REFERENCES `forum_articles` (`id`) ON DELETE CASCADE;
 
 --
+-- 資料表的限制式 `forum_categories`
+--
+ALTER TABLE `forum_categories`
+  ADD CONSTRAINT `forum_categories_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `forum_categories` (`id`) ON DELETE SET NULL;
+
+--
 -- 資料表的限制式 `forum_comments`
 --
 ALTER TABLE `forum_comments`
-  ADD CONSTRAINT `forum_comments_ibfk_1` FOREIGN KEY (`article_id`) REFERENCES `forum_articles` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `forum_comments_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `forum_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
--- 資料表的限制式 `forum_comment_replies`
+-- 資料表的限制式 `forum_likes`
 --
-ALTER TABLE `forum_comment_replies`
-  ADD CONSTRAINT `forum_comment_replies_ibfk_1` FOREIGN KEY (`comment_id`) REFERENCES `forum_comments` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `forum_comment_replies_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+ALTER TABLE `forum_likes`
+  ADD CONSTRAINT `forum_likes_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `forum_likes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `forum_posts`
+--
+ALTER TABLE `forum_posts`
+  ADD CONSTRAINT `forum_posts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `forum_posts_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `forum_categories` (`id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `forum_post_tags`
+--
+ALTER TABLE `forum_post_tags`
+  ADD CONSTRAINT `forum_post_tags_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `forum_post_tags_ibfk_2` FOREIGN KEY (`tag_id`) REFERENCES `forum_tags` (`id`) ON DELETE CASCADE;
 
 --
 -- 資料表的限制式 `media_article`
