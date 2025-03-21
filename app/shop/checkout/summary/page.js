@@ -33,7 +33,7 @@ export default function SummaryPage() {
 
     const fetchOrderData = async () => {
       try {
-        const response = await fetch(`/api/shop/order/${orderId}`)
+        const response = await fetch(`/api/shop/checkout/summary/${orderId}`)
         if (!response.ok) {
           throw new Error('無法獲取訂單資料')
         }
