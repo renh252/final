@@ -1,9 +1,45 @@
 'use client';
 
-import React from 'react';
+import React, { useState }  from 'react';
 import styles from './Register.module.css';
 
 export default function RegisterPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert('密碼和確認密碼不一致');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+        // 註冊成功，跳轉到登入頁面
+        window.location.href = '/member/MemberLogin/login';
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error('註冊錯誤:', error);
+      alert('註冊失敗，請稍後重試');
+    }
+  };
+  
   return (
     <>
                       <div className={styles.formContainer}>
@@ -11,7 +47,7 @@ export default function RegisterPage() {
               <h2 className={styles.sectionTitle}>快速註冊</h2>
               <div className={styles.form}>
               <div className={styles.GFbutton}>
-<button
+                <button
                   className="button"
                   style={{ width: '350px', height: '60px', fontSize: '20px' }}
                 >
@@ -21,17 +57,6 @@ export default function RegisterPage() {
                     style={{ width: '100px', height: '50px' }}
                   />
                   以Google帳號註冊
-                </button>
-                <button
-                  className="button"
-                  style={{ width: '350px', height: '60px', fontSize: '20px' }}
-                >
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/947deca3304a13703edd669f75def30df7a6bad1d73408cb9ee3fa21c3d9e912?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
-                    alt="Facebook icon"
-                    style={{ width: '100px', height: '50px' }}
-                  />
-                  以Facebook帳號註冊
                 </button>
               </div>
               
@@ -71,15 +96,14 @@ export default function RegisterPage() {
                     required
                   />
                     <br />  <br />
-                    <br />  <br />
-                    <br />
+                    <br />  
               <button
                 className="button"
                 style={{ width: '200px', height: '50px', fontSize: '28px' }}
               >
                 註冊
               </button>
-              <br />
+              <br /><br />
               <div>
                 <p className={styles.loginLink}>
                 已經是會員?

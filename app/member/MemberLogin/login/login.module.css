@@ -162,13 +162,27 @@
   right: 430px;
   z-index: 0;
 }
-
+.GFbutton{
+  width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+    margin-top: 50px; /* 添加頂部間距 */
+    margin-bottom: 50px; /* 添加底部間距 */
+}
 .decorativeIcon1 {
   bottom: 820px;
 }
 
 .decorativeIcon2 {
   bottom: 548px;
+}
+
+.nomember{
+  width: fit-content; /* 根據內容調整寬度 */
+  margin: 0 auto; /* 水平置中 */
+  text-align: center;
 }
 
 @media (width <= 991px) {
@@ -218,5 +232,9 @@
 
   .termsText {
     max-width: 100%;
+  }
+  .googleButton,
+  {
+    padding: 15px 20px;
   }
 }
