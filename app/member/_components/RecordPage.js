@@ -59,6 +59,7 @@ export default function RecordPage({
           </p>
         </div>
       </div>
+
       <div className={styles.list}>
         <div className={styles.listContainer}>
           {filteredRecords.length > 0 ? (
@@ -80,6 +81,7 @@ export default function RecordPage({
             <p className={styles.noData}>目前沒有資料</p>
           )}
         </div>
+
       </div>
     </div>
   )
