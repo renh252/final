@@ -19,8 +19,8 @@ export default function FilterBar({
         >
           <option value="全部">全部</option>
           <option value="已付款">已付款</option>
-          <option value="處理中">處理中</option>
-          <option value="失敗">失敗</option>
+          <option value="未付款">未付款</option>
+          <option value="付款失敗">付款失敗</option>
         </select>
       </label>
 
