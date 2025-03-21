@@ -31,9 +31,14 @@ export default function RecordPage({
   const total = data.total || records.length
 
   const filteredRecords = records.filter((record) => {
-    if (statusFilter !== '全部' && record.transaction_status !== statusFilter)
+    if (statusFilter !== '全部' && (record.transaction_status !== statusFilter && record.payment_status !== statusFilter	))
       return false
-    const date = new Date(record.create_datetime)
+    let date = ''
+    if (record.create_datetime) {
+      date = new Date(record.create_datetime) 
+    }else if (record.created_at) {
+      date = new Date(record.created_at) 
+    }
     if (startDate && date < new Date(startDate)) return false
     if (endDate && date > new Date(endDate)) return false
     return true
@@ -59,6 +64,7 @@ export default function RecordPage({
           </p>
         </div>
       </div>
+
       <div className={styles.list}>
         <div className={styles.listContainer}>
           {filteredRecords.length > 0 ? (
@@ -70,7 +76,9 @@ export default function RecordPage({
                 onClick={() => {
                   if (record.trade_no) {
                     router.push(`/member/donations/${record.trade_no}`)
-                  } else {
+                  } else if (record.order_id) {
+                    router.push(`/member/orders/${record.order_id}`)
+                  }else {
                     alert('此筆紀錄缺少捐款編號，無法查看詳細資料')
                   }
                 }} // 🔹 用傳入的 `detailPagePath`
@@ -80,6 +88,7 @@ export default function RecordPage({
             <p className={styles.noData}>目前沒有資料</p>
           )}
         </div>
+
       </div>
     </div>
   )
