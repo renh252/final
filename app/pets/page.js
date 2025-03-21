@@ -775,6 +775,7 @@ export default function PetsPage() {
 
         // 延遲更新地圖相關狀態
         setTimeout(() => {
+          // 創建標記數組，首先添加用戶位置
           const markersArray = [
             {
               lat: latitude,
@@ -785,6 +786,23 @@ export default function PetsPage() {
               isUserLocation: true,
             },
           ]
+
+          // 將附近的商店添加到標記數組中
+          if (nearby && nearby.length > 0) {
+            nearby.forEach((store) => {
+              markersArray.push({
+                lat: parseFloat(store.lat),
+                lng: parseFloat(store.lng),
+                name: store.name,
+                description: `${store.address} (${
+                  store.phone
+                }) - 距離: ${store.distance.toFixed(2)} 公里`,
+                isStore: true,
+                id: `store-${store.id}`,
+                distance: store.distance,
+              })
+            })
+          }
 
           setMapCenter([latitude, longitude])
           setMapZoom(15)
@@ -916,6 +934,26 @@ export default function PetsPage() {
             })
           }
 
+          // 如果有附近商店，也將它們添加到標記中
+          if (nearbyStores && nearbyStores.length > 0) {
+            nearbyStores.forEach((store) => {
+              // 避免添加已經作為selectedStoreLocation的商店
+              if (!currentStore || store.id !== currentStore.id) {
+                markers.push({
+                  lat: parseFloat(store.lat),
+                  lng: parseFloat(store.lng),
+                  name: store.name,
+                  description: `${store.address} (${
+                    store.phone
+                  }) - 距離: ${store.distance.toFixed(2)} 公里`,
+                  isStore: true,
+                  id: `store-${store.id}`,
+                  distance: store.distance,
+                })
+              }
+            })
+          }
+
           setMapMarkers(markers)
         } else if (selectedRegion && locationData[selectedRegion]) {
           const { lat, lng } = locationData[selectedRegion]
@@ -938,6 +976,38 @@ export default function PetsPage() {
           })
         })
       }, 100)
+    } else {
+      // 從列表視圖切換到地圖視圖
+      // 如果有選定位置和附近商店，確保顯示所有商店標記
+      if (selectedLocation && nearbyStores.length > 0) {
+        const newMarkers = [
+          {
+            lat: selectedLocation.lat,
+            lng: selectedLocation.lng,
+            name: selectedLocation.isUserLocation ? '您的位置' : '已選擇的位置',
+            isSelected: true,
+            id: selectedLocation.isUserLocation ? 'user-location' : Date.now(),
+            isUserLocation: selectedLocation.isUserLocation || false,
+          },
+        ]
+
+        // 添加附近商店
+        nearbyStores.forEach((store) => {
+          newMarkers.push({
+            lat: parseFloat(store.lat),
+            lng: parseFloat(store.lng),
+            name: store.name,
+            description: `${store.address} (${
+              store.phone
+            }) - 距離: ${store.distance.toFixed(2)} 公里`,
+            isStore: true,
+            id: `store-${store.id}`,
+            distance: store.distance,
+          })
+        })
+
+        setMapMarkers(newMarkers)
+      }
     }
 
     setViewMode(newViewMode)
@@ -946,6 +1016,7 @@ export default function PetsPage() {
     selectedLocation,
     selectedStoreLocation,
     selectedRegion,
+    nearbyStores,
     setViewMode,
     setMapMarkers,
     setMapCenter,
@@ -1023,6 +1094,84 @@ export default function PetsPage() {
     // 空的依賴數組，只在組件初次渲染時執行一次
     // 初始不設置任何標記，只在用戶選擇時才顯示
   }, [])
+
+  // 處理地圖位置選擇的統一函數
+  const handleMapLocationSelect = useCallback(
+    (location) => {
+      // 保存當前滾動位置
+      const currentScrollPosition = window.scrollY
+
+      // 使用 handleFilterUpdate 來管理狀態更新和防抖
+      handleFilterUpdate(() => {
+        // 設置選擇的位置
+        setSelectedLocation(location)
+        setSelectedStoreLocation(null)
+
+        // 清除區域選擇
+        setSelectedRegion('')
+        setSelectedStore('')
+
+        // 查找並更新附近商店
+        const nearby = findNearbyStores(location.lat, location.lng)
+        setNearbyStores(nearby)
+
+        // 創建標記數組，首先添加用戶選擇的位置
+        const newMarkers = [
+          {
+            ...location,
+            name: '已選擇的位置',
+            isSelected: true,
+            id: Date.now(),
+            isUserLocation: false, // 這是用戶選擇的位置，不是用戶當前位置
+          },
+        ]
+
+        // 將附近的商店添加到標記數組中
+        if (nearby && nearby.length > 0) {
+          nearby.forEach((store) => {
+            newMarkers.push({
+              lat: parseFloat(store.lat),
+              lng: parseFloat(store.lng),
+              name: store.name,
+              description: `${store.address} (${
+                store.phone
+              }) - 距離: ${store.distance.toFixed(2)} 公里`,
+              isStore: true,
+              id: `store-${store.id}`,
+              distance: store.distance,
+            })
+          })
+        }
+
+        // 更新標記
+        setMapMarkers(newMarkers)
+
+        // 更新地圖中心和縮放
+        setMapCenter([location.lat, location.lng])
+        setMapZoom(15)
+
+        // 恢復滾動位置
+        requestAnimationFrame(() => {
+          window.scrollTo({
+            top: currentScrollPosition,
+            behavior: 'auto',
+          })
+        })
+      })
+    },
+    [
+      handleFilterUpdate,
+      setSelectedLocation,
+      setSelectedStoreLocation,
+      setSelectedRegion,
+      setSelectedStore,
+      setMapMarkers,
+      findNearbyStores,
+      setNearbyStores,
+      setMapCenter,
+      setMapZoom,
+    ]
+  )
 
   // 使用 displayPetsData 替代 petsData 在條件渲染
   if (!displayPetsData && !previousPetsData) return <div>載入中...</div>
@@ -1207,11 +1356,48 @@ export default function PetsPage() {
                             handleFilterUpdate(() => {
                               setSearchRadius(newRadius)
                               if (selectedLocation) {
+                                // 查找附近商店
                                 const nearby = findNearbyStores(
                                   selectedLocation.lat,
                                   selectedLocation.lng
                                 )
                                 setNearbyStores(nearby)
+
+                                // 更新地圖標記，保留用戶位置標記，添加商店標記
+                                const newMarkers = [
+                                  // 用戶選擇的位置
+                                  {
+                                    lat: selectedLocation.lat,
+                                    lng: selectedLocation.lng,
+                                    name: '已選擇的位置',
+                                    isSelected: true,
+                                    id: Date.now(),
+                                    isUserLocation:
+                                      selectedLocation.isUserLocation || false,
+                                  },
+                                ]
+
+                                // 將附近商店添加到標記中
+                                if (nearby && nearby.length > 0) {
+                                  nearby.forEach((store) => {
+                                    newMarkers.push({
+                                      lat: parseFloat(store.lat),
+                                      lng: parseFloat(store.lng),
+                                      name: store.name,
+                                      description: `${store.address} (${
+                                        store.phone
+                                      }) - 距離: ${store.distance.toFixed(
+                                        2
+                                      )} 公里`,
+                                      isStore: true,
+                                      id: `store-${store.id}`,
+                                      distance: store.distance,
+                                    })
+                                  })
+                                }
+
+                                // 更新標記
+                                setMapMarkers(newMarkers)
                               }
                             })
                           }}
@@ -1268,19 +1454,7 @@ export default function PetsPage() {
                     center={mapCenter}
                     zoom={mapZoom}
                     markers={mapMarkers}
-                    onLocationSelect={(location) => {
-                      setSelectedLocation(location)
-                      setSelectedStoreLocation(null)
-                      setMapMarkers([
-                        {
-                          ...location,
-                          name: '已選擇的位置',
-                          isSelected: true,
-                          id: Date.now(),
-                        },
-                      ])
-                      setSelectedRegion('')
-                    }}
+                    onLocationSelect={handleMapLocationSelect}
                     regionName={selectedRegion}
                     showLegend={false}
                     searchRadius={searchRadius}
@@ -1322,19 +1496,7 @@ export default function PetsPage() {
             center={mapCenter}
             zoom={mapZoom}
             markers={mapMarkers}
-            onLocationSelect={(location) => {
-              setSelectedLocation(location)
-              setSelectedStoreLocation(null)
-              setMapMarkers([
-                {
-                  ...location,
-                  name: '已選擇的位置',
-                  isSelected: true,
-                  id: Date.now(),
-                },
-              ])
-              setSelectedRegion('')
-            }}
+            onLocationSelect={handleMapLocationSelect}
             regionName={selectedRegion}
             showLegend={true}
             searchRadius={searchRadius}

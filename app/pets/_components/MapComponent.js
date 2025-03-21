@@ -232,6 +232,52 @@ export default function MapComponent({
           display: none;
         }
         
+        /* 用戶位置標記樣式 */
+        .user-location-marker {
+          width: 16px;
+          height: 16px;
+          background-color: rgba(33, 150, 243, 0.8);
+          border: 2px solid white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        }
+        
+        .user-location-dot {
+          width: 8px;
+          height: 8px;
+          background-color: #2196f3;
+          border-radius: 50%;
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 1);
+          position: relative;
+          z-index: 2;
+        }
+        
+        .user-location-pulse {
+          position: absolute;
+          top: -2px;
+          left: -2px;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background-color: rgba(33, 150, 243, 1);
+          animation: locationPulse 1.5s infinite;
+          z-index: -1;
+        }
+        
+        @keyframes locationPulse {
+          0% {
+            transform: scale(0.5);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(3);
+            opacity: 0.3;
+          }
+        }
+        
         /* 移除強制黑色文字顏色，使用 Bootstrap 的自適應顏色 */
       `
       document.head.appendChild(style)
@@ -510,7 +556,7 @@ export default function MapComponent({
                 width: '16px',
                 height: '16px',
                 borderRadius: '50%',
-                backgroundColor: '#2d8a30',
+                backgroundColor: '#2196f3',
                 position: 'relative',
               }}
             >
@@ -520,7 +566,7 @@ export default function MapComponent({
                   width: '16px',
                   height: '16px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(45, 138, 48, 0.3)',
+                  backgroundColor: 'rgba(33, 150, 243, 0.3)',
                   animation: 'ripple 2s infinite ease-in-out',
                 }}
               />
