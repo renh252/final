@@ -51,7 +51,7 @@ export async function POST(request, { params }) {
     // 獲取新增的評論資料
     const [comment] = await executeQuery(
       \`SELECT c.id, c.content, c.created_at,
-              u.nickname as author_name, u.image as author_avatar
+              u.user_nickname as author_name, u.image as author_avatar
        FROM forum_comments c
        LEFT JOIN users u ON c.user_id = u.id
        WHERE c.id = ?\`,
