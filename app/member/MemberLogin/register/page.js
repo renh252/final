@@ -1,9 +1,45 @@
 'use client';
 
-import React from 'react';
+import React, { useState }  from 'react';
 import styles from './Register.module.css';
 
 export default function RegisterPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert('密碼和確認密碼不一致');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+        // 註冊成功，跳轉到登入頁面
+        window.location.href = '/member/MemberLogin/login';
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error('註冊錯誤:', error);
+      alert('註冊失敗，請稍後重試');
+    }
+  };
+  
   return (
     <>
                       <div className={styles.formContainer}>
