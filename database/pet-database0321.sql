@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2025-03-17 15:40:03
+-- 產生時間： 2025-03-21 10:05:28
 -- 伺服器版本： 8.0.40
 -- PHP 版本： 8.2.12
 
@@ -805,6 +805,46 @@ CREATE TABLE `donations` (
   `pet_id` int DEFAULT NULL,
   `amount` int NOT NULL,
   `donation_mode` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `payment_method` enum('ATM','Credit','CVS','CreditPeriod') COLLATE utf8mb4_general_ci NOT NULL,
+  `create_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user_id` int DEFAULT NULL,
+  `donor_name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `donor_phone` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `donor_email` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `trade_no` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `transaction_status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 傾印資料表的資料 `donations`
+--
+
+INSERT INTO `donations` (`id`, `donation_type`, `pet_id`, `amount`, `donation_mode`, `payment_method`, `create_datetime`, `user_id`, `donor_name`, `donor_phone`, `donor_email`, `trade_no`, `transaction_status`) VALUES
+(1, '醫療救援', NULL, 800, '一次性捐款', 'Credit', '2025-01-10 10:00:00', 1, '王小明', '0911111111', 'wang@gmail.com', NULL, 'pending'),
+(2, '線上認養', 2, 1200, '一次性捐款', 'Credit', '2025-01-11 11:00:00', 2, '匿名', '匿名', '匿名', NULL, 'pending'),
+(3, '醫療救援', NULL, 1500, '定期捐款', 'Credit', '2025-01-12 12:00:00', 10, '孫小美', '0945678678', 'a45678@gmail.com', NULL, 'pending'),
+(4, '捐予平台', NULL, 600, '一次性捐款', 'Credit', '2025-01-13 13:00:00', 11, '李浩偉', '0912789456', 'a789456@yahoo.com', NULL, 'pending'),
+(5, '醫療救援', NULL, 900, '一次性捐款', 'Credit', '2025-01-14 14:00:00', NULL, '匿名', '匿名', '匿名', NULL, 'pending'),
+(6, '線上認養', 3, 1000, '一次性捐款', 'Credit', '2025-01-15 15:00:00', NULL, '李華', '0944444444', 'li@gmail.com', NULL, 'pending'),
+(7, '醫療救援', NULL, 500, '定期捐款', 'Credit', '2025-01-16 16:00:00', NULL, '陳志宏', '0955555555', 'chen@gmail.com', NULL, 'pending'),
+(8, '捐予平台', NULL, 2000, '一次性捐款', 'Credit', '2025-01-17 17:00:00', NULL, '匿名', '匿名', '匿名', NULL, 'pending'),
+(9, '醫療救援', NULL, 700, '一次性捐款', 'Credit', '2025-01-18 18:00:00', NULL, '黃淑芬', '0966666666', 'huang@gmail.com', NULL, 'pending'),
+(10, '線上認養', 4, 300, '一次性捐款', 'Credit', '2025-01-19 19:00:00', NULL, '周杰倫', '0977777777', 'zhou@gmail.com', NULL, 'pending'),
+(11, '線上認養', 90, 800, '定期捐款', 'Credit', '2025-01-16 13:23:32', NULL, '王曉明', '0981745555', 'sjka@gjkam.vom', NULL, 'pending'),
+(12, '醫療救援', NULL, 800, '一次性捐款', 'Credit', '2025-01-16 13:44:40', NULL, '王曉明', '0981745555', 'sjka@gjkam.vom', NULL, 'pending');
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `donations_backup`
+--
+
+CREATE TABLE `donations_backup` (
+  `id` int NOT NULL DEFAULT '0',
+  `donation_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `pet_id` int DEFAULT NULL,
+  `amount` int NOT NULL,
+  `donation_mode` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `regular_payment_date` date DEFAULT NULL,
   `is_anonymous` int NOT NULL DEFAULT '0',
   `payment_method` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -814,13 +854,13 @@ CREATE TABLE `donations` (
   `donor_name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `donor_phone` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `donor_email` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- 傾印資料表的資料 `donations`
+-- 傾印資料表的資料 `donations_backup`
 --
 
-INSERT INTO `donations` (`id`, `donation_type`, `pet_id`, `amount`, `donation_mode`, `regular_payment_date`, `is_anonymous`, `payment_method`, `create_datetime`, `user_id`, `is_receipt_needed`, `donor_name`, `donor_phone`, `donor_email`) VALUES
+INSERT INTO `donations_backup` (`id`, `donation_type`, `pet_id`, `amount`, `donation_mode`, `regular_payment_date`, `is_anonymous`, `payment_method`, `create_datetime`, `user_id`, `is_receipt_needed`, `donor_name`, `donor_phone`, `donor_email`) VALUES
 (1, '醫療救援', NULL, 800, '一次性捐款', NULL, 0, '信用卡', '2025-01-10 10:00:00', 1, 1, '王小明', '0911111111', 'wang@gmail.com'),
 (2, '線上認養', 2, 1200, '一次性捐款', NULL, 1, '銀行轉帳', '2025-01-11 11:00:00', 2, 0, '匿名', '匿名', '匿名'),
 (3, '醫療救援', NULL, 1500, '定期捐款', '2025-02-15', 0, '信用卡', '2025-01-12 12:00:00', 10, 1, '孫小美', '0945678678', 'a45678@gmail.com'),
@@ -1030,7 +1070,6 @@ INSERT INTO `manager` (`id`, `manager_account`, `manager_password`, `manager_pri
 (4, 'ching', '$2y$10$97XycLclWAAXi6LOLCpx4Opr8K4i3NVYRsW4axCLEHfv4i1RvKnfG', 'shop'),
 (5, 'ting', '$2y$10$Es2iSjkXB81qwnnbUewAfe4h.8.HFHk2UvmYvcFP2KaCgSyydA4Fm', 'post'),
 (6, 'aaa', '$2y$10$3PY7..Z4dL4.ENXW/XZG1.HO7FkOKaMViKjPHOySYYOp0.pRbGAVe', '111'),
-(20, 'aa', '$2y$10$ls7Ts30LmD0x9ODUrVtrZefQLcyghnzGNmw.yMbGFNOaBisC/2QyK', 'test'),
 (21, 'test', '$2y$10$bW0hvzSq1BLJJMqFd9TH.OytSgeXLmxnlbkZ92MPbsQq50Si684fW', 'test');
 
 -- --------------------------------------------------------
@@ -1074,6 +1113,49 @@ CREATE TABLE `media_uploads` (
 -- --------------------------------------------------------
 
 --
+-- 資料表結構 `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
+  `admin_id` int DEFAULT NULL,
+  `type` varchar(50) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `is_read` tinyint(1) DEFAULT '0',
+  `related_id` int DEFAULT NULL,
+  `related_type` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- 傾印資料表的資料 `notifications`
+--
+
+INSERT INTO `notifications` (`id`, `user_id`, `admin_id`, `type`, `title`, `message`, `is_read`, `related_id`, `related_type`, `created_at`, `updated_at`) VALUES
+(1, 1, NULL, 'appointment_confirmed', '預約確認通知', '您的寵物預約已確認，預約時間：2025-01-30 09:00', 0, 12, 'appointment', '2025-01-21 02:30:00', '2025-03-21 02:03:45'),
+(2, 1, NULL, 'appointment_completed', '預約完成通知', '恭喜您成功領養寵物！', 0, 13, 'appointment', '2024-12-15 06:45:00', '2025-03-21 02:03:45'),
+(3, 1, NULL, 'system', '系統通知', '您的帳戶資訊已更新', 1, NULL, NULL, '2025-01-01 01:15:00', '2025-03-21 02:03:45'),
+(4, 3, NULL, 'appointment_confirmed', '預約確認通知', '您的寵物預約已確認，預約時間：2025-02-05 10:30', 0, 15, 'appointment', '2025-01-16 06:00:00', '2025-03-21 02:03:45'),
+(5, 3, NULL, 'appointment_cancelled', '預約取消通知', '您的預約已取消', 1, 16, 'appointment', '2025-01-22 01:15:00', '2025-03-21 02:03:45'),
+(6, 5, NULL, 'system', '系統通知', '感謝您參與我們的問卷調查', 0, NULL, NULL, '2025-01-15 05:20:00', '2025-03-21 02:03:45'),
+(7, 5, NULL, 'appointment_pending', '預約待確認通知', '您的預約正在審核中，我們會盡快回覆', 0, 17, 'appointment', '2025-01-30 02:30:00', '2025-03-21 02:03:45'),
+(8, NULL, 1, 'new_appointment', '新預約通知', '有新的預約需要審核', 0, 1, 'appointment', '2025-01-01 00:30:00', '2025-03-21 02:03:45'),
+(9, NULL, 1, 'new_appointment', '新預約通知', '有新的預約需要審核', 0, 3, 'appointment', '2025-01-02 02:15:00', '2025-03-21 02:03:45'),
+(10, NULL, 1, 'system', '系統通知', '系統將於今晚23:00-23:30進行維護', 0, NULL, NULL, '2025-01-10 07:45:00', '2025-03-21 02:03:45'),
+(11, NULL, 2, 'report', '新舉報通知', '有新的內容被舉報，請盡快審核', 0, 5, 'post', '2025-01-05 03:30:00', '2025-03-21 02:03:45'),
+(12, NULL, 2, 'new_appointment', '新預約通知', '有新的預約需要審核', 1, 17, 'appointment', '2025-01-30 02:30:00', '2025-03-21 02:03:45'),
+(13, 1, NULL, 'appointment_reminder', '預約提醒', '提醒您明天有寵物預約', 0, 1, 'appointment', '2025-01-04 01:00:00', '2025-03-21 02:03:45'),
+(14, 4, NULL, 'appointment_reminder', '預約提醒', '提醒您今天有寵物預約', 0, 4, 'appointment', '2025-01-18 00:00:00', '2025-03-21 02:03:45'),
+(15, 6, NULL, 'appointment_confirmed', '預約已確認', '您的預約已確認', 0, 6, 'appointment', '2025-01-06 03:15:00', '2025-03-21 02:03:45'),
+(16, NULL, 1, 'system', '系統通知', '今日有2個新預約需要處理', 0, NULL, NULL, '2025-01-01 00:00:00', '2025-03-21 02:03:45'),
+(17, NULL, 2, 'system', '系統通知', '有3筆預約狀態需要更新', 0, NULL, NULL, '2025-01-01 00:15:00', '2025-03-21 02:03:45');
+
+-- --------------------------------------------------------
+
+--
 -- 資料表結構 `notify_notifications`
 --
 
@@ -1105,7 +1187,7 @@ CREATE TABLE `orders` (
   `mobile_barcode` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `taxID_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `recipient_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `recipient_phone` int NOT NULL,
+  `recipient_phone` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `recipient_email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `remark` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `shipping_method` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -1122,11 +1204,11 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `user_id`, `total_price`, `order_status`, `payment_method`, `payment_status`, `invoice_method`, `invoice`, `mobile_barcode`, `taxID_number`, `recipient_name`, `recipient_phone`, `recipient_email`, `remark`, `shipping_method`, `shipping_address`, `tracking_number`, `shipped_at`, `created_at`, `finish_at`, `updated_at`) VALUES
-('ORD00001', 1, 500, '待出貨', 'linePay', '已付款', '紙本', 'INV12345', NULL, '12345678', '王小', 95555555, 'li.dahua@examp', '請於上午配送', '宅配', '台北市信義區XX路XX號', 'TRACK001', NULL, '2025-01-16 03:08:30', NULL, '2025-01-16 15:20:07'),
-('ORD00002', 2, 300, '已出貨', '信用卡', '已付款', '載具', 'INV67890', '/ABCD123', NULL, '李大華', 911223344, 'li.dahua@example.com', '門市取貨後聯繫', '7-11', '7-11門市', 'TRACK002', '2025-01-16 03:08:30', '2025-01-16 03:08:30', NULL, '2025-01-16 03:08:30'),
-('ORD00003', 3, 1200, '已完成', '信用卡', '已付款', '統編', 'INV11223', NULL, '87654321', '陳美麗', 987654321, 'li.dahua@example.com', '感謝服務，請保持聯繫', '全家', '全家門市', 'TRACK003', '2025-01-16 03:08:30', '2025-01-16 03:08:30', '2025-01-16 03:08:30', '2025-01-16 03:08:30'),
-('ORD00004', 4, 800, '待出貨', '信用卡', '已付款', '紙本', 'INV33445', '/XYZ9876', NULL, '黃俊傑', 911223344, 'li.dahua@example.com', '請提前通知配送時間', '宅配', '新竹市東區XX路XX號', 'TRACK004', NULL, '2025-01-16 03:08:30', NULL, '2025-01-16 03:08:30'),
-('ORD00005', 5, 450, '已出貨', '轉帳', '已付款', '統編', 'INV55667', NULL, '56781234', '林佩真', 911223344, 'pei.zhen@example.com', '門市領取後無需聯繫', '7-11', '7-11門市', 'TRACK005', '2025-01-16 03:08:30', '2025-01-16 03:08:30', NULL, '2025-01-16 03:08:30');
+('ORD00001', 1, 500, '待出貨', 'linePay', '已付款', '紙本', 'INV12345', NULL, '12345678', '王小', '95555555', 'li.dahua@examp', '請於上午配送', '宅配', '台北市信義區XX路XX號', 'TRACK001', NULL, '2025-01-16 03:08:30', NULL, '2025-01-16 15:20:07'),
+('ORD00002', 2, 300, '已出貨', '信用卡', '已付款', '載具', 'INV67890', '/ABCD123', NULL, '李大華', '911223344', 'li.dahua@example.com', '門市取貨後聯繫', '7-11', '7-11門市', 'TRACK002', '2025-01-16 03:08:30', '2025-01-16 03:08:30', NULL, '2025-01-16 03:08:30'),
+('ORD00003', 3, 1200, '已完成', '信用卡', '已付款', '統編', 'INV11223', NULL, '87654321', '陳美麗', '987654321', 'li.dahua@example.com', '感謝服務，請保持聯繫', '全家', '全家門市', 'TRACK003', '2025-01-16 03:08:30', '2025-01-16 03:08:30', '2025-01-16 03:08:30', '2025-01-16 03:08:30'),
+('ORD00004', 4, 800, '待出貨', '信用卡', '已付款', '紙本', 'INV33445', '/XYZ9876', NULL, '黃俊傑', '911223344', 'li.dahua@example.com', '請提前通知配送時間', '宅配', '新竹市東區XX路XX號', 'TRACK004', NULL, '2025-01-16 03:08:30', NULL, '2025-01-16 03:08:30'),
+('ORD00005', 5, 450, '已出貨', '轉帳', '已付款', '統編', 'INV55667', NULL, '56781234', '林佩真', '911223344', 'pei.zhen@example.com', '門市領取後無需聯繫', '7-11', '7-11門市', 'TRACK005', '2025-01-16 03:08:30', '2025-01-16 03:08:30', NULL, '2025-01-16 03:08:30');
 
 -- --------------------------------------------------------
 
@@ -1339,18 +1421,46 @@ CREATE TABLE `pet_appointment` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
   `pet_id` int NOT NULL,
-  `appointment_date` time DEFAULT NULL,
+  `appointment_date` date DEFAULT NULL,
   `appointment_time` time DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  `house_type` varchar(50) DEFAULT NULL,
+  `status` varchar(50) COLLATE utf8mb4_general_ci DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `house_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `adult_number` int DEFAULT NULL,
   `child_number` int DEFAULT NULL,
   `adopted_experience` tinyint(1) DEFAULT NULL,
-  `other_pets` text,
-  `note` text
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `other_pets` text COLLATE utf8mb4_general_ci,
+  `note` text COLLATE utf8mb4_general_ci,
+  `store_id` int DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 傾印資料表的資料 `pet_appointment`
+--
+
+INSERT INTO `pet_appointment` (`id`, `user_id`, `pet_id`, `appointment_date`, `appointment_time`, `status`, `created_at`, `updated_at`, `house_type`, `adult_number`, `child_number`, `adopted_experience`, `other_pets`, `note`, `store_id`) VALUES
+(1, 1, 1, '2025-01-05', '10:00:00', 'pending', '2025-01-01 00:30:00', '2025-01-01 00:30:00', 'apartment', 2, 1, 1, '有一隻貓', '希望能夠盡快安排', 1),
+(2, 3, 4, '2025-01-08', '14:30:00', 'pending', '2025-01-02 02:15:00', '2025-01-02 02:15:00', 'house', 3, 0, 0, '沒有其他寵物', '第一次領養寵物，希望能得到一些指導', 2),
+(3, 5, 7, '2025-01-10', '11:00:00', 'pending', '2025-01-03 01:45:00', '2025-01-03 01:45:00', 'apartment', 1, 0, 1, '之前養過狗', '住在公寓五樓，有電梯', 3),
+(4, 7, 10, '2025-01-12', '16:00:00', 'pending', '2025-01-04 06:30:00', '2025-01-04 06:30:00', 'house', 2, 2, 0, '家中有兩隻貓', '孩子很期待見到新寵物', 5),
+(5, 2, 5, '2025-01-15', '09:30:00', 'approved', '2025-01-02 03:20:00', '2025-01-03 01:10:00', 'house', 4, 2, 1, '有一隻大型犬', '家中有大花園適合寵物活動', 3),
+(6, 4, 12, '2025-01-18', '13:00:00', 'approved', '2025-01-03 07:45:00', '2025-01-04 02:30:00', 'apartment', 2, 0, 1, '無', '希望領養一隻安靜的寵物', 4),
+(7, 6, 18, '2025-01-20', '15:30:00', 'approved', '2025-01-05 04:00:00', '2025-01-06 03:15:00', 'house', 3, 1, 1, '有兩隻貓', '家中環境寬敞', 6),
+(8, 9, 20, '2024-12-20', '10:00:00', 'completed', '2024-12-15 01:30:00', '2024-12-20 03:45:00', 'house', 2, 3, 1, '無', '已成功領養', 4),
+(9, 10, 25, '2024-12-22', '14:00:00', 'completed', '2024-12-17 05:20:00', '2024-12-22 07:30:00', 'apartment', 2, 0, 0, '無', '初次養寵物，已順利領養', 1),
+(10, 8, 30, '2025-01-25', '11:30:00', 'cancelled', '2025-01-10 02:00:00', '2025-01-11 01:15:00', 'apartment', 1, 0, 1, '有一隻小型犬', '因個人因素需取消預約', 5),
+(11, 11, 35, '2025-01-28', '16:30:00', 'cancelled', '2025-01-12 06:30:00', '2025-01-13 02:00:00', 'house', 2, 1, 0, '無', '臨時有事無法前往', 9),
+(12, 1, 40, '2025-01-30', '09:00:00', 'approved', '2025-01-20 00:45:00', '2025-01-21 02:30:00', 'house', 2, 1, 1, '有一隻貓', '希望能找到適合與現有寵物相處的夥伴', 7),
+(13, 1, 45, '2024-12-15', '13:30:00', 'completed', '2024-12-10 07:00:00', '2024-12-15 06:45:00', 'house', 2, 1, 1, '有一隻貓和一隻狗', '已成功領養第二隻寵物', 3),
+(14, 1, 50, '2025-02-10', '15:00:00', 'pending', '2025-01-25 01:30:00', '2025-01-25 01:30:00', 'house', 2, 1, 1, '有兩隻貓和一隻狗', '希望能夠擴大寵物家庭', 6),
+(15, 3, 55, '2025-02-05', '10:30:00', 'approved', '2025-01-15 03:15:00', '2025-01-16 06:00:00', 'apartment', 3, 0, 0, '無', '首次養寵物，已經做好充分準備', 7),
+(16, 3, 60, '2025-02-15', '14:00:00', 'cancelled', '2025-01-20 05:45:00', '2025-01-22 01:15:00', 'apartment', 3, 0, 0, '無', '臨時工作調動，需要取消', 2),
+(17, 5, 65, '2025-02-20', '11:00:00', 'pending', '2025-01-30 02:30:00', '2025-01-30 02:30:00', 'house', 2, 2, 1, '有一隻小型犬', '希望找到適合孩子的寵物', 7),
+(18, 7, 70, '2025-02-25', '15:30:00', 'approved', '2025-01-30 05:00:00', '2025-01-31 03:45:00', 'house', 4, 1, 1, '有兩隻貓', '家中環境寬敞，可以提供良好的生活環境', 6),
+(19, 9, 75, '2025-03-01', '10:00:00', 'pending', '2025-02-01 01:15:00', '2025-02-01 01:15:00', 'apartment', 2, 0, 1, '無', '有豐富的寵物飼養經驗', 5),
+(20, 4, 8, '2025-01-02', '09:30:00', 'pending', '2025-01-01 01:30:00', '2025-01-01 01:30:00', 'house', 2, 1, 0, '沒有其他寵物', '希望能儘快與心儀的寵物見面', 3),
+(21, 6, 14, '2025-01-03', '14:00:00', 'approved', '2025-01-01 06:00:00', '2025-01-01 12:30:00', 'apartment', 1, 0, 1, '有一隻貓', '已確認的預約', 7);
 
 -- --------------------------------------------------------
 
@@ -2231,7 +2341,7 @@ CREATE TABLE `promotions` (
   `end_date` date DEFAULT NULL,
   `discount_percentage` int NOT NULL,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `photo` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL
+  `photo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2434,33 +2544,35 @@ CREATE TABLE `users` (
   `user_birthday` date DEFAULT NULL,
   `user_level` varchar(255) DEFAULT NULL,
   `profile_picture` varchar(255) DEFAULT NULL,
-  `user_status` varchar(255) DEFAULT NULL
+  `user_status` varchar(255) DEFAULT NULL,
+  `user_nickname` varchar(10) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- 傾印資料表的資料 `users`
 --
 
-INSERT INTO `users` (`user_id`, `user_email`, `user_password`, `user_name`, `user_number`, `user_address`, `user_birthday`, `user_level`, `profile_picture`, `user_status`) VALUES
-(1, 'song1@gmail.com', 'a12345', '宋德鶴', '0912345678', '台南市永康區南台街一號', '2025-01-24', '愛心小天使', '', '禁言'),
-(2, 'chin2@gmail.com', 'a23456', '金城武', '0987123456', '台南市永康區南台街123號', '2024-12-17', '乾爹乾媽', NULL, '禁言'),
-(3, 'chang3@example.com', 'password3', '張三', '0933123456', '台北市中正區忠孝東路一段1號', '2024-05-10', '乾爹乾媽', NULL, '正常'),
-(4, 'lee4@example.com', 'password4', '李四', '0966987654', '台中市西屯區台灣大道三段301號', '2023-07-20', '愛心小天使', NULL, '正常'),
-(5, 'wang5@example.com', 'password5', '王五', '0955567890', '高雄市苓雅區中正一路1號', '2022-11-01', '愛心小天使', NULL, '正常'),
-(6, 'zhao6@example.com', 'password6', '趙六', '0922876543', '新北市板橋區中山路一段1號', '2025-02-15', '乾爹乾媽', NULL, '正常'),
-(7, 'liu7@example.com', 'password7', '劉七', '0977432109', '桃園市桃園區復興路1號', '2024-04-28', '乾爹乾媽', NULL, '正常'),
-(8, 'cheng8@example.com', 'password8', '陳八', '0988012345', '台南市東區大學路1號', '2023-09-05', '乾爹乾媽', NULL, '禁言'),
-(9, 'lin9@example.com', 'password9', '林九', '0919654321', '花蓮縣花蓮市中山路一段1號', '2022-06-12', '愛心小天使', NULL, '正常'),
-(10, 'shun10@gmail.com', 'a45678', '孫小美', '0945678678', '台北市大安區有錢路888號', '2024-09-22', '愛心小天使', NULL, '禁言'),
-(11, 'lee11@yahoo.com', 'a789456', '李浩偉', '0912789456', '台南市永康區南台街1號', '2024-03-04', '乾爹乾媽', NULL, '禁言'),
-(12, 'liu12@gmail.com', 'a112233', '劉修齊', '0911223345', '台南市永康區南台街1號', '2024-06-25', '愛心小天使', NULL, '禁言'),
-(13, 'wang13@yahoo.com', 'a22334455', '王鍾綺', '0922334454', '台南市永康區南台街1號', '2024-08-30', '愛心小天使', NULL, ''),
-(14, 'kang14@yahoo.com', 'a45678910', '康婷文', '0945678910', '台南市永康區南台街1號', '2023-11-22', '乾爹乾媽', NULL, '禁言'),
-(15, 'lin15@yahoo.com', 'yahoo147258', '林冠佑', '0911147258', '台南市永康區南台街100號', '2025-01-12', '愛心小天使', NULL, '禁言'),
-(16, 'chou10@example.com', 'password16', '周十', '0930123789', '宜蘭縣宜蘭市中山路二段1號', '2024-10-18', '愛心小天使', NULL, ''),
-(17, 'woo11@example.com', 'password17', '吳十一', '0960987321', '屏東縣屏東市自由路1號', '2023-03-25', '乾爹乾媽', NULL, '禁言'),
-(18, 'cheng12@example.com', 'password18', '鄭十二', '0950567109', '基隆市仁愛區仁一路1號', '2022-08-02', '乾爹乾媽', NULL, '禁言'),
-(19, 'sung13@example.com', 'password19', '孫十三', '0920876432', '嘉義市西區中山路1號', '2025-04-09', '乾爹乾媽', NULL, '禁言');
+INSERT INTO `users` (`user_id`, `user_email`, `user_password`, `user_name`, `user_number`, `user_address`, `user_birthday`, `user_level`, `profile_picture`, `user_status`, `user_nickname`, `created_at`) VALUES
+(1, 'song1@gmail.com', 'a12345', '宋德鶴', '0912345678', '台南市永康區南台街一號', '2025-01-24', '愛心小天使', '', '禁言', NULL, '2024-12-31 16:00:00'),
+(2, 'chin2@gmail.com', 'a23456', '金城武', '0987123456', '台南市永康區南台街123號', '2024-12-17', '乾爹乾媽', NULL, '禁言', NULL, '2025-01-01 16:00:00'),
+(3, 'chang3@example.com', 'password3', '張三', '0933123456', '台北市中正區忠孝東路一段1號', '2024-05-10', '乾爹乾媽', NULL, '正常', NULL, '2025-01-02 16:00:00'),
+(4, 'lee4@example.com', 'password4', '李四', '0966987654', '台中市西屯區台灣大道三段301號', '2023-07-20', '愛心小天使', NULL, '正常', NULL, '2025-01-03 16:00:00'),
+(5, 'wang5@example.com', 'password5', '王五', '0955567890', '高雄市苓雅區中正一路1號', '2022-11-01', '愛心小天使', NULL, '正常', NULL, '2025-01-04 16:00:00'),
+(6, 'zhao6@example.com', 'password6', '趙六', '0922876543', '新北市板橋區中山路一段1號', '2025-02-15', '乾爹乾媽', NULL, '正常', NULL, '2025-01-05 16:00:00'),
+(7, 'liu7@example.com', 'password7', '劉七', '0977432109', '桃園市桃園區復興路1號', '2024-04-28', '乾爹乾媽', NULL, '正常', NULL, '2025-01-06 16:00:00'),
+(8, 'cheng8@example.com', 'password8', '陳八', '0988012345', '台南市東區大學路1號', '2023-09-05', '乾爹乾媽', NULL, '禁言', NULL, '2025-01-07 16:00:00'),
+(9, 'lin9@example.com', 'password9', '林九', '0919654321', '花蓮縣花蓮市中山路一段1號', '2022-06-12', '愛心小天使', NULL, '正常', NULL, '2025-01-08 16:00:00'),
+(10, 'shun10@gmail.com', 'a45678', '孫小美', '0945678678', '台北市大安區有錢路888號', '2024-09-22', '愛心小天使', NULL, '禁言', NULL, '2025-01-09 16:00:00'),
+(11, 'lee11@yahoo.com', 'a789456', '李浩偉', '0912789456', '台南市永康區南台街1號', '2024-03-04', '乾爹乾媽', NULL, '禁言', NULL, '2025-01-10 16:00:00'),
+(12, 'liu12@gmail.com', 'a112233', '劉修齊', '0911223345', '台南市永康區南台街1號', '2024-06-25', '愛心小天使', NULL, '禁言', NULL, '2025-01-11 16:00:00'),
+(13, 'wang13@yahoo.com', 'a22334455', '王鍾綺', '0922334454', '台南市永康區南台街1號', '2024-08-30', '愛心小天使', NULL, '', NULL, '2025-01-12 16:00:00'),
+(14, 'kang14@yahoo.com', 'a45678910', '康婷文', '0945678910', '台南市永康區南台街1號', '2023-11-22', '乾爹乾媽', NULL, '禁言', NULL, '2025-01-13 16:00:00'),
+(15, 'lin15@yahoo.com', 'yahoo147258', '林冠佑', '0911147258', '台南市永康區南台街100號', '2025-01-12', '愛心小天使', NULL, '禁言', NULL, '2025-01-14 16:00:00'),
+(16, 'chou10@example.com', 'password16', '周十', '0930123789', '宜蘭縣宜蘭市中山路二段1號', '2024-10-18', '愛心小天使', NULL, '', NULL, '2025-01-15 16:00:00'),
+(17, 'woo11@example.com', 'password17', '吳十一', '0960987321', '屏東縣屏東市自由路1號', '2023-03-25', '乾爹乾媽', NULL, '禁言', NULL, '2025-01-16 16:00:00'),
+(18, 'cheng12@example.com', 'password18', '鄭十二', '0950567109', '基隆市仁愛區仁一路1號', '2022-08-02', '乾爹乾媽', NULL, '禁言', NULL, '2025-01-17 16:00:00'),
+(19, 'sung13@example.com', 'password19', '孫十三', '0920876432', '嘉義市西區中山路1號', '2025-04-09', '乾爹乾媽', NULL, '禁言', NULL, '2025-01-18 16:00:00');
 
 -- --------------------------------------------------------
 
@@ -2591,6 +2703,7 @@ ALTER TABLE `comments`
 --
 ALTER TABLE `donations`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `trade_no` (`trade_no`),
   ADD KEY `pet_id` (`pet_id`),
   ADD KEY `user_id` (`user_id`);
 
@@ -2681,6 +2794,15 @@ ALTER TABLE `media_uploads`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- 資料表索引 `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `admin_id` (`admin_id`),
+  ADD KEY `created_at` (`created_at`);
+
+--
 -- 資料表索引 `notify_notifications`
 --
 ALTER TABLE `notify_notifications`
@@ -2730,7 +2852,8 @@ ALTER TABLE `pets_recent_activities`
 ALTER TABLE `pet_appointment`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`),
-  ADD KEY `pet_id` (`pet_id`);
+  ADD KEY `pet_id` (`pet_id`),
+  ADD KEY `store_id` (`store_id`);
 
 --
 -- 資料表索引 `pet_photos`
@@ -3032,6 +3155,12 @@ ALTER TABLE `media_uploads`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- 使用資料表自動遞增(AUTO_INCREMENT) `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
 -- 使用資料表自動遞增(AUTO_INCREMENT) `notify_notifications`
 --
 ALTER TABLE `notify_notifications`
@@ -3059,7 +3188,7 @@ ALTER TABLE `pets_recent_activities`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `pet_appointment`
 --
 ALTER TABLE `pet_appointment`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `pet_photos`
@@ -3315,6 +3444,12 @@ ALTER TABLE `media_uploads`
   ADD CONSTRAINT `media_uploads_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
+-- 資料表的限制式 `notifications`
+--
+ALTER TABLE `notifications`
+  ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
 -- 資料表的限制式 `notify_notifications`
 --
 ALTER TABLE `notify_notifications`
@@ -3352,7 +3487,8 @@ ALTER TABLE `pets_recent_activities`
 --
 ALTER TABLE `pet_appointment`
   ADD CONSTRAINT `pet_appointment_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  ADD CONSTRAINT `pet_appointment_ibfk_2` FOREIGN KEY (`pet_id`) REFERENCES `pets` (`id`);
+  ADD CONSTRAINT `pet_appointment_ibfk_2` FOREIGN KEY (`pet_id`) REFERENCES `pets` (`id`),
+  ADD CONSTRAINT `pet_appointment_ibfk_3` FOREIGN KEY (`store_id`) REFERENCES `pet_store` (`id`);
 
 --
 -- 資料表的限制式 `pet_photos`
