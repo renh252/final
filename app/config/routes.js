@@ -40,11 +40,31 @@ export const publicPaths = getRoutesByType(RouteType.PUBLIC)
 export const protectedPaths = getRoutesByType(RouteType.PROTECTED)
 
 /**
+ * 嚴格檢查路徑是否完全匹配或是子路徑
+ * @param {string} pathname 當前路徑
+ * @param {string} basePath 基礎路徑
+ * @returns {boolean} 是否匹配
+ */
+const isPathOrChild = (pathname, basePath) => {
+  // 完全匹配
+  if (pathname === basePath) return true
+
+  // 子路徑匹配 (確保是完整的子路徑，避免部分匹配)
+  // 例如: /donate/flow 是 /donate 的子路徑，但 /donateOther 不是
+  return pathname.startsWith(basePath + '/')
+}
+
+/**
  * 檢查路徑是否需要認證 (智能版本)
  * @param {string} pathname 當前路徑
  * @returns {boolean} 是否需要認證
  */
 export const requiresAuth = (pathname) => {
+  // 確保路徑不含查詢參數（確保安全性）
+  if (pathname.includes('?')) {
+    pathname = pathname.split('?')[0]
+  }
+
   // 特殊情況處理：如果是登入頁面直接返回 false
   if (pathname.startsWith('/member/MemberLogin')) {
     return false
@@ -57,13 +77,21 @@ export const requiresAuth = (pathname) => {
   }
 
   // 2. 檢查是否是公開頁面的子路徑
-  const isPublicPathChild = publicPaths.some((path) =>
-    // 確保匹配完整路徑段，例如 /pets/ 匹配 /pets/123 但不匹配 /pets-abc
-    pathname.startsWith(path + '/')
-  )
+  for (const publicPath of publicPaths) {
+    if (isPathOrChild(pathname, publicPath)) {
+      // 特殊情況: 如果公開頁面是根目錄，但子路徑是受保護的，需再檢查
+      if (publicPath === '/') {
+        // 跳過根目錄檢查，繼續後續檢查
+        break
+      }
 
-  if (isPublicPathChild) {
-    return false
+      // 特殊檢查: /donate/flow 應為保護頁面，即使 /donate 是公開頁面
+      if (pathname === '/donate/flow' || pathname.startsWith('/donate/flow/')) {
+        // 不立即返回 false，繼續檢查
+      } else {
+        return false
+      }
+    }
   }
 
   // 二、檢查是否匹配保護頁面
@@ -73,17 +101,24 @@ export const requiresAuth = (pathname) => {
   }
 
   // 2. 檢查是否是受保護頁面的子路徑
-  const isProtectedPathChild = protectedPaths.some((path) =>
-    pathname.startsWith(path + '/')
-  )
-
-  if (isProtectedPathChild) {
-    return true
+  for (const protectedPath of protectedPaths) {
+    if (isPathOrChild(pathname, protectedPath)) {
+      return true
+    }
   }
 
   // 三、處理複雜的動態路由情況
   // 提取路徑段進行比較
   const pathSegments = pathname.split('/').filter(Boolean)
+
+  // 特殊處理: 確保 /donate/flow 始終需要認證，無論是否帶參數
+  if (
+    pathSegments.length >= 2 &&
+    pathSegments[0] === 'donate' &&
+    pathSegments[1] === 'flow'
+  ) {
+    return true
+  }
 
   // 對於像 /pets/123 這樣的路徑，判斷前綴(/pets)是否在公開路徑中
   if (pathSegments.length > 1) {
