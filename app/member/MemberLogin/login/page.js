@@ -84,6 +84,22 @@ export default function MemberPage() {
   return (
     <>
       <div className={styles.formContainer}>
+      <h2 className={styles.sectionTitle}>快速登入</h2>
+              <div className={styles.form}>
+              <div className={styles.GFbutton}>
+                <button
+                  className="button"
+                  style={{ width: '350px', height: '60px', fontSize: '20px' }}
+                >
+                  <img
+                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/153b2dcd7ca2627a463800e38ebc91cf43bcd541ad79fa3fea9919eec17199df?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
+                    alt="Google icon"
+                    style={{ width: '100px', height: '50px' }}
+                  />
+                  以Google帳號登入
+                </button>
+              </div></div>
+
         <h2 className={styles.sectionTitle}>登入會員</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
@@ -121,7 +137,7 @@ export default function MemberPage() {
               />
               <label htmlFor="rememberMe">記住我</label>
             </div>
-
+<br />
             <button
               type="submit"
               className="button"
@@ -131,8 +147,8 @@ export default function MemberPage() {
             </button>
           </div>
         </form>
-
-        <div>
+<br /><br />
+        <div className={styles.nomember}>
           <p className={styles.loginLink}>
             還沒有會員?  
             <Link
