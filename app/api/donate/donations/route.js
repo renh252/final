@@ -8,11 +8,11 @@ export async function GET(request) {
 
     const user_id = 1
 
-    // 獲取活動商品資料
+    // 獲取資料
     const [donations] = await connection.execute(
       `
       SELECT * FROM donations 
-      WHERE user_id = ? AND transaction_status = '已付款'
+      WHERE user_id = ?
       ORDER BY create_datetime DESC
       `,
       [user_id]

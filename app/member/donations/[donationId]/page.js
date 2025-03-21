@@ -14,8 +14,8 @@ export default function DonationDetailPage() {
   // 取得捐款詳情
   const { data, error } = useSWR(`/api/donate/donations/${donationId}`, fetcher)
 
-  if (error) return <div className={styles.error}>❌ 加載失敗，請稍後再試</div>
-  if (!data) return <div className={styles.loading}>⏳ 加載中...</div>
+  if (error) return <div className={styles.error}> 加載失敗，請稍後再試</div>
+  if (!data) return <div className={styles.loading}> 加載中...</div>
 
   const donation = data.donation
 
