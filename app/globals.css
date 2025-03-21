@@ -29,6 +29,11 @@
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease-out;
   --transition-slow: 0.4s ease-out;
+
+  /* 認證系統變量 */
+  --auth-loading-bg: rgba(255, 255, 255, 0.9);
+  --auth-loading-text: #0d6efd;
+  --auth-loading-shadow: rgba(0, 0, 0, 0.1);
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -91,5 +96,55 @@ a {
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
+  }
+}
+
+/* 認證系統加載樣式 */
+.auth-loading {
+  position: relative;
+  min-height: 300px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--auth-loading-bg);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 2px 8px var(--auth-loading-shadow);
+  z-index: 100;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.auth-loading::after {
+  content: '';
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--primary-light);
+  border-radius: 50%;
+  border-top-color: var(--auth-loading-text);
+  animation: spin 0.8s linear infinite;
+  margin-right: 12px;
+}
+
+.auth-loading::before {
+  content: attr(data-text);
+  color: var(--auth-loading-text);
+  font-size: 1rem;
+  font-weight: 500;
+  text-shadow: 0 1px 2px var(--auth-loading-shadow);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

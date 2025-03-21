@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 
 export default function PetLikePage() {
   const { user } = useAuth()
-  const router = useRouter()
 
 
   if (!user) {
@@ -20,6 +19,7 @@ export default function PetLikePage() {
       <div>ID: {user.id}</div>
       <div>名稱: {user.name}</div>
       <div>Email: {user.email}</div>
+      <button onClick={()=>{user.logout()}}>登出</button>
     </>
   )
 }

@@ -1,29 +1,26 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/app/context/AuthContext'; // 引入 AuthContext
-import styles from './login.module.css';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Swal from 'sweetalert2';
+'use client'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '@/app/context/AuthContext' // 引入 AuthContext
+import styles from './login.module.css'
+import Link from 'next/link'
+import Swal from 'sweetalert2'
 
 export default function MemberPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const { login } = useAuth(); // 使用 Context 的 login 函式
-  const router = useRouter();
-  console.log(useAuth());
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const { login } = useAuth() // 使用 Context 的 login 函式
 
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false)
   useEffect(() => {
-    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    const rememberedEmail = localStorage.getItem('rememberedEmail')
     if (rememberedEmail) {
-      setEmail(rememberedEmail);
-      setRememberMe(true);
+      setEmail(rememberedEmail)
+      setRememberMe(true)
     }
-  }, []);
+  }, [])
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!email || !password) {
       await Swal.fire({
@@ -31,8 +28,8 @@ export default function MemberPage() {
         text: '請填寫所有欄位',
         icon: 'error',
         confirmButtonText: '確定',
-      });
-      return;
+      })
+      return
     }
 
     try {
@@ -41,45 +38,48 @@ export default function MemberPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }), // 移除 rememberMe，因為 API 不需要
-      });
+        body: JSON.stringify({ email, password }),
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (response.ok && data.success) {
-        login(data.data); // 使用 Context 的 login 函式
+        // 處理記住我功能
         if (rememberMe) {
-          localStorage.setItem('rememberedEmail', email);
+          localStorage.setItem('rememberedEmail', email)
         } else {
-          localStorage.removeItem('rememberedEmail');
+          localStorage.removeItem('rememberedEmail')
         }
 
+        // 顯示成功訊息
         await Swal.fire({
           title: '登入成功！',
           icon: 'success',
           timer: 1500,
           showConfirmButton: false,
-        });
+        })
 
-        router.push('/member');
+        // 使用 Context 的 login 函式，它會負責處理重定向
+        login(data.data)
+        // 不需要再手動導航，讓 AuthContext 處理跳轉邏輯
       } else {
         await Swal.fire({
           title: '登入失敗',
           text: data.message || '請檢查您的電子郵件和密碼。',
           icon: 'error',
           confirmButtonText: '確定',
-        });
+        })
       }
     } catch (error) {
-      console.error('登入請求失敗:', error);
+      console.error('登入請求失敗:', error)
       await Swal.fire({
         title: '錯誤',
         text: '登入時發生錯誤，請稍後再試。',
         icon: 'error',
         confirmButtonText: '確定',
-      });
+      })
     }
-  };
+  }
 
   return (
     <>
@@ -134,7 +134,7 @@ export default function MemberPage() {
 
         <div>
           <p className={styles.loginLink}>
-            還沒有會員?  
+            還沒有會員?
             <Link
               href="/member/MemberLogin/register"
               className={styles.link}
@@ -144,7 +144,7 @@ export default function MemberPage() {
             </Link>
           </p>
           <p className={styles.loginLink}>
-            忘記密碼?  
+            忘記密碼?
             <Link
               href="/member/MemberLogin/forgot"
               className={styles.link}
@@ -156,5 +156,5 @@ export default function MemberPage() {
         </div>
       </div>
     </>
-  );
+  )
 }
