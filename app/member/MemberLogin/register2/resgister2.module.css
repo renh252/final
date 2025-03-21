@@ -1,0 +1,182 @@
+.registration_wrapper {
+  border-radius: 30px;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center; /* 水平置中 */
+  flex-direction: column;
+  align-items: center; /* 垂直置中 */
+  max-width: 1721px; /* 使用 max-width 限制最大寬度 */
+  width: 100%; /* 使用百分比寬度 */
+  margin: 0 auto; /* 水平置中 */
+  padding-bottom: 50px;
+  overflow: hidden;
+}
+
+.welcome_section {
+  border-radius: 50px;
+  background-color: #cda274;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ffffff;
+  font-weight: 400;
+  text-align: center;
+  padding: 37px;
+  margin-top: 72px; /* 使用 margin-top 定位 */
+  width: 90%; /* 使用百分比寬度 */
+  max-width: 1602px;
+}
+
+.welcome_title {
+  font-size: 64px;
+  font-family: "ZCOOL XiaoWei", sans-serif;
+  line-height: 1;
+  letter-spacing: 1.28px;
+  margin: 0;
+}
+
+.welcome_message {
+  font-size: 32px;
+  font-family: "Iansui", sans-serif;
+  line-height: 48px;
+  letter-spacing: 0.32px;
+  margin-top: 32px;
+  width: 90%; /* 使用百分比寬度 */
+  max-width: 1279px;
+}
+
+.highlight_text {
+  font-size: 40px;
+  display: block;
+}
+
+.form_title {
+  background-color: #593e2f;
+  font-family: "Iansui", sans-serif;
+  font-size: 40px;
+  color: #f4f0ec;
+  font-weight: 400;
+  text-align: center;
+  margin-top: 72px; /* 使用 margin-top 定位 */
+  width: 90%; /* 使用百分比寬度 */
+  max-width: 1350px;
+  padding: 10px;
+}
+
+.registration_form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: "Iansui", sans-serif;
+  font-size: 40px;
+  color: #000000;
+  font-weight: 400;
+  text-align: center;
+  justify-content: center;
+  margin-top: 50px; /* 使用 margin-top 定位 */
+  width: 90%; /* 使用百分比寬度 */
+  max-width: 1326px;
+}
+
+.form_group {
+  border-radius: 50px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 57px;
+  width: 100%;
+  padding: 0 26px;
+}
+
+.form_group:first-child {
+  margin-top: 0;
+}
+
+.form_label {
+  align-self: flex-start;
+  font-size: 40px;
+}
+
+.form_input {
+  border-radius: 50px;
+  border: 2px solid #bdbdbd;
+  align-self: stretch;
+  margin-top: 45px;
+  width: 100%;
+  height: 119px;
+  background: transparent;
+  padding: 0 30px;
+  font-size: 32px;
+  font-family: "Iansui", sans-serif;
+}
+
+.submit_container {
+  border-radius: 50px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 50px; /* 使用 margin-top 定位 */
+  width: 288px;
+  max-width: 100%;
+}
+
+.submit_button {
+  border-radius: 50px;
+  background-color: #003459;
+  padding: 42px 29px 21px;
+  border: none;
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+  font-size: 36px;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.divider {
+  display: flex;
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.spacer {
+  display: none; /* 在新的佈局中不需要 spacer */
+}
+
+.form_button {
+  margin-left: auto;
+}
+
+@media (max-width: 991px) {
+  .registration_wrapper {
+    width: 95%; /* 在小螢幕上增加寬度 */
+  }
+
+  .welcome_title {
+    font-size: 40px;
+  }
+
+  .welcome_message {
+    font-size: 28px;
+  }
+
+  .form_title {
+    font-size: 32px;
+    padding: 10px;
+  }
+
+  .form_group {
+    padding: 0 20px;
+  }
+
+  .form_label {
+    font-size: 32px;
+  }
+
+  .form_input {
+    font-size: 28px;
+  }
+
+  .submit_button {
+    font-size: 30px;
+  }
+}
