@@ -6,7 +6,11 @@ import StatusBadge from '../_components/StatusBadge'
 import { useAuth } from '@/app/context/AuthContext'
 
 export default function DonationPage() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+
+  if (loading) return <div>載入中...</div>
+  if (!user) return <div>請先登入</div>
+  
   const user_id = user.id
   console.log('user id: ', user_id)
 
