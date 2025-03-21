@@ -1,57 +1,61 @@
-import React, { useState } from 'react';
-import { Modal, Form, Button, Alert } from 'react-bootstrap';
-import { Category } from '../hooks/useForumData';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react'
+import { Modal, Form, Button, Alert } from 'react-bootstrap'
+import { Category } from '../hooks/useForumData'
+import axios from 'axios'
+import { useRouter } from 'next/navigation'
 
 interface CreatePostModalProps {
-  show: boolean;
-  onHide: () => void;
-  categories: Category[];
+  show: boolean
+  onHide: () => void
+  categories: Category[]
 }
 
-export default function CreatePostModal({ show, onHide, categories }: CreatePostModalProps) {
-  const router = useRouter();
+export default function CreatePostModal({
+  show,
+  onHide,
+  categories,
+}: CreatePostModalProps) {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     categoryId: '',
-    tags: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+    tags: '',
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+    e.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
 
     try {
       const tags = formData.tags
         .split(',')
-        .map(tag => tag.trim())
-        .filter(tag => tag);
+        .map((tag) => tag.trim())
+        .filter((tag) => tag)
 
       const response = await axios.post('/api/forum/posts', {
         title: formData.title,
         content: formData.content,
         categoryId: parseInt(formData.categoryId),
-        tags
-      });
+        tags,
+      })
 
       if (response.data.status === 'success') {
-        onHide();
-        router.refresh(); // 重新整理頁面以顯示新文章
-        setFormData({ title: '', content: '', categoryId: '', tags: '' });
+        onHide()
+        router.refresh() // 重新整理頁面以顯示新文章
+        setFormData({ title: '', content: '', categoryId: '', tags: '' })
       } else {
-        setError(response.data.message || '發布失敗，請稍後再試');
+        setError(response.data.message || '發布失敗，請稍後再試')
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || '發布失敗，請稍後再試');
+      setError(err.response?.data?.message || '發布失敗，請稍後再試')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
@@ -65,13 +69,15 @@ export default function CreatePostModal({ show, onHide, categories }: CreatePost
               {error}
             </Alert>
           )}
-          
+
           <Form.Group className="mb-3">
             <Form.Label>標題</Form.Label>
             <Form.Control
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, title: e.target.value }))
+              }
               required
               disabled={isSubmitting}
             />
@@ -81,12 +87,14 @@ export default function CreatePostModal({ show, onHide, categories }: CreatePost
             <Form.Label>分類</Form.Label>
             <Form.Select
               value={formData.categoryId}
-              onChange={(e) => setFormData(prev => ({ ...prev, categoryId: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, categoryId: e.target.value }))
+              }
               required
               disabled={isSubmitting}
             >
               <option value="">請選擇分類</option>
-              {categories.map(category => (
+              {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
@@ -99,7 +107,9 @@ export default function CreatePostModal({ show, onHide, categories }: CreatePost
             <Form.Control
               type="text"
               value={formData.tags}
-              onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, tags: e.target.value }))
+              }
               placeholder="例如：寵物健康,飼養心得"
               disabled={isSubmitting}
             />
@@ -111,7 +121,9 @@ export default function CreatePostModal({ show, onHide, categories }: CreatePost
               as="textarea"
               rows={6}
               value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, content: e.target.value }))
+              }
               required
               disabled={isSubmitting}
             />
@@ -127,5 +139,5 @@ export default function CreatePostModal({ show, onHide, categories }: CreatePost
         </Modal.Footer>
       </Form>
     </Modal>
-  );
+  )
 }
