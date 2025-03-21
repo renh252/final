@@ -6,6 +6,8 @@ import React, { useState, useEffect } from 'react'
 // components
 import List from '../_components/list'
 import { FaList  } from "react-icons/fa6";
+import RecordPage from '../_components/RecordPage'
+import StatusBadge from '../_components/StatusBadge'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -40,6 +42,28 @@ export default function OrdersPage() {
 
   return (
     <>
+    <RecordPage
+      titleText="訂單紀錄"
+      fetchUrl="/api/shop/orders"
+      recordKey='orders'
+      detailPagePath='/member/orders'
+      statusOptions={['全部', '已付款', '處理中', '失敗']}
+      formatRecord={(order)=>(
+        <div>
+            <p>{order.order_status}</p> 
+            <p>金額 : NT$  {order.total_price}</p>
+            <p>備註 :  {order.remark}</p>
+            <p>日期 : {formatDate(order.created_at)}</p>
+            <p>狀態 : <StatusBadge status={order.payment_status} /></p>
+            
+          </div>
+      )
+
+      }
+
+      
+
+    />
     <div className={styles.top}>
       <select name="" id="">
         <option value="">訂單狀態</option>
