@@ -4,9 +4,14 @@ import db from '@/app/lib/db'
 export async function GET(request) {
   try {
     let responseData = {}
+    const { searchParams } = new URL(request.url)
     const connection = await db.getConnection()
-
-    const user_id = 1
+    const user_id = searchParams.get('user_id')
+    console.log('user id: ', user_id);
+    
+    if (!user_id) {
+      return NextResponse.json({ error: '缺少使用者 ID' }, { status: 400 })
+    }
 
     // 獲取資料
     const [donations] = await connection.execute(
