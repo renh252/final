@@ -49,13 +49,13 @@ export default function OrdersPage() {
       statusFilter={{
         title: '訂單狀態',
         key: 'order_status',
-        options: ['全部', '待出貨', '已出貨', '已完成'],
+        options: ['全部','待付款', '待出貨', '已出貨', '已完成'],
       }}
       additionalFilters={[
       {
         title: '付款狀態',
         key: 'payment_status',  // 这应该与记录中的属性名匹配
-        options: ['全部', '已付款', '未付款'],
+        options: ['全部', '已付款', '付款失敗'],
       }
     ]}
       formatRecord={(order)=>(
