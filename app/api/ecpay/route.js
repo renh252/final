@@ -96,9 +96,9 @@ export async function POST(req) {
         MerchantTradeNo,
         userId,
         amount,
-        '待出貨', // 初始狀態
+        '待付款', // 初始狀態
         '信用卡',
-        '未付款', // 尚未付款
+        '付款失敗', // 尚未付款
         invoiceMethod,
         invoice,
         mobileBarcode,
@@ -173,7 +173,7 @@ export async function POST(req) {
     }
 
     // 清空購物車
-    // await db.query('DELETE FROM cart WHERE user_id = ?', [userId])
+    await db.query('DELETE FROM shopping_cart WHERE user_id = ?', [userId])
 
     TradeDesc = '商城購物支付'
   } else {
@@ -193,9 +193,9 @@ export async function POST(req) {
   // const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
 
   // 使用公開網域執行(ngrok)，無法運行請切換成localhost版本
-  const ReturnURL = ` https://b01c-36-239-230-138.ngrok-free.app/api/ecpay/notify`
+  const ReturnURL = ` https://2bb6-111-242-100-220.ngrok-free.app/api/ecpay/notify`
   const OrderResultURL =
-    ' https://b01c-36-239-230-138.ngrok-free.app/api/ecpay/callback'
+    ' https://2bb6-111-242-100-220.ngrok-free.app/api/ecpay/callback'
 
   const stage = isStage ? '-stage' : ''
   const algorithm = 'sha256'
