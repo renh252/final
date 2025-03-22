@@ -46,14 +46,24 @@ export default function OrdersPage() {
       fetchUrl="/api/shop/orders"
       recordKey='orders'
       detailPagePath='/member/orders'
-      statusOptions={['全部', '已付款', '處理中', '失敗']}
+      statusFilter={{
+        title: '訂單狀態',
+        key: 'order_status',
+        options: ['全部', '待出貨', '已出貨', '已完成'],
+      }}
+      additionalFilters={[
+      {
+        title: '付款狀態',
+        key: 'payment_status',  // 这应该与记录中的属性名匹配
+        options: ['全部', '已付款', '未付款'],
+      }
+    ]}
       formatRecord={(order)=>(
         <div>
-            <p>{order.order_status}</p> 
             <p>金額 : NT$  {order.total_price}</p>
-            <p>備註 :  {order.remark}</p>
             <p>日期 : {formatDate(order.created_at)}</p>
-            <p>狀態 : <StatusBadge status={order.payment_status} /></p>
+            <p>備註 :  {order.remark}</p>
+            <p>狀態 : <StatusBadge status={order.payment_status} /> <StatusBadge status={order.order_status} /></p>
           </div>
       )
       }

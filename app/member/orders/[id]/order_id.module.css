@@ -1,0 +1,224 @@
+.main{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fefaf5;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  
+  font-size: 18px;
+
+  /* 頁面標題 */
+  .header {
+    position: relative;
+    text-align: center;
+    font-size: 24px;
+    color: #6b4f37;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+
+  h1{
+    margin: 0;
+    padding: 0;
+    font-size: 24px;
+  }
+  p{
+    margin: 0;
+    padding: 0;
+  }
+
+  svg{
+    color: rgba(205, 162, 116, 1);
+    rotate: 22deg;
+  }
+
+  .reviewContainer,.productContainer{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    background-color: #fff;
+    overflow: hidden;
+    border: 1px solid #c1bb9a80;
+  }
+
+  .reviewContainer{
+    background-color: #fff;
+
+    .containTitle{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 0;
+      color: #8b5e34;
+      background: #ffeedb;
+    } 
+    .containBody{
+      display: flex;
+      flex-direction: column;
+      padding: 20px 50px;
+      gap: 40px;
+
+      .group{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+
+        >:first-child{
+          width: 100%;
+          display: flex;
+          flex-direction: row;
+          justify-content: start;
+          align-items: center;
+          gap: 20px;
+        }
+        .groupTitle{
+          background-color: #c2bc9b;
+          color: #fff;
+          border-radius: 15px;
+          padding:5px 0 ;
+        }
+        .groupTitle,.groupBody{
+          width: 100%;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          >div{
+            width: 33%; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+        }
+
+
+
+
+
+      }
+
+      .remark{
+        padding-left: 40px;
+      }
+
+
+    }
+  }
+
+  .productContainer{
+    color: #8b5e34;
+    background: #ffeedb;
+
+    .containTitle{
+      font-size: 24px;
+      padding: 20px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+
+      >div:first-child{
+        width: 50px;
+      }
+      >:nth-child(2){
+        width: 40%;
+      }
+      >div{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20%;
+      }
+    }
+
+    .containBody{
+      background-color: #fff;
+      color: black;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+
+      >div{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+
+        >div:first-child{
+          width: 50px;
+        }
+        >:nth-child(2){
+          width: 40%;
+          display: flex;
+          flex-direction: row;
+          gap: 10px;
+
+        }
+        >div{
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20%;
+          gap: 20px;
+        }
+      }
+    }
+
+    .containFooter{
+      display: flex;
+      flex-direction: column;
+      align-items: end;
+      font-size: 36px;
+      
+      hr{
+        width: 100%;
+        margin: 10px;
+        border: 1px solid #fff;
+      }
+
+      >div:first-child{
+        min-width: 250px;
+        >div{
+          display: flex;
+          flex-direction: row;
+          justify-content: start;
+          gap: 20px;
+  
+          >:first-child{
+            width: 100px;
+          }
+        }
+      }
+      >div:last-child{
+        min-width: 250px;
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+        gap: 20px;
+      }
+    }
+
+  }
+
+.btn{
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #cda274;
+  color: white;
+  font-size: 18px;
+  border: none;
+  padding: 0 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+}
