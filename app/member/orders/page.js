@@ -60,10 +60,9 @@ export default function OrdersPage() {
     ]}
       formatRecord={(order)=>(
         <div>
-            <p>{order.order_status}</p> 
             <p>金額 : NT$  {order.total_price}</p>
-            <p>備註 :  {order.remark}</p>
             <p>日期 : {formatDate(order.created_at)}</p>
+            <p>備註 :  {order.remark}</p>
             <p>狀態 : <StatusBadge status={order.payment_status} /> <StatusBadge status={order.order_status} /></p>
           </div>
       )
