@@ -9,8 +9,9 @@ export async function POST(request) {
     const CVSStoreID = formData.get('CVSStoreID')
     const CVSStoreName = formData.get('CVSStoreName')
     const CVSAddress = formData.get('CVSAddress')
+    const ExtraData = formData.get('ExtraData')
 
-    console.log('Extracted data:', { CVSStoreID, CVSStoreName, CVSAddress })
+    console.log('Extracted data:', { CVSStoreID, CVSStoreName, CVSAddress ,ExtraData})
 
     // 使用当前请求的 URL 作为基础 URL
     const baseUrl =
@@ -23,6 +24,7 @@ export async function POST(request) {
     redirectUrl.searchParams.append('CVSStoreID', CVSStoreID)
     redirectUrl.searchParams.append('CVSStoreName', CVSStoreName)
     redirectUrl.searchParams.append('CVSAddress', CVSAddress)
+    redirectUrl.searchParams.append('ExtraData', encodeURIComponent(ExtraData))
 
     console.log('Redirect URL:', redirectUrl.toString())
 
