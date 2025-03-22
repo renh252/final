@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import pool from '@/app/lib/db'
+import { searchParams } from 'next/dist/server/api-utils'
 
+// 获取用户购物车中的商品列表
 export const GET = async(request) => {
   const output = { success: false, data: null, error: "" };
 
@@ -8,10 +10,12 @@ export const GET = async(request) => {
   try{
     // 从请求中获取用户信息，例如：
     // const userId = await getUserIdFromRequest(request);
-    const userId = 1;
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId');
+
     if (!userId) {
-      output.error = "未登入";
-      return NextResponse.json(output); 
+      output.error = "未提供用户ID";
+      return NextResponse.json(output, { status: 400 });
     }
     
     const connection = await pool.getConnection()
@@ -113,7 +117,12 @@ export async function DELETE(request) {
   try {
     // 从请求中获取用户信息，例如：
     // const userId = await getUserIdFromRequest(request);
-    const userId = 1; // 临时使用固定值，实际应该从请求中获取
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId');
+    if (!userId) {
+      output.error = "未提供用户ID";
+      return NextResponse.json(output, { status: 400 });
+    }
 
     const connection = await pool.getConnection();
     
@@ -135,10 +144,13 @@ export async function DELETE(request) {
   }
 }
 
+// 從商品頁面新增商品到購物車
 export async function POST(request) {
   try {
-    const { productId, variantId, quantity } = await request.json();
-    const userId = 1; // 這裡應該使用實際的用戶認證邏輯
+    const { productId, variantId, quantity , userId } = await request.json();
+    if (!userId) {
+      return NextResponse.json({ success: false, message: '未提供用户ID' }, { status: 400 });
+    }
 
     const connection = await pool.getConnection();
 

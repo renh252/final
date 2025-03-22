@@ -1,6 +1,6 @@
-// FILEPATH: c:/iSpan/final/app/shop/checkout/review/page.js
 'use client'
-
+// 獲取用戶資料
+import { useAuth } from '@/app/context/AuthContext'
 import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from './review.module.css'
@@ -15,10 +15,14 @@ import useSWR, { mutate } from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function ReviewPage() {
+
+  const { user} = useAuth()
+  const userId = user?.id
+
   const [checkoutData] = useCheckoutData()
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const { data, error } = useSWR('/api/shop/cart', fetcher)
+  const { data, error } = useSWR(`/api/shop/cart?userId=${userId}`, fetcher)
 
   // 取得localStorage-productPrice資料
   const [productPrice, setProductPrice] = useState({

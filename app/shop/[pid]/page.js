@@ -4,6 +4,11 @@ import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
+// 驗證登入狀態
+import { useAuth } from '@/app/context/AuthContext'
+
 
 // styles
 import styles from './pid.module.css'
@@ -31,18 +36,25 @@ import useSWR from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function PidPage() {
+
+  const { user} = useAuth()
+  const userId = user?.id
+
+  const router = useRouter()
+  
+  
   const [count, setCount] = useState(1)
   if (count < 1) {
     setCount(1)
   }
-
+  
   // 從網址上得到動態路由參數
   const params = useParams()
   const pid = params?.pid
-
+  
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error } = useSWR(`/api/shop/${pid}`, fetcher)
-
+  
   // 卡片滑動-------------------------------
   const categoryRefs = useRef(null)
 
@@ -150,7 +162,20 @@ console.log(data);
 
   // 加入購物車
   async function handleAddToCart() {
-    
+
+    if (!userId) {
+      Alert({ 
+        icon: 'error',
+        title: '請先登入',
+        showCancelBtn: true,
+        showconfirmBtn: true,
+        confirmBtnText: '登入',
+        cancelBtnText: '取消',
+        function: () => {router.push('/member/MemberLogin/login')},
+      })
+      return
+    }
+
     try {
       const response = await fetch('/api/shop/cart', {
         method: 'POST',
@@ -160,7 +185,8 @@ console.log(data);
         body: JSON.stringify({ 
           productId: pid, 
           variantId: selectedVariant.variant_id, 
-          quantity: count }),
+          quantity: count,
+          userId: userId }),
       });
   
       const data = await response.json();
