@@ -6,12 +6,14 @@ export default function StatusBadge({ status }) {
     switch (status) {
       case '已付款':
       case '已完成':
+      case '已出貨':
         return styles.success
       case '未付款':
       case '待出貨':
         return styles.pending
       case '付款失敗':
-      case '取消':
+      case '不成立':
+      case '已取消':
         return styles.failed
       default:
         return styles.default
