@@ -9,7 +9,8 @@ const handleClick = () => {
     title:'標題(可用html標籤)',
     text:'註解(可用html標籤)', 
     icon:'success / error / warning / info / question',
-
+    // 右上關閉按鈕CloseButton:預設為false
+    showCloseButton: true,
     // 確認按鈕ConfirmButton:預設為false
     showconfirmBtn: true,
     confirmBtnText: '確認'
@@ -34,6 +35,7 @@ const Alert = ({
   title, 
   text, 
   icon, 
+  showCloseButton,
   showconfirmBtn,
   confirmBtnText, 
   showCancelBtn,
@@ -46,6 +48,7 @@ return(
       title: title || false,
       text: text || false,
       icon: icon || false,
+      showCloseButton: showCloseButton || false,
       showConfirmButton: showconfirmBtn || false,
       confirmButtonText: confirmBtnText || '確認',
       showCancelButton: showCancelBtn || false,

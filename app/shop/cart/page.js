@@ -4,6 +4,8 @@ import React, { useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+// 驗證用戶是否登入
+import { useAuth } from '@/app/context/AuthContext'
 // styles
 import styles from './cart.module.css'
 import { FaPlus, FaMinus, FaX } from 'react-icons/fa6'
@@ -18,8 +20,23 @@ import useSWR, { mutate } from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function CartPage() {
-  const { data, error } = useSWR('/api/shop/cart', fetcher)
   const router = useRouter()
+  // 獲取用戶信息
+  const { user, loading} = useAuth()
+  const userId = user?.id
+  // 獲取購物車數據
+  const { data, error } = useSWR(userId ? `/api/shop/cart?userId=${userId}` : null, fetcher)
+    
+    // 用戶驗證
+    if (loading) return <div>載入中...</div>
+    if (!user) return (
+    <div>
+      <p>請先登入</p>
+      <Link href="/member/MemberLogin/login">前往登入會員
+      </Link>
+    </div>)
+  
+
 
   // 清除購物車
   const handleClick = () => {
@@ -37,12 +54,12 @@ export default function CartPage() {
 
       function: async () => {
         try {
-          const response = await fetch('/api/shop/cart', {
+          const response = await fetch(`/api/shop/cart?userId=${userId}`, {
             method: 'DELETE',
           })
           if (response.ok) {
             // 重新獲取購物車數據
-            mutate('/api/shop/cart')
+            mutate(`/api/shop/cart?userId=${userId}`)
             Alert({
               title: '購物車已清除',
               icon: 'success',
@@ -71,12 +88,12 @@ export default function CartPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ quantity: newQuantity }),
+        body: JSON.stringify({ quantity: newQuantity, userId  }),
       })
 
       if (response.ok) {
         // 重新獲取購物車數據
-        mutate('/api/shop/cart')
+        mutate(`/api/shop/cart?userId=${userId}`)
       } else {
         console.error('更新購物車數量失敗')
       }
@@ -95,11 +112,11 @@ export default function CartPage() {
       cancelBtnText: '取消',
       function: async () => {
         try {
-          const response = await fetch(`/api/shop/cart/${cartId}`, {
+          const response = await fetch(`/api/shop/cart/${cartId}?userId=${userId}`, {
             method: 'DELETE',
           })
           if (response.ok) {
-            mutate('/api/shop/cart')
+            mutate(`/api/shop/cart?userId=${userId}`)
             Alert({
               title: '商品已刪除',
               icon: 'success',
@@ -166,6 +183,8 @@ export default function CartPage() {
     console.log(data?.error)
     return <div>購物車目前沒有商品</div>
   }
+
+  
 
   return (
     <>
