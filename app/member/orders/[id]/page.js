@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useRouter,useParams } from 'next/navigation'
 import Image from 'next/image'
 // 引入樣式
-import styles from '@/app/shop/checkout/review/review.module.css'
+// import styles from '@/app/shop/checkout/review/review.module.css'
+import styles from './order_id.module.css'
 import { MdOutlinePets } from 'react-icons/md'
 import RecordPage from '@/app/member/_components/RecordPage'
 import StatusBadge from '@/app/member/_components/StatusBadge'
@@ -18,6 +19,8 @@ export default function IdPage(props) {
   // 從網址上得到動態路由參數
   const params = useParams()
   const oid = params?.id
+
+  const router = useRouter()
 
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
@@ -36,6 +39,13 @@ export default function IdPage(props) {
 
   return (
     <div className={styles.main}>
+      <div className={styles.header}>
+      <button 
+      className={styles.btn}
+      onClick={() => router.push('/member/orders')}>返回訂單紀錄</button>
+
+      訂單 {oid}
+      </div>
       <div className={styles.reviewContainer}>
               <div className={styles.containTitle}>
                 <h1>資訊欄</h1>
@@ -101,9 +111,9 @@ export default function IdPage(props) {
                   </div>
                   <div className={styles.groupBody}>
                     <div>
-                    {order?.shipping_method=='宅配'
+                    {order?.tracking_number
                     ?order?.tracking_number
-                    :'--'}</div>
+                    :'-'}</div>
                     <div>{order?.shipping_method}</div>
                     <div>
                       {order?.shipping_address}
