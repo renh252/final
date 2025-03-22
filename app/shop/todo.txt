@@ -1,16 +1,16 @@
 //待辦
 
-收藏功能
+**收藏功能
 頁面字體
 
+order/page.js
+**新增評論
 
-C:\iSpan\final\app\shop\checkout\page.js
-帶入用戶資料功能
-選擇門市功能
-門市欄位驗證
+
+
 
 C:\iSpan\final\app\shop
-去掉沒有變體的商品
+**去掉沒有變體的商品
 
 C:\iSpan\final\app\shop\[pid]
 如果沒有'變體顯示','庫存為0'查無此商品

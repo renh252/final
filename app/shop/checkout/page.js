@@ -336,6 +336,13 @@ export default function CheckoutPage() {
       }
     }
 
+    if(checkoutData.delivery !== '宅配'){
+      if (!checkoutData.CVSStoreName) {
+        newErrors.CVSStoreName = '* 請選擇超商門市'
+
+      }
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0 // 如果没有错误返回 true
   }
@@ -466,6 +473,7 @@ export default function CheckoutPage() {
                         value={checkoutData.CVSStoreName || ''}
                         readOnly
                       />
+                      <span className={styles.warn}>{errors.CVSStoreName}</span>
                     </label>
                     {/* <label>
                       門市代號：
