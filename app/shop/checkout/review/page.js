@@ -92,8 +92,8 @@ export default function ReviewPage() {
       recipientEmail: checkoutData?.recipient_email || '',
       remark: checkoutData?.remark || '',
       shippingMethod: checkoutData?.delivery || '宅配到府', // ✅ 讓 shippingMethod = checkoutData.delivery
-      shippingAddress: checkoutData?.storeName // ✅ 超商店名 OR 住家地址
-        ? checkoutData?.storeName
+      shippingAddress: checkoutData?.CVSStoreName // ✅ 超商店名 OR 住家地址
+        ? checkoutData?.CVSStoreName
         : checkoutData?.address?.city +
             checkoutData?.address?.town +
             checkoutData?.address?.else || '',
@@ -204,9 +204,13 @@ export default function ReviewPage() {
                       <div>{checkoutData?.storeName}</div>
                     ) : (
                       <div>
-                        {checkoutData?.address?.city +
-                          checkoutData?.address?.town +
-                          checkoutData?.address?.else}
+                        {checkoutData?.address.else
+                        ?
+                        checkoutData?.address.city +
+                        checkoutData?.address?.town +
+                        checkoutData?.address?.else
+                        :
+                        checkoutData?.CVSStoreName}
                       </div>
                     )}
                   </div>

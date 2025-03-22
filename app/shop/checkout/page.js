@@ -137,8 +137,7 @@ export default function CheckoutPage() {
     CvsType: '',
     CheckMacValue: '',
   })
-  // const CreateCMVURL = 'http://localhost:3000/api/shop/checkout'
-  // const APIURL = 'https://logistics-stage.ecpay.com.tw/Helper/GetStoreList'
+
 
   // ------------串超商地圖
 
@@ -236,106 +235,8 @@ export default function CheckoutPage() {
 
 
 
- /* async function SendParams() {
-    try {
-      const params = {
-        action: 'createCMV',
-        MerchantID: '2000132',
-        CvsType: Payload.CvsType,
-      }
-      console.log('Sending params:', params)
-
-      const response = await fetch('/api/shop/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params),
-      })
-
-      console.log('Response status:', response.status)
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('Error response:', errorText)
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-      console.log('Received data:', data)
-
-      setPayload((prevPayload) => ({
-        ...prevPayload,
-        CheckMacValue: data.result,
-      }))
-
-      return data.result
-    } catch (error) {
-      console.error('SendParams 錯誤：', error)
-      throw error
-    }
-  }
-  const handleSelectStore = async () => {
-    try {
-      setIsLoading(true)
-      const checkMacValue = await SendParams()
-
-      // 使用獲得的 CheckMacValue 進行後續操作
-      // 例如，調用綠界 API
-      const ecpayResponse = await fetch('/api/shop/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          MerchantID: Payload.MerchantID,
-          CvsType: Payload.CvsType,
-          CheckMacValue: checkMacValue,
-          // 其他必要的參數
-        }),
-      })
-
-      if (!ecpayResponse.ok) {
-        throw new Error('Failed to get store list')
-      }
-
-      const htmlContent = await ecpayResponse.text()
-
-      // 打開綠界的地圖選擇頁面
-      const newWindow = window.open('', '_blank', 'width=800,height=600')
-      newWindow.document.write(htmlContent)
-
-      // 監聽來自綠界頁面的消息
-      window.addEventListener('message', handleStoreSelection, false)
-    } catch (error) {
-      console.error('選擇門市時發生錯誤：', error)
-      alert('選擇門市時發生錯誤，請稍後再試。')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleStoreSelection = (event) => {
-    // 確保消息來自綠界的頁面
-    if (event.origin !== 'https://logistics-stage.ecpay.com.tw') return
-
-    const { CVSStoreID, CVSStoreName } = event.data
-    setCheckoutData((prev) => ({
-      ...prev,
-      storeName: CVSStoreName,
-      storeId: CVSStoreID,
-    }))
-
-    // 移除事件監聽器
-    window.removeEventListener('message', handleStoreSelection)
-  }
-    */
   // -----------------
 
-  // 存儲表單資料到 LocalStorage
-  // useEffect(() => {
-  //   localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
-  // }, [checkoutData]);
 
   // 表單驗證
   const validateForm = () => {
