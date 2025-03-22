@@ -81,7 +81,7 @@ export default function ReviewPage() {
       orderType: 'shop',
       amount: productPrice.totalAmount || 0, // ✅ 確保金額存在
       items: '商城商品',
-      userId: checkoutData?.userId || 1, // ✅ 確保 userId 正確
+      userId: userId || 2, // ✅ 確保 userId 正確
       ChoosePayment: 'Credit', // ✅ 預設信用卡
       invoiceMethod: checkoutData?.invoice_method || '紙本發票', // ✅ 預設紙本發票
       invoice: checkoutData?.invoice || '此功能未完成',

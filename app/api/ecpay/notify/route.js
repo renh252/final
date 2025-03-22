@@ -83,6 +83,7 @@ export async function POST(req) {
     // ✅ 取得交易編號 & 付款狀態
     const tradeNo = data.MerchantTradeNo
     const transactionStatus = data.RtnCode === '1' ? '已付款' : '付款失敗'
+    const orderStatus = data.RtnCode === '1' ? '待出貨' : '待付款'
     // ✅ 取得付款方式
     const paymentMethod = data.PaymentType.includes('_')
       ? data.PaymentType.split('_')[0]
@@ -97,8 +98,9 @@ export async function POST(req) {
       updateResult = await db.query(
         `UPDATE orders 
          SET payment_status = ?
+         , order_status = ?
          WHERE order_id = ?`,
-        [transactionStatus, tradeNo]
+        [transactionStatus,orderStatus, tradeNo]
       )
     } else if (orderType === 'donation') {
       // **捐款**
