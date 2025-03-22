@@ -61,7 +61,7 @@ export default function CheckoutPage() {
     }
   }, [checkoutData.address.city])
 
-  // 当用户输入时清除该字段的错误
+  // 当用户输入时更新表单数据
   const handleInputChange = (e) => {
     const { name, value } = e.target
     let newValue = value
@@ -101,16 +101,30 @@ export default function CheckoutPage() {
 
     if (name === 'delivery') {
       if (value === '宅配') {
-        setCheckoutData((prev) => ({ ...prev, storeName: '', storeId: '' }))
+        setCheckoutData((prev) => ({ 
+          ...prev, 
+          CVSStoreID: '', 
+          CVSStoreName: '', 
+          storeId: '' }))
         setPayload({ ...Payload, CvsType: '' })
       }
       if (value === '7-ELEVEN') {
-        setCheckoutData((prev) => ({ ...prev, storeName: '', storeId: '' }))
+        setCheckoutData((prev) => ({ 
+          ...prev, 
+          address: { city: '', town: '', else: '' }, 
+          CVSStoreID: '', 
+          CVSStoreName: '', 
+          storeId: '' }))
         setPayload({ ...Payload, CvsType: 'UNIMART' })
         // SendParams()
       }
       if (value === '全家') {
-        setCheckoutData((prev) => ({ ...prev, storeName: '', storeId: '' }))
+        setCheckoutData((prev) => ({ 
+          ...prev, 
+          address: { city: '', town: '', else: '' },
+          CVSStoreID: '', 
+          CVSStoreName: '', 
+          storeId: '' }))
         setPayload({ ...Payload, CvsType: 'FAMI' })
         // SendParams()
       }
@@ -126,8 +140,9 @@ export default function CheckoutPage() {
       }
     }
   }
+  
 
-  // 獲取縣市區域
+  // ------------串超商地圖
 
   // 超商
   const [isLoading, setIsLoading] = useState(false)
@@ -137,10 +152,8 @@ export default function CheckoutPage() {
     CvsType: '',
     CheckMacValue: '',
   })
-  // const CreateCMVURL = 'http://localhost:3000/api/shop/checkout'
-  // const APIURL = 'https://logistics-stage.ecpay.com.tw/Helper/GetStoreList'
 
-  // ------------串超商地圖
+
 
   //  計算CheckMacValue
   const crypto = require('crypto');
@@ -172,12 +185,13 @@ export default function CheckoutPage() {
   const checkMacValue = calculateCheckMacValue(params, hashKey, hashIV);
   console.log(checkMacValue);
 
-
+// 向綠屆要求門市資料
   const handleSelectStore = async (event) => {
     event.preventDefault();
     setIsLoading(true);
   
     const merchantTradeNo = `ECpay${Date.now()}`;
+    const extraData = JSON.stringify(checkoutData);
   
     const apiParams = {
       MerchantID: '3002607',
@@ -186,7 +200,7 @@ export default function CheckoutPage() {
       LogisticsSubType: Payload.CvsType,
       IsCollection: 'N',
       ServerReplyURL: `${window.location.origin}/api/shop/ecpay-callback`,
-      ExtraData: '',
+      ExtraData: extraData,
       Device: 0,
       LogisticsID: '0'
     };
@@ -220,122 +234,38 @@ export default function CheckoutPage() {
     const CVSStoreID = urlParams.get('CVSStoreID');
     const CVSStoreName = urlParams.get('CVSStoreName');
     const CVSAddress = urlParams.get('CVSAddress');
+    const extraDataStr = urlParams.get('ExtraData');
+    if (CVSStoreID && CVSStoreName && CVSAddress && extraDataStr) {
+      try {
+        const extraData = JSON.parse(decodeURIComponent(extraDataStr));
+        
+        setCheckoutData(prev => ({
+          ...prev,
+          ...extraData,
+          delivery: extraData.delivery || prev.delivery,
+          address: {
+            ...prev.address,
+            ...extraData.address
+          },
+          storeName: CVSStoreName,
+          storeId: CVSStoreID,
+          CVSStoreID,
+          CVSStoreName,
+          CVSAddress
+        }));
   
-    if (CVSStoreID && CVSStoreName && CVSAddress) {
-      setCheckoutData(prev => ({
-        ...prev,
-        CVSStoreID,
-        CVSStoreName,
-        CVSAddress
-      }));
-  
-      // 清除URL中的参数
-      window.history.replaceState({}, document.title, window.location.pathname);
+        // 清除URL中的参数
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (error) {
+        console.error('Error parsing ExtraData:', error);
+      }
     }
   }, []);
 
 
 
- /* async function SendParams() {
-    try {
-      const params = {
-        action: 'createCMV',
-        MerchantID: '2000132',
-        CvsType: Payload.CvsType,
-      }
-      console.log('Sending params:', params)
-
-      const response = await fetch('/api/shop/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params),
-      })
-
-      console.log('Response status:', response.status)
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('Error response:', errorText)
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-      console.log('Received data:', data)
-
-      setPayload((prevPayload) => ({
-        ...prevPayload,
-        CheckMacValue: data.result,
-      }))
-
-      return data.result
-    } catch (error) {
-      console.error('SendParams 錯誤：', error)
-      throw error
-    }
-  }
-  const handleSelectStore = async () => {
-    try {
-      setIsLoading(true)
-      const checkMacValue = await SendParams()
-
-      // 使用獲得的 CheckMacValue 進行後續操作
-      // 例如，調用綠界 API
-      const ecpayResponse = await fetch('/api/shop/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          MerchantID: Payload.MerchantID,
-          CvsType: Payload.CvsType,
-          CheckMacValue: checkMacValue,
-          // 其他必要的參數
-        }),
-      })
-
-      if (!ecpayResponse.ok) {
-        throw new Error('Failed to get store list')
-      }
-
-      const htmlContent = await ecpayResponse.text()
-
-      // 打開綠界的地圖選擇頁面
-      const newWindow = window.open('', '_blank', 'width=800,height=600')
-      newWindow.document.write(htmlContent)
-
-      // 監聽來自綠界頁面的消息
-      window.addEventListener('message', handleStoreSelection, false)
-    } catch (error) {
-      console.error('選擇門市時發生錯誤：', error)
-      alert('選擇門市時發生錯誤，請稍後再試。')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleStoreSelection = (event) => {
-    // 確保消息來自綠界的頁面
-    if (event.origin !== 'https://logistics-stage.ecpay.com.tw') return
-
-    const { CVSStoreID, CVSStoreName } = event.data
-    setCheckoutData((prev) => ({
-      ...prev,
-      storeName: CVSStoreName,
-      storeId: CVSStoreID,
-    }))
-
-    // 移除事件監聽器
-    window.removeEventListener('message', handleStoreSelection)
-  }
-    */
   // -----------------
 
-  // 存儲表單資料到 LocalStorage
-  // useEffect(() => {
-  //   localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
-  // }, [checkoutData]);
 
   // 表單驗證
   const validateForm = () => {
@@ -526,9 +456,9 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <button type="button" onClick={handleSelectStore} disabled={isLoading}>
-                      選擇門市
+                      {isLoading ? '加載中...' : '選擇門市'}
                     </button>
-                    {isLoading ? '加载中...' : '选择门市'}
+                    
                     <label>
                       門市名稱：
                       <input
@@ -537,7 +467,7 @@ export default function CheckoutPage() {
                         readOnly
                       />
                     </label>
-                    <label>
+                    {/* <label>
                       門市代號：
                       <input
                         type="text"
@@ -546,13 +476,13 @@ export default function CheckoutPage() {
                       />
                     </label>
                     <label>
-                      門市代號：
+                      門市地址：
                       <input
                         type="text"
                         value={checkoutData.CVSAddress || ''}
                         readOnly
                       />
-                    </label>
+                    </label> */}
                   </>
                 )}
 
