@@ -1,3 +1,5 @@
+// FILEPATH: c:/Users/USER/ispan/final/app/member/_components/RecordPage.js
+
 'use client'
 
 import React, { useState } from 'react'
@@ -12,17 +14,45 @@ export default function RecordPage({
   titleText = '紀錄',
   fetchUrl,
   recordKey = 'records',
-  statusOptions = ['全部', '已付款', '處理中', '失敗'],
-  formatRecord, // 自定義每筆資料的顯示
-  detailPagePath, // 🔹 這是要導航的頁面路徑
+  statusFilter = {
+    title: '狀態',
+    key: 'payment_status',
+    options: ['全部', '已付款', '未付款', '付款失敗'],
+  },
+  formatRecord,
+  additionalFilters = [],
 }) {
   const router = useRouter()
-  const [statusFilter, setStatusFilter] = useState('全部')
+  const [filterValues, setFilterValues] = useState({
+    [statusFilter.key]: statusFilter.options[0],
+    ...additionalFilters.reduce((acc, filter) => {
+      acc[filter.key] = filter.options[0];
+      return acc;
+    }, {})
+  });
+
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const { data, error } = useSWR(fetchUrl, (url) =>
     fetch(url).then((res) => res.json())
   )
+
+  const updateFilter = (key, value) => {
+    setFilterValues(prev => ({...prev, [key]: value}));
+  };
+
+  const filters = [
+    {
+      ...statusFilter,
+      value: filterValues[statusFilter.key],
+      onChange: (value) => updateFilter(statusFilter.key, value),
+    },
+    ...additionalFilters.map(filter => ({
+      ...filter,
+      value: filterValues[filter.key],
+      onChange: (value) => updateFilter(filter.key, value),
+    })),
+  ]
 
   if (!data) return <div className={styles.loading}>載入中...</div>
   if (error) return <div className={styles.error}>載入失敗，請稍後再試</div>
@@ -31,12 +61,17 @@ export default function RecordPage({
   const total = data.total || records.length
 
   const filteredRecords = records.filter((record) => {
-    if (statusFilter !== '全部' && (record.transaction_status !== statusFilter && record.payment_status !== statusFilter	))
-      return false
+    for (let filter of filters) {
+      const filterValue = filterValues[filter.key];
+      if (filterValue !== '全部' && record[filter.key] !== filterValue) {
+        return false;
+      }
+    }
+
     let date = ''
     if (record.create_datetime) {
       date = new Date(record.create_datetime) 
-    }else if (record.created_at) {
+    } else if (record.created_at) {
       date = new Date(record.created_at) 
     }
     if (startDate && date < new Date(startDate)) return false
@@ -47,16 +82,14 @@ export default function RecordPage({
   return (
     <div className={styles.container}>
       <div>
-        <h2 className={styles.header}>我的{titleText}</h2>{' '}
+        <h2 className={styles.header}>我的{titleText}</h2>
         <FilterBar
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
+          filters={filters}
           startDate={startDate}
           setStartDate={setStartDate}
           endDate={endDate}
           setEndDate={setEndDate}
-          statusOptions={statusOptions}
-        />{' '}
+        />
         <div className={styles.summary}>
           <p>
             符合條件：<strong>{filteredRecords.length}</strong> 筆 ／ 總數：
@@ -78,17 +111,16 @@ export default function RecordPage({
                     router.push(`/member/donations/${record.trade_no}`)
                   } else if (record.order_id) {
                     router.push(`/member/orders/${record.order_id}`)
-                  }else {
+                  } else {
                     alert('此筆紀錄缺少捐款編號，無法查看詳細資料')
                   }
-                }} // 🔹 用傳入的 `detailPagePath`
+                }}
               />
             ))
           ) : (
             <p className={styles.noData}>目前沒有資料</p>
           )}
         </div>
-
       </div>
     </div>
   )
