@@ -17,25 +17,29 @@ export default function Register2Page() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    let errors = []; // 儲存錯誤訊息的陣列
+  
     // 必填欄位驗證
     if (!name) {
-      alert('請填寫姓名欄位');
-      return;
+      errors.push('請填寫姓名欄位');
     }
     if (!phone) {
-      alert('請填寫電話欄位');
-      return;
+      errors.push('請填寫電話欄位');
     }
     if (!birthday) {
-      alert('請填寫生日欄位');
-      return;
+      errors.push('請填寫生日欄位');
     }
     if (!address) {
-      alert('請填寫地址欄位');
+      errors.push('請填寫地址欄位');
+    }
+  
+    // 如果有錯誤，一次性顯示所有錯誤訊息
+    if (errors.length > 0) {
+      alert(errors.join('\n')); // 使用換行符號連接錯誤訊息
       return;
     }
-
+  
     try {
       const response = await fetch('/api/register', {
         method: 'POST',
@@ -44,9 +48,9 @@ export default function Register2Page() {
         },
         body: JSON.stringify({ email, password, name, phone, birthday, address }),
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         alert(data.message);
         window.location.href = '/member/MemberLogin/login';
