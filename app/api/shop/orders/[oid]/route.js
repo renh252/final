@@ -27,13 +27,16 @@ export async function GET(request, { params }) {
           COALESCE(pv.image_url, p.image_url) AS image,
           pv.variant_name,
           pr.rating,
-          pr.review_text
+          pr.review_text,
+          pr.created_at AS review_created_at
         FROM order_items oi
         JOIN products p ON oi.product_id = p.product_id
         LEFT JOIN product_variants pv ON oi.variant_id = pv.variant_id AND oi.product_id = pv.product_id
         LEFT JOIN product_reviews pr ON oi.order_item_id = pr.order_item_id
         WHERE oi.order_id = ?
-        ORDER BY pr.rating ASC
+        ORDER BY 
+          CASE WHEN pr.created_at IS NULL THEN 0 ELSE 1 END,
+          pr.created_at DESC
           `, [id])
         responseData.products = products
 
