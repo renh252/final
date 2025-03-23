@@ -8,6 +8,7 @@ export async function GET(request, { params }) {
         const connection = await pool.getConnection()
         let responseData = {}
 
+        // 獲取訂單
         const [order] = await connection.execute(`
           SELECT * FROM orders  WHERE order_id = ?
           `, [id])
@@ -18,20 +19,25 @@ export async function GET(request, { params }) {
         }
         responseData.order = order[0]
 
-        // 獲取訂單明細
+        // 獲取訂單明細與評價
         const [products] = await connection.execute(`
         SELECT 
           oi.*,
           p.product_name,
           COALESCE(pv.image_url, p.image_url) AS image,
-          pv.variant_name
+          pv.variant_name,
+          pr.rating,
+          pr.review_text
         FROM order_items oi
         JOIN products p ON oi.product_id = p.product_id
         LEFT JOIN product_variants pv ON oi.variant_id = pv.variant_id AND oi.product_id = pv.product_id
+        LEFT JOIN product_reviews pr ON oi.order_item_id = pr.order_item_id
         WHERE oi.order_id = ?
+        ORDER BY pr.rating ASC
           `, [id])
         responseData.products = products
 
+          
 
 
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter,useParams } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 // 取得用戶
 import { useAuth } from '@/app/context/AuthContext'
 // 引入樣式
@@ -43,6 +44,9 @@ export default function OrderIdPage(props) {
   order.created_at = new Date(order.created_at).toLocaleDateString()
   order.shipped_at = order.shipped_at ? new Date(order.shipped_at).toLocaleDateString() : '-'
   order.finish_at = order.finish_at ? new Date(order.finish_at).toLocaleDateString() : '-'
+
+  console.log(products);
+  
 
   // 評價狀態-------------
 
@@ -184,9 +188,12 @@ const submitReview = async (orderItemId, productId, variantId) => {
                     <div>$ {order.total_price}</div>
                     <div>{order.payment_status}</div>
                     <div>
-                      {order?.invoice_method +
+                      {order?.invoice_method == '紙本' && order?.invoice_method}
+                      {(order?.invoice_method == '載具' || order?.invoice_method == '手機載具') && order?.invoice_method + order?.mobile_barcode}
+                      {order?.invoice_method == '統編' && order?.invoice_method + order?.taxID_number}
+                      {/* {order?.invoice_method +
                         order?.taxID_number +
-                        order?.mobile_barcode}
+                        order?.mobile_barcode} */}
                     </div>
                   </div>
                 </div>
@@ -250,9 +257,11 @@ const submitReview = async (orderItemId, productId, variantId) => {
                 {products?.map((product, index) => {
                   return (
                     <React.Fragment key={index}>
+                      {/* 商品資訊 */}
                       <div>
                         <div>{index + 1}</div>
                         <div className={styles.image}>
+                          <Link href={`/shop/${product.product_id}`}>
                           <Image
                             src={
                               product.image_url || '/images/default_no_pet.jpg'
@@ -261,6 +270,7 @@ const submitReview = async (orderItemId, productId, variantId) => {
                             width={100}
                             height={100}
                           />
+                          </Link>
                           {product.product_name}
                         </div>
                         <div>{product.variant_name}</div>
@@ -297,39 +307,70 @@ const submitReview = async (orderItemId, productId, variantId) => {
                         </div>
                       </div>
                       {/* 評價區塊 */}
+                      {order?.order_status == '已完成'
+                      ?
                       <div className={styles.reviewSection}>
                         <div>
                           <div className={styles.rating}>
                           <div>
                             <span>評分：</span>
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button 
-                                key={star} 
-                                className={styles.star}
-                                style={{ 
-                                  color: (hoverRating[`${product.product_id}-${product.variant_id}`] >= star || 
-                                          reviews[`${product.product_id}-${product.variant_id}`]?.rating >= star) 
-                                          ? '#ffcc00' 
-                                          : '#cda274' 
-                                }}
-                                onClick={() => handleRating(product.product_id, product.variant_id, star)}
-                                onMouseEnter={() => handleHover(product.product_id, product.variant_id, star)}
-                                onMouseLeave={() => handleHover(product.product_id, product.variant_id, 0)}
-                              >
-                                ★
-                              </button>
-                            ))}
+                            {product?.rating
+                              ? Array.from({ length: Math.floor(product?.rating) }, (_, i) => (
+                                  <span 
+                                    key={i}
+                                    style={{color:'#ffcc00'}}
+                                  >
+                                    ★
+                                  </span>
+                                ))
+                              : [1, 2, 3, 4, 5].map((star) => (
+                                  <button 
+                                    key={star} 
+                                    className={styles.star}
+                                    style={{ 
+                                      color: (hoverRating[`${product.product_id}-${product.variant_id}`] >= star || 
+                                              reviews[`${product.product_id}-${product.variant_id}`]?.rating >= star) 
+                                              ? '#ffcc00' 
+                                              : '#cda274' 
+                                    }}
+                                    onClick={() => handleRating(product.product_id, product.variant_id, star)}
+                                    onMouseEnter={() => handleHover(product.product_id, product.variant_id, star)}
+                                    onMouseLeave={() => handleHover(product.product_id, product.variant_id, 0)}
+                                  >
+                                    ★
+                                  </button>
+                                ))
+                            }
                           </div>
-                            <button className={styles.submitBtn} onClick={() => submitReview(product.order_item_id ,product.product_id, product.variant_id)}>提交</button>
+                          {product?.rating
+                          ?
+                          <div 
+                          className={styles.submitBtn} 
+                          style={{backgroundColor:'#8FBC8F',cursor:'text'}}
+                          >已評論</div>
+                          :
+                          <button className={styles.submitBtn} onClick={() => submitReview(product.order_item_id ,product.product_id, product.variant_id)}>提交</button>
+                          }
                           </div>
-                          <textarea
+                          {product?.rating
+                          ?(product?.review_text
+                            ?<textarea
+                              className={styles.reviewInput}
+                              value={ product?.review_text}
+                              readOnly/>
+                            : null)
+                          :<textarea
                             className={styles.reviewInput}
                             placeholder="請留下您的評論..."
-                            onChange={(e) => handleReviewChange(product.id, e.target.value)}
+                            onChange={(e) => handleReviewChange(product.product_id, product.variant_id, e.target.value)}
                           />
+                          }
+                          
                           
                         </div>
                       </div>
+                      : null
+                      }
                       {index < products.length - 1 && <hr />}{' '}
                       {/* 添加水平线，但不包括最后一个产品后 */}
                     </React.Fragment>
