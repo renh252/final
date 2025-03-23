@@ -105,7 +105,7 @@ export default function RecordPage({
             filteredRecords.map((record) => (
               <List
                 key={record[recordKeyField]}
-                title={`編號：${record.trade_no || record.recordKeyField}`}
+                title={`編號：${record.trade_no || record[recordKeyField]}`}
                 body={formatRecord(record)}
                 onClick={() => {
                   if (record.trade_no) {
