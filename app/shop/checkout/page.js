@@ -467,7 +467,7 @@ export default function CheckoutPage() {
                     </button>
                     
                     <label>
-                      門市名稱：
+                      <p>門市名稱：</p>
                       <input
                         type="text"
                         value={checkoutData.CVSStoreName || ''}
