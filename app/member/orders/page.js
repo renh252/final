@@ -45,6 +45,7 @@ export default function OrdersPage() {
       titleText="訂單紀錄"
       fetchUrl="/api/shop/orders"
       recordKey='orders'
+      recordKeyField='order_id'
       detailPagePath='/member/orders'
       statusFilter={{
         title: '訂單狀態',
