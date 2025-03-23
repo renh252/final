@@ -33,7 +33,7 @@ export default function OrderIdPage(props) {
 
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
-  const { data, error } = useSWR(`/api/shop/orders/${oid}`, fetcher)
+  const { data, error, mutate } = useSWR(`/api/shop/orders/${oid}`, fetcher)
   // 处理加载状态
   if (!data) return <div>Loading...</div>
   // 处理错误状态
@@ -113,7 +113,7 @@ const submitReview = async (orderItemId, productId, variantId) => {
         icon: 'success',
         showCloseButton: true,
       })
-      // 可以在這裡重置評價狀態或更新UI
+      await mutate(undefined, { revalidate: true })
     } else {
       const errorData = await response.json();
       Alert({
