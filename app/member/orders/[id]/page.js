@@ -7,8 +7,6 @@ import Image from 'next/image'
 // import styles from '@/app/shop/checkout/review/review.module.css'
 import styles from './order_id.module.css'
 import { MdOutlinePets } from 'react-icons/md'
-import RecordPage from '@/app/member/_components/RecordPage'
-import StatusBadge from '@/app/member/_components/StatusBadge'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -23,6 +21,7 @@ export default function OrderIdPage(props) {
   const router = useRouter()
 
   const [reviews, setReviews] = useState({});
+  const [hoverRating, setHoverRating] = useState({});
 
 
 
@@ -41,17 +40,30 @@ export default function OrderIdPage(props) {
 
   // 評價狀態
 
-const handleRating = (productId,variantId, rating) => {
+  const handleHover = (productId, variantId, star) => {
+    setHoverRating(prev => ({
+      ...prev,
+      [`${productId}-${variantId}`]: star
+    }));
+  };
+
+
+
+const handleRating = (productId, variantId, rating) => {
   setReviews((prev) => ({
     ...prev,
-    [`${productId}-${variantId}`]: { ...prev[productId], rating,variantId },
+    [`${productId}-${variantId}`]: { ...prev[`${productId}-${variantId}`], rating },
+  }));
+  setHoverRating(prev => ({
+    ...prev,
+    [`${productId}-${variantId}`]: 0
   }));
 };
 
-const handleReviewChange = (productId, text) => {
+const handleReviewChange = (productId,variantId, text) => {
   setReviews((prev) => ({
     ...prev,
-    [productId]: { ...prev[productId], review: text },
+    [`${productId}-${variantId}`]: { ...prev[`${productId}-${variantId}`], review: text },
   }));
 };
 
@@ -59,9 +71,7 @@ const submitReview = (productId) => {
   console.log("提交評價：", reviews[productId]);
   // 這裡可以將數據發送到後端 API
 };
-
   
-
   return (
     <div className={styles.main}>
       <div className={styles.header}>
@@ -237,7 +247,19 @@ const submitReview = (productId) => {
                           <div>
                             <span>評分：</span>
                             {[1, 2, 3, 4, 5].map((star) => (
-                              <button key={star} className={styles.star} onClick={() => handleRating(product.product_id,product.variant_id, star)}>
+                              <button 
+                                key={star} 
+                                className={styles.star}
+                                style={{ 
+                                  color: (hoverRating[`${product.product_id}-${product.variant_id}`] >= star || 
+                                          reviews[`${product.product_id}-${product.variant_id}`]?.rating >= star) 
+                                          ? '#ffcc00' 
+                                          : '#cda274' 
+                                }}
+                                onClick={() => handleRating(product.product_id, product.variant_id, star)}
+                                onMouseEnter={() => handleHover(product.product_id, product.variant_id, star)}
+                                onMouseLeave={() => handleHover(product.product_id, product.variant_id, 0)}
+                              >
                                 ★
                               </button>
                             ))}
