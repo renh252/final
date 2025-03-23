@@ -3,16 +3,22 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter,useParams } from 'next/navigation'
 import Image from 'next/image'
+// 取得用戶
+import { useAuth } from '@/app/context/AuthContext'
 // 引入樣式
-// import styles from '@/app/shop/checkout/review/review.module.css'
 import styles from './order_id.module.css'
 import { MdOutlinePets } from 'react-icons/md'
-
+// components
+import Alert from '@/app/_components/alert'
 // 連接資料庫
 import useSWR from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function OrderIdPage(props) {
+
+    // 獲取用戶信息
+    const { user, } = useAuth()
+    const userId = user?.id
 
   // 從網址上得到動態路由參數
   const params = useParams()
@@ -38,8 +44,9 @@ export default function OrderIdPage(props) {
   order.shipped_at = order.shipped_at ? new Date(order.shipped_at).toLocaleDateString() : '-'
   order.finish_at = order.finish_at ? new Date(order.finish_at).toLocaleDateString() : '-'
 
-  // 評價狀態
+  // 評價狀態-------------
 
+  // 紀錄評價星星hover狀態
   const handleHover = (productId, variantId, star) => {
     setHoverRating(prev => ({
       ...prev,
@@ -47,8 +54,7 @@ export default function OrderIdPage(props) {
     }));
   };
 
-
-
+// 評價星星點擊事件
 const handleRating = (productId, variantId, rating) => {
   setReviews((prev) => ({
     ...prev,
@@ -60,6 +66,7 @@ const handleRating = (productId, variantId, rating) => {
   }));
 };
 
+// 評價內容改變事件
 const handleReviewChange = (productId,variantId, text) => {
   setReviews((prev) => ({
     ...prev,
@@ -67,9 +74,58 @@ const handleReviewChange = (productId,variantId, text) => {
   }));
 };
 
-const submitReview = (productId) => {
-  console.log("提交評價：", reviews[productId]);
-  // 這裡可以將數據發送到後端 API
+// 提交評價
+const submitReview = async (orderItemId, productId, variantId) => {
+  const review = reviews[`${productId}-${variantId}`];
+  if (!review || !review.rating) {
+    Alert({
+      title: '請選擇評分',
+      showconfirmBtn: true,
+      confirmBtnText: 'ok',
+    })
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/shop/orders/${oid}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        orderItemId,
+        productId,
+        variantId,
+        userId,
+        rating: review.rating,
+        reviewText: review.review || '',
+      }),
+    });
+
+    if (response.ok) {
+      Alert({
+        title: '評價提交成功！',
+        timer: 2000,
+        icon: 'success',
+        showCloseButton: true,
+      })
+      // 可以在這裡重置評價狀態或更新UI
+    } else {
+      const errorData = await response.json();
+      Alert({
+        title: `評價提交失敗：${errorData.error}`,
+        showconfirmBtn: true,
+        confirmBtnText: 'ok'
+      })
+    }
+  } catch (error) {
+    console.error('提交評價時發生錯誤：', error);
+    Alert({
+      title: '發生錯誤，請稍後再試。',
+      showconfirmBtn: true,
+      confirmBtnText: 'ok',
+    })
+  }
 };
   
   return (
@@ -264,7 +320,7 @@ const submitReview = (productId) => {
                               </button>
                             ))}
                           </div>
-                            <button className={styles.submitBtn} onClick={() => submitReview(product.id)}>提交</button>
+                            <button className={styles.submitBtn} onClick={() => submitReview(product.order_item_id ,product.product_id, product.variant_id)}>提交</button>
                           </div>
                           <textarea
                             className={styles.reviewInput}
