@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import styles from './Register.module.css';
 import { useRouter } from 'next/navigation';
 
+
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
