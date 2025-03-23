@@ -133,6 +133,97 @@ ORDER BY table_name;
 
 # 資料庫使用指南
 
+## 資料庫函數架構
+
+### 1. 前台資料庫函數 (lib/db.js)
+
+```typescript
+// 基本查詢函數
+const executeQuery = async (query: string, params: any[] = []) => {
+  try {
+    const [rows] = await pool.execute(query, params)
+    return rows
+  } catch (error) {
+    console.error('Database error:', error)
+    throw error
+  }
+}
+```
+
+特點：
+
+- 簡單直接的查詢執行
+- 使用 mysql2/promise 的連接池
+- 基本的錯誤處理
+- 適合一般前台操作
+
+### 2. 後台資料庫函數 (app/api/admin/\_lib/db.ts)
+
+```typescript
+// 後台專用查詢函數
+const query = async <T>(
+  sql: string,
+  params: any[] = []
+): Promise<[T, Error | null]> => {
+  try {
+    const [results] = await adminPool.query<
+      (T & RowDataPacket[]) | ResultSetHeader
+    >(sql, params)
+    return [results as T, null]
+  } catch (error) {
+    console.error('查詢錯誤:', error)
+    return [[] as unknown as T, error as Error]
+  }
+}
+```
+
+特點：
+
+- 使用 TypeScript 泛型支持更好的類型安全
+- 專門的管理員連接池
+- 更完善的錯誤處理
+- 支持 RowDataPacket 和 ResultSetHeader
+- 適合後台管理操作
+
+## 使用建議
+
+### 1. 前台查詢
+
+適合用於：
+
+- 一般用戶查詢
+- 簡單的資料操作
+- 不需要特殊權限的操作
+
+```typescript
+// 範例：獲取商品列表
+const getProducts = async () => {
+  const query = 'SELECT * FROM products WHERE status = ? LIMIT ?'
+  return await executeQuery(query, ['active', 10])
+}
+```
+
+### 2. 後台查詢
+
+適合用於：
+
+- 管理員操作
+- 需要類型安全的查詢
+- 複雜的資料操作
+- 需要詳細錯誤處理的場景
+
+```typescript
+// 範例：更新商品狀態
+const updateProductStatus = async (id: number, status: string) => {
+  const [result, error] = await db.query<ResultSetHeader>(
+    'UPDATE products SET status = ? WHERE id = ?',
+    [status, id]
+  )
+  if (error) throw error
+  return result.affectedRows > 0
+}
+```
+
 ## 常用查詢範例
 
 ### 1. 會員管理
@@ -223,30 +314,50 @@ const validateMember = (member: Partial<Member>): boolean => {
 
 ## 資料庫連接管理
 
-### 1. 連接池配置
+### 1. 管理後台連接池配置
 
 ```typescript
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
+const adminPool = mysql.createPool({
+  host: process.env.ADMIN_DB_HOST,
+  user: process.env.ADMIN_DB_USERNAME,
+  password: process.env.ADMIN_DB_PASSWORD,
+  database: process.env.ADMIN_DB_DATABASE,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
 })
 ```
 
-### 2. 錯誤監聽
+特點：
+
+- 使用 mysql2/promise 的連接池
+- 專門用於管理後台操作
+- 支援連接保活機制
+- 自動重連功能
+- 連接池管理優化
+
+### 2. 錯誤監聽與處理
 
 ```typescript
-pool.on('error', (err) => {
+adminPool.on('error', (err) => {
   console.error('資料庫連接錯誤:', err)
   if (err.code === 'PROTOCOL_CONNECTION_LOST') {
     console.error('資料庫連接已關閉')
+  } else if (err.code === 'ER_CON_COUNT_ERROR') {
+    console.error('資料庫連接數已達上限')
   }
 })
 ```
+
+### 3. 連接池最佳實踐
+
+- 使用環境變數配置
+- 適當設置連接限制
+- 啟用連接保活
+- 實作錯誤重試機制
+- 監控連接狀態
 
 ## 安全性考慮
 

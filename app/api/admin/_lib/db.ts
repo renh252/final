@@ -1,17 +1,5 @@
 import { createPool } from '@/app/lib/db'
-import { RowDataPacket } from 'mysql2/promise'
-import mysql from 'mysql2/promise'
-
-// 資料庫連接設定
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USERNAME || 'root',
-  password: process.env.DB_PASSWORD || 'P@ssw0rd',
-  database: process.env.DB_DATABASE || 'pet_proj',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-})
+import { RowDataPacket, ResultSetHeader } from 'mysql2/promise'
 
 // 創建管理員專用連接池
 const adminPool = createPool(true)
@@ -19,13 +7,15 @@ const adminPool = createPool(true)
 // 資料庫工具
 export const db = {
   // 安全查詢
-  query: async <T extends RowDataPacket[]>(
+  query: async <T>(
     sql: string,
     params: any[] = []
   ): Promise<[T, Error | null]> => {
     try {
-      const [results] = await adminPool.query<T>(sql, params)
-      return [results, null]
+      const [results] = await adminPool.query<
+        (T & RowDataPacket[]) | ResultSetHeader
+      >(sql, params)
+      return [results as T, null]
     } catch (error) {
       console.error('查詢錯誤:', error)
       return [[] as unknown as T, error as Error]
