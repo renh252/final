@@ -981,3 +981,205 @@ POST /api/admin/products/batch-delete
   "product_ids": [45, 46, 47]
 }
 ```
+
+## 系統資訊 API
+
+```
+GET /api/admin/db-info
+```
+
+- 功能：獲取資料庫結構信息
+- 權限要求：需要管理員權限
+- 返回：資料庫中所有表格的列表
+
+## 資料庫表格結構
+
+系統包含以下資料表：
+
+1. `bank_transfer_details` - 銀行轉帳詳情
+2. `bans` - 封禁記錄
+3. `bookmarks` - 收藏記錄
+4. `categories` - 分類資料
+5. `comments` - 評論資料
+6. `donations` - 捐款記錄
+7. `expenses` - 支出記錄
+8. `follows` - 追蹤關係
+9. `manager` - 管理員資料
+10. `orders` - 訂單主表
+11. `order_items` - 訂單項目
+12. `pets` - 寵物資料
+13. `pets_like` - 寵物按讚記錄
+14. `pets_recent_activities` - 寵物近期活動
+15. `pet_appointment` - 寵物預約
+16. `pet_store` - 寵物商店
+17. `pet_trait` - 寵物特徵
+18. `pet_trait_list` - 寵物特徵列表
+19. `posts` - 貼文
+20. `posts_likes` - 貼文按讚
+21. `products` - 商品
+22. `product_reviews` - 商品評價
+23. `product_variants` - 商品變體
+24. `promotions` - 促銷活動
+25. `promotion_products` - 促銷商品
+26. `receipts` - 收據
+27. `refunds` - 退款
+28. `reports` - 檢舉
+29. `return_order` - 退貨訂單
+30. `users` - 用戶資料
+31. `user_sessions` - 用戶會話
+
+## 權限系統結構
+
+系統使用以下權限結構：
+
+```typescript
+const PERMISSIONS = {
+  MEMBERS: {
+    READ: 'members:read',
+    WRITE: 'members:write',
+    DELETE: 'members:delete',
+  },
+  PETS: {
+    READ: 'pets:read',
+    WRITE: 'pets:write',
+    DELETE: 'pets:delete',
+  },
+  SHOP: {
+    READ: 'shop:read',
+    WRITE: 'shop:write',
+    DELETE: 'shop:delete',
+    PRODUCTS: {
+      READ: 'shop:products:read',
+      WRITE: 'shop:products:write',
+      DELETE: 'shop:products:delete',
+    },
+    ORDERS: {
+      READ: 'shop:orders:read',
+      WRITE: 'shop:orders:write',
+      DELETE: 'shop:orders:delete',
+    },
+  },
+  FORUM: {
+    READ: 'forum:read',
+    WRITE: 'forum:write',
+    DELETE: 'forum:delete',
+    REPORTS: {
+      READ: 'forum:reports:read',
+      WRITE: 'forum:reports:write',
+    },
+  },
+  FINANCE: {
+    READ: 'finance:read',
+    WRITE: 'finance:write',
+    REPORTS: {
+      READ: 'finance:reports:read',
+    },
+  },
+  SETTINGS: {
+    READ: 'settings:read',
+    WRITE: 'settings:write',
+    ROLES: {
+      READ: 'settings:roles:read',
+      WRITE: 'settings:roles:write',
+      DELETE: 'settings:roles:delete',
+    },
+    LOGS: {
+      READ: 'settings:logs:read',
+    },
+  },
+}
+```
+
+## 系統日誌 API
+
+```
+GET /api/admin/settings/logs
+```
+
+- 功能：獲取系統操作日誌
+- 參數：
+  - filter: 過濾條件 (all/login/system/data)
+- 返回：最近 100 條日誌記錄
+- 返回格式：
+  ```json
+  {
+    "logs": [
+      {
+        "id": number,
+        "admin_id": number,
+        "admin_name": string,
+        "action": string,
+        "details": string,
+        "ip_address": string,
+        "created_at": string
+      }
+    ]
+  }
+  ```
+
+## 捐款 API
+
+```
+GET /api/donate
+```
+
+- 功能：獲取捐款案例列表
+- 返回：包含案例標題、內容和相關圖片的列表
+- 資料格式：
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "cases": [
+        {
+          "id": number,
+          "title": string,
+          "content": string,
+          "images": string[]
+        }
+      ]
+    }
+  }
+  ```
+
+## 結帳 API
+
+```
+POST /api/shop/checkout
+```
+
+- 功能：處理綠界物流相關的結帳流程
+- 包含 CreateCMV 加密機制
+- 使用綠界測試環境 API
+- API URL: https://logistics-stage.ecpay.com.tw/Helper/GetStoreList
+
+## 商品分類 API
+
+```
+GET /api/admin/shop/products/categories
+```
+
+- 功能：獲取商品分類層級結構
+- 返回：包含父分類信息的分類列表
+- 權限要求：shop:categories:read
+
+```
+GET /api/admin/shop/categories/:cid
+```
+
+- 功能：獲取特定分類詳情
+- 返回：分類信息及該分類下的商品數量
+- 權限要求：shop:categories:read
+
+## 訂單管理 API
+
+```
+GET /api/admin/shop/orders/:oid
+```
+
+- 功能：獲取訂單詳細信息
+- 返回：
+  - 訂單基本信息
+  - 用戶信息
+  - 訂單項目列表（包含商品信息）
+- 權限要求：shop:orders:read
