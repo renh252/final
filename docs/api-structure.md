@@ -724,7 +724,7 @@ interface ProductVariant {
 ### 獲取商品列表
 
 ```
-GET /api/admin/products
+GET /api/admin/shop/products
 ```
 
 #### 請求參數
@@ -774,7 +774,7 @@ GET /api/admin/products
 ### 獲取商品詳情
 
 ```
-GET /api/admin/products/:product_id
+GET /api/admin/shop/products/:product_id
 ```
 
 #### 請求參數
@@ -831,7 +831,7 @@ GET /api/admin/products/:product_id
 ### 新增商品
 
 ```
-POST /api/admin/products
+POST /api/admin/shop/products
 ```
 
 #### 請求內容
@@ -890,7 +890,7 @@ POST /api/admin/products
 ### 更新商品
 
 ```
-PUT /api/admin/products/:product_id
+PUT /api/admin/shop/products/:product_id
 ```
 
 #### 請求參數
@@ -951,7 +951,7 @@ PUT /api/admin/products/:product_id
 ### 刪除商品 (軟刪除)
 
 ```
-DELETE /api/admin/products/:product_id
+DELETE /api/admin/shop/products/:product_id
 ```
 
 #### 請求參數
@@ -971,7 +971,7 @@ DELETE /api/admin/products/:product_id
 ### 批量刪除商品
 
 ```
-POST /api/admin/products/batch-delete
+POST /api/admin/shop/products/batch-delete
 ```
 
 #### 請求內容
@@ -1183,3 +1183,92 @@ GET /api/admin/shop/orders/:oid
   - 用戶信息
   - 訂單項目列表（包含商品信息）
 - 權限要求：shop:orders:read
+
+## 待確認和編輯的 API 文檔
+
+以下 API 需要進一步確認實現細節：
+
+### 商品管理 API [待確認]
+
+```
+GET /api/admin/shop/products
+```
+
+- 功能：獲取商品列表
+- 參數：
+  - search: 搜索關鍵字
+  - page: 頁碼
+  - limit: 每頁數量
+  - category: 分類 ID
+- 權限要求：shop:products:read
+
+```
+POST /api/admin/shop/products
+```
+
+- 功能：創建新商品
+- 權限要求：shop:products:write
+- TODO: 需要確認商品創建的具體欄位和驗證規則
+
+### 寵物管理 API [待確認]
+
+```
+GET /api/admin/pets
+```
+
+- 功能：獲取寵物列表
+- 參數：
+  - search: 搜索關鍵字
+  - page: 頁碼
+  - limit: 每頁數量
+  - status: 寵物狀態
+- 權限要求：pets:read
+
+```
+POST /api/admin/pets
+```
+
+- 功能：新增寵物
+- 權限要求：pets:write
+- TODO: 需要確認寵物創建的具體欄位和驗證規則
+
+### 論壇管理 API [待確認]
+
+```
+GET /api/admin/forum
+```
+
+- 功能：獲取論壇文章列表
+- 參數：
+  - search: 搜索關鍵字
+  - page: 頁碼
+  - limit: 每頁數量
+  - status: 文章狀態
+- 權限要求：forum:read
+
+```
+PUT /api/admin/forum
+```
+
+- 功能：更新文章狀態
+- 權限要求：forum:write
+- TODO: 需要確認文章狀態更新的具體參數
+
+### 金流管理 API [待確認]
+
+```
+GET /api/admin/finance
+```
+
+- 功能：獲取金流交易列表
+- 參數：
+  - search: 搜索關鍵字
+  - page: 頁碼
+  - limit: 每頁數量
+  - type: 交易類型
+  - startDate: 開始日期
+  - endDate: 結束日期
+- 權限要求：finance:read
+- TODO: 需要確認交易類型的具體定義和金額計算邏輯
+
+注意：以上 API 的具體實現細節需要與現有的工具和業務邏輯進行核對，確保與系統其他部分的一致性。

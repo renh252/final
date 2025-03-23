@@ -1,16 +1,14 @@
 'use client'
 
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Button,
   Form,
   Badge,
   Image,
   Alert,
-  Stack,
   Row,
   Col,
-  InputGroup,
   OverlayTrigger,
   Tooltip,
 } from 'react-bootstrap'
@@ -42,6 +40,61 @@ import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
 import Cookies from 'js-cookie'
 import { fetchApi } from '@/app/admin/_lib/api'
+import { RowDataPacket } from 'mysql2'
+
+// 定義商品介面
+interface Product extends RowDataPacket {
+  product_id: number
+  product_name: string
+  price: number
+  product_description: string
+  category_id: number
+  stock_quantity: number
+  product_status: string
+  image_url: string
+  created_at: Date
+  updated_at: Date
+  category_name: string
+  variants_count: number
+}
+
+// 定義分類介面
+interface Category extends RowDataPacket {
+  category_id: number
+  category_name: string
+  parent_category_id: number | null
+}
+
+// 定義 API 響應介面
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  message?: string
+  pagination?: {
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+  }
+}
+
+// 批量操作響應介面
+interface BulkActionResponse {
+  success: boolean
+  message: string
+  affected_ids?: number[]
+}
+
+// 匯入結果介面
+interface ImportResult {
+  success: boolean
+  total: number
+  created: number
+  updated: number
+  failed: number
+  errors: string[]
+  message?: string
+}
 
 // 商品狀態選項
 const STATUS_OPTIONS = [
@@ -90,12 +143,22 @@ export default function ProductsPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetchApi('/api/admin/shop/products')
-      if (response.products && Array.isArray(response.products)) {
-        setProducts(response.products)
+      const queryParams = new URLSearchParams({
+        search: filters.keyword,
+        page: '1',
+        limit: '10',
+        category: filters.category,
+      }).toString()
+
+      const response = (await fetchApi(
+        `/api/admin/shop/products?${queryParams}`
+      )) as ApiResponse<Product[]>
+
+      if (response.success && response.data) {
+        setProducts(response.data)
       } else {
         console.error('返回的數據格式不正確:', response)
-        showToast('error', '錯誤', '數據格式錯誤')
+        showToast('error', '錯誤', response.message || '數據格式錯誤')
       }
     } catch (error: any) {
       console.error('獲取商品列表時發生錯誤:', error)
@@ -109,12 +172,15 @@ export default function ProductsPage() {
   // 獲取分類列表
   const fetchCategories = async () => {
     try {
-      const response = await fetchApi('/api/admin/shop/products/categories')
-      if (response.categories && Array.isArray(response.categories)) {
-        setCategories(response.categories)
+      const response = (await fetchApi(
+        '/api/admin/shop/products/categories'
+      )) as ApiResponse<Category[]>
+
+      if (response.success && response.data) {
+        setCategories(response.data)
       } else {
         console.error('返回的數據格式不正確:', response)
-        showToast('error', '錯誤', '數據格式錯誤')
+        showToast('error', '錯誤', response.message || '數據格式錯誤')
       }
     } catch (error: any) {
       console.error('獲取分類列表時發生錯誤:', error)
@@ -141,8 +207,8 @@ export default function ProductsPage() {
   }
 
   // 處理批量操作
-  const handleBulkAction = async (action: string, selectedIds: number[]) => {
-    if (!selectedIds.length) {
+  const handleBulkAction = async (action: string) => {
+    if (!selectedProducts.length) {
       showToast('error', '操作失敗', '請先選擇商品')
       return
     }
@@ -154,7 +220,7 @@ export default function ProductsPage() {
     }
 
     try {
-      const confirmResult = await new Promise<boolean>((resolve) => {
+      const shouldProceed = await new Promise<boolean>((resolve) => {
         confirm({
           title: `確認${actionMap[action as keyof typeof actionMap]}`,
           message: `確定要${
@@ -167,26 +233,26 @@ export default function ProductsPage() {
         })
       })
 
-      if (!confirmResult) return
+      if (!shouldProceed) return
 
-      const response = await fetchApi('/api/admin/shop/products/bulk', {
+      const bulkResponse = (await fetchApi('/api/admin/shop/products/bulk', {
         method: 'PUT',
         body: JSON.stringify({
           action,
-          ids: selectedIds,
+          ids: selectedProducts.map((p) => p.product_id),
         }),
-      })
+      })) as BulkActionResponse
 
-      const data = await response.json()
-      if (data.success) {
-        showToast('success', '操作成功', data.message)
+      if (bulkResponse.success) {
+        showToast('success', '成功', bulkResponse.message)
+        setSelectedProducts([])
         fetchProducts()
       } else {
-        showToast('error', '操作失敗', data.message)
+        showToast('error', '錯誤', bulkResponse.message || '操作失敗')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('批量操作失敗:', error)
-      showToast('error', '操作失敗', '批量操作失敗，請稍後再試')
+      showToast('error', '錯誤', error.message || '批量操作失敗')
     }
   }
 
@@ -421,133 +487,35 @@ export default function ProductsPage() {
   // 處理表單提交
   const handleSubmit = async (formData: Record<string, any>) => {
     try {
-      console.log('提交商品表單數據:', formData)
+      const method = modalMode === 'add' ? 'POST' : 'PUT'
+      const url =
+        modalMode === 'add'
+          ? '/api/admin/shop/products'
+          : `/api/admin/shop/products/${currentProduct?.product_id}`
 
-      // 處理數值型欄位
-      const processedData = { ...formData }
-      if (processedData.product_price !== undefined) {
-        processedData.product_price = Number(processedData.product_price)
-      }
-      if (processedData.stock_quantity !== undefined) {
-        processedData.stock_quantity = Number(processedData.stock_quantity)
-      }
-
-      if (modalMode === 'add') {
-        // 新增商品
-        const response = await fetchApi('/api/admin/shop/products', {
-          method: 'POST',
-          body: JSON.stringify(processedData),
-        })
-
-        if (!response.success) {
-          throw new Error(response.message || '新增商品失敗')
-        }
-
-        const result = await response.json()
-
-        // 直接將新商品添加到列表中，而不是重新獲取整個列表
-        if (result.product) {
-          const newProduct = result.product
-          setProducts((prev) => [newProduct, ...prev])
-        } else {
-          // 如果 API 沒有返回新商品數據，才重新獲取
-          fetchProducts()
-        }
-
-        showToast(
-          'success',
-          '新增成功',
-          `商品 ${formData.product_name} 已成功新增`
-        )
-      } else {
-        // 更新商品
-        const response = await fetchApi(
-          `/api/admin/shop/products/${currentProduct.product_id}`,
-          {
-            method: 'PUT',
-            body: JSON.stringify(processedData),
-          }
-        )
-
-        if (!response.success) {
-          throw new Error(response.message || '更新商品失敗')
-        }
-
-        const result = await response.json()
-
-        // 更新商品列表
-        setProducts((prev) =>
-          prev.map((p) =>
-            p.product_id === currentProduct.product_id
-              ? {
-                  ...p,
-                  ...processedData,
-                  stock_quantity: processedData.stock_quantity,
-                  price: processedData.product_price,
-                  main_image: processedData.product_image,
-                }
-              : p
-          )
-        )
-
-        showToast(
-          'success',
-          '更新成功',
-          `商品 ${formData.product_name} 資料已成功更新`
-        )
-      }
-
-      // 關閉模態框
-      setShowModal(false)
-    } catch (error) {
-      console.error('提交商品資料時發生錯誤:', error)
-      showToast(
-        'error',
-        '操作失敗',
-        error instanceof Error ? error.message : '無法完成操作，請稍後再試'
-      )
-    }
-  }
-
-  // 處理導出
-  const handleExport = async (format: 'csv' | 'excel' | 'json') => {
-    try {
-      showToast('info', '導出中', '正在準備導出數據...')
-
-      const response = await fetchApi(
-        `/api/admin/products/export?format=${format}`,
-        {
-          method: 'GET',
-        }
-      )
+      const response = (await fetchApi(url, {
+        method,
+        body: JSON.stringify(formData),
+      })) as ApiResponse<{ product_id: number }>
 
       if (response.success) {
-        // 創建一個臨時鏈接並點擊它來下載文件
-        const link = document.createElement('a')
-        link.href = response.downloadUrl
-        link.setAttribute('download', `products_export.${format}`)
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
         showToast(
           'success',
-          '導出成功',
-          `已成功導出 ${products.length} 條商品記錄`
+          '成功',
+          modalMode === 'add' ? '商品創建成功' : '商品更新成功'
         )
+        setShowModal(false)
+        fetchProducts()
       } else {
-        throw new Error(response.message || '導出失敗')
+        showToast('error', '錯誤', response.message || '操作失敗')
       }
     } catch (error: any) {
-      console.error('導出時發生錯誤:', error)
-      showToast(
-        'error',
-        '導出失敗',
-        error.message || '無法導出數據，請稍後再試'
-      )
+      console.error('提交表單時發生錯誤:', error)
+      showToast('error', '錯誤', error.message || '操作失敗')
     }
   }
 
-  // 處理導入
+  // 處理商品匯入
   const handleImport = async (file: File) => {
     try {
       setIsImporting(true)
@@ -557,25 +525,57 @@ export default function ProductsPage() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await fetchApi('/api/admin/shop/products/import', {
+      const response = (await fetchApi('/api/admin/shop/products/import', {
         method: 'POST',
         body: formData,
-      })
+      })) as ImportResult
 
       if (response.success) {
         setImportResult(response)
-        showToast('success', '導入成功', response.message)
+        showToast(
+          'success',
+          '匯入成功',
+          `成功匯入 ${response.created} 筆，更新 ${response.updated} 筆`
+        )
         fetchProducts()
       } else {
-        setImportError(response.message || '導入過程中發生錯誤')
-        throw new Error(response.message || '導入失敗')
+        setImportError(response.message || '匯入失敗')
+        showToast('error', '錯誤', response.message || '匯入失敗')
       }
     } catch (error: any) {
-      console.error('導入時發生錯誤:', error)
-      setImportError(error.message || '導入失敗，請稍後再試')
-      showToast('error', '導入失敗', error.message || '導入失敗，請稍後再試')
+      console.error('匯入失敗:', error)
+      setImportError(error.message || '匯入失敗')
+      showToast('error', '錯誤', error.message || '匯入失敗')
     } finally {
       setIsImporting(false)
+    }
+  }
+
+  // 處理商品匯出
+  const handleExport = async () => {
+    try {
+      const response = await fetch('/api/admin/shop/products/export', {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      })
+
+      if (!response.ok) throw new Error('匯出失敗')
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `products-${new Date().toISOString().split('T')[0]}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      showToast('success', '成功', '商品資料已匯出')
+    } catch (error: any) {
+      console.error('匯出失敗:', error)
+      showToast('error', '錯誤', error.message || '匯出失敗')
     }
   }
 
@@ -776,20 +776,20 @@ export default function ProductsPage() {
               <Plus size={16} className="me-1" /> 新增商品
             </Button>
             <Button
-              variant="outline-secondary"
-              onClick={() => handleBulkAction('publish', [])}
+              variant={isDarkMode ? 'dark' : 'light'}
+              onClick={() => handleBulkAction('publish')}
             >
               <Package size={16} className="me-1" /> 批量上架
             </Button>
             <Button
-              variant="outline-secondary"
-              onClick={() => handleBulkAction('unpublish', [])}
+              variant={isDarkMode ? 'dark' : 'light'}
+              onClick={() => handleBulkAction('unpublish')}
             >
               <Archive size={16} className="me-1" /> 批量下架
             </Button>
             <Button
-              variant="outline-danger"
-              onClick={() => handleBulkAction('delete', [])}
+              variant={isDarkMode ? 'dark' : 'light'}
+              onClick={() => handleBulkAction('delete')}
             >
               <Trash2 size={16} className="me-1" /> 批量刪除
             </Button>
@@ -805,7 +805,10 @@ export default function ProductsPage() {
               <Alert.Heading>獲取資料失敗</Alert.Heading>
               <p>{error}</p>
               <div className="d-flex justify-content-end">
-                <Button variant="outline-danger" onClick={handleRetry}>
+                <Button
+                  variant={isDarkMode ? 'dark' : 'light'}
+                  onClick={handleRetry}
+                >
                   重試
                 </Button>
               </div>
@@ -818,7 +821,9 @@ export default function ProductsPage() {
               <Row>
                 <Col md={4}>
                   <Form.Group className="mb-3">
-                    <Form.Label>搜尋商品</Form.Label>
+                    <Form.Label className={isDarkMode ? 'text-light' : ''}>
+                      搜尋商品
+                    </Form.Label>
                     <Form.Control
                       type="text"
                       placeholder="輸入商品名稱"
@@ -826,16 +831,24 @@ export default function ProductsPage() {
                       onChange={(e) =>
                         handleFilterChange('keyword', e.target.value)
                       }
+                      className={
+                        isDarkMode ? 'bg-dark text-light border-secondary' : ''
+                      }
                     />
                   </Form.Group>
                 </Col>
                 <Col md={3}>
                   <Form.Group className="mb-3">
-                    <Form.Label>商品分類</Form.Label>
+                    <Form.Label className={isDarkMode ? 'text-light' : ''}>
+                      商品分類
+                    </Form.Label>
                     <Form.Select
                       value={filters.category}
                       onChange={(e) =>
                         handleFilterChange('category', e.target.value)
+                      }
+                      className={
+                        isDarkMode ? 'bg-dark text-light border-secondary' : ''
                       }
                     >
                       <option value="">全部分類</option>
@@ -870,11 +883,16 @@ export default function ProductsPage() {
                 </Col>
                 <Col md={3}>
                   <Form.Group className="mb-3">
-                    <Form.Label>商品狀態</Form.Label>
+                    <Form.Label className={isDarkMode ? 'text-light' : ''}>
+                      商品狀態
+                    </Form.Label>
                     <Form.Select
                       value={filters.status}
                       onChange={(e) =>
                         handleFilterChange('status', e.target.value)
+                      }
+                      className={
+                        isDarkMode ? 'bg-dark text-light border-secondary' : ''
                       }
                     >
                       <option value="">全部狀態</option>
@@ -888,7 +906,9 @@ export default function ProductsPage() {
                 </Col>
                 <Col md={2}>
                   <Form.Group className="mb-3">
-                    <Form.Label>&nbsp;</Form.Label>
+                    <Form.Label className={isDarkMode ? 'text-light' : ''}>
+                      &nbsp;
+                    </Form.Label>
                     <Form.Check
                       type="switch"
                       id="stock-warning"
@@ -897,7 +917,7 @@ export default function ProductsPage() {
                       onChange={(e) =>
                         handleFilterChange('stockWarning', e.target.checked)
                       }
-                      className="mt-2"
+                      className={`mt-2 ${isDarkMode ? 'text-light' : ''}`}
                     />
                   </Form.Group>
                 </Col>
@@ -910,7 +930,9 @@ export default function ProductsPage() {
               <div className="spinner-border text-primary" role="status">
                 <span className="visually-hidden">載入中...</span>
               </div>
-              <p className="mt-2">載入商品資料中...</p>
+              <p className={`mt-2 ${isDarkMode ? 'text-light' : ''}`}>
+                載入商品資料中...
+              </p>
             </div>
           ) : (
             <div>
