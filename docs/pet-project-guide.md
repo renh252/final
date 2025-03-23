@@ -1,24 +1,3 @@
-
-
-
-
-
-
-mysql : 無法辨識 'mysql' 詞彙是否為 Cmdlet、函數、指令檔或可執行程式的名稱。請  
-檢查名稱拼字是否正確，如果包含路徑的話，請確認路徑是否正確，然後再試一次。      
-位於 線路:1 字元:1
-+ mysql -u root -e "SHOW DATABASES;"
-+ ~~~~~
-    + CategoryInfo          : ObjectNotFound: (mysql:String) [], CommandNotFou  
-   ndException
-    + FullyQualifiedErrorId : CommandNotFoundException
- 
-PS C:\Users\User\Desktop\final> cd 'c:\Users\User\Desktop\final'
-PS C:\Users\User\Desktop\final> npx ts-node database/init-db.ts
-Need to install the following packages:
-ts-node@10.9.2
-Ok to proceed? (y)# 寵物領養平台導覽文檔
-
 > 版本：1.0
 > 最後更新：2025-03-18
 > 此文檔整合了專案的核心資訊，為 AI 提供高效參考。
