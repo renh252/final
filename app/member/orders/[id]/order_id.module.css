@@ -207,6 +207,70 @@
 
   }
 
+  .reviewSection {
+    background: #fffaf0;
+    border-radius: 10px;
+    border: 1px solid #c1bb9a80;
+    gap: 10px;
+    
+    >div{
+      width: 100% !important;
+      display: flex;
+      flex-direction: column;
+      align-items: start !important;
+      margin-top: 10px;
+      padding: 10px;
+    }
+
+    .rating {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5px;
+      color: #8b5e34;
+    }
+    
+    .star {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      color: #cda274;
+    }
+    
+    .star:hover {
+      color: #ffcc00;
+    }
+    
+    .reviewInput {
+      width: 100%;
+      min-height: 60px;
+      padding: 10px;
+      border: 1px solid #c1bb9a80;
+      border-radius: 5px;
+      font-size: 16px;
+      resize: vertical;
+    }
+    
+    .submitBtn {
+      background: #cda274;
+      color: white;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      align-self: flex-end;
+    }
+    
+    .submitBtn:hover {
+      background: #b48a64;
+    }
+
+  }
+  
+  
+
 .btn{
   position: absolute;
   top: 0;

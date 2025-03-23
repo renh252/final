@@ -7,20 +7,22 @@ import Image from 'next/image'
 // import styles from '@/app/shop/checkout/review/review.module.css'
 import styles from './order_id.module.css'
 import { MdOutlinePets } from 'react-icons/md'
-import RecordPage from '@/app/member/_components/RecordPage'
-import StatusBadge from '@/app/member/_components/StatusBadge'
 
 // 連接資料庫
 import useSWR from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
-export default function IdPage(props) {
+export default function OrderIdPage(props) {
 
   // 從網址上得到動態路由參數
   const params = useParams()
   const oid = params?.id
 
   const router = useRouter()
+
+  const [reviews, setReviews] = useState({});
+  const [hoverRating, setHoverRating] = useState({});
+
 
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
@@ -35,8 +37,41 @@ export default function IdPage(props) {
   order.created_at = new Date(order.created_at).toLocaleDateString()
   order.shipped_at = order.shipped_at ? new Date(order.shipped_at).toLocaleDateString() : '-'
   order.finish_at = order.finish_at ? new Date(order.finish_at).toLocaleDateString() : '-'
-  
 
+  // 評價狀態
+
+  const handleHover = (productId, variantId, star) => {
+    setHoverRating(prev => ({
+      ...prev,
+      [`${productId}-${variantId}`]: star
+    }));
+  };
+
+
+
+const handleRating = (productId, variantId, rating) => {
+  setReviews((prev) => ({
+    ...prev,
+    [`${productId}-${variantId}`]: { ...prev[`${productId}-${variantId}`], rating },
+  }));
+  setHoverRating(prev => ({
+    ...prev,
+    [`${productId}-${variantId}`]: 0
+  }));
+};
+
+const handleReviewChange = (productId,variantId, text) => {
+  setReviews((prev) => ({
+    ...prev,
+    [`${productId}-${variantId}`]: { ...prev[`${productId}-${variantId}`], review: text },
+  }));
+};
+
+const submitReview = (productId) => {
+  console.log("提交評價：", reviews[productId]);
+  // 這裡可以將數據發送到後端 API
+};
+  
   return (
     <div className={styles.main}>
       <div className={styles.header}>
@@ -205,13 +240,47 @@ export default function IdPage(props) {
                           )}
                         </div>
                       </div>
+                      {/* 評價區塊 */}
+                      <div className={styles.reviewSection}>
+                        <div>
+                          <div className={styles.rating}>
+                          <div>
+                            <span>評分：</span>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button 
+                                key={star} 
+                                className={styles.star}
+                                style={{ 
+                                  color: (hoverRating[`${product.product_id}-${product.variant_id}`] >= star || 
+                                          reviews[`${product.product_id}-${product.variant_id}`]?.rating >= star) 
+                                          ? '#ffcc00' 
+                                          : '#cda274' 
+                                }}
+                                onClick={() => handleRating(product.product_id, product.variant_id, star)}
+                                onMouseEnter={() => handleHover(product.product_id, product.variant_id, star)}
+                                onMouseLeave={() => handleHover(product.product_id, product.variant_id, 0)}
+                              >
+                                ★
+                              </button>
+                            ))}
+                          </div>
+                            <button className={styles.submitBtn} onClick={() => submitReview(product.id)}>提交</button>
+                          </div>
+                          <textarea
+                            className={styles.reviewInput}
+                            placeholder="請留下您的評論..."
+                            onChange={(e) => handleReviewChange(product.id, e.target.value)}
+                          />
+                          
+                        </div>
+                      </div>
                       {index < products.length - 1 && <hr />}{' '}
                       {/* 添加水平线，但不包括最后一个产品后 */}
                     </React.Fragment>
                   )
                 })}
               </div>
-            </div>
+      </div>
     </div>
   )
 }
