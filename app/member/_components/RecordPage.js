@@ -13,7 +13,8 @@ import { useRouter } from 'next/navigation'
 export default function RecordPage({
   titleText = '紀錄',
   fetchUrl,
-  recordKey = 'records',
+  recordKey = 'records', // 資料表名稱
+  recordKeyField = 'id', // primary key 欄位名稱
   statusFilter = {
     title: '狀態',
     key: 'payment_status',
@@ -103,8 +104,8 @@ export default function RecordPage({
           {filteredRecords.length > 0 ? (
             filteredRecords.map((record) => (
               <List
-                key={record.id}
-                title={`編號：${record.trade_no || record.order_id}`}
+                key={record[recordKeyField]}
+                title={`編號：${record.trade_no || record.recordKeyField}`}
                 body={formatRecord(record)}
                 onClick={() => {
                   if (record.trade_no) {
