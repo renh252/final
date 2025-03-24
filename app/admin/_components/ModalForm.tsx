@@ -17,6 +17,7 @@ interface FormField {
     | 'checkbox'
     | 'radio'
     | 'date'
+    | string
   placeholder?: string
   required?: boolean
   options?: { value: string | number; label: string }[] // 用於select、radio等

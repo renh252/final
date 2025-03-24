@@ -67,13 +67,14 @@ export const GET = guard.api(
       const [pets] = await db.query<Pet[]>(
         `SELECT 
           p.*,
-          GROUP_CONCAT(DISTINCT pt.trait_name) as traits,
+          GROUP_CONCAT(DISTINCT ptl.trait_tag) as traits,
           COUNT(DISTINCT pl.user_id) as likes_count
         FROM pets p
-        LEFT JOIN pet_trait pt ON p.pet_id = pt.pet_id
-        LEFT JOIN pets_like pl ON p.pet_id = pl.pet_id
+        LEFT JOIN pet_trait pt ON p.id = pt.pet_id
+        LEFT JOIN pet_trait_list ptl ON pt.trait_id = ptl.id
+        LEFT JOIN pets_like pl ON p.id = pl.pet_id
         ${whereClause}
-        GROUP BY p.pet_id
+        GROUP BY p.id
         ORDER BY p.created_at DESC 
         LIMIT ? OFFSET ?`,
         [...params, limit, offset]

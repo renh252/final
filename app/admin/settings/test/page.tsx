@@ -26,7 +26,7 @@ export default function DatabaseTestPage() {
           }
           response = await fetchApi('/api/admin/test/query', {
             method: 'POST',
-            body: { sql },
+            body: JSON.stringify({ sql }),
           })
           break
         default:

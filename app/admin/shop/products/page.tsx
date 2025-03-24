@@ -150,12 +150,18 @@ export default function ProductsPage() {
         category: filters.category,
       }).toString()
 
-      const response = (await fetchApi(
-        `/api/admin/shop/products?${queryParams}`
-      )) as ApiResponse<Product[]>
+      const response = await fetchApi(`/api/admin/shop/products?${queryParams}`)
 
-      if (response.success && response.data) {
+      // 處理多種可能的響應格式
+      if (response.success && response.data && Array.isArray(response.data)) {
+        // 格式 1: { success: true, data: [...] }
         setProducts(response.data)
+      } else if (response.products && Array.isArray(response.products)) {
+        // 格式 2: { products: [...] }
+        setProducts(response.products)
+      } else if (Array.isArray(response)) {
+        // 格式 3: 直接是數組
+        setProducts(response)
       } else {
         console.error('返回的數據格式不正確:', response)
         showToast('error', '錯誤', response.message || '數據格式錯誤')
@@ -172,15 +178,21 @@ export default function ProductsPage() {
   // 獲取分類列表
   const fetchCategories = async () => {
     try {
-      const response = (await fetchApi(
-        '/api/admin/shop/products/categories'
-      )) as ApiResponse<Category[]>
+      const response = await fetchApi('/api/admin/shop/products/categories')
 
-      if (response.success && response.data) {
+      // 處理多種可能的響應格式
+      if (response.success && response.data && Array.isArray(response.data)) {
+        // 格式 1: { success: true, data: [...] }
         setCategories(response.data)
+      } else if (response.categories && Array.isArray(response.categories)) {
+        // 格式 2: { categories: [...] }
+        setCategories(response.categories)
+      } else if (Array.isArray(response)) {
+        // 格式 3: 直接是數組
+        setCategories(response)
       } else {
-        console.error('返回的數據格式不正確:', response)
-        showToast('error', '錯誤', response.message || '數據格式錯誤')
+        console.error('返回的分類數據格式不正確:', response)
+        showToast('error', '錯誤', response.message || '分類數據格式錯誤')
       }
     } catch (error: any) {
       console.error('獲取分類列表時發生錯誤:', error)
