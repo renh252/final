@@ -21,25 +21,20 @@ export default function MemberLayout({ children }) {
 
   // 讓我的收藏一職顯示在select
   const [selectedCollection, setSelectedCollection] = useState('')
-  useEffect(() => {
-    // 重置选择状态为空字符串，这样会显示 "我的收藏"
-    setSelectedCollection('')
-  }, [router.asPath])
+
+  const handleCollectionChange = (e) => {
+    const selectedValue = e.target.value
+    setSelectedCollection(selectedValue)
+    if (selectedValue) {
+      router.push(`/member/FavoritesList/${selectedValue}`)
+    }
+  }
 
   if (!user) {
     return <main>{children}</main> // 如果使用者未登入，只渲染 children
   }
 
 
-
-
-  // 我的收藏跳轉
-  const handleCollectionChange = (e) => {
-    const selectedValue = e.target.value
-    if (selectedValue) {
-      router.push(`/member/FavoritesList/${selectedValue}`)
-    }
-  }
 
   return (
     <div className="member-layout">
@@ -57,12 +52,12 @@ export default function MemberLayout({ children }) {
           <Link href="/pets">我的寵物</Link>
         </button>
         <select
-          className="button"
-          style={{ width: '200px', height: '50px', fontSize: '28px' }}
-          onChange={handleCollectionChange}
-          value={selectedCollection}
+        className="button"
+        style={{ width: '200px', height: '50px', fontSize: '28px' }}
+        onChange={handleCollectionChange}
+        value={selectedCollection}
         >
-          <option value="" disabled selected style={{display:'none'}}>我的收藏</option>
+          <option value="" disabled style={{display:'none'}}>我的收藏</option>
           <option value="Pets">寵物</option>
           <option value="products">商品</option>
           <option value="articles">文章</option>

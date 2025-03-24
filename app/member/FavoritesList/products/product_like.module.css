@@ -1,0 +1,54 @@
+/* 主要容器 */
+.container {
+  width: 100%;
+  /* max-width: 1000px; */
+  margin: 20px auto;
+  padding: 20px;
+  background: #fefaf5;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 頁面標題 */
+.header {
+  text-align: center;
+  font-size: 24px;
+  color: #6b4f37;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+/* 統計欄位 */
+.summary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  color: #8b5e34;
+  font-weight: bold;
+  background: #ffeedb;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.row{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 20px;
+
+  .list{
+    display: flex;
+    flex-direction: column;
+    /* justify-content: space-between; */
+  }
+
+  .items{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    
+  }
+}

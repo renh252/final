@@ -1,0 +1,20 @@
+.sideFilter{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  fieldset{
+    display: flex;
+    flex-direction: column;
+  } 
+  legend{
+    margin: 0;
+  }
+  label{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap
+  }
+}
