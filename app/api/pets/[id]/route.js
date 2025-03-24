@@ -139,7 +139,7 @@ export async function GET(request, { params }) {
 
     // 處理性別顯示
     const genderDisplay =
-      pet.gender === 'M' ? '男生' : pet.gender === 'F' ? '女生' : '未知'
+      pet.gender === '公' ? '男生' : pet.gender === '母' ? '女生' : pet.gender
 
     const processedPet = {
       ...pet,
@@ -148,7 +148,8 @@ export async function GET(request, { params }) {
       age_month: ageMonth,
       location: locationDisplay,
       store_name: storeName,
-      gender: genderDisplay,
+      gender: pet.gender,
+      gender_display: genderDisplay,
       photos: photos,
       traits: petTraits,
       recent_activities: recentActivities,
