@@ -10,10 +10,9 @@ export default function DonationPage() {
 
   if (loading) return <div>載入中...</div>
   if (!user) return <div>請先登入</div>
-  
+
   const user_id = user.id
   console.log('user id: ', user_id)
-
   return (
     <RecordPage
       titleText="捐款紀錄"
