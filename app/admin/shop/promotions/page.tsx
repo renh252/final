@@ -23,6 +23,7 @@ import { useTheme } from '@/app/admin/ThemeContext'
 import { useAdmin } from '@/app/admin/AdminContext'
 import { useRouter } from 'next/navigation'
 import { fetchApi } from '@/app/admin/_lib/api'
+import Cookies from 'js-cookie'
 
 // 折扣類型選項
 const DISCOUNT_TYPE_OPTIONS = [
@@ -127,7 +128,7 @@ const MOCK_DISCOUNTS = [
 ]
 
 export default function PromotionsPage() {
-  const [discounts, setDiscounts] = useState(MOCK_DISCOUNTS)
+  const [discounts, setDiscounts] = useState<any[]>([])
   const [showModal, setShowModal] = useState(false)
   const [currentDiscount, setCurrentDiscount] = useState<any>(null)
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
@@ -137,6 +138,7 @@ export default function PromotionsPage() {
   const [loading, setLoading] = useState(false)
   const { admin, hasPermission, checkAuth } = useAdmin()
   const router = useRouter()
+  const [fetchAttempt, setFetchAttempt] = useState(0)
 
   // 檢查權限
   useEffect(() => {
@@ -158,10 +160,69 @@ export default function PromotionsPage() {
   }, [checkAuth, hasPermission, router, showToast])
 
   // 獲取折扣活動數據
+  const fetchPromotions = async () => {
+    try {
+      setLoading(true)
+
+      const response = await fetchApi('/api/admin/shop/promotions')
+
+      // 處理多種可能的響應格式
+      if (
+        response.success &&
+        response.promotions &&
+        Array.isArray(response.promotions)
+      ) {
+        // 格式 1: { success: true, promotions: [...] }
+        setDiscounts(response.promotions)
+      } else if (response.promotions && Array.isArray(response.promotions)) {
+        // 格式 2: { promotions: [...] }
+        setDiscounts(response.promotions)
+      } else if (
+        response.success &&
+        response.data &&
+        Array.isArray(response.data)
+      ) {
+        // 格式 3: { success: true, data: [...] }
+        setDiscounts(response.data)
+      } else if (response.data && Array.isArray(response.data)) {
+        // 格式 4: { data: [...] }
+        setDiscounts(response.data)
+      } else if (Array.isArray(response)) {
+        // 格式 5: 直接是數組
+        setDiscounts(response)
+      } else {
+        console.error('返回的數據格式不正確:', response)
+        showToast('error', '錯誤', response.message || '數據格式錯誤')
+        // 如果API有錯誤，使用模擬數據
+        setDiscounts(MOCK_DISCOUNTS)
+      }
+    } catch (error: any) {
+      console.error('獲取促銷活動列表時發生錯誤:', error)
+      showToast('error', '錯誤', error.message || '獲取促銷活動列表失敗')
+      // 發生錯誤時使用模擬數據
+      setDiscounts(MOCK_DISCOUNTS)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    // 這裡可以實現從API獲取折扣活動數據的邏輯
-    // 目前使用模擬數據
-  }, [])
+    // 只有在嘗試次數小於 3 次時才獲取資料
+    if (fetchAttempt < 3) {
+      const token = Cookies.get('admin_token')
+      if (token) {
+        fetchPromotions().catch(() => {
+          // 增加嘗試次數
+          setFetchAttempt((prev) => prev + 1)
+        })
+      }
+    }
+  }, [fetchAttempt])
+
+  // 重試獲取資料
+  const handleRetry = () => {
+    setFetchAttempt(0) // 重置嘗試次數
+  }
 
   // 處理新增折扣活動
   const handleAddDiscount = () => {
@@ -544,7 +605,10 @@ export default function PromotionsPage() {
   return (
     <AdminPageLayout
       title="折扣活動管理"
-      breadcrumb={[{ name: '商城管理' }, { name: '折扣活動管理' }]}
+      breadcrumbs={[
+        { label: '商城管理', href: '/admin/shop' },
+        { label: '折扣活動管理' },
+      ]}
     >
       <div className="mb-4">
         <AdminSection title="活動統計">
@@ -572,7 +636,7 @@ export default function PromotionsPage() {
 
       <AdminSection
         title="折扣活動列表"
-        action={
+        actions={
           hasPermission('shop:promotions:create') && (
             <Button variant="primary" onClick={handleAddDiscount}>
               <Plus size={16} className="me-1" />
@@ -584,8 +648,8 @@ export default function PromotionsPage() {
         <DataTable
           columns={columns}
           data={discounts}
-          renderActions={renderActions}
-          isLoading={loading}
+          actions={renderActions}
+          loading={loading}
           showSearch
           searchPlaceholder="搜尋活動名稱或折扣碼..."
           searchKeys={['name', 'promotion_code', 'description']}
