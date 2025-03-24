@@ -41,10 +41,19 @@ export default function CategoriesPage() {
     try {
       setLoading(true)
       const response = await fetchApi('/api/admin/shop/categories')
-      if (response.success) {
+
+      // 處理多種可能的響應格式
+      if (response.success && response.data && Array.isArray(response.data)) {
+        // 格式 1: { success: true, data: [...] }
         setCategories(response.data)
+      } else if (response.categories && Array.isArray(response.categories)) {
+        // 格式 2: { categories: [...] }
+        setCategories(response.categories)
+      } else if (Array.isArray(response)) {
+        // 格式 3: 直接是數組
+        setCategories(response)
       } else {
-        showToast('error', '獲取分類失敗', response.message)
+        showToast('error', '獲取分類失敗', '資料格式不正確')
       }
     } catch (error: any) {
       showToast('error', '獲取分類失敗', error.message)
