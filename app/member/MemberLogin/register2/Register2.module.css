@@ -146,7 +146,10 @@
 }
 
 .form_button {
-  margin-left: auto;
+  display: flex; /* 使用 Flexbox 布局 */
+  justify-content: center; /* 水平置中 */
+  gap: 20px; /* 按鈕之間的間距，您可以根據需要調整 */
+  margin-top: 20px; /* 按鈕與表單之間的間距，您可以根據需要調整 */
 }
 
 @media (max-width: 991px) {
