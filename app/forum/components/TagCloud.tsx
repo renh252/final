@@ -37,7 +37,7 @@ export default function TagCloud({ tags, title = '熱門標籤' }: TagCloudProps
   return (
     <Card className="shadow-sm mb-4">
       <Card.Header style={{ backgroundColor: '#D9B77F', borderBottom: '1px solid #C79650' }}>
-        <h5 className="mb-0" style={{ color: '#593E2F' }}>
+        <h5 className="mb-0" style={{ color: '#FFFFFF' }}>
           <i className="bi bi-tags me-2"></i>
           {title}
         </h5>

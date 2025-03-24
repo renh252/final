@@ -12,8 +12,8 @@ export default function PostList({ posts }: PostListProps) {
     return (
       <div className="empty-state text-center py-5 my-4 bg-light rounded-3">
         <i className="bi bi-journal-text fs-1 text-muted mb-3 d-block"></i>
-        <h5 className="text-muted">没有找到相关帖子</h5>
-        <p className="text-muted">请尝试使用其他关键词搜索或创建一篇新帖子</p>
+        <h5 className="text-muted">沒有尋找到相關文章</h5>
+        <p className="text-muted">請嘗試重新搜尋</p>
       </div>
     );
   }
