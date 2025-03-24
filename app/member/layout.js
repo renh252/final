@@ -12,8 +12,7 @@ export default function MemberLayout({ children }) {
   let user_id = user ? user.id : null
 
   const router = useRouter()
-  
-  
+
   const handleLogout = () => {
     logout() // 呼叫登出函數
     router.push('/member/MemberLogin/login') // 確保登出後導向登入頁面
@@ -21,24 +20,17 @@ export default function MemberLayout({ children }) {
 
   // 讓我的收藏一職顯示在select
   const [selectedCollection, setSelectedCollection] = useState('')
-  useEffect(() => {
-    // 重置选择状态为空字符串，这样会显示 "我的收藏"
-    setSelectedCollection('')
-  }, [router.asPath])
 
-  if (!user) {
-    return <main>{children}</main> // 如果使用者未登入，只渲染 children
-  }
-
-
-
-
-  // 我的收藏跳轉
   const handleCollectionChange = (e) => {
     const selectedValue = e.target.value
+    setSelectedCollection(selectedValue)
     if (selectedValue) {
       router.push(`/member/FavoritesList/${selectedValue}`)
     }
+  }
+
+  if (!user) {
+    return <main>{children}</main> // 如果使用者未登入，只渲染 children
   }
 
   return (
@@ -48,7 +40,9 @@ export default function MemberLayout({ children }) {
           className="button"
           style={{ width: '200px', height: '50px', fontSize: '28px' }}
         >
-          <Link href="/member/orders">我的訂單</Link>
+          <Link href={user ? `/member/orders?=${user_id}` : '/member/orders'}>
+            我的訂單
+          </Link>
         </button>
         <button
           className="button"
@@ -62,7 +56,9 @@ export default function MemberLayout({ children }) {
           onChange={handleCollectionChange}
           value={selectedCollection}
         >
-          <option value="" disabled selected style={{display:'none'}}>我的收藏</option>
+          <option value="" disabled style={{ display: 'none' }}>
+            我的收藏
+          </option>
           <option value="Pets">寵物</option>
           <option value="products">商品</option>
           <option value="articles">文章</option>

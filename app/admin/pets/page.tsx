@@ -26,6 +26,31 @@ import { useTheme } from '@/app/admin/ThemeContext'
 import Cookies from 'js-cookie'
 import { fetchApi } from '@/app/admin/_lib/api'
 
+// 寵物類型定義
+interface Pet {
+  id: number
+  name: string
+  species: string
+  variety: string
+  gender: string
+  birthday?: string
+  weight?: number
+  chip_number?: string
+  fixed?: number
+  story?: string
+  store_id?: number
+  is_adopted: number
+  main_photo?: string
+  created_at?: string
+  [key: string]: any // 允許其他屬性
+}
+
+// 店鋪選項類型
+interface StoreOption {
+  value: number
+  label: string
+}
+
 // 寵物類型選項
 const SPECIES_OPTIONS = [
   { value: '狗', label: '狗' },
@@ -68,22 +93,22 @@ const PET_STATUS_OPTIONS = [
 ]
 
 export default function PetsPage() {
-  const [pets, setPets] = useState([])
-  const [storeOptions, setStoreOptions] = useState([])
+  const [pets, setPets] = useState<Pet[]>([])
+  const [storeOptions, setStoreOptions] = useState<StoreOption[]>([])
   const [showModal, setShowModal] = useState(false)
-  const [currentPet, setCurrentPet] = useState<any>(null)
+  const [currentPet, setCurrentPet] = useState<Pet | null>(null)
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
   const { showToast } = useToast()
   const { confirm } = useConfirm()
   const { isDarkMode } = useTheme()
   const router = useRouter()
-  const [filteredPets, setFilteredPets] = useState([])
+  const [filteredPets, setFilteredPets] = useState<Pet[]>([])
   const [typeFilter, setTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [fetchAttempt, setFetchAttempt] = useState(0)
-  const [selectedPets, setSelectedPets] = useState<any[]>([])
+  const [selectedPets, setSelectedPets] = useState<Pet[]>([])
   const [isImporting, setIsImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const [importResult, setImportResult] = useState<any | null>(null)
@@ -98,8 +123,17 @@ export default function PetsPage() {
       setError(null)
 
       const response = await fetchApi('/api/admin/pets')
+
+      // 處理多種可能的響應格式
       if (response.pets && Array.isArray(response.pets)) {
+        // 格式 1: { pets: [...] }
         setPets(response.pets)
+      } else if (response.data && Array.isArray(response.data)) {
+        // 格式 2: { data: [...] }
+        setPets(response.data)
+      } else if (Array.isArray(response)) {
+        // 格式 3: 直接是數組
+        setPets(response)
       } else {
         console.error('返回的數據格式不正確:', response)
         showToast('error', '錯誤', '數據格式錯誤')
@@ -146,7 +180,7 @@ export default function PetsPage() {
 
     // 根據狀態過濾
     if (statusFilter !== 'all') {
-      const statusMap = {
+      const statusMap: Record<string, number> = {
         available: 0,
         pending: 2,
         adopted: 1,
@@ -249,7 +283,7 @@ export default function PetsPage() {
   ]
 
   // 渲染操作按鈕
-  const renderActions = (pet) => (
+  const renderActions = (pet: Pet) => (
     <div className="d-flex gap-2">
       <Button
         variant="outline-primary"
@@ -295,7 +329,7 @@ export default function PetsPage() {
   }
 
   // 處理編輯寵物
-  const handleEditPet = (pet) => {
+  const handleEditPet = (pet: Pet) => {
     // 設置當前寵物和模態框模式
     setCurrentPet(pet)
     setModalMode('edit')
@@ -303,7 +337,7 @@ export default function PetsPage() {
   }
 
   // 處理刪除寵物
-  const handleDeletePet = (pet) => {
+  const handleDeletePet = (pet: Pet) => {
     confirm({
       title: '刪除寵物',
       message: `確定要刪除寵物「${pet.name}」嗎？此操作無法撤銷。`,
@@ -360,7 +394,7 @@ export default function PetsPage() {
         } else {
           throw new Error(response.message || '新增寵物失敗')
         }
-      } else {
+      } else if (currentPet) {
         // 更新寵物
         console.log(`執行更新寵物操作，ID: ${currentPet.id}`)
 
@@ -616,7 +650,7 @@ export default function PetsPage() {
   }
 
   // 處理批量刪除
-  const handleBatchDelete = (selectedRows: any[]) => {
+  const handleBatchDelete = (selectedRows: Pet[]) => {
     if (selectedRows.length === 0) return
 
     confirm({
@@ -800,7 +834,7 @@ export default function PetsPage() {
         onHide={() => setShowModal(false)}
         title={modalMode === 'add' ? '新增寵物' : '編輯寵物'}
         onSubmit={handleSubmit}
-        initialData={currentPet}
+        initialData={currentPet || undefined}
         fields={formFields}
       />
     </AdminPageLayout>
