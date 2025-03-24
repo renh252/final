@@ -8,6 +8,7 @@ import PostFilter from './components/PostFilter';
 import CreatePostModal from './components/CreatePostModal';
 import ForumHeader from './components/ForumHeader';
 import TagCloud from './components/TagCloud';
+import Carousel from './components/Carousel';
 import { useForumData } from './hooks/useForumData';
 
 export default function ForumPage() {
@@ -114,6 +115,9 @@ export default function ForumPage() {
   return (
     <div className="forum-page py-4">
       <Container>
+        {/* 添加輪播元件 */}
+        <Carousel />
+        
         <ForumHeader 
           totalPosts={stats.totalPosts}
           totalUsers={stats.totalUsers}
