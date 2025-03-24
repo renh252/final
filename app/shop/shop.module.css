@@ -103,18 +103,30 @@
   display: none;  /* Chrome, Safari, Opera */
 }
 .likeButton{
-  width: 30px;
+  width: 35px;
   aspect-ratio: 1/1;
-  padding: 1px ;    
+  padding: 8px;
   position: absolute;
-  bottom: 0px;
-  right: 10px;    
+  bottom: 10px;
+  right: 10px;
   font-size: 18px;
   line-height: 18px;
-  color: red;
-  background-color: #fff;
-  border: none;
+  color: #d75951;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(215, 89, 81, 0.2);
   border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.likeButton:hover{
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 /* .angle{
   display: flex;
