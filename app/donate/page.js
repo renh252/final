@@ -21,7 +21,7 @@ const fetcher = (...args) => fetch(...args).then((res) => res.json())
 
 export default function DonatePage() {
   const url = '/api/donate' // 接救援醫療資料
-  const url2 = '/api/pets?type=pets' // 接寵物認養資料
+  const url2 = '/api/pets?type=pets&pageSize=100' // 接寵物認養資料，取100筆
 
   // 向伺服器fetch
   const { data } = useSWR(url, fetcher)
