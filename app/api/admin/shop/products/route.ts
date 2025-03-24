@@ -53,7 +53,9 @@ export const GET = guard.api(
       const queryParams: any[] = []
 
       if (search) {
-        whereConditions.push('(p.product_name LIKE ? OR p.description LIKE ?)')
+        whereConditions.push(
+          '(p.product_name LIKE ? OR p.product_description LIKE ?)'
+        )
         queryParams.push(`%${search}%`, `%${search}%`)
       }
 
@@ -77,15 +79,15 @@ export const GET = guard.api(
       // 查詢商品列表
       const productsQuery = `
         SELECT 
-          p.product_id as id,
-          p.product_name as name,
-          p.description,
+          p.product_id,
+          p.product_name,
+          p.product_description,
           p.price,
-          p.stock,
+          p.stock_quantity,
           p.category_id,
-          c.category_name as category_name,
-          p.status,
-          p.thumbnail,
+          c.category_name,
+          p.product_status,
+          p.image_url,
           p.created_at,
           p.updated_at,
           (SELECT COUNT(*) FROM product_variants WHERE product_id = p.product_id) as variant_count
