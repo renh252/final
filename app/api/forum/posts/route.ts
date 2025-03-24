@@ -76,7 +76,7 @@ export async function GET(request: Request) {
       author_name: '烏薩奇',
       author_avatar: '',
       category_name: '熱門標籤',
-      tags: [],
+      tags: '',
     }))
 
     // 返回結果
@@ -93,25 +93,15 @@ export async function GET(request: Request) {
       },
     }
 
-    return new NextResponse(JSON.stringify(responseData), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    return NextResponse.json(responseData)
   } catch (error) {
     console.error('Error fetching posts:', error)
-    return new NextResponse(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         status: 'error',
         message: getErrorMessage(error),
-      }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+      },
+      { status: 500 }
     )
   }
 }
@@ -169,7 +159,7 @@ export async function POST(req: Request) {
           } else {
             // 創建新標籤
             const insertTagQuery = `INSERT INTO forum_tags (name, slug, created_at) VALUES (?, ?, NOW())`
-            const tagResult = await executeQuery(insertTagQuery, [tagName, tagName.toLowerCase().replace(/s+/g, '-')]) as any
+            const tagResult = await executeQuery(insertTagQuery, [tagName, tagName.toLowerCase().replace(/\s+/g, '-')]) as any
             tagId = tagResult.insertId
           }
           
@@ -198,7 +188,7 @@ export async function POST(req: Request) {
       author_name: '用戶',
       author_avatar: '',
       category_name: '分類',
-      tags: tags || []
+      tags: Array.isArray(tags) ? tags.join(',') : ''
     }
 
     return NextResponse.json({
