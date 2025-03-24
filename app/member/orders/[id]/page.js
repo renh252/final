@@ -45,7 +45,6 @@ export default function OrderIdPage(props) {
   order.shipped_at = order.shipped_at ? new Date(order.shipped_at).toLocaleDateString() : '-'
   order.finish_at = order.finish_at ? new Date(order.finish_at).toLocaleDateString() : '-'
 
-  console.log(products);
   
 
   // 評價狀態-------------
