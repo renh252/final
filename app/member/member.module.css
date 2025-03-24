@@ -1,4 +1,10 @@
-
+.member_container {
+  width: 80%; /* 舉例 */
+  margin: 20px auto; /* 舉例 */
+  border: 1px solid #ccc; /* 舉例 */
+  padding: 20px; /* 舉例 */
+  position: relative; /* 新增這一行 */
+}
 
 .profile_page {
   display: flex;
@@ -98,8 +104,8 @@
     padding: 20px;
   }
 
-  .edit_but{
-    position:relative;
-    left: 400px;  /* 設定按鈕為 absolute 以便定位 */        /* 距離右邊 10px */
-    bottom: -100px;        /* 距離下方 10px */
+  .password_button {
+    position: absolute;
+    bottom: 90px; /* 調整底部邊距 */
+    left: 900px; /* 調整左邊邊距 */
   }
