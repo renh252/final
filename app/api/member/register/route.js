@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { database } from '@/app/api/_lib/db'; // 匯入資料庫
+// 如果您需要加密密碼，請匯入 bcrypt
+// import bcrypt from 'bcrypt';
 
 export async function POST(request) {
   try {
-    const { email, password, name, phone, /* ... 其他詳細資料 */ } = await request.json();
+    const { email, password, name, phone, birthday, address } = await request.json();
 
     // 資料驗證（例如檢查 email 格式、密碼強度等）
-    if (!email || !password || !name || !phone) {
+    if (!email || !password || !name || !phone || !birthday || !address) {
       return NextResponse.json({ message: '請提供所有必填欄位' }, { status: 400 });
     }
 
@@ -19,6 +21,8 @@ export async function POST(request) {
       password, // 請替換為 hashedPassword
       name,
       phone,
+      birthday,
+      address,
       // ... 其他詳細資料
     });
 

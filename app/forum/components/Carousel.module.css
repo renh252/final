@@ -1,0 +1,81 @@
+.carouselContainer {
+  margin-bottom: 2rem;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(89, 62, 47, 0.2);
+}
+
+.carousel {
+  width: 100%;
+}
+
+.carouselItem {
+  position: relative;
+}
+
+.imageContainer {
+  position: relative;
+  width: 100%;
+  height: 400px; /* 增加圖片高度 */
+}
+
+.carouselImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+.carouselCaption {
+  background-color: rgba(89, 62, 47, 0.7);
+  border-radius: 8px;
+  padding: 10px; /* 減少內邊距 */
+  max-width: 80%;
+  margin: 0 auto;
+  bottom: 20px;
+}
+
+.carouselCaption h3 {
+  font-size: 1.3rem; /* 減小標題字體大小 */
+  font-weight: bold;
+  margin-bottom: 0.2rem; /* 減少標題下方間距 */
+  color: #fff;
+}
+
+.carouselCaption p {
+  font-size: 0.9rem; /* 減小描述文字字體大小 */
+  margin-bottom: 0.2rem; /* 減少描述文字下方間距 */
+  color: #fff;
+}
+
+.carouselLink {
+  display: inline-block;
+  background-color: #C79650;
+  color: white;
+  padding: 3px 10px; /* 減少按鈕內邊距 */
+  border-radius: 20px;
+  text-decoration: none;
+  font-size: 0.8rem; /* 減小按鈕文字字體大小 */
+  transition: background-color 0.3s;
+}
+
+.carouselLink:hover {
+  background-color: #B07F30;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .imageContainer {
+    height: 250px; /* 調整移動設備上的圖片高度 */
+  }
+  
+  .carouselCaption {
+    padding: 8px; /* 減少移動設備上的內邊距 */
+  }
+  
+  .carouselCaption h3 {
+    font-size: 1.1rem; /* 減小移動設備上的標題字體大小 */
+  }
+  
+  .carouselCaption p {
+    font-size: 0.8rem; /* 減小移動設備上的描述文字字體大小 */
+  }
+}
