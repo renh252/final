@@ -1,36 +1,38 @@
-import React, { useState } from 'react'
-import { Modal, Form, Button, Alert } from 'react-bootstrap'
-import { Category } from '../hooks/useForumData'
-import axios from 'axios'
-import { useRouter } from 'next/navigation'
+'use client';
+
+import React, { useState } from 'react';
+import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import '../styles/custom-theme.css';
 
 interface CreatePostModalProps {
-  show: boolean
-  onHide: () => void
-  categories: Category[]
-  onPostCreated?: () => void
+  show: boolean;
+  onHide: () => void;
+  onPostCreated?: () => void;
+  categories: { id: number; name: string }[];
 }
 
-export default function CreatePostModal({
-  show,
-  onHide,
-  categories,
-  onPostCreated,
-}: CreatePostModalProps) {
-  const router = useRouter()
+export default function CreatePostModal({ show, onHide, onPostCreated, categories }: CreatePostModalProps) {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     categoryId: '',
-    tags: '',
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+    tags: ''
+  });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setError(null)
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
 
     try {
       const tags = formData.tags
@@ -59,48 +61,40 @@ export default function CreatePostModal({
     } catch (err: any) {
       setError(err.response?.data?.message || '發布失敗，請稍後再試')
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
-      <Modal.Header closeButton>
-        <Modal.Title>發表新文章</Modal.Title>
+    <Modal show={show} onHide={onHide} centered backdrop="static" size="lg">
+      <Modal.Header closeButton style={{ backgroundColor: '#D9B77F', borderBottom: '1px solid #C79650' }}>
+        <Modal.Title>發布新討論</Modal.Title>
       </Modal.Header>
-      <Form onSubmit={handleSubmit}>
-        <Modal.Body>
-          {error && (
-            <Alert variant="danger" className="mb-3">
-              {error}
-            </Alert>
-          )}
-
+      <Modal.Body>
+        {error && <Alert variant="danger">{error}</Alert>}
+        <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>標題</Form.Label>
             <Form.Control
               type="text"
+              name="title"
               value={formData.title}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, title: e.target.value }))
-              }
+              onChange={handleChange}
               required
-              disabled={isSubmitting}
+              placeholder="輸入標題"
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label>分類</Form.Label>
-            <Form.Select
+            <Form.Select 
+              name="categoryId" 
               value={formData.categoryId}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, categoryId: e.target.value }))
-              }
+              onChange={handleChange}
               required
-              disabled={isSubmitting}
             >
-              <option value="">請選擇分類</option>
-              {categories.map((category) => (
+              <option value="">選擇分類</option>
+              {categories.map(category => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
@@ -109,41 +103,45 @@ export default function CreatePostModal({
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>標籤（用逗號分隔）</Form.Label>
+            <Form.Label>內容</Form.Label>
             <Form.Control
-              type="text"
-              value={formData.tags}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, tags: e.target.value }))
-              }
-              placeholder="例如：寵物健康,飼養心得"
-              disabled={isSubmitting}
+              as="textarea"
+              name="content"
+              value={formData.content}
+              onChange={handleChange}
+              required
+              rows={6}
+              placeholder="輸入討論內容"
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>內容</Form.Label>
+            <Form.Label>標籤</Form.Label>
             <Form.Control
-              as="textarea"
-              rows={6}
-              value={formData.content}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, content: e.target.value }))
-              }
-              required
-              disabled={isSubmitting}
+              type="text"
+              name="tags"
+              value={formData.tags}
+              onChange={handleChange}
+              placeholder="使用逗號分隔多個標籤，例如：貓咪,飲食,健康"
             />
+            <Form.Text className="text-muted">
+              使用逗號分隔多個標籤
+            </Form.Text>
           </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={onHide} disabled={isSubmitting}>
-            取消
-          </Button>
-          <Button variant="primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? '發布中...' : '發布'}
-          </Button>
-        </Modal.Footer>
-      </Form>
+        </Form>
+      </Modal.Body>
+      <Modal.Footer style={{ backgroundColor: '#f8f5f0', borderTop: '1px solid #D9B77F' }}>
+        <Button variant="secondary" onClick={onHide} style={{ backgroundColor: '#7A5A4A', borderColor: '#593E2F' }}>
+          取消
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? '發布中...' : '發布'}
+        </Button>
+      </Modal.Footer>
     </Modal>
-  )
+  );
 }
