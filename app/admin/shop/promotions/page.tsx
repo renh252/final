@@ -1,15 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Button, Badge, Form } from 'react-bootstrap'
+import { useState, useEffect, useMemo } from 'react'
+import {
+  Button,
+  Badge,
+  Form,
+  Accordion,
+  Row,
+  Col,
+  Card,
+  Spinner,
+} from 'react-bootstrap'
 import {
   Plus,
   Edit,
   Trash,
-  Ticket,
   Calendar,
   DollarSign,
   Tag,
+  Search,
+  ShoppingBag,
 } from 'lucide-react'
 import AdminPageLayout, {
   AdminSection,
@@ -23,113 +33,68 @@ import { useTheme } from '@/app/admin/ThemeContext'
 import { useAdmin } from '@/app/admin/AdminContext'
 import { useRouter } from 'next/navigation'
 import { fetchApi } from '@/app/admin/_lib/api'
+import Cookies from 'js-cookie'
 
-// 折扣類型選項
-const DISCOUNT_TYPE_OPTIONS = [
-  { value: 'percentage', label: '百分比折扣' },
-  { value: 'fixed', label: '固定金額折扣' },
-  { value: 'shipping', label: '免運費' },
-  { value: 'bundle', label: '組合優惠' },
-]
+// 促銷活動結構定義
+interface Promotion {
+  promotion_id: number
+  promotion_name: string
+  promotion_description: string | null
+  start_date: string
+  end_date: string | null
+  discount_percentage: number
+  updated_at: string
+  photo: string | null
+}
 
-// 折扣狀態選項
-const DISCOUNT_STATUS_OPTIONS = [
-  { value: 'active', label: '啟用中', color: 'success' },
-  { value: 'inactive', label: '未啟用', color: 'secondary' },
-  { value: 'expired', label: '已過期', color: 'danger' },
-  { value: 'scheduled', label: '已排程', color: 'info' },
-]
+// 促銷商品關聯定義
+interface PromotionProduct {
+  promotion_product_id: number
+  promotion_id: number
+  product_id: number | null
+  variant_id: number | null
+  category_id: number | null
+}
 
-// 模擬折扣活動數據
-const MOCK_DISCOUNTS = [
-  {
-    id: 'WELCOME10',
-    name: '新會員歡迎活動',
-    description: '新會員首次購物可享10%折扣',
-    type: 'percentage',
-    value: 10,
-    min_purchase: 500,
-    max_discount: 200,
-    start_date: '2023-03-01',
-    end_date: '2023-12-31',
-    usage_limit: 1000,
-    used_count: 125,
-    status: 'active',
-    created_at: '2023-02-15',
-    promotion_code_required: false,
-  },
-  {
-    id: 'SUMMER100',
-    name: '夏季促銷活動',
-    description: '夏季促銷活動，訂單滿1000元折100元',
-    type: 'fixed',
-    value: 100,
-    min_purchase: 1000,
-    max_discount: null,
-    start_date: '2023-06-01',
-    end_date: '2023-08-31',
-    usage_limit: 500,
-    used_count: 78,
-    status: 'active',
-    created_at: '2023-05-15',
-    promotion_code_required: true,
-    promotion_code: 'SUMMER100',
-  },
-  {
-    id: 'FREESHIP',
-    name: '免運費活動',
-    description: '訂單滿1500元免運費',
-    type: 'shipping',
-    value: 0,
-    min_purchase: 1500,
-    max_discount: null,
-    start_date: '2023-04-01',
-    end_date: '2023-12-31',
-    usage_limit: 800,
-    used_count: 210,
-    status: 'active',
-    created_at: '2023-03-20',
-    promotion_code_required: false,
-  },
-  {
-    id: 'SPRING20',
-    name: '春季特惠活動',
-    description: '春季特惠活動，全館商品8折',
-    type: 'percentage',
-    value: 20,
-    min_purchase: 0,
-    max_discount: 300,
-    start_date: '2023-03-01',
-    end_date: '2023-05-31',
-    usage_limit: 1000,
-    used_count: 950,
-    status: 'expired',
-    created_at: '2023-02-20',
-    promotion_code_required: false,
-  },
-  {
-    id: 'BUNDLE3',
-    name: '買三送一',
-    description: '指定商品買三送一',
-    type: 'bundle',
-    value: 0,
-    min_purchase: 0,
-    max_discount: null,
-    start_date: '2023-07-01',
-    end_date: '2023-12-31',
-    usage_limit: 300,
-    used_count: 45,
-    status: 'active',
-    created_at: '2023-06-25',
-    promotion_code_required: false,
-    target_products: '1,2,3',
-  },
-]
+// 類別定義
+interface Category {
+  category_id: number
+  category_name: string
+  category_tag: string
+  category_description: string | null
+  parent_id: number | null
+}
+
+// 商品定義
+interface Product {
+  product_id: number
+  product_name: string
+  category_id: number
+}
+
+// 格式化日期函數
+const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return ''
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return ''
+    return date.toISOString().split('T')[0]
+  } catch (e) {
+    return ''
+  }
+}
 
 export default function PromotionsPage() {
-  const [discounts, setDiscounts] = useState(MOCK_DISCOUNTS)
+  const [promotions, setPromotions] = useState<Promotion[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [showModal, setShowModal] = useState(false)
-  const [currentDiscount, setCurrentDiscount] = useState<any>(null)
+  const [showProductsModal, setShowProductsModal] = useState(false)
+  const [currentPromotion, setCurrentPromotion] = useState<Promotion | null>(
+    null
+  )
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([])
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
   const { showToast } = useToast()
   const { confirm } = useConfirm()
@@ -137,6 +102,9 @@ export default function PromotionsPage() {
   const [loading, setLoading] = useState(false)
   const { admin, hasPermission, checkAuth } = useAdmin()
   const router = useRouter()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
 
   // 檢查權限
   useEffect(() => {
@@ -157,217 +125,668 @@ export default function PromotionsPage() {
     checkAccess()
   }, [checkAuth, hasPermission, router, showToast])
 
-  // 獲取折扣活動數據
+  // 獲取促銷活動數據
+  const fetchPromotions = async () => {
+    try {
+      setLoading(true)
+      const token = Cookies.get('admin_token')
+      if (!token) {
+        showToast('error', '未授權', '請重新登入')
+        router.push('/admin/login')
+        return
+      }
+
+      const response = await fetchApi('/api/admin/shop/promotions', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      console.log('促銷活動API回應:', response)
+
+      if (response.success && Array.isArray(response.promotions)) {
+        setPromotions(response.promotions)
+      } else if (response.success && Array.isArray(response.data)) {
+        setPromotions(response.data)
+      } else if (Array.isArray(response)) {
+        setPromotions(response)
+      } else if (response.error && response.error.includes('Unknown column')) {
+        // 處理數據庫欄位不存在的情況
+        console.error('數據庫錯誤:', response.error)
+        showToast('error', '數據庫錯誤', '請檢查數據庫結構或聯繫管理員')
+      } else {
+        console.error('返回的數據格式不正確:', response)
+        showToast('error', '錯誤', response.message || '數據格式錯誤')
+      }
+    } catch (error: any) {
+      console.error('獲取促銷活動列表時發生錯誤:', error)
+      showToast('error', '錯誤', error.message || '獲取促銷活動列表失敗')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 獲取類別列表
+  const fetchCategories = async () => {
+    try {
+      const token = Cookies.get('admin_token')
+      if (!token) return
+
+      const response = await fetchApi('/api/admin/shop/categories', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.success && Array.isArray(response.categories)) {
+        setCategories(response.categories)
+      } else if (response.success && Array.isArray(response.data)) {
+        setCategories(response.data)
+      } else if (Array.isArray(response)) {
+        setCategories(response)
+      }
+    } catch (error: any) {
+      console.error('獲取類別列表時發生錯誤:', error)
+    }
+  }
+
+  // 獲取商品列表
+  const fetchProducts = async () => {
+    try {
+      const token = Cookies.get('admin_token')
+      if (!token) return
+
+      const response = await fetchApi('/api/admin/shop/products', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.success && Array.isArray(response.products)) {
+        setProducts(response.products)
+      } else if (response.success && Array.isArray(response.data)) {
+        setProducts(response.data)
+      } else if (Array.isArray(response)) {
+        setProducts(response)
+      }
+    } catch (error: any) {
+      console.error('獲取商品列表時發生錯誤:', error)
+    }
+  }
+
+  // 獲取促銷活動關聯商品
+  const fetchPromotionProducts = async (promotionId: number) => {
+    try {
+      const token = Cookies.get('admin_token')
+      if (!token) return { products: [], categories: [] }
+
+      const response = await fetchApi(
+        `/api/admin/shop/promotions/${promotionId}/products`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      console.log('獲取促銷商品API回應:', response)
+
+      // 處理新API格式的回應
+      if (response.success && response.data) {
+        const {
+          products = [],
+          categories = [],
+          allCategories = [],
+          popularProducts = [],
+        } = response.data
+
+        // 如果API返回了所有可用類別，更新本地狀態
+        if (allCategories.length > 0) {
+          setCategories(allCategories)
+        }
+
+        // 如果API返回了熱門商品，更新產品列表
+        if (popularProducts.length > 0 && products.length === 0) {
+          setFilteredProducts(popularProducts)
+        }
+
+        console.log(
+          `取得促銷商品: ${products.length} 個, 類別: ${categories.length} 個`
+        )
+        console.log(
+          `可用類別: ${allCategories.length} 個, 熱門商品: ${popularProducts.length} 個`
+        )
+
+        return { products, categories }
+      }
+
+      // 向後兼容舊格式
+      if (response.success && Array.isArray(response.products)) {
+        console.log('取得促銷商品數據 (舊格式):', response.products.length || 0)
+
+        // 分離產品和類別
+        const products = response.products.filter(
+          (item) => item.product_id !== null
+        )
+        const categories = response.products.filter(
+          (item) => item.category_id !== null
+        )
+
+        return { products, categories }
+      } else if (Array.isArray(response)) {
+        console.log('取得促銷商品數據 (純陣列):', response.length || 0)
+
+        // 分離產品和類別
+        const products = response.filter((item) => item.product_id !== null)
+        const categories = response.filter((item) => item.category_id !== null)
+
+        return { products, categories }
+      }
+
+      // 若都不符合，記錄原始回應並返回空結果
+      console.log('API回應格式異常:', response)
+      return { products: [], categories: [] }
+    } catch (error: any) {
+      console.error('獲取關聯商品時發生錯誤:', error)
+      showToast('error', '錯誤', '無法獲取促銷活動關聯商品列表')
+      return { products: [], categories: [] }
+    }
+  }
+
+  // 初始化數據
   useEffect(() => {
-    // 這裡可以實現從API獲取折扣活動數據的邏輯
-    // 目前使用模擬數據
+    fetchPromotions()
+    fetchCategories()
+    fetchProducts()
   }, [])
 
-  // 處理新增折扣活動
-  const handleAddDiscount = () => {
-    setCurrentDiscount(null)
+  // 處理新增促銷活動
+  const handleAddPromotion = () => {
+    setCurrentPromotion(null)
+    setSelectedProducts([])
+    setSelectedCategories([])
     setModalMode('add')
     setShowModal(true)
   }
 
-  // 處理編輯折扣活動
-  const handleEditDiscount = (discount: any) => {
-    setCurrentDiscount(discount)
-    setModalMode('edit')
-    setShowModal(true)
+  // 處理編輯促銷活動
+  const handleEditPromotion = async (promotion: Promotion) => {
+    try {
+      // 先設置當前選中的促銷活動
+      setCurrentPromotion(promotion)
+      setModalMode('edit')
+
+      // 清空已選商品和類別
+      setSelectedProducts([])
+      setSelectedCategories([])
+
+      // 顯示模態窗口
+      setShowModal(true)
+    } catch (error) {
+      console.error('獲取促銷活動關聯數據時發生錯誤:', error)
+      showToast('error', '錯誤', '無法獲取促銷活動關聯數據')
+    }
   }
 
-  // 處理刪除折扣活動
-  const handleDeleteDiscount = (discount: any) => {
+  // 處理刪除促銷活動
+  const handleDeletePromotion = (promotion: Promotion) => {
     confirm({
-      title: '刪除折扣活動',
-      message: `確定要刪除折扣活動 ${discount.name} (${discount.id}) 嗎？此操作無法撤銷。`,
+      title: '刪除促銷活動',
+      message: `確定要刪除促銷活動「${promotion.promotion_name}」嗎？此操作無法撤銷。`,
       type: 'danger',
       confirmText: '刪除',
-      onConfirm: () => {
-        // 模擬刪除操作
-        setDiscounts((prev) => prev.filter((c) => c.id !== discount.id))
-        showToast('success', '刪除成功', `折扣活動 ${discount.name} 已成功刪除`)
+      onConfirm: async () => {
+        try {
+          setLoading(true)
+          const token = Cookies.get('admin_token')
+          if (!token) return
+
+          const response = await fetchApi(
+            `/api/admin/shop/promotions/${promotion.promotion_id}`,
+            {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          )
+
+          if (response.success) {
+            setPromotions((prev) =>
+              prev.filter((p) => p.promotion_id !== promotion.promotion_id)
+            )
+            showToast(
+              'success',
+              '刪除成功',
+              `促銷活動「${promotion.promotion_name}」已成功刪除`
+            )
+          } else {
+            throw new Error(response.message || '刪除促銷活動失敗')
+          }
+        } catch (error: any) {
+          console.error('刪除促銷活動時發生錯誤:', error)
+          showToast('error', '刪除失敗', error.message || '刪除促銷活動失敗')
+        } finally {
+          setLoading(false)
+        }
       },
     })
   }
 
-  // 處理啟用/停用折扣活動
-  const handleToggleStatus = (discount: any) => {
-    const newStatus = discount.status === 'active' ? 'inactive' : 'active'
+  // 打開管理商品模態框
+  const handleManageProducts = async (promotion: Promotion) => {
+    setCurrentPromotion(promotion)
 
-    setDiscounts((prev) =>
-      prev.map((c) => (c.id === discount.id ? { ...c, status: newStatus } : c))
-    )
+    // 先清空選擇，等待API回應
+    setSelectedProducts([])
+    setSelectedCategories([])
+    setSearchQuery('')
 
-    const statusText = newStatus === 'active' ? '啟用' : '停用'
-    showToast(
-      'success',
-      '狀態更新',
-      `折扣活動 ${discount.name} 已${statusText}`
-    )
+    // 開啟模態窗
+    setShowProductsModal(true)
+
+    try {
+      // 獲取關聯的產品和類別
+      const { products, categories } = await fetchPromotionProducts(
+        promotion.promotion_id
+      )
+
+      console.log('獲取到的關聯數據:', {
+        products: products.length,
+        categories: categories.length,
+      })
+
+      // 設置已選商品
+      const selectedProductIds = products
+        .filter(
+          (item) => item.product_id !== null && item.product_id !== undefined
+        )
+        .map((item) => item.product_id as number)
+
+      // 設置已選類別
+      const selectedCategoryIds = categories
+        .filter(
+          (item) => item.category_id !== null && item.category_id !== undefined
+        )
+        .map((item) => item.category_id as number)
+
+      setSelectedProducts(selectedProductIds)
+      setSelectedCategories(selectedCategoryIds)
+
+      console.log(
+        `設置已選商品: ${selectedProductIds.length}, 已選類別: ${selectedCategoryIds.length}`
+      )
+    } catch (error) {
+      console.error('獲取促銷活動關聯產品時發生錯誤:', error)
+      showToast('error', '錯誤', '無法獲取關聯產品，但您仍可以添加新關聯')
+    }
   }
 
-  // 處理表單提交
-  const handleSubmit = async (formData: Record<string, any>) => {
-    // 模擬API請求延遲
-    setLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setLoading(false)
+  // 處理提交促銷活動表單
+  const handleSubmitPromotion = async (formData: Record<string, any>) => {
+    try {
+      setLoading(true)
+      const token = Cookies.get('admin_token')
+      if (!token) return
 
-    // 驗證日期
-    const startDate = new Date(formData.start_date)
-    const endDate = new Date(formData.end_date)
+      // 確保日期格式正確
+      let startDate: string | null = null
+      let endDate: string | null = null
 
-    if (endDate < startDate) {
-      showToast('error', '日期錯誤', '結束日期不能早於開始日期')
-      return
-    }
+      try {
+        // 處理開始日期
+        if (formData.start_date) {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(formData.start_date)) {
+            startDate = formData.start_date
+          } else {
+            const date = new Date(formData.start_date)
+            if (!isNaN(date.getTime())) {
+              startDate = date.toISOString().split('T')[0]
+            } else {
+              startDate = new Date().toISOString().split('T')[0]
+            }
+          }
+        } else {
+          startDate = new Date().toISOString().split('T')[0]
+        }
 
-    if (modalMode === 'add') {
-      // 檢查折扣活動代碼是否已存在
-      if (
-        formData.promotion_code_required &&
-        discounts.some((c) => c.promotion_code === formData.promotion_code)
-      ) {
-        showToast('error', '代碼重複', '此折扣碼已存在')
+        // 處理結束日期
+        if (formData.end_date) {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(formData.end_date)) {
+            endDate = formData.end_date
+          } else {
+            const date = new Date(formData.end_date)
+            if (!isNaN(date.getTime())) {
+              endDate = date.toISOString().split('T')[0]
+            } else {
+              endDate = null
+            }
+          }
+        } else {
+          endDate = null
+        }
+      } catch (dateError) {
+        console.error('日期格式化錯誤:', dateError)
+        showToast('error', '日期格式錯誤', '請確保日期格式正確')
+        setLoading(false)
         return
       }
 
-      // 模擬新增折扣活動
-      const newDiscount = {
-        ...formData,
-        id: formData.promotion_code_required
-          ? formData.promotion_code
-          : `DISC${new Date().getTime()}`,
-        used_count: 0,
-        created_at: new Date().toISOString().split('T')[0],
+      // 確保數據格式正確
+      const promotionData = {
+        promotion_name: formData.promotion_name,
+        promotion_description: formData.promotion_description || '',
+        start_date: startDate,
+        end_date: endDate,
+        discount_percentage: Number(formData.discount_percentage) || 0,
+        photo: formData.photo || null,
       }
-      setDiscounts((prev) => [...prev, newDiscount])
-      showToast('success', '新增成功', `折扣活動 ${formData.name} 已成功新增`)
-    } else {
-      // 模擬更新折扣活動
-      setDiscounts((prev) =>
-        prev.map((c) =>
-          c.id === currentDiscount.id ? { ...c, ...formData } : c
+
+      console.log('準備提交促銷活動數據:', promotionData)
+
+      let response
+
+      if (modalMode === 'add') {
+        // 創建新的促銷活動
+        response = await fetchApi('/api/admin/shop/promotions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(promotionData),
+        })
+
+        if (response.success) {
+          showToast(
+            'success',
+            '新增成功',
+            `促銷活動「${formData.promotion_name}」已成功新增`
+          )
+          fetchPromotions() // 重新獲取列表
+        } else {
+          throw new Error(response.message || '新增促銷活動失敗')
+        }
+      } else {
+        // 更新現有促銷活動
+        if (!currentPromotion || !currentPromotion.promotion_id) {
+          throw new Error('缺少促銷活動ID，無法更新')
+        }
+
+        console.log(`準備更新促銷活動ID: ${currentPromotion.promotion_id}`)
+
+        response = await fetchApi(
+          `/api/admin/shop/promotions/${currentPromotion.promotion_id}`,
+          {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(promotionData),
+          }
         )
+
+        console.log('更新促銷活動API回應:', response)
+
+        if (response.success) {
+          showToast(
+            'success',
+            '更新成功',
+            `促銷活動「${formData.promotion_name}」已成功更新`
+          )
+          fetchPromotions() // 重新獲取列表
+        } else {
+          throw new Error(response.message || '更新折扣活動失敗')
+        }
+      }
+
+      setShowModal(false)
+    } catch (error: any) {
+      console.error('提交促銷活動表單時發生錯誤:', error)
+      showToast('error', '提交失敗', error.message || '提交促銷活動表單失敗')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 處理提交商品關聯
+  const handleSubmitProducts = async () => {
+    if (!currentPromotion) return
+
+    try {
+      setLoading(true)
+      const token = Cookies.get('admin_token')
+      if (!token) return
+
+      // 構建關聯數據
+      const productsData = selectedProducts.map((productId) => ({
+        product_id: productId,
+        category_id: null,
+      }))
+
+      const categoriesData = selectedCategories.map((categoryId) => ({
+        product_id: null,
+        category_id: categoryId,
+      }))
+
+      const productRelations = [...productsData, ...categoriesData]
+
+      console.log('提交產品關聯數據:', {
+        selectedProducts: selectedProducts.length,
+        selectedCategories: selectedCategories.length,
+        totalRelations: productRelations.length,
+      })
+
+      // 提交關聯數據
+      const response = await fetchApi(
+        `/api/admin/shop/promotions/${currentPromotion.promotion_id}/products`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ productRelations }),
+        }
       )
-      showToast(
-        'success',
-        '更新成功',
-        `折扣活動 ${formData.name} 資料已成功更新`
-      )
+
+      if (response.success) {
+        showToast(
+          'success',
+          '更新成功',
+          `促銷活動「${currentPromotion.promotion_name}」的關聯商品已成功更新`
+        )
+        setShowProductsModal(false)
+      } else {
+        throw new Error(response.message || '更新關聯商品失敗')
+      }
+    } catch (error: any) {
+      console.error('提交關聯商品時發生錯誤:', error)
+      showToast('error', '提交失敗', error.message || '提交關聯商品失敗')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 處理商品選擇
+  const handleProductSelect = (productId: number | null | undefined) => {
+    if (!productId) {
+      console.warn('嘗試選擇無效的商品ID:', productId)
+      return
     }
 
-    setShowModal(false)
+    if (selectedProducts.includes(productId)) {
+      setSelectedProducts((prev) => prev.filter((id) => id !== productId))
+    } else {
+      setSelectedProducts((prev) => [...prev, productId])
+    }
+  }
+
+  // 處理類別選擇
+  const handleCategorySelect = (categoryId: number | null | undefined) => {
+    if (!categoryId) {
+      console.warn('嘗試選擇無效的類別ID:', categoryId)
+      return
+    }
+
+    if (selectedCategories.includes(categoryId)) {
+      setSelectedCategories((prev) => prev.filter((id) => id !== categoryId))
+    } else {
+      setSelectedCategories((prev) => [...prev, categoryId])
+    }
+  }
+
+  // 搜索商品
+  const handleSearchProducts = async (event: React.FormEvent) => {
+    event.preventDefault()
+
+    if (!searchQuery.trim()) {
+      setFilteredProducts(products)
+      return
+    }
+
+    setSearchLoading(true)
+
+    try {
+      // 如果有促銷活動ID，使用API搜索
+      if (currentPromotion) {
+        const token = Cookies.get('admin_token')
+        if (!token) return
+
+        const response = await fetchApi(
+          `/api/admin/shop/promotions/${
+            currentPromotion.promotion_id
+          }/products?type=product&query=${encodeURIComponent(searchQuery)}`,
+          {
+            method: 'PATCH',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+
+        if (response.success && response.data) {
+          setFilteredProducts(response.data)
+        } else {
+          // 如果API搜索失敗，回退到本地搜索
+          localSearchProducts()
+        }
+      } else {
+        // 沒有促銷活動ID，使用本地搜索
+        localSearchProducts()
+      }
+    } catch (error) {
+      console.error('搜索商品時發生錯誤:', error)
+      // 出錯時回退到本地搜索
+      localSearchProducts()
+    } finally {
+      setSearchLoading(false)
+    }
+  }
+
+  // 本地搜索商品
+  const localSearchProducts = () => {
+    const query = searchQuery.toLowerCase().trim()
+    const filtered = products.filter((product) =>
+      product.product_name.toLowerCase().includes(query)
+    )
+    setFilteredProducts(filtered)
+  }
+
+  // 每當products變化或modal開啟時，重置filteredProducts
+  useEffect(() => {
+    setFilteredProducts(products)
+  }, [products, showProductsModal])
+
+  // 在搜索框中輸入時更新查詢
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+
+    // 如果清空了搜索框，直接顯示所有商品
+    if (!e.target.value.trim()) {
+      setFilteredProducts(products)
+    }
   }
 
   // 表格列定義
   const columns = [
-    { key: 'name', label: '活動名稱', sortable: true },
     {
-      key: 'promotion_code_required',
-      label: '折扣碼',
+      key: 'promotion_id',
+      label: 'ID',
       sortable: true,
-      render: (value: boolean, row: any) =>
-        value ? (
-          <Badge bg="info">{row.promotion_code}</Badge>
-        ) : (
-          <Badge bg="secondary">無需折扣碼</Badge>
-        ),
+      render: (value: number) => value || '-',
     },
     {
-      key: 'type',
-      label: '類型',
+      key: 'promotion_name',
+      label: '活動名稱',
       sortable: true,
-      filterable: true,
-      filterOptions: DISCOUNT_TYPE_OPTIONS,
-      render: (value: string) => {
-        const type = DISCOUNT_TYPE_OPTIONS.find((t) => t.value === value)
-        return type ? type.label : value
+      render: (value: string) => value || '-',
+    },
+    {
+      key: 'discount_percentage',
+      label: '折扣百分比',
+      sortable: true,
+      render: (value: number) => {
+        if (value === undefined || value === null) return '0%'
+        return `${value}%`
       },
     },
     {
-      key: 'value',
-      label: '折扣值',
+      key: 'start_date',
+      label: '開始日期',
       sortable: true,
-      render: (value: number, row: any) => {
-        switch (row.type) {
-          case 'percentage':
-            return `${value}%`
-          case 'fixed':
-            return `NT$ ${value}`
-          case 'shipping':
-            return '免運費'
-          case 'bundle':
-            return '組合優惠'
-          default:
-            return value
-        }
-      },
-    },
-    {
-      key: 'min_purchase',
-      label: '最低消費',
-      sortable: true,
-      render: (value: number) => (value > 0 ? `NT$ ${value}` : '無限制'),
+      render: (value: string) =>
+        value ? new Date(value).toLocaleDateString('zh-TW') : '-',
     },
     {
       key: 'end_date',
-      label: '有效期限',
+      label: '結束日期',
       sortable: true,
-      render: (value: string) => {
-        const endDate = new Date(value)
-        const now = new Date()
-        return (
-          <div className="d-flex align-items-center">
-            {endDate.toLocaleDateString()}
-            {endDate < now ? (
-              <Badge bg="danger" className="ms-2">
-                已過期
-              </Badge>
-            ) : null}
-          </div>
-        )
-      },
+      render: (value: string | null) =>
+        value ? new Date(value).toLocaleDateString('zh-TW') : '永久有效',
     },
     {
       key: 'status',
       label: '狀態',
       sortable: true,
-      filterable: true,
-      filterOptions: DISCOUNT_STATUS_OPTIONS,
-      render: (value: string) => {
-        const status = DISCOUNT_STATUS_OPTIONS.find((s) => s.value === value)
-        return status ? (
-          <Badge bg={status.color}>{status.label}</Badge>
-        ) : (
-          <Badge bg="secondary">未知</Badge>
-        )
+      render: (value: string, row: Promotion) => {
+        if (!row.start_date) return <Badge bg="secondary">未知</Badge>
+
+        try {
+          const now = new Date()
+          const startDate = new Date(row.start_date)
+          const endDate = row.end_date ? new Date(row.end_date) : null
+
+          if (startDate > now) {
+            return <Badge bg="info">未開始</Badge>
+          } else if (endDate && endDate < now) {
+            return <Badge bg="danger">已過期</Badge>
+          } else {
+            return <Badge bg="success">進行中</Badge>
+          }
+        } catch (e) {
+          return <Badge bg="secondary">日期錯誤</Badge>
+        }
       },
     },
   ]
 
   // 渲染操作按鈕
-  const renderActions = (discount: any) => (
+  const renderActions = (promotion: Promotion) => (
     <div className="d-flex gap-1">
       <Button
         variant="light"
         size="sm"
-        title={discount.status === 'active' ? '停用' : '啟用'}
-        onClick={() => handleToggleStatus(discount)}
+        title="管理商品"
+        onClick={() => handleManageProducts(promotion)}
       >
-        {discount.status === 'active' ? (
-          <Tag size={16} className="text-danger" />
-        ) : (
-          <Tag size={16} className="text-success" />
-        )}
+        <ShoppingBag size={16} className="text-primary" />
       </Button>
       <Button
         variant="light"
         size="sm"
         title="編輯"
-        onClick={() => handleEditDiscount(discount)}
+        onClick={() => handleEditPromotion(promotion)}
       >
         <Edit size={16} className="text-primary" />
       </Button>
@@ -375,182 +794,195 @@ export default function PromotionsPage() {
         variant="light"
         size="sm"
         title="刪除"
-        onClick={() => handleDeleteDiscount(discount)}
+        onClick={() => handleDeletePromotion(promotion)}
       >
         <Trash size={16} className="text-danger" />
       </Button>
     </div>
   )
 
-  // 活動統計
-  const discountStats = [
+  // 促銷活動統計
+  const promotionStats = [
     {
-      title: '啟用中活動',
-      count: discounts.filter((c) => c.status === 'active').length,
+      title: '進行中活動',
+      count: promotions.filter((p) => {
+        if (!p.start_date) return false
+        try {
+          const now = new Date()
+          const startDate = new Date(p.start_date)
+          const endDate = p.end_date ? new Date(p.end_date) : null
+
+          return startDate <= now && (!endDate || endDate >= now)
+        } catch (e) {
+          return false
+        }
+      }).length,
       color: 'success',
       icon: <Tag size={24} />,
     },
     {
-      title: '即將過期活動',
-      count: discounts.filter(
-        (c) =>
-          c.status === 'active' &&
-          new Date(c.end_date) > new Date() &&
-          new Date(c.end_date) <
-            new Date(new Date().setDate(new Date().getDate() + 30))
-      ).length,
-      color: 'warning',
+      title: '即將開始活動',
+      count: promotions.filter((p) => {
+        if (!p.start_date) return false
+        try {
+          const now = new Date()
+          const startDate = new Date(p.start_date)
+
+          return startDate > now
+        } catch (e) {
+          return false
+        }
+      }).length,
+      color: 'info',
       icon: <Calendar size={24} />,
     },
     {
       title: '已過期活動',
-      count: discounts.filter(
-        (c) => c.status === 'expired' || new Date(c.end_date) < new Date()
-      ).length,
+      count: promotions.filter((p) => {
+        if (!p.end_date) return false
+        try {
+          const now = new Date()
+          const endDate = new Date(p.end_date)
+
+          return endDate < now
+        } catch (e) {
+          return false
+        }
+      }).length,
       color: 'danger',
       icon: <Calendar size={24} />,
     },
     {
-      title: '總節省金額',
-      count: 'NT$ 125,789',
+      title: '平均折扣',
+      count: `${Math.round(
+        promotions
+          .filter(
+            (p) =>
+              p.discount_percentage !== undefined &&
+              p.discount_percentage !== null
+          )
+          .reduce((acc, p) => acc + (p.discount_percentage || 0), 0) /
+          (promotions.filter(
+            (p) =>
+              p.discount_percentage !== undefined &&
+              p.discount_percentage !== null
+          ).length || 1)
+      )}%`,
       color: 'primary',
       icon: <DollarSign size={24} />,
     },
   ]
 
-  // 表單字段定義
-  const formFields = [
-    {
-      name: 'name',
-      label: '活動名稱',
-      type: 'text',
-      placeholder: '請輸入折扣活動名稱',
-      required: true,
-      value: currentDiscount?.name || '',
-    },
-    {
-      name: 'description',
-      label: '活動描述',
-      type: 'textarea',
-      placeholder: '請輸入活動描述',
-      value: currentDiscount?.description || '',
-    },
-    {
-      name: 'type',
-      label: '折扣類型',
-      type: 'select',
-      options: DISCOUNT_TYPE_OPTIONS,
-      required: true,
-      value: currentDiscount?.type || 'percentage',
-    },
-    {
-      name: 'value',
-      label: '折扣值',
-      type: 'number',
-      placeholder: '請輸入折扣值',
-      required: true,
-      value: currentDiscount?.value || 0,
-      conditional: {
-        field: 'type',
-        values: ['percentage', 'fixed'],
+  // 定義表單字段
+  const formFields = useMemo(() => {
+    console.log('重新計算formFields')
+
+    // 如果沒有當前選中的促銷活動，返回包含預設值的欄位定義
+    if (!currentPromotion) {
+      return [
+        {
+          name: 'promotion_name',
+          label: '活動名稱',
+          type: 'text',
+          required: true,
+          placeholder: '例如: 新會員首購優惠',
+          value: '',
+        },
+        {
+          name: 'promotion_description',
+          label: '活動描述',
+          type: 'textarea',
+          placeholder: '簡述活動內容',
+          value: '',
+        },
+        {
+          name: 'discount_percentage',
+          label: '折扣百分比',
+          type: 'number',
+          required: true,
+          placeholder: '例如: 20表示8折(打8折)',
+          value: 0,
+        },
+        {
+          name: 'start_date',
+          label: '開始日期',
+          type: 'date',
+          required: true,
+          value: '',
+        },
+        {
+          name: 'end_date',
+          label: '結束日期',
+          type: 'date',
+          placeholder: '不填寫表示永久有效',
+          value: '',
+        },
+        {
+          name: 'photo',
+          label: '活動圖片',
+          type: 'text',
+          placeholder: '圖片URL，不填寫使用預設圖片',
+          value: '',
+        },
+      ]
+    }
+
+    // 如果有當前選中的促銷活動，返回包含當前值的欄位定義
+    return [
+      {
+        name: 'promotion_name',
+        label: '活動名稱',
+        type: 'text',
+        required: true,
+        placeholder: '例如: 新會員首購優惠',
+        value: currentPromotion.promotion_name || '',
       },
-    },
-    {
-      name: 'min_purchase',
-      label: '最低消費',
-      type: 'number',
-      placeholder: '請輸入最低消費金額',
-      value: currentDiscount?.min_purchase || 0,
-    },
-    {
-      name: 'max_discount',
-      label: '最高折扣金額',
-      type: 'number',
-      placeholder: '請輸入最高折扣金額',
-      value: currentDiscount?.max_discount || '',
-      conditional: {
-        field: 'type',
-        values: ['percentage'],
+      {
+        name: 'promotion_description',
+        label: '活動描述',
+        type: 'textarea',
+        placeholder: '簡述活動內容',
+        value: currentPromotion.promotion_description || '',
       },
-    },
-    {
-      name: 'promotion_code_required',
-      label: '需要折扣碼',
-      type: 'switch',
-      value: currentDiscount?.promotion_code_required || false,
-    },
-    {
-      name: 'promotion_code',
-      label: '折扣碼',
-      type: 'text',
-      placeholder: '請輸入折扣碼',
-      value: currentDiscount?.promotion_code || '',
-      conditional: {
-        field: 'promotion_code_required',
-        values: [true],
+      {
+        name: 'discount_percentage',
+        label: '折扣百分比',
+        type: 'number',
+        required: true,
+        placeholder: '例如: 20表示8折(打8折)',
+        value: currentPromotion.discount_percentage || 0,
       },
-      required: {
-        dependsOn: 'promotion_code_required',
-        value: true,
+      {
+        name: 'start_date',
+        label: '開始日期',
+        type: 'date',
+        required: true,
+        value: currentPromotion.start_date || '',
       },
-    },
-    {
-      name: 'start_date',
-      label: '開始日期',
-      type: 'date',
-      required: true,
-      value:
-        currentDiscount?.start_date || new Date().toISOString().split('T')[0],
-    },
-    {
-      name: 'end_date',
-      label: '結束日期',
-      type: 'date',
-      required: true,
-      value:
-        currentDiscount?.end_date ||
-        new Date(new Date().setMonth(new Date().getMonth() + 1))
-          .toISOString()
-          .split('T')[0],
-    },
-    {
-      name: 'usage_limit',
-      label: '使用次數限制',
-      type: 'number',
-      placeholder: '請輸入使用次數限制',
-      value: currentDiscount?.usage_limit || 0,
-    },
-    {
-      name: 'status',
-      label: '活動狀態',
-      type: 'select',
-      options: DISCOUNT_STATUS_OPTIONS,
-      required: true,
-      value: currentDiscount?.status || 'inactive',
-    },
-    {
-      name: 'target_products',
-      label: '適用商品',
-      type: 'text',
-      placeholder: '請輸入商品ID，多個以逗號分隔',
-      value: currentDiscount?.target_products || '',
-      conditional: {
-        field: 'type',
-        values: ['bundle'],
+      {
+        name: 'end_date',
+        label: '結束日期',
+        type: 'date',
+        placeholder: '不填寫表示永久有效',
+        value: currentPromotion.end_date || '',
       },
-    },
-  ]
+      {
+        name: 'photo',
+        label: '活動圖片',
+        type: 'text',
+        placeholder: '圖片URL，不填寫使用預設圖片',
+        value: currentPromotion.photo || '',
+      },
+    ]
+  }, [currentPromotion ? currentPromotion.promotion_id : null])
 
   return (
-    <AdminPageLayout
-      title="折扣活動管理"
-      breadcrumb={[{ name: '商城管理' }, { name: '折扣活動管理' }]}
-    >
+    <AdminPageLayout title="折扣活動管理" stats={promotionStats}>
       <div className="mb-4">
         <AdminSection title="活動統計">
           <div className="row">
-            {discountStats.map((stat, index) => (
-              <div key={index} className="col-md-3 mb-3">
+            {promotionStats.map((stat, index) => (
+              <div key={`stat-${index}`} className="col-md-3 mb-3">
                 <AdminCard>
                   <div className="d-flex align-items-center">
                     <div
@@ -572,9 +1004,9 @@ export default function PromotionsPage() {
 
       <AdminSection
         title="折扣活動列表"
-        action={
+        actions={
           hasPermission('shop:promotions:create') && (
-            <Button variant="primary" onClick={handleAddDiscount}>
+            <Button variant="primary" onClick={handleAddPromotion}>
               <Plus size={16} className="me-1" />
               新增折扣活動
             </Button>
@@ -583,26 +1015,209 @@ export default function PromotionsPage() {
       >
         <DataTable
           columns={columns}
-          data={discounts}
-          renderActions={renderActions}
-          isLoading={loading}
-          showSearch
-          searchPlaceholder="搜尋活動名稱或折扣碼..."
-          searchKeys={['name', 'promotion_code', 'description']}
-          sortable
-          pageSize={10}
+          data={promotions}
+          actions={renderActions}
+          loading={loading}
+          searchable={true}
+          searchKeys={['promotion_name', 'promotion_description']}
+          itemsPerPage={10}
         />
       </AdminSection>
 
+      {/* 促銷活動編輯/新增表單 */}
       <ModalForm
         show={showModal}
         onHide={() => setShowModal(false)}
-        title={modalMode === 'add' ? '新增折扣活動' : '編輯折扣活動'}
+        title={modalMode === 'add' ? '新增促銷活動' : '編輯促銷活動'}
         fields={formFields}
-        onSubmit={handleSubmit}
-        isLoading={loading}
-        size="lg"
+        onSubmit={handleSubmitPromotion}
       />
+
+      {/* 商品管理模態框 */}
+      <ModalForm
+        show={showProductsModal}
+        onHide={() => setShowProductsModal(false)}
+        title={`管理「${currentPromotion?.promotion_name || ''}」的關聯商品`}
+        size="lg"
+        fields={[]}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setShowProductsModal(false)}
+            >
+              取消
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSubmitProducts}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                    className="me-2"
+                  />
+                  處理中...
+                </>
+              ) : (
+                '保存關聯'
+              )}
+            </Button>
+          </>
+        }
+      >
+        <div className="mb-4">
+          <h5>選擇商品類別</h5>
+          <p className="text-muted small">
+            選擇類別後，該類別下的所有商品都將享受此促銷活動優惠
+          </p>
+
+          <div className="d-flex mb-2">
+            <Form.Control
+              type="text"
+              placeholder="搜尋類別..."
+              className="me-2"
+            />
+            <Button variant="outline-secondary">
+              <Search size={16} />
+            </Button>
+          </div>
+
+          <Accordion key="product-categories-accordion">
+            {categories
+              .filter((category) => category.parent_id === null)
+              .map((category, parentIndex) => (
+                <Accordion.Item
+                  key={`parent-cat-${
+                    category.category_id || `parent-${parentIndex}`
+                  }`}
+                  eventKey={`cat-${
+                    category.category_id || `parent-${parentIndex}`
+                  }`}
+                >
+                  <Accordion.Header>
+                    <Form.Check
+                      type="checkbox"
+                      id={`parent-check-${
+                        category.category_id || `parent-${parentIndex}`
+                      }`}
+                      label={category.category_name || '未命名類別'}
+                      checked={selectedCategories.includes(
+                        category.category_id
+                      )}
+                      onChange={() =>
+                        handleCategorySelect(category.category_id)
+                      }
+                      onClick={(e) => e.stopPropagation()}
+                      className="me-2"
+                    />
+                  </Accordion.Header>
+                  <Accordion.Body>
+                    {categories
+                      .filter(
+                        (subCat) => subCat.parent_id === category.category_id
+                      )
+                      .map((subCategory, index) => (
+                        <div
+                          key={`sub-cat-div-${
+                            subCategory.category_id ||
+                            `sub-${parentIndex}-${index}`
+                          }`}
+                          className="ms-3 mb-2"
+                        >
+                          <Form.Check
+                            type="checkbox"
+                            id={`sub-check-${
+                              subCategory.category_id ||
+                              `sub-${parentIndex}-${index}`
+                            }`}
+                            label={subCategory.category_name || '未命名類別'}
+                            checked={selectedCategories.includes(
+                              subCategory.category_id
+                            )}
+                            onChange={() =>
+                              handleCategorySelect(subCategory.category_id)
+                            }
+                          />
+                        </div>
+                      ))}
+                  </Accordion.Body>
+                </Accordion.Item>
+              ))}
+          </Accordion>
+        </div>
+
+        <hr />
+
+        <div>
+          <h5>選擇個別商品</h5>
+          <p className="text-muted small">您可以選擇個別商品套用此促銷活動</p>
+
+          <form onSubmit={handleSearchProducts} className="d-flex mb-3">
+            <Form.Control
+              type="text"
+              placeholder="搜尋商品..."
+              className="me-2"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            <Button
+              variant="outline-secondary"
+              type="submit"
+              disabled={searchLoading}
+            >
+              {searchLoading ? (
+                <Spinner animation="border" size="sm" />
+              ) : (
+                <Search size={16} />
+              )}
+            </Button>
+          </form>
+
+          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((product, index) => (
+                <div
+                  key={`product-${product.product_id || `prod-${index}`}`}
+                  className="mb-2"
+                >
+                  <Form.Check
+                    type="checkbox"
+                    id={`prod-${product.product_id || `prod-${index}`}`}
+                    label={product.product_name || '未命名商品'}
+                    checked={selectedProducts.includes(product.product_id)}
+                    onChange={() => handleProductSelect(product.product_id)}
+                  />
+                </div>
+              ))
+            ) : (
+              <p className="text-muted text-center py-3">
+                {searchQuery.trim()
+                  ? '沒有找到符合搜尋條件的商品'
+                  : '沒有可用的商品'}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 p-2 bg-light rounded">
+          <div className="d-flex justify-content-between">
+            <div>
+              <strong>已選擇：</strong>
+              <Badge bg="info" className="me-1">
+                {selectedCategories.length} 個類別
+              </Badge>
+              <Badge bg="primary">{selectedProducts.length} 個商品</Badge>
+            </div>
+          </div>
+        </div>
+      </ModalForm>
     </AdminPageLayout>
   )
 }
