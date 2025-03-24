@@ -22,7 +22,6 @@ export const metadata = {
 
 // 客戶端組件已移至 LayoutWrapper.js
 export default function RootLayout({ children }) {
-  console.log('AuthProvider rendered'); // 添加此行
   return (
     <html lang="zh-hant-tw" suppressHydrationWarning>
       <body
