@@ -66,7 +66,7 @@
 
 /* 卡片和邊框 */
 .card-header {
-  background-color: var(--primary-light) !important;
+  background-color: var(--primary-dark) !important;
   border-bottom: 1px solid var(--primary-color) !important;
 }
 
