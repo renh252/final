@@ -35,38 +35,45 @@ export default function CreatePostModal({ show, onHide, onPostCreated, categorie
     setError('');
 
     try {
+      // 處理標籤 - 分割、修剪和過濾空標籤
       const tags = formData.tags
         .split(',')
         .map((tag) => tag.trim())
-        .filter((tag) => tag)
+        .filter((tag) => tag);
 
+      // 發送請求到 API
       const response = await axios.post('/api/forum/posts', {
         title: formData.title,
         content: formData.content,
         categoryId: parseInt(formData.categoryId),
         tags,
-      })
+      });
 
+      // 處理響應
       if (response.data.status === 'success') {
+        // 成功發布
         if (onPostCreated) {
-          onPostCreated()
+          onPostCreated();
         } else {
-          onHide()
+          onHide();
         }
-        router.refresh() 
-        setFormData({ title: '', content: '', categoryId: '', tags: '' })
+        router.refresh(); // 刷新頁面數據
+        setFormData({ title: '', content: '', categoryId: '', tags: '' }); // 重置表單
       } else {
-        setError(response.data.message || '發布失敗，請稍後再試')
+        // API 返回錯誤
+        setError(response.data.message || '發布失敗，請稍後再試');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || '發布失敗，請稍後再試')
+      // 請求異常
+      setError(err.response?.data?.message || '發布失敗，請稍後再試');
+      console.error('發布文章時出錯:', err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Modal show={show} onHide={onHide} centered backdrop="static" size="lg">
+    <Modal show={show} onHide={onHide} centered backdrop="static" size="lg" className="forum-layout">
       <Modal.Header closeButton style={{ backgroundColor: '#D9B77F', borderBottom: '1px solid #C79650' }}>
         <Modal.Title>發布新討論</Modal.Title>
       </Modal.Header>
@@ -125,23 +132,29 @@ export default function CreatePostModal({ show, onHide, onPostCreated, categorie
               placeholder="使用逗號分隔多個標籤，例如：貓咪,飲食,健康"
             />
             <Form.Text className="text-muted">
-              使用逗號分隔多個標籤
+              標籤將幫助其他用戶更容易找到您的討論
             </Form.Text>
           </Form.Group>
+
+          <div className="d-flex justify-content-end mt-4">
+            <Button 
+              variant="secondary" 
+              onClick={onHide} 
+              className="me-2"
+              disabled={isSubmitting}
+            >
+              取消
+            </Button>
+            <Button 
+              type="submit" 
+              style={{ backgroundColor: '#C79650', borderColor: '#C79650' }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? '發布中...' : '發布'}
+            </Button>
+          </div>
         </Form>
       </Modal.Body>
-      <Modal.Footer style={{ backgroundColor: '#f8f5f0', borderTop: '1px solid #D9B77F' }}>
-        <Button variant="secondary" onClick={onHide} style={{ backgroundColor: '#7A5A4A', borderColor: '#593E2F' }}>
-          取消
-        </Button>
-        <Button
-          variant="primary"
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? '發布中...' : '發布'}
-        </Button>
-      </Modal.Footer>
     </Modal>
   );
 }
