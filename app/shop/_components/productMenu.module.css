@@ -3,35 +3,28 @@
   background-color: #fff;
   border-radius: 20px;
   a{
-    width: 200px;
-    padding: 20px;
+    padding: 10px 20px;
     display: flex;
     justify-content: center;
     align-items: center;
     text-decoration: none;
-    color: #000;
+    color: #6b4f37;
     border-radius: 16px;
-    font-size: 24px;
-
+    white-space: nowrap;
   }
+  .title.parent p{
+      text-shadow: #6b4f37 0.5px 0.5px 1px;
+    }
   .title p{
-    text-shadow: #000 1px 0px 1px;
     padding: 0;
     margin: 0;
-    font-size: 24px;
+    font-size: 18px;
   }
   a:hover{
-    background-color: rgba(199, 150, 80, 1);
-    color: #fff;
-    p{
-      text-shadow: #fff 1px 0px 1px;
-    }
+    text-decoration: underline;
   }
   a.active{
     background-color: rgba(199, 150, 80, 1);
     color: #fff;
-    p{
-      text-shadow: #fff 1px 0px 1px;
-    }
   }
 }
