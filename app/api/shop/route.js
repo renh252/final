@@ -31,10 +31,54 @@ export async function GET(request) {
       `)
     responseData.categories = categories
 
-    const [products] = await connection.execute(`
-      SELECT * FROM products
-      `)
-    responseData.products = products
+    // 獲取商品資料
+// FILEPATH: c:/iSpan/final/app/api/shop/route.js
+
+// ... existing code ...
+
+const [products] = await connection.execute(`
+  SELECT 
+    p.product_id,
+    p.product_name,
+    COALESCE(v.price, p.price) AS price,
+    p.image_url,
+    p.category_id,
+    v.variant_id,
+    v.variant_name,
+    promo.promotion_id,
+    promo.promotion_name,
+    promo.discount_percentage,
+    promo.start_date,
+    promo.end_date
+  FROM 
+    products p
+  INNER JOIN (
+    SELECT product_id, MIN(variant_id) AS first_variant_id
+    FROM product_variants
+    GROUP BY product_id
+  ) AS first_variant ON p.product_id = first_variant.product_id
+  INNER JOIN product_variants v ON first_variant.product_id = v.product_id 
+    AND first_variant.first_variant_id = v.variant_id
+  LEFT JOIN (
+    SELECT 
+      pp.product_id,
+      p.promotion_id,
+      p.promotion_name,
+      p.discount_percentage,
+      p.start_date,
+      p.end_date,
+      ROW_NUMBER() OVER (PARTITION BY pp.product_id ORDER BY p.start_date DESC) as rn
+    FROM 
+      promotion_products pp
+    JOIN 
+      promotions p ON pp.promotion_id = p.promotion_id
+    WHERE 
+      p.start_date <= CURDATE() AND (p.end_date IS NULL OR p.end_date >= CURDATE())
+  ) AS promo ON p.product_id = promo.product_id AND promo.rn = 1
+  ORDER BY p.product_id
+`)
+responseData.products = products
+
 
     // 獲取喜愛商品資料 - 根據用戶ID過濾
     if (userId) {

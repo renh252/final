@@ -142,7 +142,7 @@ export default function PetsPage() {
       <FirstPageNav />
       <main className={styles.main}>
         <div className={styles.contains}>
-          {/* contain */}
+          {/* 促銷區 */}
           {promotions.map((promotion) => {
             return (
               <div key={promotion.promotion_id} className={styles.contain}>
@@ -173,7 +173,7 @@ export default function PetsPage() {
                           })
                         }
                       >
-                        {promotion_products
+                        {products
                           .filter(
                             (product) =>
                               product.promotion_id == promotion.promotion_id
@@ -192,10 +192,15 @@ export default function PetsPage() {
                                   title={product.product_name}
                                 >
                                   <div className={styles.cardText}>
+                                  {product?.discount_percentage
+                                    ? 
                                     <p>
-                                      ${product.price}{' '}
-                                      <del>${product.price}</del>
+                                      ${Math.ceil(product.price * (100 - product.discount_percentage) / 100)} <del>${product.price}</del>
                                     </p>
+                                    :<p>
+                                        ${product.price}
+                                      </p> 
+                                    }
                                     <button
                                       className={styles.likeButton}
                                       onClick={(event) => {
@@ -238,7 +243,7 @@ export default function PetsPage() {
             )
           })}
 
-          {/* contain */}
+          {/* 主分類區 */}
           {parentsWithProducts.map((parent) => (
             <div key={parent.category_id} className={styles.contain}>
               <div className={styles.contain_title}>
@@ -248,7 +253,7 @@ export default function PetsPage() {
                 />
               </div>
               <div className={styles.contain_body}>
-                {/* subTitle */}
+                {/* 子分類區 */}
                 {getChildrenWithProducts(parent.category_id).map((category) => (
                   <div className={styles.group} key={category.category_id}>
                     <div className={styles.groupTitle}>
@@ -290,10 +295,18 @@ export default function PetsPage() {
                                   title={product.product_name}
                                 >
                                   <div className={styles.cardText}>
-                                    <p>
-                                      ${product.price}{' '}
-                                      <del>${product.price}</del>
-                                    </p>
+                                    {product?.discount_percentage
+                                      ? 
+                                      <p>
+                                        ${Math.ceil(product.price * (100 - product.discount_percentage) / 100)} <del>${product.price}</del>
+                                      </p>
+                                      :<p>
+                                          ${product.price}
+                                        </p> 
+                                      }
+                                      {/* <p>
+                                        ${product.price*Math.ceil((100-product.discount_percentage)/100)} <del>${product.price}</del>
+                                      </p>  */}
                                     <button
                                       className={styles.likeButton}
                                       onClick={(event) => {
