@@ -390,14 +390,14 @@ export default function PromotionsPage() {
     try {
       // 先設置當前選中的促銷活動
       setCurrentPromotion(promotion)
-      setModalMode('edit')
+    setModalMode('edit')
 
       // 清空已選商品和類別
       setSelectedProducts([])
       setSelectedCategories([])
 
       // 顯示模態窗口
-      setShowModal(true)
+    setShowModal(true)
     } catch (error) {
       console.error('獲取促銷活動關聯數據時發生錯誤:', error)
       showToast('error', '錯誤', '無法獲取促銷活動關聯數據')
@@ -590,8 +590,8 @@ export default function PromotionsPage() {
         })
 
         if (response.success) {
-          showToast(
-            'success',
+    showToast(
+      'success',
             '新增成功',
             `促銷活動「${formData.promotion_name}」已成功新增`
           )
@@ -647,7 +647,7 @@ export default function PromotionsPage() {
     if (!currentPromotion) return
 
     try {
-      setLoading(true)
+    setLoading(true)
       const token = Cookies.get('admin_token')
       if (!token) return
 
@@ -696,7 +696,7 @@ export default function PromotionsPage() {
       console.error('提交關聯商品時發生錯誤:', error)
       showToast('error', '提交失敗', error.message || '提交關聯商品失敗')
     } finally {
-      setLoading(false)
+    setLoading(false)
     }
   }
 
@@ -739,8 +739,8 @@ export default function PromotionsPage() {
     const subCategory = categories.find((cat) => cat.category_id === categoryId)
     if (!subCategory) {
       console.warn('找不到對應的類別:', categoryId)
-      return
-    }
+        return
+      }
 
     // 獲取該類別下的所有商品ID
     const productsInCategory = getProductsForSubCategory(subCategory).map(
@@ -905,7 +905,7 @@ export default function PromotionsPage() {
       sortable: true,
       render: (value: number) => {
         if (value === undefined || value === null) return '0%'
-        return `${value}%`
+            return `${value}%`
       },
     },
     {
@@ -1059,16 +1059,16 @@ export default function PromotionsPage() {
       return [
         {
           name: 'promotion_name',
-          label: '活動名稱',
-          type: 'text',
-          required: true,
+      label: '活動名稱',
+      type: 'text',
+      required: true,
           placeholder: '例如: 新會員首購優惠',
           value: '',
-        },
-        {
+    },
+    {
           name: 'promotion_description',
-          label: '活動描述',
-          type: 'textarea',
+      label: '活動描述',
+      type: 'textarea',
           placeholder: '簡述活動內容',
           value: '',
         },
@@ -1076,7 +1076,7 @@ export default function PromotionsPage() {
           name: 'discount_percentage',
           label: '折扣百分比',
           type: 'number',
-          required: true,
+      required: true,
           placeholder: '例如: 20表示8折(打8折)',
           value: 0,
         },
@@ -1084,7 +1084,7 @@ export default function PromotionsPage() {
           name: 'start_date',
           label: '開始日期',
           type: 'date',
-          required: true,
+      required: true,
           value: '',
         },
         {
@@ -1128,25 +1128,25 @@ export default function PromotionsPage() {
         required: true,
         placeholder: '例如: 20表示8折(打8折)',
         value: currentPromotion.discount_percentage || 0,
-      },
-      {
-        name: 'start_date',
-        label: '開始日期',
-        type: 'date',
-        required: true,
+    },
+    {
+      name: 'start_date',
+      label: '開始日期',
+      type: 'date',
+      required: true,
         value: currentPromotion.start_date || '',
-      },
-      {
-        name: 'end_date',
-        label: '結束日期',
-        type: 'date',
+    },
+    {
+      name: 'end_date',
+      label: '結束日期',
+      type: 'date',
         placeholder: '不填寫表示永久有效',
         value: currentPromotion.end_date || '',
       },
       {
         name: 'photo',
         label: '活動圖片',
-        type: 'text',
+      type: 'text',
         placeholder: '圖片URL，不填寫使用預設圖片',
         value: currentPromotion.photo || '',
       },
