@@ -17,32 +17,18 @@ import {Breadcrumbs} from '@/app/_components/breadcrumbs'
 // 連接資料庫
 import useSWR from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
+// auth
+import { useAuth } from '@/app/context/AuthContext'
 
 
 export default function PagesProductTitle() {
   // 從網址上得到動態路由參數
   const params = useParams()
   const cid_parent = params?.cidParent
+  const { user, isAuthenticated } = useAuth()
   
 
   
-  // card愛心狀態
-/*  const initState = Products.map((v) => {
-    return { ...v, fav: false }
-  })
-  const [products, setproducts] = useState(initState)  
-  const onToggleFav = (product_id) => {
-    const nextProduct = products.map((v) => {
-      if (v.id == product_id) {
-        return { ...v, fav: !v.fav }
-      } else {
-        return v
-      }
-    })
-    setproducts(nextProduct)
-  }
-  */
-
 
   // 卡片滑動-------------------------------
   const categoryRefs = useRef({})
@@ -65,7 +51,51 @@ export default function PagesProductTitle() {
    // ----------------------------
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
-  const { data, error } = useSWR('/api/shop', fetcher)
+  const { data, error, mutate } = useSWR('/api/shop', fetcher)
+
+  // 處理喜愛商品數據
+  const toggleLike = async (productId) => {
+    // 如果用戶未登入，則提示登入
+    if (!isAuthenticated || !user) {
+      alert('請先登入才能收藏商品')
+      // 儲存當前頁面路徑，以便登入後返回
+      sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+      window.location.href = '/member/MemberLogin/login'
+      return
+    }
+
+    const userId = user.id
+    const product_like = data.product_like || []
+    const isLiked = product_like.some(
+      (product) =>
+        product.product_id === productId && product.user_id === userId
+    )
+
+    try {
+      const response = await fetch('/api/shop/product_like', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          productId,
+          action: isLiked ? 'remove' : 'add',
+        }),
+      })
+
+      if (response.ok) {
+        // 重新獲取商品數據
+        mutate()
+      } else {
+        console.error('收藏操作失敗')
+      }
+    } catch (error) {
+      console.error('收藏操作錯誤:', error)
+    }
+  }
+
+
 // 处理加载状态
   if (!data) return <div>Loading...</div>
     
@@ -76,12 +106,22 @@ export default function PagesProductTitle() {
   
   const categories = data.categories
   const products = data.products
+  const product_like = data.product_like || []
+    // 判斷商品是否被當前用戶收藏
+    const isProductLiked = (productId) => {
+      if (!isAuthenticated || !user) return false
+      return product_like.some(
+        (item) => item.product_id === productId && item.user_id === user.id
+      )
+    }
   
   // 檢查是否存在 category_id 等於 cid_parent 的類別
   const currentCategory = categories.find(category => category.category_id == cid_parent);
   // 檢查是否有子類別（其他類別的 parent_id 等於 cid_parent）
   const childCategories = categories.filter(category => category.parent_id == cid_parent);
   // const product_like = data.product_like
+
+
 
   // -----------------
 
@@ -127,14 +167,29 @@ export default function PagesProductTitle() {
                                 title={product.product_name}
                               >
                                 <div className={styles.cardText}>
-                                  <p>${product.price} <del>${product.price}</del></p>
-                                  <button className={styles.likeButton} onClick={(event)=>{     
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    // onToggleFav(product.id)
-                                    }}>
-                                    {product.fav ? <FaHeart/> : <FaRegHeart/>}
-                                  </button>
+                                {product?.discount_percentage
+                                    ? 
+                                    <p>
+                                      ${Math.ceil(product.price * (100 - product.discount_percentage) / 100)} <del>${product.price}</del>
+                                    </p>
+                                    :<p>
+                                        ${product.price}
+                                      </p> 
+                                    }
+                                    <button
+                                      className={styles.likeButton}
+                                      onClick={(event) => {
+                                        event.preventDefault()
+                                        event.stopPropagation()
+                                        toggleLike(product.product_id)
+                                      }}
+                                    >
+                                      {isProductLiked(product.product_id) ? (
+                                        <FaHeart />
+                                      ) : (
+                                        <FaRegHeart />
+                                      )}
+                                    </button>
                                 </div>
                               </Card>
                             </Link>
