@@ -335,6 +335,8 @@ export default function PetsPage() {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [selectedRegion, setSelectedRegion] = useState('')
   const [selectedStore, setSelectedStore] = useState('')
+  const [displayCount, setDisplayCount] = useState(12) // 初始顯示 12 隻寵物 (3x4)
+  const [isLoading, setIsLoading] = useState(false)
   const [mapMarkers, setMapMarkers] = useState([])
   const [mapCenter, setMapCenter] = useState([22.9997, 120.227])
   const [mapZoom, setMapZoom] = useState(13)
@@ -411,15 +413,12 @@ export default function PetsPage() {
     if (selectedBreed) params.set('breed', selectedBreed)
     if (selectedRegion) params.set('region', selectedRegion)
     if (selectedStore) params.set('store', selectedStore)
-    params.set('page', currentPage.toString())
-    params.set('pageSize', itemsPerPage.toString())
+    params.set('pageSize', '100') // 一次獲取較多資料
 
-    // 添加用戶ID參數（如果已登入）
     if (user && user.id) {
       params.set('userId', user.id.toString())
     }
 
-    // 添加過濾參數，排除已領養的寵物
     params.set('excludeAdopted', 'true')
 
     return `/api/pets?${params.toString()}`
@@ -1338,6 +1337,23 @@ export default function PetsPage() {
     ]
   )
 
+  // 處理"載入更多"點擊
+  const handleLoadMore = useCallback(() => {
+    setDisplayCount((prev) => prev + 9) // 每次多顯示 9 隻寵物
+  }, [])
+
+  // 計算是否還有更多寵物可以顯示
+  const hasMore = useMemo(() => {
+    if (!filteredPets) return false
+    return displayCount < filteredPets.length
+  }, [filteredPets, displayCount])
+
+  // 獲取當前應該顯示的寵物
+  const displayPets = useMemo(() => {
+    if (!filteredPets) return []
+    return filteredPets.slice(0, displayCount)
+  }, [filteredPets, displayCount])
+
   // 使用 displayPetsData 替代 petsData 在條件渲染
   if (!displayPetsData && !previousPetsData) return <div>載入中...</div>
   if (petsError && !displayPetsData && !previousPetsData)
@@ -1911,16 +1927,14 @@ export default function PetsPage() {
         <main>
           <div className={styles.cardSections}>
             {/* 篩選結果區塊 */}
-            <div className={styles.contain}>
+            <div className={styles.searchResultsContainer}>
               <div className={styles.contain_title}>
                 <ResultsHeader />
               </div>
               <div className={styles.group}>
-                <div
-                  className={`${styles.gridContainer} ${styles.flexContainer}`}
-                >
-                  {filteredPets.length > 0 ? (
-                    filteredPets.map((pet) => (
+                <div className={styles.flexContainer}>
+                  {displayPets.length > 0 ? (
+                    displayPets.map((pet) => (
                       <Link
                         href={`/pets/${pet.id}`}
                         key={pet.id}
@@ -1972,95 +1986,24 @@ export default function PetsPage() {
                     </div>
                   )}
                 </div>
-              </div>
 
-              {/* 分頁控制 */}
-              {displayPetsData?.pagination &&
-                displayPetsData.pagination.total > itemsPerPage && (
-                  <div className={styles.pagination}>
-                    <div className={styles.paginationInfo}>
-                      顯示 {displayPetsData.pagination.total} 個結果中的
-                      {(currentPage - 1) * itemsPerPage + 1} -
-                      {Math.min(
-                        currentPage * itemsPerPage,
-                        displayPetsData.pagination.total
-                      )}{' '}
-                      項
-                    </div>
-                    <div className={styles.paginationControls}>
-                      <Button
-                        variant="outline-secondary"
-                        onClick={() => handlePageChange(1)}
-                        disabled={currentPage === 1}
-                        className={styles.paginationButton}
-                      >
-                        首頁
-                      </Button>
-                      <Button
-                        variant="outline-secondary"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className={styles.paginationButton}
-                      >
-                        &laquo; 上一頁
-                      </Button>
-
-                      {/* 頁碼按鈕 */}
-                      {Array.from(
-                        { length: Math.min(5, totalPages) },
-                        (_, i) => {
-                          // 計算要顯示的頁碼，確保當前頁在中間
-                          let pageNum
-                          if (totalPages <= 5) {
-                            pageNum = i + 1
-                          } else if (currentPage <= 3) {
-                            pageNum = i + 1
-                          } else if (currentPage >= totalPages - 2) {
-                            pageNum = totalPages - 4 + i
-                          } else {
-                            pageNum = currentPage - 2 + i
-                          }
-
-                          return (
-                            <Button
-                              key={pageNum}
-                              variant={
-                                currentPage === pageNum
-                                  ? 'primary'
-                                  : 'outline-secondary'
-                              }
-                              onClick={() => handlePageChange(pageNum)}
-                              className={styles.paginationButton}
-                            >
-                              {pageNum}
-                            </Button>
-                          )
-                        }
-                      )}
-
-                      <Button
-                        variant="outline-secondary"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className={styles.paginationButton}
-                      >
-                        下一頁 &raquo;
-                      </Button>
-                      <Button
-                        variant="outline-secondary"
-                        onClick={() => handlePageChange(totalPages)}
-                        disabled={currentPage === totalPages}
-                        className={styles.paginationButton}
-                      >
-                        末頁
-                      </Button>
-                    </div>
+                {/* 載入更多按鈕置中 */}
+                {hasMore && (
+                  <div className={styles.loadMoreButtonContainer}>
+                    <button
+                      className={styles.loadMoreButton}
+                      onClick={handleLoadMore}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? '載入中...' : '點擊顯示更多寵物'}
+                    </button>
                   </div>
                 )}
+              </div>
             </div>
 
-            {/* 最新上架區 */}
-            <div className={styles.contain}>
+            {/* 最新上架區塊 */}
+            <div className={styles.latestContainer}>
               <div className={styles.contain_title}>
                 <h2>最新上架</h2>
               </div>
@@ -2071,10 +2014,7 @@ export default function PetsPage() {
                     onClick={() => scroll(-1, latestRef)}
                     aria-label="向左滑動"
                   />
-                  <div
-                    className={`${styles.cardGroup} ${styles.flexGroup}`}
-                    ref={latestRef}
-                  >
+                  <div className={`${styles.latestCardGroup}`} ref={latestRef}>
                     {latestPets && latestPets.length > 0 ? (
                       latestPets.map((pet) => (
                         <Link
