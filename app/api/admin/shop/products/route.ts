@@ -38,71 +38,91 @@ interface Product extends RowDataPacket {
 
 // 獲取商品列表
 export const GET = guard.api(
-  guard.perm(PERMISSIONS.SHOP.PRODUCTS.READ)(async (req: NextRequest) => {
-    const url = new URL(req.url)
-    const search = url.searchParams.get('search') || ''
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const limit = parseInt(url.searchParams.get('limit') || '10')
-    const offset = (page - 1) * limit
-    const category = url.searchParams.get('category') || ''
-
+  guard.perm('shop:products:read')(async (req: NextRequest) => {
     try {
-      let whereClause = 'WHERE 1=1'
-      const params: any[] = []
+      // 獲取查詢參數
+      const url = new URL(req.url)
+      const search = url.searchParams.get('search') || ''
+      const category = url.searchParams.get('category') || ''
+      const page = parseInt(url.searchParams.get('page') || '1')
+      const limit = parseInt(url.searchParams.get('limit') || '10')
+      const offset = (page - 1) * limit
+
+      // 構建查詢條件
+      const whereConditions = ['p.is_deleted = 0']
+      const queryParams: any[] = []
 
       if (search) {
-        whereClause +=
-          ' AND (p.product_name LIKE ? OR p.product_description LIKE ?)'
-        params.push(`%${search}%`, `%${search}%`)
+        whereConditions.push('(p.product_name LIKE ? OR p.description LIKE ?)')
+        queryParams.push(`%${search}%`, `%${search}%`)
       }
 
       if (category) {
-        whereClause += ' AND p.category_id = ?'
-        params.push(category)
+        whereConditions.push('p.category_id = ?')
+        queryParams.push(category)
       }
 
-      // 查詢商品總數
+      // 計算總數
+      const countQuery = `
+        SELECT COUNT(*) as total 
+        FROM products p
+        WHERE ${whereConditions.join(' AND ')}
+      `
       const [countResult] = await db.query<CountResult[]>(
-        `SELECT COUNT(*) as total FROM products p ${whereClause}`,
-        params
+        countQuery,
+        queryParams
       )
-      const total = countResult[0].total
+      const total = countResult[0]?.total || 0
 
       // 查詢商品列表
-      const [products] = await db.query<Product[]>(
-        `SELECT 
-          p.*, 
-          c.category_name,
-          COUNT(pv.variant_id) as variants_count
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.category_id
-        LEFT JOIN product_variants pv ON p.product_id = pv.product_id
-        ${whereClause}
-        GROUP BY p.product_id
-        ORDER BY p.created_at DESC 
-        LIMIT ? OFFSET ?`,
-        [...params, limit, offset]
-      )
+      const productsQuery = `
+        SELECT 
+          p.product_id as id,
+          p.product_name as name,
+          p.description,
+          p.price,
+          p.stock,
+          p.category_id,
+          c.category_name as category_name,
+          p.status,
+          p.thumbnail,
+          p.created_at,
+          p.updated_at,
+          (SELECT COUNT(*) FROM product_variants WHERE product_id = p.product_id) as variant_count
+        FROM 
+          products p
+        LEFT JOIN
+          categories c ON p.category_id = c.category_id
+        WHERE 
+          ${whereConditions.join(' AND ')}
+        ORDER BY 
+          p.created_at DESC
+        LIMIT ? OFFSET ?
+      `
 
-      const response: ProductResponse = {
+      const [products] = await db.query(productsQuery, [
+        ...queryParams,
+        limit,
+        offset,
+      ])
+
+      // 構建響應
+      return NextResponse.json({
         success: true,
-        products,
+        products: Array.isArray(products) ? products : [],
         pagination: {
           total,
           page,
           limit,
           totalPages: Math.ceil(total / limit),
         },
-      }
-
-      return NextResponse.json(response)
+      })
     } catch (error) {
       console.error('獲取商品列表失敗:', error)
-      const response: ProductResponse = {
-        success: false,
-        message: '獲取商品列表失敗',
-      }
-      return NextResponse.json(response, { status: 500 })
+      return NextResponse.json(
+        { success: false, message: '獲取商品列表失敗' },
+        { status: 500 }
+      )
     }
   })
 )
