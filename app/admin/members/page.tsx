@@ -124,8 +124,17 @@ function MembersPage({ auth, can }: MembersPageProps) {
       setError(null)
 
       const response = await fetchApi('/api/admin/members')
+
+      // 處理多種可能的響應格式
       if (response.members && Array.isArray(response.members)) {
+        // 格式 1: { members: [...] }
         setMembers(response.members)
+      } else if (response.data && Array.isArray(response.data)) {
+        // 格式 2: { data: [...] }
+        setMembers(response.data)
+      } else if (Array.isArray(response)) {
+        // 格式 3: 直接是數組
+        setMembers(response)
       } else {
         console.error('返回的數據格式不正確:', response)
         showToast('error', '錯誤', '數據格式錯誤')
@@ -139,9 +148,6 @@ function MembersPage({ auth, can }: MembersPageProps) {
     }
   }
 
-  // 獲取 token
-  const getToken = () => Cookies.get('admin_token') || ''
-
   // 處理查看會員詳情
   const handleView = async (member: Member) => {
     setSelectedMember(member)
@@ -151,8 +157,14 @@ function MembersPage({ auth, can }: MembersPageProps) {
     try {
       const response = await fetchApi(`/api/admin/members/${member.user_id}`)
 
+      // 處理多種可能的響應格式
       if (response.member) {
         setMemberDetail(response.member)
+      } else if (response.data) {
+        setMemberDetail(response.data)
+      } else if (Object.keys(response).length > 0 && response.user_id) {
+        // 如果直接返回會員資料物件
+        setMemberDetail(response)
       } else {
         throw new Error('獲取會員詳情失敗')
       }
@@ -181,10 +193,9 @@ function MembersPage({ auth, can }: MembersPageProps) {
   }
 
   // 處理編輯表單變更
-  const handleEditFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target
+  const handleEditFormChange = (e: React.ChangeEvent<HTMLElement>) => {
+    const target = e.target as HTMLInputElement | HTMLSelectElement
+    const { name, value } = target
     setEditMember((prev) => ({
       ...prev,
       [name]: value,
@@ -642,10 +653,9 @@ function MembersPage({ auth, can }: MembersPageProps) {
   }
 
   // 處理表單欄位變更
-  const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target
+  const handleFormChange = (e: React.ChangeEvent<HTMLElement>) => {
+    const target = e.target as HTMLInputElement | HTMLSelectElement
+    const { name, value } = target
     setNewMember((prev) => ({
       ...prev,
       [name]: value,
@@ -749,12 +759,18 @@ function MembersPage({ auth, can }: MembersPageProps) {
         <div className="row mb-4">
           {memberStats.map((stat, index) => (
             <div className="col-md-4" key={index}>
-              <AdminCard
-                title={stat.title}
-                value={stat.count.toString()}
-                color={stat.color as any}
-                icon={stat.icon}
-              />
+              <AdminCard title={stat.title}>
+                <div className="d-flex align-items-center">
+                  <div
+                    className={`me-3 rounded p-3 bg-${stat.color} bg-opacity-10`}
+                  >
+                    {stat.icon}
+                  </div>
+                  <div>
+                    <h3 className="mb-0">{stat.count}</h3>
+                  </div>
+                </div>
+              </AdminCard>
             </div>
           ))}
         </div>
@@ -805,13 +821,14 @@ function MembersPage({ auth, can }: MembersPageProps) {
 
         <DataTable
           columns={columns}
-          data={filteredMembers}
+          data={members}
+          loading={loading}
+          searchable={true}
+          searchKeys={['user_name', 'user_email', 'user_number']}
           batchActions={batchActions}
-          pagination={true}
-          defaultSortKey="user_id"
-          defaultSortDirection="desc"
-          noDataMessage="沒有符合條件的會員"
-          rowsPerPageOptions={[10, 25, 50, 100]}
+          selectable={true}
+          actions={renderActions}
+          itemsPerPage={10}
         />
       </AdminSection>
 

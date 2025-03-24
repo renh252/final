@@ -1,171 +1,463 @@
-# 寵物領養平台導覽文檔
-> 版本：1.0
-> 最後更新：2025-03-18
-> 此文檔整合了專案的核心資訊，為 AI 提供高效參考。
->
-> **重要說明**: 本文檔是與 AI 溝通時唯一需要提供的文檔，已整合所有關鍵資訊。
+# 寵物領養平台規格書
 
-## 1. 專案概述
+> 版本: 1.1
+> 最後更新: 2025-03-24
+> 本文檔作為與 AI 溝通的唯一橋樑，整合了所有關鍵資訊
 
-毛孩之家 是一個綜合性的寵物領養和社區平台，包含以下主要功能：
+## 1. 系統概述
 
-1. **寵物領養資訊**展示和篩選
-2. **社群討論區**（論壇）
-3. **寵物用品電子商務**功能
-4. **捐款和公益活動**
-5. **會員管理系統**
-6. **後台管理系統**
+**毛孩之家** 是一個綜合性寵物領養與社區平台，旨在連接尋找家庭的寵物與潛在飼主，並提供寵物相關的商品與服務。系統包含以下主要功能模組：
 
-### 技術棧
+- 寵物領養資訊管理
+- 社群討論區
+- 寵物用品電子商務
+- 捐款與公益活動
+- 會員系統
+- 後台管理系統
 
-- **前端**: Next.js 14 (App Router), TypeScript, React-Bootstrap, CSS Modules
-- **後端**: Next.js API Routes, TypeScript
-- **資料庫**: MySQL (mysql2)
+## 2. 技術架構
+
+### 前端技術
+
+- **框架**: Next.js 14 (App Router)
+- **語言**: TypeScript
+- **UI 框架**: React-Bootstrap
+- **樣式**: CSS Modules
+- **狀態管理**: React Hooks
+- **圖示庫**: lucide-react
+
+### 後端技術
+
+- **API 架構**: Next.js API Routes
+- **資料庫連接**: mysql2
 - **認證**: JWT (jsonwebtoken), next-auth
-- **其他關鍵庫**: js-cookie, axios, react-hook-form, sharp, lucide-react
+- **安全**: 參數化查詢, 事務管理
 
-## 2. 核心功能開發狀態
+### 資料庫
 
-| 功能領域     | 狀態              | 說明                                                         |
-| ------------ | ----------------- | ------------------------------------------------------------ |
-| 寵物領養系統 | ✅ 基本功能已完成 | 包含寵物列表、詳情和領養流程                                 |
-| 社群討論區   | ✅ 基本功能已完成 | 帖子發布、回覆、點讚等功能                                   |
-| 寵物用品商城 | ✅ 基本功能已完成 | 商品管理、購物車、訂單系統                                   |
-| 會員管理系統 | ✅ 基本功能已完成 | 註冊、登入、個人資料管理                                     |
-| 後台管理系統 | ✅ 基本功能已完成 | 包含權限控制、數據管理功能                                   |
-| 預約系統     | ✅ 功能已完成     | 前台會員預約頁面與後台預約管理、日曆視圖、預約詳情查看已實現 |
-| 支付系統     | 🔄 開發中         | 綠界金流進行中，LINE Pay 待開發                              |
+- **類型**: MySQL
+- **關鍵表格**:
+  - 會員相關: `users`, `user_roles`, `admin_users`
+  - 寵物相關: `pets`, `pet_categories`, `pet_appointment`
+  - 商城相關: `products`, `categories`, `orders`, `order_items`
+  - 促銷相關: `promotions`, `promotion_products`
+  - 論壇相關: `posts`, `comments`, `bookmarks`
+  - 管理相關: `admin_operation_logs`
 
-## 3. 系統架構關鍵要點
+## 3. 核心功能規格
 
-### 後台權限系統
+### 3.1 寵物領養系統
 
-- **權限格式**:
-  - 超級管理員: `111` (不可修改此格式)
-  - 一般管理員: 冒號分隔格式 (如 `members:read`, `shop:products:read`)
-- **關鍵組件**:
-  - 權限管理模組: `app/admin/_lib/permissions.ts`
-  - 管理員側邊欄: `app/admin/components/Sidebar.tsx`
-- **權限流程**:
-  ```
-  權限系統關係圖
-  ┌────────────────────┐         ┌───────────────────┐
-  │  permissions.ts    │ ◄────── │    Sidebar.tsx    │
-  └───────┬────────────┘         └─────────┬─────────┘
-          │                                │
-          │         ┌───────────────────┐  │
-          └────────►│   AdminContext.tsx │◄─┘
-                    └────────┬──────────┘
-                             │
-                    ┌────────▼──────────┐
-                    │  verify/route.ts  │
-                    └───────────────────┘
-  ```
+#### 功能描述
 
-### 認證系統
+- 寵物資訊展示（品種、年齡、健康狀況、故事等）
+- 領養申請流程
+- 預約參觀系統
+- 寵物分類與搜尋功能
 
-- **用戶認證流程**:
-  ```
-  ┌────────────────┐         ┌───────────────────┐
-  │ login/route.ts │ ──────► │  jwt.ts (Token)   │
-  └───────┬────────┘         └─────────┬─────────┘
-          │                             │
-          │                             ▼
-          │                   ┌───────────────────┐
-          └──────────────────►│     auth.ts       │
-                              └─────────┬─────────┘
-                                        │
-                              ┌─────────▼─────────┐
-                              │ API 路由 (驗證)    │
-                              └───────────────────┘
-  ```
-- **認證機制**: JWT 令牌，支援明碼和哈希密碼的驗證機制
-- **安全要求**: 必須使用 httpOnly 和 secure Cookie 設置
+#### 資料模型
 
-### API 結構與規範
+- **Pets**: 寵物基本資訊
+- **PetCategories**: 寵物分類
+- **PetAppointment**: 預約資訊
 
-- **路徑規範**: 所有後台 API 位於`app/api/admin`目錄
-- **重要規則**:
-  - 使用 RESTful 風格設計
-  - 權限檢查必須實施
-  - 使用統一錯誤處理
-  - 前端使用`fetchApi`工具函數
-  - 嚴禁在 API 路由中直接編寫 SQL
-  - 禁止繞過權限檢查機制
+#### 預約流程
 
-### 資料庫結構
+1. 會員提交預約申請 (待審核)
+2. 管理員審核並確認/拒絕
+3. 確認後安排參觀時間
+4. 完成領養或取消
 
-- **關鍵規範**:
-  - 不得修改現有主鍵和外鍵關係
-  - 所有查詢必須使用參數化查詢
-  - 多表操作必須使用事務
-  - 必須妥善處理錯誤
-- **主要資料表**:
-  - `admin_operation_logs`: 管理員操作日誌
-  - `bank_transfer_details`: 銀行轉帳詳情
-  - `pets`: 寵物列表
-  - `bookmarks`: 使用者收藏貼文
-  - `cases`: 救援案例
-  - `categories`: 商品分類資訊
-    (其他表省略)
+### 3.2 社群討論區
 
-### 前端組件開發
+#### 功能描述
 
-- **開發規範**:
-  - 保持組件的單一職責
-  - 使用 TypeScript 定義 Props 和 State 類型
-  - 組件樣式必須與現有設計系統一致
-  - 修改現有組件時必須保持原有 Props 接口
-  - 後台組件必須與權限系統正確集成
-- **禁止事項**:
-  - 組件內直接修改全局狀態
-  - 使用內聯樣式替代統一樣式系統
-  - 未處理加載和錯誤狀態
-  - 引入新的 UI 框架或樣式系統(如果需要就詢問使用者)
+- 發帖、回覆、點讚功能
+- 話題分類與標籤系統
+- 熱門貼文推薦
+- 收藏功能
 
-### 預約系統架構
+#### 資料模型
 
-- **前台預約功能**:
-  - 會員預約列表: `app/member/appointments/page.tsx`
-  - 預約狀態追蹤: 支援四種狀態（待審核、已確認、已完成、已取消）
-  - 狀態流程: 會員提交預約 → 管理員審核 → 確認/拒絕 → 完成領養
-  - **新增功能**:
-    - 日曆視圖: 支援月、週、日三種檢視模式，根據預約狀態顯示不同顏色
-    - 預約詳情彈出視窗: 查看預約詳細資訊，可取消待審核的預約
-    - 表格/日曆視圖切換: 提供兩種不同的預約查看模式
-- **後台預約管理**:
+- **Posts**: 貼文內容
+- **Comments**: 評論資訊
+- **Bookmarks**: 收藏記錄
 
-  - 預約管理頁面: `app/admin/pets/appointments/page.tsx`
-  - 主要功能:
-    - 狀態篩選、搜尋、申請詳情查看、狀態更新
-    - 整合 DataTable 元件，支援排序、分頁、批量操作
-    - 提供表格和日曆兩種檢視模式
-  - 側邊欄整合: 整合在寵物管理選單下，提供快速訪問
-  - **新增功能**:
-    - DataTable 整合:
-      - 支援多欄位排序
-      - 內建分頁功能
-      - 批量操作（確認/拒絕）
-      - 搜尋功能（申請者/寵物名稱）
-    - 日曆視圖: 支援月、週、日三種檢視模式，根據預約狀態顯示不同顏色
-    - 表格/日曆視圖切換: 提供兩種不同的預約管理方式
-    - 預約詳情管理: 在彈出視窗中更新預約狀態
+### 3.3 寵物用品商城
 
-- **關鍵組件**:
+#### 功能描述
 
-  - 前台日曆組件: `app/member/_components/MemberAppointmentCalendar.tsx`
-  - 後台日曆組件: `app/admin/_components/FullCalendar.tsx`
-  - 後台表格組件: `app/admin/_components/DataTable.tsx`
+- 商品展示與搜尋
+- 購物車系統
+- 訂單管理
+- 評價系統
+- 折扣活動管理
 
-- **資料模型**:
-  - 主要表格: `pet_appointment`
-  - 關鍵欄位: 用戶 ID、寵物 ID、預約日期、時間、狀態、居住環境信息等
+#### 資料模型
 
-## 4. 與 AI 溝通指南
+- **Products**: 商品資訊
+- **Categories**: 商品分類
+- **Orders**: 訂單資訊
+- **OrderItems**: 訂單詳細項目
+- **Promotions**: 促銷活動
+- **PromotionProducts**: 活動關聯商品
 
-### AI 指令模板
+#### 折扣機制
 
-#### 新功能開發模板
+- 按商品分類設置折扣
+- 按單一商品設置折扣
+- 按時間範圍設置折扣期限
+- 折扣百分比計算方式
+
+### 3.4 會員系統
+
+#### 功能描述
+
+- 註冊、登入、登出
+- 個人資料管理
+- 訂單與預約歷史查詢
+- 收藏與關注功能
+
+#### 用戶角色
+
+- **一般會員**: 基本功能
+- **VIP 會員**: 享有額外優惠
+- **管理員**: 後台管理權限
+
+#### 認證流程
+
+1. 會員登入
+2. 後端驗證並簽發 JWT
+3. 前端存儲 Token 並用於後續請求
+4. 權限檢查與資源訪問控制
+
+### 3.5 後台管理系統
+
+#### 功能描述
+
+- 寵物資訊管理
+- 商品與訂單管理
+- 會員管理
+- 預約管理
+- 促銷活動管理
+- 內容審核
+
+#### 權限管理
+
+- **超級管理員**: 完全訪問權限 (權限碼: `111`)
+- **一般管理員**: 基於功能的細粒度權限 (格式: `module:action`)
+
+#### 權限格式示例
+
+- 寵物管理: `pets:read`, `pets:write`, `pets:delete`
+- 商品管理: `shop:products:read`, `shop:products:write`
+- 訂單管理: `shop:orders:read`, `shop:orders:process`
+
+## 4. API 設計規範
+
+### 4.1 通用 API 響應格式
+
+成功響應:
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "操作成功"
+}
+```
+
+錯誤響應:
+
+```json
+{
+  "success": false,
+  "message": "錯誤描述",
+  "error": "詳細錯誤信息"
+}
+```
+
+### 4.2 關鍵 API 端點
+
+#### 用戶認證
+
+- `POST /api/auth/login`: 用戶登入
+- `POST /api/auth/register`: 用戶註冊
+- `GET /api/auth/verify`: 驗證當前用戶
+
+#### 寵物管理
+
+- `GET /api/pets`: 獲取寵物列表
+- `GET /api/pets/{id}`: 獲取寵物詳情
+- `POST /api/appointment`: 創建預約
+
+#### 商品管理
+
+- `GET /api/products`: 獲取商品列表
+- `GET /api/products/{id}`: 獲取商品詳情
+- `POST /api/orders`: 創建訂單
+
+#### 促銷活動
+
+- `GET /api/admin/shop/promotions`: 獲取促銷活動列表
+- `GET /api/admin/shop/promotions/{pid}`: 獲取促銷活動詳情
+- `PUT /api/admin/shop/promotions/{pid}`: 更新促銷活動
+- `GET /api/admin/shop/promotions/{pid}/products`: 獲取活動關聯商品
+- `POST /api/admin/shop/promotions/{pid}/products`: 更新活動關聯商品
+
+### 4.3 API 安全規範
+
+- 所有 API 必須執行參數驗證
+- 管理員 API 必須進行權限檢查
+- 使用參數化查詢防止 SQL 注入
+- API 響應不得暴露敏感資訊
+- 複雜操作必須使用事務確保數據一致性
+
+## 5. 前端組件規範
+
+### 5.1 組件設計原則
+
+- 單一職責原則
+- 使用 TypeScript 定義 Props 和 State 類型
+- 組件風格與現有設計保持一致
+- 針對錯誤與加載狀態提供適當處理
+- 避免內聯樣式，優先使用 CSS Module
+
+### 5.2 關鍵組件
+
+#### 後台管理組件
+
+- `AdminPageLayout`: 後台頁面佈局
+- `DataTable`: 通用數據表格
+- `ModalForm`: 通用模態表單
+
+#### 模態表單組件接口
+
+```typescript
+interface ModalFormProps {
+  show: boolean
+  onHide: () => void
+  title: string
+  fields: FormField[]
+  onSubmit?: (formData: Record<string, any>) => Promise<void>
+  initialData?: Record<string, any>
+  submitText?: string
+  size?: 'sm' | 'lg' | 'xl'
+  children?: React.ReactNode
+  footer?: React.ReactNode
+}
+
+interface FormField {
+  name: string
+  label: string
+  type: string
+  placeholder?: string
+  required?: boolean
+  options?: { value: string; label: string }[]
+  validation?: (value: any) => string | null
+  value?: any
+  defaultValue?: any
+}
+```
+
+### 5.3 前端資料處理
+
+- 使用`fetchApi`工具函數處理 API 請求
+- 使用`useEffect`處理組件生命週期
+- 使用`useState`管理組件狀態
+- 敏感操作需要確認對話框
+- 表單提交需要加載指示器
+
+## 6. 資料庫設計
+
+### 6.1 關鍵表格結構
+
+#### 促銷活動相關表格
+
+**promotions**
+
+```sql
+CREATE TABLE promotions (
+  promotion_id INT AUTO_INCREMENT PRIMARY KEY,
+  promotion_name VARCHAR(255) NOT NULL,
+  promotion_description TEXT,
+  start_date DATE NOT NULL,
+  end_date DATE,
+  discount_percentage DECIMAL(5,2) NOT NULL,
+  photo VARCHAR(255),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+**promotion_products**
+
+```sql
+CREATE TABLE promotion_products (
+  promotion_product_id INT AUTO_INCREMENT PRIMARY KEY,
+  promotion_id INT NOT NULL,
+  product_id INT,
+  variant_id INT,
+  category_id INT,
+  FOREIGN KEY (promotion_id) REFERENCES promotions(promotion_id) ON DELETE CASCADE,
+  FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE CASCADE
+);
+```
+
+### 6.2 資料庫操作規範
+
+- 所有查詢必須使用參數化查詢
+- 多表操作必須使用事務
+- 確保正確的錯誤處理和回滾機制
+- 禁止直接在 API 路由中編寫 SQL 語句
+- 使用連接池管理資料庫連接
+
+## 7. 動態路由與參數處理
+
+### 7.1 Next.js 動態路由處理
+
+- 使用`[param]`格式定義動態路由
+- API 處理函數必須檢查`params`參數是否存在
+- 實施備用機制從 URL 直接解析參數
+- 類型聲明應使用可選參數格式：`{ params?: { id?: string } }`
+
+### 7.2 參數處理最佳實踐
+
+```typescript
+// 從URL解析參數的備用機制
+let pid: string | null = null
+
+// 嘗試從params獲取pid
+if (params && params.pid) {
+  pid = params.pid
+}
+// 如果params不可用，嘗試從URL解析
+else {
+  const urlParts = req.url.split('/')
+  pid = urlParts[urlParts.length - 1]
+  // 驗證參數有效性
+  if (!/^\d+$/.test(pid)) {
+    pid = null
+  }
+}
+
+// 參數驗證
+if (!pid) {
+  return NextResponse.json(
+    { success: false, message: '無效的ID' },
+    { status: 400 }
+  )
+}
+```
+
+## 8. React 狀態管理與防止無限渲染
+
+### 8.1 狀態更新最佳實踐
+
+- 使用函數式更新避免依賴循環
+- 小心管理 `useEffect` 的依賴項
+- 使用 `useRef` 存儲不需觸發渲染的值
+
+```jsx
+// 使用函數式更新
+setFormData((prev) => ({ ...prev, [name]: value }))
+
+// 使用 useRef 跨渲染追蹤值
+const prevPropsRef = useRef({})
+// 更新參考而不觸發重新渲染
+prevPropsRef.current = { ...props }
+
+// 在 useEffect 中使用參考比較
+useEffect(() => {
+  const prevProps = prevPropsRef.current
+  if (prevProps.value !== props.value) {
+    // 處理變更...
+  }
+}, [props.value])
+```
+
+### 8.2 防止無限渲染循環的策略
+
+1. **適當的依賴項管理**：
+
+   - 只包含真正需要監聽的依賴項
+   - 考慮使用 `useMemo` 和 `useCallback` 穩定引用
+
+2. **深度比較**：
+
+   - 使用 `JSON.stringify` 進行簡單的深度比較
+   - 複雜情況可使用專用的深比較庫
+
+3. **狀態更新順序**：
+   - 先更新引用值，再進行條件判斷
+   - 更新前保存舊值用於比較
+
+```jsx
+// 正確的更新順序
+const oldValue = propsRef.current.value
+propsRef.current.value = newValue
+
+// 基於舊值判斷
+if (oldValue !== newValue) {
+  // 安全地更新狀態
+}
+```
+
+### 8.3 React 列表渲染與 Key 處理
+
+- 確保提供穩定且唯一的 key
+- 處理可能為 null 或 undefined 的數據
+- 使用多層備用機制生成唯一 key
+
+```jsx
+{
+  items.map((item, index) => (
+    <ListItem key={item.id || `item-${parentId}-${index}`} data={item} />
+  ))
+}
+```
+
+## 9. 開發與維護指南
+
+### 9.1 開發流程
+
+1. **理解階段**: 先理解現有架構
+2. **設計階段**: 提出設計方案，確定修改範圍
+3. **實施階段**: 逐步實施，注意代碼質量
+4. **驗證階段**: 完整測試，確保功能正常
+
+### 9.2 常見問題與解決方案
+
+#### 無限渲染循環
+
+- 檢查`useEffect`依賴項
+- 使用函數式更新避免依賴循環
+- 確保條件判斷正確處理所有情況
+
+#### API 參數獲取失敗
+
+- 使用可選參數類型聲明
+- 實施 URL 解析備用機制
+- 增加日誌記錄便於追蹤問題
+
+#### React 列表渲染警告
+
+- 確保提供唯一且穩定的 key
+- 處理 null/undefined 值
+- 使用多層備用 ID 生成機制
+
+### 9.3 關鍵注意事項
+
+- 不得修改超級管理員「111」權限格式
+- 資料表名稱必須與資料庫一致
+- 確保移動端響應式設計
+- 保留現有 API 接口格式
+- 新功能必須與現有權限系統集成
+
+## 10. 與 AI 溝通指南
+
+### 10.1 功能開發請求模板
 
 ```
 任務：開發[功能名稱]
@@ -173,11 +465,11 @@
 1. 僅修改[指定檔案]
 2. 遵循[設計模式/規範]
 3. 確保不影響[現有功能]
-4. 實現方案必須與本文檔描述一致
+4. 實現方案必須與本規格書一致
 驗證方法：[如何驗證功能正常]
 ```
 
-#### 功能修復模板
+### 10.2 問題修復請求模板
 
 ```
 問題：[簡述問題]
@@ -189,64 +481,158 @@
 4. 說明如何驗證修復成功
 ```
 
-### 開發流程規範
+### 10.3 溝通效率建議
 
-每次開發必須遵循的標準流程：
+- 提供清晰的問題描述或功能需求
+- 明確指出相關的文件和代碼區域
+- 說明預期的行為和當前的行為
+- 包含任何相關的錯誤訊息或日誌
+- 優先使用本規格書中的專業術語
 
-1. **理解階段**：AI 必須先理解現有架構
-2. **設計階段**：提出設計方案，包括修改範圍和實現方式
-3. **實施階段**：按小步驟實施，每一步都需包含驗證方法
-4. **驗證階段**：提供完整的測試步驟
+### 10.4 示例請求
 
-## 5. 開發規範警告
+```
+問題：促銷活動編輯時出現無限渲染循環
+相關檔案：app/admin/_components/ModalForm.tsx, app/admin/shop/promotions/page.tsx
+修復要求：
+1. 分析useEffect依賴項和狀態更新邏輯
+2. 修改state更新方式，避免循環依賴
+3. 保持現有組件接口不變
+4. 測試編輯功能確保能正常保存且不出現Maximum update depth exceeded警告
+```
 
-所有開發活動必須嚴格遵循以下規範和限制：
+## 11. 項目常見問題與解決方案庫
 
-1. **權限系統**：禁止修改超級管理員「111」權限格式和檢查邏輯
-2. **API 實現**：禁止直接在 API 路由中編寫 SQL 語句或繞過權限驗證
-3. **資料庫操作**：必須使用參數化查詢和事務管理
-4. **目錄結構**：必須遵循分層架構，避免跨層級依賴
-5. **UI 開發**：保持組件接口和樣式一致性，避免內聯樣式
-6. **身份驗證**：遵循用戶身份驗證的最佳實踐，確保安全性
-7. **資料表名稱**：API 必須使用正確的資料表名稱，確保與資料庫結構一致，例如：
-   - 使用 `products` 而非 `shop_products`
-   - 使用 `orders` 而非 `shop_orders`
-   - 使用 `order_items` 而非 `shop_order_items`
-   - 使用 `categories` 而非 `shop_categories`
+### 11.1 Next.js 動態路由問題
 
-## 6. 功能開發成功標準檢查
+#### 問題：無法獲取動態路由參數
 
-### 權限系統修改檢查清單
+**症狀**：`Cannot destructure property 'pid' of 'params' as it is undefined`  
+**解決方案**：
 
-- [ ] 是否保留超級管理員「111」權限格式支持？
-- [ ] 是否維持與現有權限緩存機制兼容？
-- [ ] 修改是否僅限於明確指定的檔案範圍？
-- [ ] 是否提供了詳細的用戶驗證方法？
-- [ ] 是否確保了向後兼容性？
+```typescript
+export async function GET(
+  req: NextRequest,
+  { params }: { params?: { pid?: string } }
+) {
+  // 從URL解析參數的備用機制
+  let pid = null
+  if (params && params.pid) {
+    pid = params.pid
+  } else {
+    const urlParts = req.url.split('/')
+    for (let i = 0; i < urlParts.length; i++) {
+      if (urlParts[i] === 'promotions' && i + 1 < urlParts.length) {
+        const potentialPid = urlParts[i + 1].split('?')[0]
+        if (/^\d+$/.test(potentialPid)) {
+          pid = potentialPid
+          break
+        }
+      }
+    }
+  }
+  // 驗證參數
+  if (!pid) {
+    return NextResponse.json(
+      { success: false, message: '無效的ID' },
+      { status: 400 }
+    )
+  }
+}
+```
 
-### 身份驗證系統修改檢查清單
+### 11.2 React 渲染問題
 
-- [ ] 是否保留支援明碼和哈希密碼的驗證機制？
-- [ ] 是否正確處理不同的用戶狀態（正常/禁言/停用等）？
-- [ ] 是否使用參數化查詢避免 SQL 注入？
-- [ ] JWT 令牌是否包含必要的用戶資訊？
-- [ ] 是否遵循 Cookie 安全設置（httpOnly、secure 等）？
+#### 問題：無限渲染循環
 
-### 前端修改檢查清單
+**症狀**：`Maximum update depth exceeded`  
+**解決方案**：
 
-- [ ] 是否保留了現有的主題支持？
-- [ ] 是否維持與權限系統的正確整合？
-- [ ] 修改是否僅影響 UI 而不影響權限邏輯？
-- [ ] 是否兼容不同權限格式？
-- [ ] 是否處理了所有加載和錯誤狀態？
+```jsx
+// 先更新引用，再執行條件判斷
+const prevPropsRef = { ...propsRef.current }
+propsRef.current = {
+  show,
+  fields,
+  initialData,
+  initialized: prevPropsRef.initialized,
+}
 
-## 7. 可選參考文檔
+// 基於舊引用做判斷
+if (!prevPropsRef.initialized) {
+  propsRef.current.initialized = true
+  setFormData(processFormData(fields, initialData))
+}
+```
 
-在特定開發需求時，可按需參考以下具體文檔：
+#### 問題：重複 key 警告
 
-- `database-structure.md` - 僅在需要詳細資料庫表格定義和關係時參考
-- `api-structure.md` - 僅在開發新 API 端點或修改現有 API 時參考
-- `frontend-components.md` - 僅在開發複雜 UI 組件時參考
-- `admin-structure.md` - 僅在修改後台核心架構時參考
-- `auth-implementation-guide.md` - 僅在調整認證流程時參考
-- `db-structure-usage.md` - 僅在處理複雜資料庫查詢時參考
+**症狀**：`Encountered two children with the same key, 'cat-undefined'`  
+**解決方案**：
+
+```jsx
+{
+  categories.map((category, parentIndex) => (
+    <Accordion.Item
+      key={`parent-cat-${category.category_id || `parent-${parentIndex}`}`}
+      eventKey={`cat-${category.category_id || `parent-${parentIndex}`}`}
+    >
+      {subCategories.map((subCategory, index) => (
+        <div
+          key={`sub-cat-${
+            subCategory.category_id || `sub-${parentIndex}-${index}`
+          }`}
+        >
+          {/* 內容 */}
+        </div>
+      ))}
+    </Accordion.Item>
+  ))
+}
+```
+
+### 11.3 資料庫操作問題
+
+#### 問題：資料庫事務失敗
+
+**症狀**：部分操作成功但整體失敗  
+**解決方案**：
+
+```typescript
+let connection = null
+try {
+  connection = await db.getConnection()
+  await connection.beginTransaction()
+
+  // 執行多個操作...
+
+  await connection.commit()
+} catch (error) {
+  if (connection) await connection.rollback()
+  throw error
+} finally {
+  if (connection) connection.release()
+}
+```
+
+## 12. 未來擴展規劃
+
+### 12.1 待完成功能
+
+- **支付系統整合**: 綠界金流 (進行中)
+- **LINE Pay 支付**: 規劃中
+- **多語言支持**: 規劃中
+- **高級搜索功能**: 規劃中
+- **數據分析儀表板**: 規劃中
+
+### 12.2 技術改進方向
+
+- 引入單元測試和集成測試
+- 優化圖片處理和 CDN 整合
+- 改進 SEO 策略
+- 提升頁面加載性能
+- 強化資料庫查詢優化
+
+---
+
+本規格書作為寵物領養平台的全面指南，涵蓋了系統架構、功能設計、技術規範和開發指南。在後續的開發和維護過程中，所有變更和新功能都應參照本文檔，確保系統的一致性和穩定性。
