@@ -72,16 +72,21 @@
 
 #### 功能描述
 
-- 發帖、回覆、點讚功能
-- 話題分類與標籤系統
+- 發文、留言、樹狀回覆、按讚功能
+- 話題分類、標籤、搜尋功能
 - 熱門貼文推薦
 - 收藏功能
+- 即時聊天室
 
 #### 資料模型
 
-- **Posts**: 貼文內容
-- **Comments**: 評論資訊
-- **Bookmarks**: 收藏記錄
+- **forum_posts**: 貼文列表個別貼文
+- **article_favorites**: 收藏貼文
+- **forum_likes**: 貼文按讚
+- **forum_categories**: 論壇文章分類
+- **forum_tags**: 論壇文章標籤
+- **forum_comments**: 留言
+- **bookmarks**: 收藏記錄
 
 ### 3.3 寵物用品商城
 

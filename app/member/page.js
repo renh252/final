@@ -1,17 +1,13 @@
-//app/member/page.js
+//app\member\page.js
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import styles from "./member.module.css";
-import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function MemberPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-  const [userData, setUserData] = useState(null); // 新增 userData 狀態
-  const [isEditing, setIsEditing] = useState(false);// 初始化表單資料
+  const [userData, setUserData] = useState(null); // 保存使用者資料
+  const [isEditing, setIsEditing] = useState(false); // 編輯狀態
   const [formData, setFormData] = useState({
     user_name: '',
     user_number: '',
@@ -19,40 +15,38 @@ export default function MemberPage() {
     user_address: '',
     user_level: '',
   });
-  const [originalData, setOriginalData] = useState(null); // 原始資料狀態
+
+  const formatDate = (date) => {
+    const formattedDate = new Date(date);
+    return formattedDate.toISOString().split('T')[0]; // 格式化成 yyyy-MM-dd
+  };
 
   useEffect(() => {
-    if (!user && !loading) {
-      router.push('/member/MemberLogin/login');
-    }
-  }, [user, loading, router]);
-
-  useEffect(() => {
+    // 當頁面載入時，獲取使用者資料
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token'); // token 被存儲在 localStorage 中
         const response = await fetch('/api/user', {
+          method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+            Authorization: `Bearer ${token}`, // 設置 Authorization 標頭
+          },
+        }); 
+        // /api/user 是獲取使用者資料的 API
         if (response.ok) {
           const data = await response.json();
-          setUserData(data);
-          setFormData(data);// 初始化表單資料
-          setOriginalData(data); // 儲存原始資料
+          setUserData(data); // 更新使用者資料
+          setFormData(data); // 初始化表單資料
         } else {
-          console.error('Failed to fetch user data');
+          console.error('獲取使用者資料失敗:', response.statusText);
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('錯誤:', error.message);
       }
     };
 
-    if (user && !loading) {
-      fetchUserData();
-    }
-  }, [user, loading]);
+    fetchUserData();
+  }, []);
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -60,74 +54,37 @@ export default function MemberPage() {
 
   const handleCancelClick = () => {
     setIsEditing(false);
-    setFormData(originalData); // 還原為原始資料
-  };
-
-
-  const handleNicknameChange = async (event) => {
-    const newNickname = event.target.value;
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/user/updateNickname', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ nickname: newNickname }),
-      });
-      if (response.ok) {
-        // 更新 Context 中的 user 資料
-        const updatedUser = { ...user, nickname: newNickname };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        // 觸發重新渲染，確保頁面顯示最新暱稱 (如果你的 AuthContext 有提供更新user的方法，可以使用context提供的方法更新)
-      } else {
-        throw new Error('Failed to update nickname');
-      }
-    } catch (error) {
-      console.error('Error updating nickname:', error);
-    }
+    setFormData(userData); // 還原原本的使用者資料
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch('/api/user/update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
+
       if (response.ok) {
-        alert('資料更新成功！');
-        setUserData(formData); // 更新顯示的資料
-        
+        const updatedData = await response.json();
+        setUserData(updatedData); // 更新使用者資料
         setIsEditing(false);
       } else {
-        alert('資料更新失敗！');
+        console.error('更新失敗');
       }
     } catch (error) {
-      console.error('Error updating user data:', error);
-      alert('發生錯誤，請稍後再試！');
+      console.error('更新使用者資料失敗:', error.message);
     }
   };
-
-  if (loading) {
-    return <div>Loading...</div>; // 顯示加載指示器
-  }
-
-
-  if (!user) {
-    return null;
-  }
 
   return (
     <>
@@ -154,13 +111,27 @@ export default function MemberPage() {
               <div className={styles.profile_group}>
                 {isEditing ? (
                   <>
-                    <label className={styles.form_label}>姓名：<input type="text" name="user_name" value={formData.user_name} onChange={handleChange} /></label>
+                    <label className={styles.form_label}>
+                      姓名：
+                      <input type="text" name="user_name" value={formData.user_name} onChange={handleChange} />
+                    </label>
                     <hr />
-                    <label className={styles.form_label}>電話：<input type="text" name="user_number" value={formData.user_number} onChange={handleChange} /></label>
+                    <label className={styles.form_label}>
+                      電話：
+                      <input type="text" name="user_number" value={formData.user_number} onChange={handleChange} />
+                    </label>
                     <hr />
-                    <label className={styles.form_label}>生日：<input type="date" name="user_birthday" value={formData.user_birthday} onChange={handleChange} /></label>
+                    <label className={styles.form_label}>
+                      生日：
+                      <input type="date" name="user_birthday" 
+                      value={formatDate(formData.user_birthday)} 
+                      onChange={handleChange}  />
+                    </label>
                     <hr />
-                    <label className={styles.form_label}>地址：<input type="text" name="user_address" value={formData.user_address} onChange={handleChange} /></label>
+                    <label className={styles.form_label}>
+                      地址：
+                      <input type="text" name="user_address" value={formData.user_address} onChange={handleChange} />
+                    </label>
                   </>
                 ) : (
                   <>
@@ -170,7 +141,7 @@ export default function MemberPage() {
                     <hr />
                     <label className={styles.form_label}>生日：{userData?.user_birthday}</label>
                     <hr />
-                    <label className={styles.form_label}>論壇ID：{userData?.user_id}</label>
+                    <label className={styles.form_label}>論壇ID：{userData?.user_nickname}</label>
                     <hr />
                     <label className={styles.form_label}>地址：{userData?.user_address}</label>
                     <hr />
