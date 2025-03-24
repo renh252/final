@@ -5,6 +5,7 @@ import styles from './Register2.module.css';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function Register2Page() {
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
@@ -15,17 +16,24 @@ export default function Register2Page() {
   const [birthday, setBirthday] = useState('');
   const [address, setAddress] = useState('');
 
+  const validatePhoneNumber = (phoneNumber) => {
+    const phoneRegex = /^09\d{8}$/;
+    return phoneRegex.test(phoneNumber);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     let errors = []; // 儲存錯誤訊息的陣列
-  
+
     // 必填欄位驗證
     if (!name) {
       errors.push('請填寫姓名欄位');
     }
     if (!phone) {
       errors.push('請填寫電話欄位');
+    }else if (!validatePhoneNumber(phone)) {
+      errors.push('電話號碼格式不正確，請輸入有效的台灣手機號碼');
     }
     if (!birthday) {
       errors.push('請填寫生日欄位');
@@ -33,24 +41,25 @@ export default function Register2Page() {
     if (!address) {
       errors.push('請填寫地址欄位');
     }
-  
+
     // 如果有錯誤，一次性顯示所有錯誤訊息
     if (errors.length > 0) {
       alert(errors.join('\n')); // 使用換行符號連接錯誤訊息
       return;
     }
-  
+
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch('/api/member/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password, name, phone, birthday, address }),
       });
-  
+
       const data = await response.json();
-  
+      console.log('伺服器返回資料:', data);
+
       if (response.ok) {
         alert(data.message);
         window.location.href = '/member/MemberLogin/login';
@@ -61,6 +70,10 @@ export default function Register2Page() {
       console.error('註冊錯誤:', error);
       alert('註冊失敗，請稍後重試');
     }
+  };
+
+  const handleGoBack = () => {
+    router.push('/member/MemberLogin/register');
   };
 
   return (
@@ -129,16 +142,16 @@ export default function Register2Page() {
               required
             />
           </div>
-          <div className={styles.form_button}>
-            <button
-              className="button"
-              style={{ width: '200px', height: '80px', fontSize: '30px' }}
-              type="submit"
-            >
-              完成
-            </button>
-          </div>
         </form>
+
+        <div className={styles.form_button}>
+        <button className="button" onClick={handleGoBack}>
+          回上一步
+        </button>
+        <button className="button" onClick={handleSubmit}>
+          完成
+        </button>
+        </div>
       </div>
     </>
   );
