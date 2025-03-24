@@ -48,7 +48,6 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') || 'all'
     const speciesId = searchParams.get('species_id')
-    const species = searchParams.get('species')
     const region = searchParams.get('region')
     const storeId = searchParams.get('storeId') || searchParams.get('store')
     const breed = searchParams.get('breed')
@@ -139,8 +138,8 @@ export async function GET(request) {
       // 獲取熱門寵物 (收藏數量最多的)
       const [popularPets] = await connection.execute(`
         SELECT p.id, p.name, p.species, p.variety, p.main_photo, p.gender,
-               p.store_id, p.birthday, ps.address as store_address,
-               COUNT(pl.pet_id) as like_count
+              p.store_id, p.birthday, ps.address as store_address,
+              COUNT(pl.pet_id) as like_count
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
         LEFT JOIN pets_like pl ON p.id = pl.pet_id
