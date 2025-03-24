@@ -26,16 +26,38 @@ export default function CartPage() {
   const userId = user?.id
   // 獲取購物車數據
   const { data, error } = useSWR(userId ? `/api/shop/cart?userId=${userId}` : null, fetcher)
-    
-    // 用戶驗證
-    if (loading) return <div>載入中...</div>
-    if (!user) return (
-    <div>
-      <p>請先登入</p>
-      <Link href="/member/MemberLogin/login">前往登入會員
-      </Link>
-    </div>)
-  
+
+  // 計算總金額和總折扣
+  const { totalAmount, totalDiscount, totalOriginalPrice } = useMemo(() => {
+    if (!data?.data) return { totalAmount: 0, totalDiscount: 0, totalOriginalPrice: 0 }
+    return data.data.reduce(
+      (acc, item) => {
+        const originalPrice = item.price * item.quantity
+        const discountedPrice = item.promotion
+          ? Math.ceil(
+              (item.price * (100 - item.promotion.discount_percentage)) / 100
+            ) * item.quantity
+          : originalPrice
+
+        acc.totalOriginalPrice += originalPrice
+        acc.totalAmount += discountedPrice
+        acc.totalDiscount += originalPrice - discountedPrice
+
+        return acc
+      },
+      { totalAmount: 0, totalDiscount: 0, totalOriginalPrice: 0 }
+    )
+  }, [data])  
+
+  // 用戶驗證
+  if (loading) return <div>載入中...</div>
+  if (!user) return (
+  <div>
+    <p>請先登入</p>
+    <Link href="/member/MemberLogin/login">前往登入會員
+    </Link>
+  </div>)
+
 
 
   // 清除購物車
@@ -132,28 +154,7 @@ export default function CartPage() {
     })
   }
 
-  // 計算總金額和總折扣
-  const { totalAmount, totalDiscount, totalOriginalPrice } = useMemo(() => {
-    if (!data?.data)
-      return { totalAmount: 0, totalDiscount: 0, totalOriginalPrice: 0 }
-    return data.data.reduce(
-      (acc, item) => {
-        const originalPrice = item.price * item.quantity
-        const discountedPrice = item.promotion
-          ? Math.ceil(
-              (item.price * (100 - item.promotion.discount_percentage)) / 100
-            ) * item.quantity
-          : originalPrice
 
-        acc.totalOriginalPrice += originalPrice
-        acc.totalAmount += discountedPrice
-        acc.totalDiscount += originalPrice - discountedPrice
-
-        return acc
-      },
-      { totalAmount: 0, totalDiscount: 0, totalOriginalPrice: 0 }
-    )
-  }, [data])
 
   // 前往结帳"按钮的点击事件
   const handleCheckout = () => {
