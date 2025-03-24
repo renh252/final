@@ -36,9 +36,9 @@ export default function RecordPage({
   const { data, error } = useSWR(fetchUrl ? fetchUrl : null, (url) =>
     fetch(url).then((res) => res.json())
   )
-useEffect(() => {
-  console.log('fetchUrl:', fetchUrl)
-}, [fetchUrl])
+  useEffect(() => {
+    console.log('fetchUrl:', fetchUrl)
+  }, [fetchUrl])
 
   const updateFilter = (key, value) => {
     setFilterValues((prev) => ({ ...prev, [key]: value }))
@@ -107,7 +107,11 @@ useEffect(() => {
             filteredRecords.map((record) => (
               <List
                 key={record[recordKeyField]}
-                title={`編號：${record.trade_no || record[recordKeyField]}`}
+                title={`編號：${
+                  record.retry_trade_no ||
+                  record.trade_no ||
+                  record[recordKeyField]
+                }`}
                 body={formatRecord(record)}
                 onClick={() => {
                   if (record.trade_no) {

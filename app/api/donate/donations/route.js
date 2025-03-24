@@ -7,8 +7,8 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url)
     const connection = await db.getConnection()
     const user_id = searchParams.get('user_id')
-    console.log('user id: ', user_id);
-    
+    console.log('user id: ', user_id)
+
     if (!user_id) {
       return NextResponse.json({ error: '缺少使用者 ID' }, { status: 400 })
     }
@@ -18,7 +18,11 @@ export async function GET(request) {
       `
       SELECT * FROM donations 
       WHERE user_id = ?
+      AND trade_no NOT IN (
+      SELECT retry_trade_no FROM donations WHERE retry_trade_no IS NOT NULL
+      )
       ORDER BY create_datetime DESC
+
       `,
       [user_id]
     )
