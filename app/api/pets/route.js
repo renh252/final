@@ -297,117 +297,109 @@ export async function GET(request) {
       })
     }
 
-    // 獲取寵物資料 - 使用 species 欄位篩選，添加分頁功能
-    if (type === 'all' || type === 'pets') {
-      let conditions = []
-      let params = []
+    // 獲取寵物資料
+    if (type === 'pets') {
+      // 構建查詢條件
+      const conditions = []
+      const queryParams = []
 
-      // 物種篩選 - 直接使用 species 欄位
-      if (species) {
-        conditions.push(`
-          CASE 
-            WHEN ? = 'dog' THEN p.species = '狗'
-            WHEN ? = 'cat' THEN p.species = '貓'
-            ELSE p.species != '狗' AND p.species != '貓'
-          END
-        `)
-        params.push(species, species)
-      } else if (speciesId) {
-        conditions.push(`
-          CASE 
-            WHEN ? = '1' THEN p.species = '狗'
-            WHEN ? = '2' THEN p.species = '貓'
-            ELSE p.species != '狗' AND p.species != '貓'
-          END
-        `)
-        params.push(speciesId, speciesId)
+      // 篩選條件: 物種
+      if (speciesId) {
+        conditions.push(
+          `CASE 
+            WHEN ? = '1' THEN species = '狗'
+            WHEN ? = '2' THEN species = '貓'
+            ELSE species != '狗' AND species != '貓'
+          END`
+        )
+        queryParams.push(speciesId, speciesId)
       }
 
-      // 品種篩選
+      // 篩選條件: 品種
       if (breed) {
-        conditions.push('p.variety = ?')
-        params.push(breed)
+        conditions.push('variety LIKE ?')
+        queryParams.push(`%${breed}%`)
       }
 
-      // 地區篩選
+      // 篩選條件: 地區
       if (region) {
-        conditions.push('ps.address LIKE ?')
-        params.push(`${region}%`)
+        conditions.push('SUBSTRING(ps.address, 1, 3) = ?')
+        queryParams.push(region)
       }
 
-      // 商店篩選
+      // 篩選條件: 商店
       if (storeId) {
         conditions.push('p.store_id = ?')
-        params.push(storeId)
+        queryParams.push(storeId)
       }
 
-      // 構建WHERE子句
-      const whereClause =
-        conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+      // 排除已領養的寵物
+      const excludeAdopted = searchParams.get('excludeAdopted') === 'true'
+      if (excludeAdopted) {
+        conditions.push('p.is_adopted = 0')
+      }
 
-      // 計算總記錄數
-      const countQuery = `
-        SELECT COUNT(*) as total 
+      // 組合查詢條件
+      const whereClause = conditions.length
+        ? `WHERE ${conditions.join(' AND ')}`
+        : ''
+
+      // 查詢總數
+      const [countResult] = await connection.execute(
+        `
+        SELECT COUNT(*) as total
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
         ${whereClause}
-      `
-      const [countResult] = await connection.execute(countQuery, params)
+      `,
+        queryParams
+      )
       const total = countResult[0].total
 
-      // 構建數據查詢
-      let query = `
+      // 查詢寵物列表
+      const [pets] = await connection.execute(
+        `
         SELECT 
-          p.*,
-          p.species as species_name,
-          p.variety as breed_name,
-          ps.name as store_name,
-          ps.address as store_address,
-          COUNT(pl.pet_id) as like_count
+          p.id, p.name, p.species, p.variety, p.main_photo, p.gender, 
+          p.birthday, p.is_adopted,
+          p.store_id, ps.name as store_name, ps.address as store_address,
+          ps.lat as store_lat, ps.lng as store_lng, ps.phone as store_phone,
+          SUBSTRING(ps.address, 1, 3) as region
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
-        LEFT JOIN pets_like pl ON p.id = pl.pet_id
         ${whereClause}
-        GROUP BY p.id 
         ORDER BY p.created_at DESC
-      `
+        LIMIT ${pageSize} OFFSET ${offset}
+      `,
+        queryParams
+      )
 
-      // 添加分頁限制
-      if (type === 'pets') {
-        query += ` LIMIT ${pageSize} OFFSET ${offset}`
-      }
-
-      const [pets] = await connection.execute(query, params)
-
-      // 處理寵物數據
-      const processedPets = pets.map(processPetData)
-
-      // 如果有用戶ID，獲取收藏狀態
+      // 如果提供了 userId，獲取該用戶的收藏信息
+      let userFavorites = {}
       if (userId) {
-        // 獲取用戶收藏信息
         const [favorites] = await connection.execute(
           'SELECT pet_id FROM pets_like WHERE user_id = ?',
           [userId]
         )
 
-        const favoriteIds = favorites.map((f) => f.pet_id)
-
-        // 在寵物列表中標記收藏狀態
-        processedPets.forEach((pet) => {
-          pet.isFavorite = favoriteIds.includes(pet.id)
-        })
+        userFavorites = favorites.reduce((acc, fav) => {
+          acc[fav.pet_id] = true
+          return acc
+        }, {})
       }
 
-      responseData.pets = processedPets
+      // 處理寵物數據並添加收藏狀態
+      const processedPets = pets.map((pet) => ({
+        ...processPetData(pet),
+        isFavorite: userFavorites[pet.id] || false,
+      }))
 
-      // 添加分頁信息
-      if (type === 'pets') {
-        responseData.pagination = {
-          total,
-          page,
-          pageSize,
-          totalPages: Math.ceil(total / pageSize),
-        }
+      responseData.pets = processedPets
+      responseData.pagination = {
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
       }
     }
 
@@ -427,11 +419,11 @@ export async function GET(request) {
     if (type === 'latest') {
       const limit = parseInt(searchParams.get('limit') || '5')
 
-      const [latestPets] = await connection.execute(`
+      const [latestPets] = await connection.execute(
+        `
         SELECT 
-          p.*,
-          p.species as species_name,
-          p.variety as breed_name,
+          p.id, p.name, p.species, p.variety, p.main_photo, p.gender, 
+          p.birthday, p.store_id, p.is_adopted,
           ps.name as store_name,
           ps.address as store_address,
           COUNT(pl.pet_id) as like_count
@@ -441,7 +433,8 @@ export async function GET(request) {
         GROUP BY p.id 
         ORDER BY p.created_at DESC
         LIMIT ${limit}
-      `)
+        `
+      )
 
       // 處理寵物數據
       const processedPets = latestPets.map(processPetData)
@@ -482,28 +475,93 @@ export async function POST(request) {
     const body = await request.json()
     const { userId, petId, action } = body
 
-    if (!userId || !petId || !action) {
-      return NextResponse.json({ error: '缺少必要參數' }, { status: 400 })
+    // 驗證必要參數
+    if (!userId || !petId || !['add', 'remove'].includes(action)) {
+      return NextResponse.json(
+        { success: false, message: '無效的請求參數' },
+        { status: 400 }
+      )
     }
 
     connection = await pool.getConnection()
 
+    // 如果是添加收藏
     if (action === 'add') {
-      await connection.execute(
-        'INSERT INTO pets_like (user_id, pet_id) VALUES (?, ?)',
-        [userId, petId]
-      )
-    } else if (action === 'remove') {
+      try {
+        // 檢查該收藏是否已存在
+        const [existingLike] = await connection.execute(
+          'SELECT * FROM pets_like WHERE user_id = ? AND pet_id = ?',
+          [userId, petId]
+        )
+
+        // 如果已經存在，返回成功
+        if (existingLike && existingLike.length > 0) {
+          return NextResponse.json({
+            success: true,
+            message: '已經收藏過此寵物',
+          })
+        }
+
+        // 檢查寵物是否存在
+        const [petResult] = await connection.execute(
+          'SELECT id, is_adopted FROM pets WHERE id = ?',
+          [petId]
+        )
+
+        // 如果寵物不存在
+        if (!petResult || petResult.length === 0) {
+          return NextResponse.json(
+            { success: false, message: '寵物不存在或ID無效' },
+            { status: 404 }
+          )
+        }
+
+        // 如果寵物已被領養
+        if (petResult[0].is_adopted === 1) {
+          return NextResponse.json(
+            { success: false, message: '此寵物已被領養，無法收藏' },
+            { status: 400 }
+          )
+        }
+
+        // 插入新的收藏記錄
+        await connection.execute(
+          'INSERT INTO pets_like (user_id, pet_id) VALUES (?, ?)',
+          [userId, petId]
+        )
+
+        return NextResponse.json({ success: true, message: '成功添加收藏' })
+      } catch (error) {
+        console.error('收藏寵物時發生錯誤:', error)
+        return NextResponse.json(
+          {
+            success: false,
+            message: '處理收藏時發生錯誤',
+            error: error.message,
+          },
+          { status: 500 }
+        )
+      }
+    }
+
+    // 如果是移除收藏
+    if (action === 'remove') {
+      // 刪除收藏記錄
       await connection.execute(
         'DELETE FROM pets_like WHERE user_id = ? AND pet_id = ?',
         [userId, petId]
       )
+
+      return NextResponse.json({ success: true, message: '成功移除收藏' })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Database error:', error)
-    return NextResponse.json({ error: '資料庫錯誤' }, { status: 500 })
+    console.error('處理寵物收藏時發生錯誤:', error)
+    return NextResponse.json(
+      { success: false, message: '伺服器錯誤' },
+      { status: 500 }
+    )
   } finally {
     if (connection) {
       connection.release()
