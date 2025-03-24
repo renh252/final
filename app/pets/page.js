@@ -34,6 +34,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
 } from 'react-icons/fa'
+import { useAuth } from '@/app/context/AuthContext'
 
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
@@ -325,6 +326,9 @@ export default function PetsPage() {
   const popularRef = useRef(null)
   const fullMapRef = useRef(null)
 
+  // 使用 useAuth 獲取用戶信息
+  const { user, isAuthenticated } = useAuth()
+
   // 狀態管理
   const [selectedSpecies, setSelectedSpecies] = useState('')
   const [selectedBreed, setSelectedBreed] = useState('')
@@ -409,7 +413,15 @@ export default function PetsPage() {
     if (selectedStore) params.set('store', selectedStore)
     params.set('page', currentPage.toString())
     params.set('pageSize', itemsPerPage.toString())
-    params.set('userId', '1') // 暫時hardcode userId=1
+
+    // 添加用戶ID參數（如果已登入）
+    if (user && user.id) {
+      params.set('userId', user.id.toString())
+    }
+
+    // 添加過濾參數，排除已領養的寵物
+    params.set('excludeAdopted', 'true')
+
     return `/api/pets?${params.toString()}`
   }, fetcher)
 
@@ -883,7 +895,17 @@ export default function PetsPage() {
       event.preventDefault()
       event.stopPropagation()
 
-      const userId = 1 // 暫時hardcode userId=1
+      // 檢查用戶是否已登入
+      if (!isAuthenticated || !user) {
+        // 如果未登入，顯示提示並導向登入頁面
+        alert('請先登入才能將寵物加入收藏')
+        // 儲存當前頁面路徑，以便登入後返回
+        sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+        window.location.href = '/member/MemberLogin/login'
+        return
+      }
+
+      const userId = user.id
       const newFavoriteStatus = !favorites[petId]
 
       try {
@@ -913,7 +935,7 @@ export default function PetsPage() {
         console.error('收藏操作錯誤:', error)
       }
     },
-    [favorites, debouncedMutatePets]
+    [favorites, debouncedMutatePets, user, isAuthenticated]
   )
 
   // 新增抽屜狀態控制
