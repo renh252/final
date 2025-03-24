@@ -9,6 +9,7 @@ import styles from '@/app/shop/shop.module.css'
 import Card from '@/app/_components/ui/Card'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import { FaRegHeart, FaHeart } from 'react-icons/fa'
+import { useRouter } from 'next/navigation'
 // auth
 import { useAuth } from '@/app/context/AuthContext'
 
@@ -21,11 +22,20 @@ const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function PetsPage() {
   const { user, isAuthenticated } = useAuth()
+  const router = useRouter()  
+  const [searchTerm, setSearchTerm] = useState('')
+  // 处理搜索按钮点击
+  const handleSearch = (e) => {
+    e.preventDefault()  // 防止表单默认提交行为
+    if (searchTerm.trim()) {
+      // 使用 encodeURIComponent 来正确处理 URL 中的特殊字符
+      router.push(`/shop/search?q=${encodeURIComponent(searchTerm.trim())}`)
+    }
+  }
 
-  // 卡片滑動-------------------------------
+  // 卡片滑動
   const promotionRef = useRef({})
   const categoryRefs = useRef({})
-
   const scroll = (direction, ref) => {
     const container = ref.current
     const cardWidth = 280 // 卡片寬度
@@ -94,7 +104,6 @@ export default function PetsPage() {
 
   // 获取数据
   const promotions = data.promotions
-  const promotion_products = data.promotion_products
   const categories = data.categories
   const products = data.products
   const product_like = data.product_like || []
@@ -139,8 +148,18 @@ export default function PetsPage() {
   return (
     <>
       {/* main */}
-      <FirstPageNav />
       <main className={styles.main}>
+      {/* search */}
+      <form onSubmit={handleSearch} className={styles.search}>
+        <input 
+          type="search" 
+          placeholder="搜尋商品" 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <button type="submit" className='button'>搜尋</button>
+      </form>
+      <FirstPageNav />
         <div className={styles.contains}>
           {/* 促銷區 */}
           {promotions.map((promotion) => {
