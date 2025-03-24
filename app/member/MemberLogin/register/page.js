@@ -35,10 +35,7 @@ export default function RegisterPage() {
     }
 
     // 導航到 register2 頁面，並傳遞資料
-    router.push({
-      pathname: '/member/MemberLogin/register2',
-      query: { email, password }, // 將 email 和 password 以 query string 傳遞
-    });
+    router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
   };
 
   return (
