@@ -21,7 +21,7 @@ const ForumHeader: React.FC<ForumHeaderProps> = ({
     <div className={`${styles.forumHeader} text-white p-4 mb-4`}>
       <Row className="align-items-center">
         <Col md={8}>
-          <h1 className="fw-bold mb-2">寵物論壇</h1>
+          <h1 className="fw-bold mb-2">「毛孩之家」寵物討論區</h1>
           <p className="mb-0">
             分享您的寵物故事、照片和經驗，與其他寵物愛好者交流。
           </p>
