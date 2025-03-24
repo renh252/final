@@ -7,10 +7,9 @@ import Link from 'next/link'
 import ProductMenu from '@/app/shop/_components/productMenu'
 // style
 import styles from '@/app/shop/shop.module.css'
-import cid_styles from './cid.module.css'
+import cid_styles from '@/app/shop/categories/[cidParent]/[cid]/cid.module.css'
 // card
 import Card from '@/app/_components/ui/Card'
-import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import { FaArrowLeft, FaRegHeart, FaHeart } from 'react-icons/fa'
 
 // components
@@ -28,25 +27,6 @@ export default function CidPage(props) {
   const cidParent = params?.cidParent
   const cid = params?.cid
   const { user, isAuthenticated } = useAuth()
-
-  // card愛心狀態
-  /*const initState = Products.map((v) => {
-    return { ...v, fav: false }
-  })
-  const [products, setproducts] = useState(initState)  
-  const onToggleFav = (product_id) => {
-    const nextProduct = products.map((v) => {
-      if (v.id == product_id) {
-        return { ...v, fav: !v.fav }
-      } else {
-        return v
-      }
-    })
-    setproducts(nextProduct)
-  }
-*/
-
-  // ----------------------------
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error, mutate } = useSWR('/api/shop', fetcher)
@@ -120,7 +100,6 @@ export default function CidPage(props) {
   const isValidCategory =
     currentCategory && currentCategory.parent_id == cidParent
 
-  // const product_like = data.product_like
 
   // -----------------
 
