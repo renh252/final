@@ -14,6 +14,7 @@ export async function POST(req) {
     donorName,
     donorPhone,
     donorEmail,
+    retry_trade_no,
     invoiceMethod,
     invoice,
     mobileBarcode,
@@ -38,23 +39,16 @@ export async function POST(req) {
   let tableInsertResult = null // 存放 SQL 插入結果
 
   // 產生 ECPay 訂單編號
-  const MerchantTradeNo = `od${new Date().getFullYear()}${(
-    new Date().getMonth() + 1
-  )
-    .toString()
-    .padStart(2, '0')}${new Date()
-    .getDate()
-    .toString()
-    .padStart(2, '0')}${new Date()
-    .getHours()
-    .toString()
-    .padStart(2, '0')}${new Date()
-    .getMinutes()
-    .toString()
-    .padStart(2, '0')}${new Date()
-    .getSeconds()
-    .toString()
-    .padStart(2, '0')}${new Date().getMilliseconds().toString().padStart(2)}`
+  const now = new Date()
+  const MerchantTradeNo =
+    'od' +
+    now
+      .toISOString()
+      .replace(/[-:.TZ]/g, '')
+      .slice(0, 14) + // 取年月日時分秒
+    Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, '0') // 加上 3 碼隨機數字
 
   if (orderType === 'donation') {
     if (!donorName || !donorPhone || !donorEmail) {
@@ -193,9 +187,9 @@ export async function POST(req) {
   // const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
 
   // 使用公開網域執行(ngrok)，無法運行請切換成localhost版本
-  const ReturnURL = ` https://2bb6-111-242-100-220.ngrok-free.app/api/ecpay/notify`
+  const ReturnURL = `  https://b155-36-239-254-206.ngrok-free.app/api/ecpay/notify`
   const OrderResultURL =
-    ' https://2bb6-111-242-100-220.ngrok-free.app/api/ecpay/callback'
+    '  https://b155-36-239-254-206.ngrok-free.app/api/ecpay/callback'
 
   const stage = isStage ? '-stage' : ''
   const algorithm = 'sha256'
