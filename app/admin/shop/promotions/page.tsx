@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Button,
   Badge,
@@ -68,7 +68,9 @@ interface Category {
 // 商品定義
 interface Product {
   product_id: number
+  id?: number // API 可能返回 id 而非 product_id
   product_name: string
+  name?: string // API 可能返回 name 而非 product_name
   category_id: number
 }
 
@@ -105,6 +107,7 @@ export default function PromotionsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
+  const [showSubCategoryProducts, setShowSubCategoryProducts] = useState(false)
 
   // 檢查權限
   useEffect(() => {
@@ -178,8 +181,45 @@ export default function PromotionsPage() {
         },
       })
 
+      console.log('獲取類別 API 回應:', response)
+
       if (response.success && Array.isArray(response.categories)) {
-        setCategories(response.categories)
+        // 顯示原始類別數據的示例
+        if (response.categories.length > 0) {
+          console.log('API 回傳的類別原始數據示例:', response.categories[0])
+        }
+
+        // 標準化類別數據
+        const normalizedCategories = response.categories.map((category) => ({
+          category_id: category.category_id,
+          category_name: category.category_name,
+          category_tag: category.category_tag || '',
+          category_description: category.category_description || null,
+          parent_id: category.parent_id,
+        }))
+
+        // 建立類別ID與名稱的對照表
+        const categoryMap = {}
+        normalizedCategories.forEach((cat) => {
+          categoryMap[cat.category_id] = cat.category_name
+        })
+        console.log('類別ID與名稱對照表:', categoryMap)
+
+        // 列出所有次類別及其父類別
+        const subCategories = normalizedCategories.filter(
+          (c) => c.parent_id !== null
+        )
+        console.log(
+          '所有次類別:',
+          subCategories.map((c) => ({
+            id: c.category_id,
+            name: c.category_name,
+            parent_id: c.parent_id,
+            parent_name: categoryMap[c.parent_id] || '未知',
+          }))
+        )
+
+        setCategories(normalizedCategories)
       } else if (response.success && Array.isArray(response.data)) {
         setCategories(response.data)
       } else if (Array.isArray(response)) {
@@ -196,21 +236,57 @@ export default function PromotionsPage() {
       const token = Cookies.get('admin_token')
       if (!token) return
 
-      const response = await fetchApi('/api/admin/shop/products', {
+      console.log('正在嘗試獲取商品...')
+
+      // 直接使用 fetch 而不是 fetchApi
+      const response = await fetch('/api/admin/shop/products?limit=1000', {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       })
 
-      if (response.success && Array.isArray(response.products)) {
-        setProducts(response.products)
-      } else if (response.success && Array.isArray(response.data)) {
-        setProducts(response.data)
-      } else if (Array.isArray(response)) {
-        setProducts(response)
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`)
       }
-    } catch (error: any) {
+
+      const data = await response.json()
+      console.log('商品 API 原始回應:', data)
+
+      if (data.success && Array.isArray(data.products)) {
+        console.log(`成功獲取 ${data.products.length} 個商品`)
+        console.log('首個商品示例:', data.products[0])
+
+        if (data.products.length === 0) {
+          console.warn('API 返回了空的商品列表')
+          setProducts([])
+          return
+        }
+
+        // 標準化欄位名稱
+        const normalizedProducts = data.products.map((product) => ({
+          product_id: product.product_id,
+          product_name: product.product_name,
+          category_id: product.category_id,
+        }))
+
+        // 列出商品分類統計
+        const categoryCount = {}
+        normalizedProducts.forEach((p) => {
+          if (!categoryCount[p.category_id]) categoryCount[p.category_id] = 0
+          categoryCount[p.category_id]++
+        })
+        console.log('各類別商品數量:', categoryCount)
+
+        setProducts(normalizedProducts)
+      } else {
+        console.error('API 返回的數據格式不符合預期:', data)
+        setProducts([])
+      }
+    } catch (error) {
       console.error('獲取商品列表時發生錯誤:', error)
+      showToast('error', '錯誤', '獲取商品列表失敗，請檢查控制台')
+      setProducts([])
     }
   }
 
@@ -381,6 +457,22 @@ export default function PromotionsPage() {
     setSelectedProducts([])
     setSelectedCategories([])
     setSearchQuery('')
+
+    // 記錄當前商品和類別的對應關係
+    console.log('次類別商品對應關係檢查:')
+    categories
+      .filter((c) => c.parent_id !== null)
+      .forEach((subCategory) => {
+        const productsInCategory = products.filter(
+          (p) => String(p.category_id) === String(subCategory.category_id)
+        )
+        console.log(
+          `次類別「${subCategory.category_name}」(ID: ${subCategory.category_id}) 下有 ${productsInCategory.length} 個商品`
+        )
+        if (productsInCategory.length > 0) {
+          console.log('範例商品:', productsInCategory[0])
+        }
+      })
 
     // 開啟模態窗
     setShowProductsModal(true)
@@ -636,8 +728,93 @@ export default function PromotionsPage() {
     }
   }
 
+  // 處理選擇/取消選擇類別下的所有商品
+  const handleSelectAllProductsInCategory = (
+    categoryId: number,
+    isSelected: boolean
+  ) => {
+    if (!categoryId) return
+
+    // 找到對應的次類別
+    const subCategory = categories.find((cat) => cat.category_id === categoryId)
+    if (!subCategory) {
+      console.warn('找不到對應的類別:', categoryId)
+      return
+    }
+
+    // 獲取該類別下的所有商品ID
+    const productsInCategory = getProductsForSubCategory(subCategory).map(
+      (product) => product.product_id
+    )
+
+    console.log(
+      `類別 ${categoryId} (${subCategory.category_name}) 下找到 ${productsInCategory.length} 個商品可選擇`
+    )
+
+    if (productsInCategory.length === 0) {
+      console.log('警告: 此類別下沒有找到商品')
+      return
+    }
+
+    if (isSelected) {
+      // 添加所有該類別下的商品
+      setSelectedProducts((prev) => {
+        const newSelection = [...prev]
+        productsInCategory.forEach((productId) => {
+          if (!newSelection.includes(productId)) {
+            newSelection.push(productId)
+          }
+        })
+        return newSelection
+      })
+    } else {
+      // 移除該類別下的所有商品
+      setSelectedProducts((prev) =>
+        prev.filter((id) => !productsInCategory.includes(id))
+      )
+    }
+  }
+
+  // 獲取次類別下的商品（包括父類別關聯的商品）
+  const getProductsForSubCategory = (subCategory) => {
+    console.log(
+      `獲取次類別 ${subCategory.category_name} (ID: ${subCategory.category_id}) 的商品`
+    )
+    console.log(`目前共有 ${products.length} 個商品可用`)
+
+    // 直接匹配該次類別的商品
+    let productsInCategory = products.filter((product) => {
+      // 使用寬鬆比較(==)確保即使類型不同也能匹配
+      return product.category_id == subCategory.category_id
+    })
+
+    console.log(
+      `次類別 ${subCategory.category_id} 直接關聯的商品數: ${productsInCategory.length}`
+    )
+
+    // 如果啟用了父類別繼承，並且該次類別屬於某個主類別
+    if (showSubCategoryProducts && subCategory.parent_id) {
+      // 獲取父類別關聯的商品
+      const parentProducts = products.filter((product) => {
+        return product.category_id == subCategory.parent_id
+      })
+
+      console.log(
+        `父類別 ${subCategory.parent_id} 直接關聯的商品數: ${parentProducts.length}`
+      )
+
+      // 合併次類別和父類別的商品
+      productsInCategory = [...productsInCategory, ...parentProducts]
+      console.log(`合併後總商品數: ${productsInCategory.length}`)
+    }
+
+    return productsInCategory
+  }
+
   // 搜索商品
-  const handleSearchProducts = async (event: React.FormEvent) => {
+  const handleSearchProducts = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault()
 
     if (!searchQuery.trim()) {
@@ -1078,15 +1255,26 @@ export default function PromotionsPage() {
             選擇類別後，該類別下的所有商品都將享受此促銷活動優惠
           </p>
 
-          <div className="d-flex mb-2">
-            <Form.Control
-              type="text"
-              placeholder="搜尋類別..."
-              className="me-2"
+          <div className="d-flex mb-2 justify-content-between">
+            <div className="d-flex">
+              <Form.Control
+                type="text"
+                placeholder="搜尋類別..."
+                className="me-2"
+              />
+              <Button variant="outline-secondary">
+                <Search size={16} />
+              </Button>
+            </div>
+
+            <Form.Check
+              type="switch"
+              id="show-parent-products"
+              label="顯示從主類別繼承的商品"
+              checked={showSubCategoryProducts}
+              onChange={(e) => setShowSubCategoryProducts(e.target.checked)}
+              className="ms-3"
             />
-            <Button variant="outline-secondary">
-              <Search size={16} />
-            </Button>
           </div>
 
           <Accordion key="product-categories-accordion">
@@ -1125,26 +1313,121 @@ export default function PromotionsPage() {
                       )
                       .map((subCategory, index) => (
                         <div
-                          key={`sub-cat-div-${
-                            subCategory.category_id ||
-                            `sub-${parentIndex}-${index}`
-                          }`}
-                          className="ms-3 mb-2"
+                          key={`sub-cat-${subCategory.category_id}`}
+                          className="mb-2"
                         >
-                          <Form.Check
-                            type="checkbox"
-                            id={`sub-check-${
-                              subCategory.category_id ||
-                              `sub-${parentIndex}-${index}`
-                            }`}
-                            label={subCategory.category_name || '未命名類別'}
-                            checked={selectedCategories.includes(
-                              subCategory.category_id
-                            )}
-                            onChange={() =>
-                              handleCategorySelect(subCategory.category_id)
-                            }
-                          />
+                          <Accordion defaultActiveKey="0">
+                            <Accordion.Item eventKey="0">
+                              <Accordion.Header>
+                                <div className="d-flex align-items-center w-100">
+                                  <Form.Check
+                                    type="checkbox"
+                                    id={`sub-check-${subCategory.category_id}`}
+                                    label={
+                                      subCategory.category_name || '未命名類別'
+                                    }
+                                    checked={selectedCategories.includes(
+                                      subCategory.category_id
+                                    )}
+                                    onChange={() =>
+                                      handleCategorySelect(
+                                        subCategory.category_id
+                                      )
+                                    }
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="me-auto"
+                                  />
+                                  <span className="ms-2 badge bg-secondary">
+                                    {(() => {
+                                      // 使用新函數獲取商品數量
+                                      const count =
+                                        getProductsForSubCategory(
+                                          subCategory
+                                        ).length
+                                      return count
+                                    })()}{' '}
+                                    個商品
+                                  </span>
+                                </div>
+                              </Accordion.Header>
+                              <Accordion.Body className="py-2">
+                                <div className="d-flex justify-content-end mb-2">
+                                  <Button
+                                    variant="outline-primary"
+                                    size="sm"
+                                    onClick={() =>
+                                      handleSelectAllProductsInCategory(
+                                        subCategory.category_id,
+                                        true
+                                      )
+                                    }
+                                  >
+                                    全選商品
+                                  </Button>
+                                  <Button
+                                    variant="outline-secondary"
+                                    size="sm"
+                                    className="ms-1"
+                                    onClick={() =>
+                                      handleSelectAllProductsInCategory(
+                                        subCategory.category_id,
+                                        false
+                                      )
+                                    }
+                                  >
+                                    取消全選
+                                  </Button>
+                                </div>
+                                {(() => {
+                                  // 使用新的函數獲取商品
+                                  const productsInCategory =
+                                    getProductsForSubCategory(subCategory)
+
+                                  console.log(
+                                    `顯示次類別「${subCategory.category_name}」(ID:${subCategory.category_id})商品:`,
+                                    {
+                                      商品總數: products.length,
+                                      此類別商品數: productsInCategory.length,
+                                      顯示父類別商品: showSubCategoryProducts,
+                                    }
+                                  )
+
+                                  if (productsInCategory.length === 0) {
+                                    return (
+                                      <p className="text-muted text-center py-1 small">
+                                        此類別下沒有直接關聯的商品
+                                      </p>
+                                    )
+                                  }
+
+                                  return productsInCategory.map(
+                                    (product, productIndex) => (
+                                      <div
+                                        key={`sub-product-${product.product_id}`}
+                                        className="ms-3 mb-1"
+                                      >
+                                        <Form.Check
+                                          type="checkbox"
+                                          id={`product-${product.product_id}`}
+                                          label={
+                                            product.product_name || '未命名商品'
+                                          }
+                                          checked={selectedProducts.includes(
+                                            product.product_id
+                                          )}
+                                          onChange={() =>
+                                            handleProductSelect(
+                                              product.product_id
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                    )
+                                  )
+                                })()}
+                              </Accordion.Body>
+                            </Accordion.Item>
+                          </Accordion>
                         </div>
                       ))}
                   </Accordion.Body>
