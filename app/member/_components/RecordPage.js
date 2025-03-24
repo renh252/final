@@ -17,8 +17,8 @@ export default function RecordPage({
   recordKeyField = 'id', // primary key 欄位名稱
   statusFilter = {
     title: '狀態',
-    key: 'payment_status',
-    options: ['全部', '已付款', '未付款', '付款失敗'],
+    key: 'transaction_status',
+    options: ['全部', '已付款', '未付款', '付款失敗','訂單取消'],
   },
   formatRecord,
   additionalFilters = [],
@@ -27,10 +27,10 @@ export default function RecordPage({
   const [filterValues, setFilterValues] = useState({
     [statusFilter.key]: statusFilter.options[0],
     ...additionalFilters.reduce((acc, filter) => {
-      acc[filter.key] = filter.options[0];
-      return acc;
-    }, {})
-  });
+      acc[filter.key] = filter.options[0]
+      return acc
+    }, {}),
+  })
 
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -39,8 +39,8 @@ export default function RecordPage({
   )
 
   const updateFilter = (key, value) => {
-    setFilterValues(prev => ({...prev, [key]: value}));
-  };
+    setFilterValues((prev) => ({ ...prev, [key]: value }))
+  }
 
   const filters = [
     {
@@ -48,7 +48,7 @@ export default function RecordPage({
       value: filterValues[statusFilter.key],
       onChange: (value) => updateFilter(statusFilter.key, value),
     },
-    ...additionalFilters.map(filter => ({
+    ...additionalFilters.map((filter) => ({
       ...filter,
       value: filterValues[filter.key],
       onChange: (value) => updateFilter(filter.key, value),
@@ -63,17 +63,17 @@ export default function RecordPage({
 
   const filteredRecords = records.filter((record) => {
     for (let filter of filters) {
-      const filterValue = filterValues[filter.key];
+      const filterValue = filterValues[filter.key]
       if (filterValue !== '全部' && record[filter.key] !== filterValue) {
-        return false;
+        return false
       }
     }
 
     let date = ''
     if (record.create_datetime) {
-      date = new Date(record.create_datetime) 
+      date = new Date(record.create_datetime)
     } else if (record.created_at) {
-      date = new Date(record.created_at) 
+      date = new Date(record.created_at)
     }
     if (startDate && date < new Date(startDate)) return false
     if (endDate && date > new Date(endDate)) return false

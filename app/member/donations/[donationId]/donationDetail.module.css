@@ -28,16 +28,6 @@
   margin-bottom: 10px;
 }
 
-.success {
-  color: green;
-  font-weight: bold;
-}
-
-.pending {
-  color: orange;
-  font-weight: bold;
-}
-
 .backButton {
   background: #cda274;
   color: white;
@@ -51,4 +41,23 @@
 
 .backButton:hover {
   background: #b38560;
+}
+.chooseButton {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+.chooseButton button {
+  padding: 8px 16px;
+  font-size: 16px;
+  border: none;
+  background-color: #b6ad8f;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.chooseButton button:hover {
+  background: #b6a277;
 }
