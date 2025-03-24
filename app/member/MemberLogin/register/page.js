@@ -10,6 +10,31 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [emailExists, setEmailExists] = useState(false);
+  const [emailCheckLoading, setEmailCheckLoading] = useState(false);
+
+  const handleEmailChange = async (e) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    setEmailCheckLoading(true); // 開始檢查時設定為 true
+
+    try {
+      const response = await fetch('/api/member/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: newEmail }),
+      });
+
+      const data = await response.json();
+      setEmailExists(data.exists);
+    } catch (error) {
+      console.error('檢查電子郵件錯誤:', error);
+    } finally {
+      setEmailCheckLoading(false); // 檢查完成後設定為 false
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,8 +94,10 @@ export default function RegisterPage() {
               className={styles.formInput}
               required
               value={email} // 添加 value 和 onChange
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
             />
+            {emailCheckLoading && <p>檢查中...</p>}
+            {emailExists && <p className={styles.error}>此電子郵件已註冊，請使用其他電子郵件</p>}
             <br /> <br />
             <label htmlFor="password" className={styles.formLabel}>
               密碼 :
@@ -102,7 +129,7 @@ export default function RegisterPage() {
             <button
               className="button"
               style={{ width: '200px', height: '50px', fontSize: '28px' }}
-              onClick={handleSubmit} // 修改為 onClick
+              onClick={handleSubmit} // 提交表單
             >
               註冊
             </button>
