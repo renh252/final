@@ -169,7 +169,7 @@ export async function POST(req: Request) {
           } else {
             // 創建新標籤
             const insertTagQuery = `INSERT INTO forum_tags (name, slug, created_at) VALUES (?, ?, NOW())`
-            const tagResult = await executeQuery(insertTagQuery, [tagName, tagName.toLowerCase().replace(/s+/g, '-')]) as any
+            const tagResult = await executeQuery(insertTagQuery, [tagName, tagName.toLowerCase().replace(/\s+/g, '-')]) as any
             tagId = tagResult.insertId
           }
           
