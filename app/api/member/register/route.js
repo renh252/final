@@ -1,38 +1,42 @@
 import { NextResponse } from 'next/server';
-import { database } from '@/app/api/_lib/db'; // 匯入資料庫
-// 如果您需要加密密碼，請匯入 bcrypt
-// import bcrypt from 'bcrypt';
+import { database } from '@/app/api/_lib/db';
 
-export async function POST(request) {
+export async function POST(req) {
   try {
-    const { email, password, name, phone, birthday, address } = await request.json();
+    console.log('請求 body:', req.body);
+    const { email, password, name, phone, birthday, address } = await req.json();
 
-    // 資料驗證（例如檢查 email 格式、密碼強度等）
-    if (!email || !password || !name || !phone || !birthday || !address) {
-      return NextResponse.json({ message: '請提供所有必填欄位' }, { status: 400 });
+    // 檢查電子郵件是否已存在
+    const [rows, error1] = await database.executeSecureQuery(
+      'SELECT * FROM users WHERE user_email = ?',
+      [email]
+    );
+
+    if (error1) {
+      console.error('查詢電子郵件錯誤:', error1);
+      return NextResponse.json({ message: '資料庫查詢錯誤', error: error1.message }, { status: 500 });
     }
 
-    // 在實際應用中，請務必對密碼進行加密
-    // const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 將使用者資料儲存到資料庫
-    const result = await database.collection('users').insertOne({
-      email,
-      password, // 請替換為 hashedPassword
-      name,
-      phone,
-      birthday,
-      address,
-      // ... 其他詳細資料
-    });
-
-    if (result.acknowledged) {
-      return NextResponse.json({ message: '註冊成功' }, { status: 201 });
-    } else {
-      return NextResponse.json({ message: '註冊失敗，請稍後重試' }, { status: 500 });
+    if (rows && rows.length > 0) {
+      return NextResponse.json({ message: '電子郵件已存在' }, { status: 400 });
     }
+
+    // 直接儲存明碼密碼
+    const [result, error2] = await database.executeSecureQuery(
+      'INSERT INTO users (user_email, user_password, user_name, user_number, user_birthday, user_address) VALUES (?, ?, ?, ?, ?, ?)',
+      [email, password, name, phone, birthday, address]
+    );
+
+    if (error2) {
+      console.error('資料庫插入錯誤:', error2);
+      return NextResponse.json({ message: '資料庫插入錯誤', error: error2.message }, { status: 500 });
+    }
+
+    console.log('資料庫插入結果:', result);
+
+    return NextResponse.json({ message: '註冊成功' }, { status: 200 });
   } catch (error) {
     console.error('註冊錯誤:', error);
-    return NextResponse.json({ message: '註冊失敗，請稍後重試' }, { status: 500 });
+    return NextResponse.json({ message: '註冊失敗，請稍後重試', error: error.message }, { status: 500 });
   }
 }
