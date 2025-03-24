@@ -58,9 +58,12 @@ export async function POST(req) {
       )
     }
     const petIdValue = petId ? petId : null // 確保 NULL 值
+    const retryTradeNo = retry_trade_no ? retry_trade_no : null // 確保 NULL 值
+
+    // 新增捐款記錄
     let tableInsertResult = await db.query(
-      `INSERT INTO donations (donation_type, pet_id, amount, donation_mode, payment_method, user_id, donor_name, donor_phone, donor_email, trade_no, transaction_status) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO donations (donation_type, pet_id, amount, donation_mode, payment_method, user_id, donor_name, donor_phone, donor_email, trade_no, transaction_status, retry_trade_no) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         items,
         petIdValue,
@@ -73,6 +76,7 @@ export async function POST(req) {
         donorEmail,
         MerchantTradeNo,
         '未付款',
+        retryTradeNo,
       ]
     )
 
