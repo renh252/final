@@ -163,6 +163,12 @@
   padding: 2rem 1rem;
 }
 
+/* 地圖檢視模式下的容器樣式 */
+.petsContainer.mapView {
+  max-width: 1200px;
+  padding: 2rem 1rem;
+}
+
 .breadcrumbContainer {
   margin-bottom: 2rem;
 }
@@ -467,12 +473,12 @@
 
 /* 地圖容器樣式 */
 .mapContainer {
-  height: 400px;
+  height: 100%;
   width: 100%;
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 2rem;
-  min-height: 400px;
+  min-height: 600px;
 }
 
 .mapContainer:before {
@@ -913,7 +919,8 @@
   width: 100%;
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 2rem;
+  margin: 0;
+  padding: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
   transition: all 0.3s ease;
@@ -921,15 +928,11 @@
   z-index: 1;
 }
 
-@keyframes mapFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* 移除地圖位移樣式 */
+.fullMapContainer.shifted {
+  margin-left: 0;
+  width: 100%;
+  transition: none;
 }
 
 /* 地圖圖例和操作提示的樣式 - 讓它們在全頁地圖視圖下更清晰 */
@@ -1351,5 +1354,167 @@
 
   .flexItem {
     max-width: 100%;
+  }
+}
+
+/* 左側抽屜樣式 */
+.leftSideDrawer {
+  position: fixed;
+  left: 0;
+  top: 56px;
+  bottom: 0;
+  width: 320px;
+  background-color: white;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  transform: translateX(-320px);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: calc(100vh - 56px);
+}
+
+.leftSideDrawer.open {
+  transform: translateX(0);
+}
+
+.drawerHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f9fa;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 72px;
+  min-height: 72px;
+  box-sizing: border-box;
+}
+
+.drawerHeaderContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawerHeaderContent h4 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.drawerHeaderContent :global(.form-check) {
+  margin: 0;
+}
+
+.drawerHeaderContent :global(.form-check-input) {
+  height: 1.5rem;
+  width: 3rem;
+  cursor: pointer;
+}
+
+.drawerHeaderContent :global(.form-check-input):checked {
+  background-color: rgba(199, 150, 80, 1);
+  border-color: rgba(179, 130, 60, 1);
+}
+
+.drawerHeaderContent :global(.form-check-label) {
+  margin-left: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.drawerContent {
+  padding: 1.5rem;
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 0;
+  height: calc(100vh - 144px);
+  box-sizing: border-box;
+}
+
+.drawerSection {
+  margin-bottom: 2rem;
+}
+
+.drawerSection:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.drawerToggle {
+  position: fixed;
+  left: 320px;
+  top: calc(50vh + 36px);
+  transform: translateY(-50%);
+  width: 32px;
+  height: 48px;
+  border-radius: 0 8px 8px 0;
+  background-color: white;
+  border: 1px solid #eee;
+  border-left: none;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1001;
+  transition: left 0.3s ease-in-out;
+}
+
+.leftSideDrawer:not(.open) + .drawerToggle {
+  left: 0;
+}
+
+/* 全頁地圖容器樣式 */
+.fullMapContainer {
+  height: 80vh;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+  transition: all 0.3s ease;
+  animation: mapFadeIn 0.4s ease-out;
+  z-index: 1;
+}
+
+/* 移除地圖位移樣式 */
+.fullMapContainer.shifted {
+  margin-left: 0;
+  width: 100%;
+  transition: none;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+  .leftSideDrawer {
+    width: 280px;
+    transform: translateX(-280px);
+  }
+
+  .drawerToggle {
+    left: 280px;
+  }
+
+  .leftSideDrawer:not(.open) + .drawerToggle {
+    left: 0;
+  }
+
+  .petsContainer,
+  .petsContainer.mapView {
+    padding: 1rem;
   }
 }
