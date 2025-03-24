@@ -5,6 +5,7 @@ import styles from './Register2.module.css';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function Register2Page() {
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
@@ -48,7 +49,7 @@ export default function Register2Page() {
     }
 
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch('/api/member/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,6 +58,7 @@ export default function Register2Page() {
       });
 
       const data = await response.json();
+      console.log('伺服器返回資料:', data);
 
       if (response.ok) {
         alert(data.message);
