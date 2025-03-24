@@ -40,8 +40,20 @@ const PAYMENT_STATUS_OPTIONS = [
   { value: '已付款', label: '已付款', color: 'success' },
 ]
 
+// 訂單介面定義
+interface Order {
+  order_id: string
+  recipient_name: string
+  recipient_email?: string
+  created_at: string
+  total_price: number
+  items_count: number
+  order_status: string
+  payment_status: string
+}
+
 export default function OrdersPage() {
-  const [orders, setOrders] = useState([])
+  const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { showToast } = useToast()
@@ -82,11 +94,38 @@ export default function OrdersPage() {
       setError(null)
 
       const response = await fetchApi('/api/admin/shop/orders')
-      if (response.orders && Array.isArray(response.orders)) {
+
+      // 處理多種可能的響應格式
+      if (
+        response.success &&
+        response.orders &&
+        Array.isArray(response.orders)
+      ) {
+        // 格式 1: { success: true, orders: [...] }
         setOrders(response.orders)
+      } else if (response.orders && Array.isArray(response.orders)) {
+        // 格式 2: { orders: [...] }
+        setOrders(response.orders)
+      } else if (
+        response.success &&
+        response.data &&
+        Array.isArray(response.data)
+      ) {
+        // 格式 3: { success: true, data: [...] }
+        setOrders(response.data)
+      } else if (response.data && Array.isArray(response.data)) {
+        // 格式 4: { data: [...] }
+        setOrders(response.data)
+      } else if (Array.isArray(response)) {
+        // 格式 5: 直接是數組
+        setOrders(response)
       } else {
         console.error('返回的數據格式不正確:', response)
-        showToast('error', '錯誤', '數據格式錯誤')
+        showToast(
+          'error',
+          '錯誤',
+          response.message || '數據格式錯誤，無法獲取訂單列表'
+        )
       }
     } catch (error: any) {
       console.error('獲取訂單列表時發生錯誤:', error)
@@ -340,16 +379,7 @@ export default function OrdersPage() {
   )
 
   return (
-    <AdminPageLayout
-      title="訂單管理"
-      description="查看和處理客戶訂單，更新訂單狀態"
-      breadcrumbs={[
-        { label: '管理區', href: '/admin' },
-        { label: '商城管理', href: '/admin/shop' },
-        { label: '訂單管理', href: '/admin/shop/orders' },
-      ]}
-      stats={orderStats}
-    >
+    <AdminPageLayout title="訂單管理" stats={orderStats}>
       <AdminSection title="訂單列表">
         <AdminCard>
           {error ? (
@@ -363,8 +393,6 @@ export default function OrdersPage() {
               searchKeys={['order_id', 'recipient_name', 'recipient_email']}
               actions={renderActions}
               onRowClick={handleViewDetails}
-              advancedFiltering={true}
-              isDarkMode={isDarkMode}
             />
           )}
         </AdminCard>
