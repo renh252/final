@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 
 export default function MemberPage() {
+  const router = useRouter();
   const [userData, setUserData] = useState(null); // 保存使用者資料
   const [editingField, setEditingField] = useState(null); // 目前正在編輯的欄位名稱
   const [draftValues, setDraftValues] = useState({}); // 儲存每個欄位編輯中的值
@@ -54,6 +55,11 @@ export default function MemberPage() {
 
   const handleSaveClick = async (fieldName) => {
     try {
+      const token = localStorage.getItem('token'); // 從 localStorage 獲取 token
+      if (!token) {
+        console.error('未找到 token，無法更新資料');
+        return;
+      }
       const response = await fetch('/api/user/update', {
         method: 'POST',
         headers: {
@@ -86,7 +92,6 @@ export default function MemberPage() {
 
   return (
     <>
-      <main className={styles.profile_page}>
         <div className={styles.member_container}>
           <section className={styles.profile_section}>
             <div className={styles.profile_photos}>
@@ -212,12 +217,19 @@ export default function MemberPage() {
                 </label>
                 <hr />
               </div>
-
-              {/* 移除原本的整體編輯按鈕 */}
+              <br /><br />
+              <div className={styles.password_button}>
+                <button
+                  onClick={() => router.push('/member/MemberLogin/forgot')}
+                  className="button"
+                  style={{ width: '150px', height: '40px', fontSize: '16px' }}
+                >
+                  修改密碼
+                </button>
+              </div>
             </div>
           </section>
         </div>
-      </main>
     </>
   );
 }
