@@ -37,7 +37,7 @@ const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function PidPage() {
 
-  const { user} = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const userId = user?.id
 
   const router = useRouter()
@@ -54,7 +54,7 @@ export default function PidPage() {
   
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error } = useSWR(`/api/shop/${pid}`, fetcher)
-  
+
   // 卡片滑動-------------------------------
   const categoryRefs = useRef(null)
 
@@ -137,8 +137,6 @@ const calculateDisplayPrice = () => {
     similarProducts,
     categories
   } = data
-console.log(categories);
-console.log(data);
 
   
   // ------------------------

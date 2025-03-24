@@ -60,20 +60,20 @@ const lastPathSegment = pathname.split('/').pop()
   return (
     <>
       <div className={styles.productMenu}>
-      {parentsWithProducts.map((parent) => (
+      {parentsWithProducts.map((parent,index) => (
           <div key={parent.category_id}>
-          <Link href = {`/shop/categories/${parent.category_id} `} className={`${styles.title} ${lastPathSegment == parent.category_id ? styles.active : ''}`}>
+          <Link href = {`/shop/categories/${parent.category_id} `} className={`${styles.title} ${styles.parent} ${lastPathSegment == parent.category_id ? styles.active : ''}`}>
             <p>{parent.category_name}</p>
           </Link>
           {getChildrenWithProducts(parent.category_id).map((child) => (
             
-              <Link key={child.category_id} href = {`/shop/categories/${parent.category_id}/${child.category_id}`} className={`${styles.title} ${lastPathSegment == child.category_id ? styles.active : ''}`}
+              <Link key={child.category_id} href = {`/shop/categories/${parent.category_id}/${child.category_id}`} className={`${styles.title} ${styles.child} ${lastPathSegment == child.category_id ? styles.active : ''}`}
               >
                 <p>{child.category_name}</p>
               </Link>
             
           ))}
-          <hr />
+          {index < parentsWithProducts.length - 1 && <hr />}
           </div>
         ))}
         
