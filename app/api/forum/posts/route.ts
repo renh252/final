@@ -70,9 +70,9 @@ export async function GET(request: Request) {
     //
     posts = posts.map((post) => ({
       ...post,
-      author_name: 'u7528u6236',
+      author_name: '烏薩奇',
       author_avatar: '',
-      category_name: '',
+      category_name: '熱門標籤',
       like_count: 0,
       comment_count: 0,
     }))
