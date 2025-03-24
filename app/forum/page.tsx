@@ -10,6 +10,7 @@ import ForumHeader from './components/ForumHeader';
 import TagCloud from './components/TagCloud';
 import Carousel from './components/Carousel';
 import { useForumData } from './hooks/useForumData';
+import './styles/custom-theme.css';
 
 export default function ForumPage() {
   const searchParams = useSearchParams();

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Carousel as BootstrapCarousel } from 'react-bootstrap';
 import Image from 'next/image';
 import styles from './Carousel.module.css';
+import '../styles/custom-theme.css';
 
 interface CarouselItem {
   id: number;

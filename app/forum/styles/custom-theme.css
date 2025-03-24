@@ -1,0 +1,125 @@
+/* 自定義主題顏色 - 棕色調 */
+:root {
+  --primary-color: #C79650;      /* 主要金棕色 */
+  --primary-dark: #B07F30;      /* 深金棕色 */
+  --primary-light: #D9B77F;     /* 淺金棕色 */
+  --secondary-color: #593E2F;   /* 次要深棕色 */
+  --secondary-light: #7A5A4A;   /* 淺深棕色 */
+  --accent-color: #8B5A2B;      /* 強調色 */
+}
+
+/* 按鈕樣式 */
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+.btn-outline-primary {
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* 分頁導航 */
+.pagination .page-item.active .page-link {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.pagination .page-link {
+  color: var(--primary-color) !important;
+}
+
+.pagination .page-link:hover {
+  background-color: var(--primary-light) !important;
+}
+
+/* 表單元素 */
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 0.25rem rgba(199, 150, 80, 0.25) !important;
+}
+
+/* 導航和標籤 */
+.nav-link.active, .nav-pills .nav-link.active {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.nav-link {
+  color: var(--secondary-color) !important;
+}
+
+.nav-link:hover {
+  color: var(--primary-color) !important;
+}
+
+/* 卡片和邊框 */
+.card-header {
+  background-color: var(--primary-light) !important;
+  border-bottom: 1px solid var(--primary-color) !important;
+}
+
+/* 輪播元件 */
+.carousel-indicators [data-bs-target] {
+  background-color: var(--primary-color) !important;
+}
+
+.carousel-control-prev-icon, .carousel-control-next-icon {
+  filter: invert(60%) sepia(75%) saturate(500%) hue-rotate(10deg) brightness(90%) contrast(90%);
+}
+
+/* 輪播文字區域 */
+.carousel-caption {
+  background-color: rgba(89, 62, 47, 0.7) !important;
+}
+
+/* 輪播閱讀更多按鈕 */
+.carouselLink {
+  background-color: var(--primary-color) !important;
+}
+
+.carouselLink:hover {
+  background-color: var(--primary-dark) !important;
+}
+
+/* 標籤雲 */
+.tag-cloud .badge {
+  background-color: var(--primary-color) !important;
+}
+
+.tag-cloud .badge:hover {
+  background-color: var(--primary-dark) !important;
+}
+
+/* 加載動畫 */
+.spinner-border {
+  color: var(--primary-color) !important;
+}
+
+/* 警告框 */
+.alert-primary {
+  background-color: var(--primary-light) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--secondary-color) !important;
+}
+
+/* 表格 */
+.table-primary {
+  background-color: var(--primary-light) !important;
+}
+
+/* 下拉菜單 */
+.dropdown-item.active, .dropdown-item:active {
+  background-color: var(--primary-color) !important;
+}
