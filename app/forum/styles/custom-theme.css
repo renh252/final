@@ -1,0 +1,164 @@
+/* 自定義主題顏色 - 棕色調 */
+:root {
+  --primary-color: #C79650;      /* 主要金棕色 */
+  --primary-dark: #B07F30;      /* 深金棕色 */
+  --primary-light: #D9B77F;     /* 淺金棕色 */
+  --secondary-color: #593E2F;   /* 次要深棕色 */
+  --secondary-light: #7A5A4A;   /* 淺深棕色 */
+  --accent-color: #8B5A2B;      /* 強調色 */
+}
+
+/* 限制樣式只應用於論壇頁面 */
+.forum-layout .btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.forum-layout .btn-primary:hover, 
+.forum-layout .btn-primary:focus, 
+.forum-layout .btn-primary:active {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+.forum-layout .btn-outline-primary {
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.forum-layout .btn-outline-primary:hover, 
+.forum-layout .btn-outline-primary:focus, 
+.forum-layout .btn-outline-primary:active {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* 分頁導航 */
+.forum-layout .pagination .page-item.active .page-link {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.forum-layout .pagination .page-link {
+  color: var(--primary-color) !important;
+}
+
+.forum-layout .pagination .page-link:hover {
+  background-color: var(--primary-light) !important;
+}
+
+/* 表單元素 */
+.forum-layout .form-control:focus, 
+.forum-layout .form-select:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 0.25rem rgba(199, 150, 80, 0.25) !important;
+}
+
+/* 導航和標籤 - 只限於論壇內部的導航 */
+.forum-layout .nav-link.active, 
+.forum-layout .nav-pills .nav-link.active {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.forum-layout .nav-link {
+  color: var(--secondary-color) !important;
+}
+
+.forum-layout .nav-link:hover {
+  color: var(--primary-color) !important;
+}
+
+/* 卡片和邊框 */
+.forum-layout .card-header {
+  background-color: var(--primary-light) !important;
+  border-bottom: 1px solid var(--primary-color) !important;
+}
+
+/* 輪播元件 */
+.forum-layout .carousel-indicators [data-bs-target] {
+  background-color: var(--primary-color) !important;
+}
+
+.forum-layout .carousel-control-prev-icon, 
+.forum-layout .carousel-control-next-icon {
+  filter: invert(60%) sepia(75%) saturate(500%) hue-rotate(10deg) brightness(90%) contrast(90%);
+}
+
+/* 輪播文字區域 */
+.forum-layout .carousel-caption {
+  background-color: rgba(89, 62, 47, 0.7) !important;
+}
+
+/* 輪播閱讀更多按鈕 */
+.forum-layout .carouselLink {
+  background-color: var(--primary-color) !important;
+}
+
+.forum-layout .carouselLink:hover {
+  background-color: var(--primary-dark) !important;
+}
+
+/* 標籤雲 */
+.forum-layout .tag-cloud .badge {
+  background-color: var(--primary-color) !important;
+}
+
+.forum-layout .tag-cloud .badge:hover {
+  background-color: var(--secondary-color) !important;
+}
+
+/* 警告和提示 */
+.forum-layout .alert-primary {
+  background-color: var(--primary-light) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--secondary-color) !important;
+}
+
+.forum-layout .alert-secondary {
+  background-color: var(--secondary-light) !important;
+  border-color: var(--secondary-color) !important;
+  color: white !important;
+}
+
+/* 進度條 */
+.forum-layout .progress-bar {
+  background-color: var(--primary-color) !important;
+}
+
+/* 模態框 */
+.forum-layout .modal-header {
+  background-color: var(--primary-light) !important;
+  border-bottom: 1px solid var(--primary-color) !important;
+  color: var(--secondary-color) !important;
+}
+
+.forum-layout .modal-footer {
+  border-top: 1px solid var(--primary-light) !important;
+}
+
+/* 表格 */
+.forum-layout .table-primary {
+  background-color: var(--primary-light) !important;
+}
+
+.forum-layout .table-hover tbody tr:hover {
+  background-color: rgba(199, 150, 80, 0.1) !important;
+}
+
+/* 熱門標籤按鈕 */
+.forum-layout .category-badge {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.forum-layout .tag-badge {
+  background-color: var(--primary-light) !important;
+  color: var(--secondary-color) !important;
+}
+
+.forum-layout .tag-badge:hover {
+  background-color: var(--secondary-color) !important;
+  color: white !important;
+}
