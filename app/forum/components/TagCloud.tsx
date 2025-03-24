@@ -10,7 +10,7 @@ interface TagCloudProps {
   title?: string;
 }
 
-export default function TagCloud({ tags, title = 'u71b1u9580u6a19u7c64' }: TagCloudProps) {
+export default function TagCloud({ tags, title = '熱門標籤' }: TagCloudProps) {
   if (!tags || tags.length === 0) {
     return null;
   }
