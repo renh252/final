@@ -1,5 +1,3 @@
-// FILEPATH: c:/Users/USER/ispan/final/app/member/_components/RecordPage.js
-
 'use client'
 
 import React, { useState } from 'react'
@@ -9,6 +7,7 @@ import StatusBadge from './StatusBadge'
 import styles from './recordPage.module.css'
 import useSWR from 'swr'
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function RecordPage({
   titleText = '紀錄',
@@ -18,7 +17,7 @@ export default function RecordPage({
   statusFilter = {
     title: '狀態',
     key: 'transaction_status',
-    options: ['全部', '已付款', '未付款', '付款失敗','訂單取消'],
+    options: ['全部', '已付款', '未付款', '付款失敗', '訂單取消'],
   },
   formatRecord,
   additionalFilters = [],
@@ -34,9 +33,12 @@ export default function RecordPage({
 
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const { data, error } = useSWR(fetchUrl, (url) =>
+  const { data, error } = useSWR(fetchUrl ? fetchUrl : null, (url) =>
     fetch(url).then((res) => res.json())
   )
+useEffect(() => {
+  console.log('fetchUrl:', fetchUrl)
+}, [fetchUrl])
 
   const updateFilter = (key, value) => {
     setFilterValues((prev) => ({ ...prev, [key]: value }))
