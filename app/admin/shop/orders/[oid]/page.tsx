@@ -115,18 +115,56 @@ export default function OrderDetailPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetchApi(`/api/admin/orders/${oid}`)
+      const response = await fetchApi(`/api/admin/shop/orders/${oid}`)
+
+      // 處理多種可能的響應格式
       if (response.success && response.order) {
+        // 格式 1: { success: true, order: {...} }
         setOrder(response.order)
         setOrderItems(response.order.items || [])
+        setShipping(response.order.shipping || {})
+        setAdminMessages(response.order.messages || [])
+        setTimeline(response.order.timeline || [])
+        setTrackingInput(response.order.shipping?.tracking_number || '')
+      } else if (response.order) {
+        // 格式 2: { order: {...} }
+        setOrder(response.order)
+        setOrderItems(response.order.items || [])
+        setShipping(response.order.shipping || {})
+        setAdminMessages(response.order.messages || [])
+        setTimeline(response.order.timeline || [])
+        setTrackingInput(response.order.shipping?.tracking_number || '')
+      } else if (response.success && response.data) {
+        // 格式 3: { success: true, data: {...} }
+        const orderData = response.data
+        setOrder(orderData)
+        setOrderItems(orderData.items || [])
+        setShipping(orderData.shipping || {})
+        setAdminMessages(orderData.messages || [])
+        setTimeline(orderData.timeline || [])
+        setTrackingInput(orderData.shipping?.tracking_number || '')
+      } else if (response.data) {
+        // 格式 4: { data: {...} }
+        const orderData = response.data
+        setOrder(orderData)
+        setOrderItems(orderData.items || [])
+        setShipping(orderData.shipping || {})
+        setAdminMessages(orderData.messages || [])
+        setTimeline(orderData.timeline || [])
+        setTrackingInput(orderData.shipping?.tracking_number || '')
+      } else if (response.id || response.order_id) {
+        // 格式 5: 直接返回訂單對象
+        setOrder(response)
+        setOrderItems(response.items || [])
         setShipping(response.shipping || {})
         setAdminMessages(response.messages || [])
         setTimeline(response.timeline || [])
         setTrackingInput(response.shipping?.tracking_number || '')
       } else {
-        throw new Error(response.message || '獲取訂單詳情失敗')
+        console.error('返回的訂單數據格式不正確:', response)
+        throw new Error(response.message || '獲取訂單詳情失敗，數據格式不正確')
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('獲取訂單詳情失敗:', err)
       setError(err instanceof Error ? err.message : '獲取訂單詳情失敗')
       showToast('error', '錯誤', '獲取訂單詳情失敗，請稍後再試')
