@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react'
 // components
 import List from '../_components/list'
 import { FaList  } from "react-icons/fa6";
-import RecordPage from '../_components/RecordPage'
+import RecordPage from '@/app/member/_components/RecordPage'
 import StatusBadge from '../_components/StatusBadge'
 
 // 連接資料庫

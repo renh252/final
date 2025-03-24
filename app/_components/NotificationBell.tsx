@@ -23,42 +23,50 @@ interface Notification {
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  
+  // 添加控制變數，設為 false 可暫時關閉模擬通知
+  const SHOW_MOCK_NOTIFICATIONS = false;
 
   useEffect(() => {
-    // 模擬從API獲取通知
-    const mockNotifications: Notification[] = [
-      {
-        id: 1,
-        type: 'comment',
-        title: '新留言通知',
-        message: '有人在您的貼文「尋找愛貓新家」留言',
-        link: '/forum/post/1',
-        image: '/images/default-avatar.png',
-        isRead: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 2,
-        type: 'pet',
-        title: '寵物領養通知',
-        message: '您關注的寵物「小花」已被領養',
-        link: '/pets/2',
-        image: '/images/pets/cat1.jpg',
-        isRead: false,
-        createdAt: new Date(Date.now() - 3600000).toISOString()
-      },
-      {
-        id: 3,
-        type: 'system',
-        title: '系統通知',
-        message: '您的帳號已通過驗證',
-        isRead: true,
-        createdAt: new Date(Date.now() - 86400000).toISOString()
-      }
-    ];
+    if (!SHOW_MOCK_NOTIFICATIONS) return;
 
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.isRead).length);
+    const timer = setTimeout(() => {
+      const mockNotifications: Notification[] = [
+        {
+          id: 1,
+          type: 'comment',
+          title: '新留言通知',
+          message: '有人在您的貼文「尋找愛貓新家」留言',
+          link: '/forum/post/1',
+          image: '/images/default-avatar.png',
+          isRead: false,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 2,
+          type: 'pet',
+          title: '寵物領養通知',
+          message: '您關注的寵物「小花」已被領養',
+          link: '/pets/2',
+          image: '/images/pets/cat1.jpg',
+          isRead: false,
+          createdAt: new Date(Date.now() - 3600000).toISOString()
+        },
+        {
+          id: 3,
+          type: 'system',
+          title: '系統通知',
+          message: '您的帳號已通過驗證',
+          isRead: true,
+          createdAt: new Date(Date.now() - 86400000).toISOString()
+        }
+      ];
+
+      setNotifications(mockNotifications);
+      setUnreadCount(mockNotifications.filter(n => !n.isRead).length);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleRead = async (id: number) => {
