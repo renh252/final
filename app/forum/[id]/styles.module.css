@@ -214,3 +214,34 @@
   background-color: #f6f7f8;
   color: #1a1a1b;
 }
+
+.avatar-placeholder {
+  width: 48px;
+  height: 48px;
+}
+
+.comment .avatar-placeholder {
+  width: 32px;
+  height: 32px;
+}
+
+.white-space-pre-wrap {
+  white-space: pre-wrap;
+}
+
+.tag-badge {
+  background-color: #D9B77F;
+  color: #593E2F;
+  transition: all 0.2s ease;
+}
+
+.tag-badge:hover {
+  background-color: #C79650;
+  color: white;
+  text-decoration: none;
+}
+
+.comment-content {
+  margin: 0.5rem 0;
+  line-height: 1.5;
+}
