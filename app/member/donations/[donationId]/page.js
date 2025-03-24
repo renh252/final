@@ -49,16 +49,7 @@ export default function DonationDetailPage() {
       donorName: donation.donor_name,
       donorPhone: donation.donor_phone,
       donorEmail: donation.donor_email,
-      invoiceMethod: '無',
-      invoice: '',
-      mobileBarcode: '',
-      taxIDNumber: '',
-      recipientName: '',
-      recipientPhone: '',
-      recipientEmail: '',
-      remark: '',
-      shippingMethod: '',
-      shippingAddress: '',
+      retry_trade_no: donation.trade_no,
     }
 
     const res = await fetch('/api/ecpay', {
@@ -97,7 +88,7 @@ export default function DonationDetailPage() {
       <div className={styles.detailBox}>
         <p>
           <strong>捐款編號：</strong>
-          {donation.trade_no}
+          {donation.retry_trade_no || donation.trade_no}
         </p>
         <p>
           <strong>金額：</strong>NT$ {donation.amount}
