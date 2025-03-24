@@ -130,7 +130,7 @@ export async function GET(
       LEFT JOIN
         categories c ON p.category_id = c.category_id
       WHERE
-        p.status = 'active'
+        p.product_status = 'active'
       ORDER BY
         p.created_at DESC
       LIMIT 20`
@@ -243,10 +243,10 @@ export async function POST(
     // 使用事務來確保數據一致性
     try {
       // 開始事務
-      await db.exec('START TRANSACTION')
+      await db.query('START TRANSACTION')
 
       // 1. 刪除現有關聯
-      await db.exec('DELETE FROM promotion_products WHERE promotion_id = ?', [
+      await db.query('DELETE FROM promotion_products WHERE promotion_id = ?', [
         promotionId,
       ])
 
@@ -262,7 +262,7 @@ export async function POST(
           item.category_id || null,
         ])
 
-        await db.exec(
+        await db.query(
           `INSERT INTO promotion_products 
            (promotion_id, product_id, variant_id, category_id) 
            VALUES ${placeholders}`,
@@ -271,7 +271,7 @@ export async function POST(
       }
 
       // 提交事務
-      await db.exec('COMMIT')
+      await db.query('COMMIT')
 
       return NextResponse.json({
         success: true,
@@ -279,7 +279,7 @@ export async function POST(
       })
     } catch (error) {
       // 發生錯誤，回滾事務
-      await db.exec('ROLLBACK')
+      await db.query('ROLLBACK')
       throw error
     }
   } catch (error) {
@@ -362,7 +362,7 @@ export async function PATCH(
           categories c ON p.category_id = c.category_id
         WHERE 
           (p.product_name LIKE ? OR p.product_code LIKE ?)
-          AND p.status = 'active'
+          AND p.product_status = 'active'
         LIMIT 20`,
         [`%${searchQuery}%`, `%${searchQuery}%`]
       )
@@ -391,16 +391,18 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      data: results,
-      type: searchType,
-      query: searchQuery,
+      data: {
+        results,
+        totalResults: results.length,
+      },
+      message: '成功獲取促銷活動相關商品或類別',
     })
   } catch (error) {
-    console.error('搜尋關聯項目失敗:', error)
+    console.error('搜尋促銷活動商品失敗:', error)
     return NextResponse.json(
       {
         success: false,
-        message: '搜尋關聯項目失敗',
+        message: '搜尋促銷活動商品失敗',
         error: String(error),
       },
       { status: 500 }
