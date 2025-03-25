@@ -1,0 +1,22 @@
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.input,
+.select {
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.input:focus,
+.select:focus {
+  border-color: #cda274;
+  box-shadow: 0 0 0 2px rgba(241, 190, 136, 0.3);
+  outline: none;
+}
