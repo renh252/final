@@ -197,7 +197,7 @@ export default function ForumPage() {
               </div>
               <div className="card-body">
                 <p className="mb-3">
-                歡迎光臨寵物論壇！！這裡是分享毛孩日常、交流飼養經驗的好地方，大家一起打造友善的社群氛圍。
+                  歡迎光臨寵物論壇！！這裡是分享毛孩日常、交流飼養經驗的好地方，大家一起打造友善的社群氛圍。
                 </p>
                 <div className="forum-rules">
                   <h6 className="fw-bold">論壇守則：</h6>
