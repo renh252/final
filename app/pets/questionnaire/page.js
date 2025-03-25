@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from './questionnaire.module.css'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
+import { useAuth } from '@/app/context/AuthContext'
 import {
   FaPaw,
   FaHome,
@@ -44,11 +45,10 @@ const petTraits = [
 
 export default function QuestionnaireForm() {
   const router = useRouter()
+  const { user, isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [notification, setNotification] = useState({ message: '', type: '' })
-  const [userId, setUserId] = useState(null)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 4
 
@@ -66,31 +66,53 @@ export default function QuestionnaireForm() {
     hasOtherPets: false,
   })
 
-  // 檢查用戶登入狀態
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const response = await fetch('/api/auth/me', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
+  // 標題對照表
+  const titleMappings = {
+    livingEnvironment: '您的居住環境是？',
+    activityLevel: '您的日常活動程度是？',
+    experienceLevel: '您的寵物飼養經驗是？',
+    timeAvailable: '您每天能夠陪伴寵物的時間？',
+    preferredSize: '您偏好的寵物體型？',
+    preferredAge: '您偏好的寵物年齡？',
+    preferredTraits: '您希望寵物具備哪些性格特徵？（至少選擇3個）',
+    allergies: '我或家人有過敏問題',
+    hasChildren: '家中有12歲以下的兒童',
+    hasOtherPets: '家中已有其他寵物',
+  }
 
-        if (response.ok) {
-          const data = await response.json()
-          setIsLoggedIn(data.success)
-          if (data.success && data.data) {
-            setUserId(data.data.user_id)
-          }
-        }
-      } catch (error) {
-        console.error('檢查登入狀態時出錯:', error)
-      }
-    }
+  // 選項對照表
+  const optionMappings = {
+    // 居住環境
+    apartment: '公寓/大廈',
+    house: '獨立住宅',
+    rural: '鄉村/農場',
 
-    checkLoginStatus()
-  }, [])
+    // 活動程度
+    low: '低',
+    medium_activity: '中等',
+    high: '高',
+
+    // 經驗程度
+    none: '無經驗',
+    some: '有一些經驗',
+    experienced: '經驗豐富',
+
+    // 可用時間
+    little: '少於2小時',
+    moderate: '2-4小時',
+    plenty: '4小時以上',
+
+    // 體型偏好
+    small: '小型',
+    medium_size: '中型',
+    large: '大型',
+    any: '不限',
+
+    // 年齡偏好
+    young: '幼年',
+    adult: '成年',
+    senior: '年長',
+  }
 
   // 處理輸入改變
   const handleInputChange = (e) => {
@@ -122,20 +144,49 @@ export default function QuestionnaireForm() {
   // 提交表單
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // 如果不是最後一步，不要提交
+    if (currentStep !== totalSteps) {
+      return
+    }
+
     setIsLoading(true)
     setError(null)
     setNotification({ message: '', type: '' })
 
     try {
+      // 轉換特徵標籤為中文
+      const selectedTraits = formData.preferredTraits.map(
+        (id) => petTraits.find((trait) => trait.id === id)?.tag
+      )
+
+      // 準備要提交的資料，將英文 value 轉換為中文
+      const submissionData = {
+        居住環境: optionMappings[formData.livingEnvironment],
+        活動程度:
+          formData.activityLevel === 'medium'
+            ? '中等'
+            : optionMappings[formData.activityLevel],
+        飼養經驗: optionMappings[formData.experienceLevel],
+        可用時間: optionMappings[formData.timeAvailable],
+        偏好體型:
+          formData.preferredSize === 'medium'
+            ? '中型'
+            : optionMappings[formData.preferredSize],
+        偏好年齡: optionMappings[formData.preferredAge],
+        性格特徵: selectedTraits,
+        過敏情況: formData.allergies,
+        家中兒童: formData.hasChildren,
+        其他寵物: formData.hasOtherPets,
+        user_id: user?.id,
+      }
+
       const response = await fetch('/api/pets/questionnaire', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          user_id: userId,
-        }),
+        body: JSON.stringify(submissionData),
       })
 
       const data = await response.json()
@@ -146,12 +197,19 @@ export default function QuestionnaireForm() {
 
       setNotification({ message: '問卷提交成功！', type: 'success' })
 
-      // 導航到結果頁面
-      if (data.questionnaireId) {
-        router.push(`/pets/questionnaire/results?id=${data.questionnaireId}`)
-      } else {
-        router.push('/pets/questionnaire/results')
-      }
+      // 使用 setTimeout 確保狀態更新完成後再跳轉
+      setTimeout(() => {
+        // 只有在沒有錯誤時才跳轉
+        if (!error) {
+          if (data.questionnaireId) {
+            router.push(
+              `/pets/questionnaire/results?id=${data.questionnaireId}`
+            )
+          } else {
+            router.push('/pets/questionnaire/results')
+          }
+        }
+      }, 100)
     } catch (err) {
       setError(err.message)
       setNotification({ message: '提交失敗：' + err.message, type: 'error' })
@@ -176,7 +234,7 @@ export default function QuestionnaireForm() {
           formData.preferredAge
         )
       case 3:
-        return formData.preferredTraits.length > 0
+        return formData.preferredTraits.length >= 3
       case 4:
         return true // 最後一步總是可以提交
       default:
@@ -185,7 +243,9 @@ export default function QuestionnaireForm() {
   }
 
   // 下一步
-  const handleNextStep = () => {
+  const handleNextStep = (e) => {
+    // 防止表單提交
+    e.preventDefault()
     if (currentStep < totalSteps && isStepComplete()) {
       setCurrentStep(currentStep + 1)
       window.scrollTo(0, 0)
@@ -203,13 +263,14 @@ export default function QuestionnaireForm() {
   // 檢查表單是否完成填寫
   const isFormValid = () => {
     return (
+      currentStep === totalSteps &&
       formData.livingEnvironment &&
       formData.activityLevel &&
       formData.experienceLevel &&
       formData.timeAvailable &&
       formData.preferredSize &&
       formData.preferredAge &&
-      formData.preferredTraits.length > 0
+      formData.preferredTraits.length >= 3
     )
   }
 
@@ -242,12 +303,12 @@ export default function QuestionnaireForm() {
         </p>
       </div>
 
-      {!isLoggedIn && (
+      {!isAuthenticated && (
         <div className={styles.loginAlert}>
           <FaInfoCircle className={styles.alertIcon} />
           <div>
             <p>您尚未登入，登入後可保存問卷結果並獲得更精準的推薦。</p>
-            <Link href="/member/login" className={styles.loginLink}>
+            <Link href="/member/MemberLogin/login" className={styles.loginLink}>
               點擊此處登入
             </Link>
           </div>
@@ -297,7 +358,7 @@ export default function QuestionnaireForm() {
             <div className={styles.formGroup}>
               <label className={styles.questionLabel}>
                 <FaHome className={styles.questionIcon} />
-                您的居住環境是？
+                {titleMappings.livingEnvironment}
               </label>
               <div className={styles.optionGroup}>
                 <label
@@ -370,7 +431,7 @@ export default function QuestionnaireForm() {
             <div className={styles.formGroup}>
               <label className={styles.questionLabel}>
                 <FaRunning className={styles.questionIcon} />
-                您的日常活動程度是？
+                {titleMappings.activityLevel}
               </label>
               <div className={styles.optionGroup}>
                 <label
@@ -437,7 +498,7 @@ export default function QuestionnaireForm() {
             <div className={styles.formGroup}>
               <label className={styles.questionLabel}>
                 <FaUserAlt className={styles.questionIcon} />
-                您的寵物飼養經驗是？
+                {titleMappings.experienceLevel}
               </label>
               <div className={styles.optionGroup}>
                 <label
@@ -511,7 +572,7 @@ export default function QuestionnaireForm() {
             <div className={styles.formGroup}>
               <label className={styles.questionLabel}>
                 <FaClock className={styles.questionIcon} />
-                您每天能夠陪伴寵物的時間？
+                {titleMappings.timeAvailable}
               </label>
               <div className={styles.optionGroup}>
                 <label
@@ -578,7 +639,7 @@ export default function QuestionnaireForm() {
             <div className={styles.formGroup}>
               <label className={styles.questionLabel}>
                 <FaWeight className={styles.questionIcon} />
-                您偏好的寵物體型？
+                {titleMappings.preferredSize}
               </label>
               <div className={styles.optionGroup}>
                 <label
@@ -658,7 +719,7 @@ export default function QuestionnaireForm() {
             <div className={styles.formGroup}>
               <label className={styles.questionLabel}>
                 <FaBirthdayCake className={styles.questionIcon} />
-                您偏好的寵物年齡？
+                {titleMappings.preferredAge}
               </label>
               <div className={styles.optionGroup}>
                 <label
@@ -742,7 +803,7 @@ export default function QuestionnaireForm() {
             <div className={styles.formGroup}>
               <label className={styles.questionLabel}>
                 <FaPaw className={styles.questionIcon} />
-                您希望寵物具備哪些性格特徵？（至少選擇3個）
+                {titleMappings.preferredTraits}
               </label>
               <p className={styles.traitInstruction}>
                 點擊標籤選擇，再次點擊取消選擇
@@ -751,12 +812,20 @@ export default function QuestionnaireForm() {
                 {petTraits.map((trait) => (
                   <div
                     key={trait.id}
+                    role="button"
+                    tabIndex={0}
                     className={`${styles.traitTag} ${
                       formData.preferredTraits.includes(trait.id)
                         ? styles.traitTagSelected
                         : ''
                     }`}
                     onClick={() => handleTraitToggle(trait.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleTraitToggle(trait.id)
+                      }
+                    }}
                     title={trait.description}
                   >
                     {trait.tag}
@@ -793,7 +862,7 @@ export default function QuestionnaireForm() {
                   />
                   <span className={styles.checkboxLabel}>
                     <span className={styles.checkboxTitle}>
-                      我或家人有過敏問題
+                      {titleMappings.allergies}
                     </span>
                     <span className={styles.checkboxDescription}>
                       我們會推薦低過敏性的寵物品種
@@ -810,7 +879,7 @@ export default function QuestionnaireForm() {
                   />
                   <span className={styles.checkboxLabel}>
                     <span className={styles.checkboxTitle}>
-                      家中有12歲以下的兒童
+                      {titleMappings.hasChildren}
                     </span>
                     <span className={styles.checkboxDescription}>
                       我們會推薦性格溫和、適合與兒童相處的寵物
@@ -827,7 +896,7 @@ export default function QuestionnaireForm() {
                   />
                   <span className={styles.checkboxLabel}>
                     <span className={styles.checkboxTitle}>
-                      家中已有其他寵物
+                      {titleMappings.hasOtherPets}
                     </span>
                     <span className={styles.checkboxDescription}>
                       我們會推薦能與其他寵物和平相處的寵物
@@ -845,35 +914,35 @@ export default function QuestionnaireForm() {
           {currentStep > 1 && (
             <button
               type="button"
-              className={styles.prevButton}
               onClick={handlePrevStep}
+              className={styles.prevButton}
             >
-              上一步
+              返回上一步
             </button>
           )}
-
           {currentStep < totalSteps ? (
             <button
               type="button"
-              className={styles.nextButton}
               onClick={handleNextStep}
               disabled={!isStepComplete()}
+              className={styles.nextButton}
             >
-              下一步 <FaArrowRight />
+              下一步
+              <FaArrowRight />
             </button>
           ) : (
             <button
               type="submit"
+              disabled={!isFormValid()}
               className={styles.submitButton}
-              disabled={isLoading || !isFormValid()}
             >
               {isLoading ? (
                 <>
-                  <span className={styles.loadingSpinner}></span>
-                  處理中...
+                  <div className={styles.loadingSpinner} />
+                  提交中...
                 </>
               ) : (
-                '獲取推薦結果'
+                '提交問卷'
               )}
             </button>
           )}

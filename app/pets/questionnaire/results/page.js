@@ -29,33 +29,33 @@ import {
 // 將代碼映射為可讀文字的函數
 const mapCodeToText = (code, category) => {
   const mappings = {
-    livingEnvironment: {
+    living_environment: {
       apartment: '公寓/大廈',
       house: '獨立住宅',
       rural: '鄉村/農場',
     },
-    activityLevel: {
+    activity_level: {
       low: '低（喜歡待在家裡）',
       medium: '中等（偶爾外出活動）',
       high: '高（經常運動和外出）',
     },
-    experienceLevel: {
+    experience_level: {
       none: '無經驗（第一次養寵物）',
       some: '有一些經驗（養過寵物）',
       experienced: '經驗豐富（養過多種寵物）',
     },
-    timeAvailable: {
+    time_available: {
       little: '少於2小時',
       moderate: '2-4小時',
       plenty: '4小時以上',
     },
-    preferredSize: {
+    preferred_size: {
       small: '小型（10公斤以下）',
       medium: '中型（10-25公斤）',
       large: '大型（25公斤以上）',
       any: '不限',
     },
-    preferredAge: {
+    preferred_age: {
       young: '幼年（2歲以下）',
       adult: '成年（2-8歲）',
       senior: '年長（8歲以上）',
@@ -69,15 +69,15 @@ const mapCodeToText = (code, category) => {
 // 獲取問題標題
 const getQuestionTitle = (category) => {
   const titles = {
-    livingEnvironment: '居住環境',
-    activityLevel: '活動程度',
-    experienceLevel: '飼養經驗',
-    timeAvailable: '可投入時間',
-    preferredSize: '偏好體型',
-    preferredAge: '偏好年齡',
+    living_environment: '居住環境',
+    activity_level: '活動程度',
+    experience_level: '飼養經驗',
+    time_available: '可投入時間',
+    preferred_size: '偏好體型',
+    preferred_age: '偏好年齡',
     allergies: '過敏情況',
-    hasChildren: '家中有兒童',
-    hasOtherPets: '家中有其他寵物',
+    has_children: '家中有兒童',
+    has_other_pets: '家中有其他寵物',
   }
   return titles[category] || category
 }
@@ -149,14 +149,29 @@ export default function QuestionnaireResultPage() {
 
         // 獲取寵物特徵數據
         const traitsResponse = await fetch('/api/pets/traits')
-        if (traitsResponse.ok) {
-          const traitsData = await traitsResponse.json()
-          const traitsMap = {}
-          traitsData.forEach((trait) => {
-            traitsMap[trait.id] = trait
-          })
-          setPetTraits(traitsMap)
+        if (!traitsResponse.ok) {
+          throw new Error('無法獲取特徵數據')
         }
+        const traitsData = await traitsResponse.json()
+
+        // 檢查特徵數據的格式
+        if (!Array.isArray(traitsData)) {
+          throw new Error('特徵數據格式錯誤')
+        }
+
+        // 將特徵數據轉換為以 id 為鍵的物件
+        const traitsMap = {}
+        traitsData.forEach((trait) => {
+          if (
+            trait &&
+            typeof trait === 'object' &&
+            trait.id &&
+            trait.trait_tag
+          ) {
+            traitsMap[trait.id] = trait.trait_tag
+          }
+        })
+        setPetTraits(traitsMap)
       } catch (err) {
         console.error('獲取數據失敗:', err)
         setError(err.message)
@@ -171,7 +186,15 @@ export default function QuestionnaireResultPage() {
   // 獲取推薦寵物相匹配的特徵
   const getMatchingTraits = (petTraitIds, preferredTraits) => {
     if (!petTraitIds || !preferredTraits) return []
-    return petTraitIds.filter((id) => preferredTraits.includes(id))
+    // 確保 petTraitIds 是數組
+    const validPetTraitIds = Array.isArray(petTraitIds) ? petTraitIds : []
+    // 確保 preferredTraits 是數組
+    const validPreferredTraits = Array.isArray(preferredTraits)
+      ? preferredTraits
+      : []
+    return validPetTraitIds.filter((id) =>
+      validPreferredTraits.includes(Number(id))
+    )
   }
 
   // 渲染載入中狀態
@@ -370,7 +393,7 @@ export default function QuestionnaireResultPage() {
           <div className={styles.traitsList}>
             {preferredTraits.map((traitId) => (
               <div key={traitId} className={styles.traitItem}>
-                {petTraits[traitId]?.trait_tag || `特徵 ${traitId}`}
+                {petTraits[traitId] || `未知特徵`}
               </div>
             ))}
           </div>
@@ -384,11 +407,18 @@ export default function QuestionnaireResultPage() {
         </h2>
         <div className={styles.petMatchesContainer}>
           {recommendations.map((pet) => {
+            // 確保 pet.traits 是數組，如果是字符串則嘗試解析
+            const petTraitIds = Array.isArray(pet.traits)
+              ? pet.traits
+              : typeof pet.traits === 'string'
+              ? JSON.parse(pet.traits)
+              : []
+
             const matchingTraits = getMatchingTraits(
-              pet.traits || [],
+              petTraitIds,
               preferredTraits
             )
-            const matchScore = Math.round(pet.match_score * 100)
+            const matchScore = Math.round((pet.match_score || 0) * 100)
 
             return (
               <div key={pet.id} className={styles.petCard}>
@@ -440,27 +470,31 @@ export default function QuestionnaireResultPage() {
                     </div>
                   </div>
                   <div className={styles.petTraits}>
-                    {pet.traits &&
-                      pet.traits.map((traitId) => (
+                    {petTraitIds.map((trait) => {
+                      // 處理特徵對象格式
+                      const traitId = trait.trait_id || trait
+
+                      return (
                         <div
-                          key={traitId}
+                          key={`${pet.id}-${traitId}`}
                           className={`${styles.traitTag} ${
-                            matchingTraits.includes(traitId)
+                            matchingTraits.includes(Number(traitId))
                               ? styles.matchingTraitTag
                               : ''
                           }`}
                           title={
-                            matchingTraits.includes(traitId)
+                            matchingTraits.includes(Number(traitId))
                               ? '符合您的偏好'
                               : ''
                           }
                         >
-                          {petTraits[traitId]?.trait_tag || `特徵 ${traitId}`}
-                          {matchingTraits.includes(traitId) && (
+                          {trait.trait_tag || petTraits[traitId] || '未知特徵'}
+                          {matchingTraits.includes(Number(traitId)) && (
                             <span className={styles.matchIcon}>✓</span>
                           )}
                         </div>
-                      ))}
+                      )
+                    })}
                   </div>
                   <div className={styles.petLocation}>
                     <FaMapMarkerAlt />
