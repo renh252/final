@@ -1,0 +1,1 @@
+ALTER TABLE donations ADD COLUMN retry_trade_no VARCHAR(50) DEFAULT NULL;
