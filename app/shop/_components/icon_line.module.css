@@ -1,6 +1,35 @@
 /* 全域 */
 /* icon_line.js */
-.line,.line_lg{
+.line {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.icon:hover {
+  transform: scale(1.1);
+}
+
+.title, .line p {
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px aliceblue;
+  color:aliceblue;
+  white-space: nowrap;
+  margin: 0;
+  padding: 0;
+}
+
+.line_lg{
   width: 100%;
   display: flex;
   flex-direction: row;
@@ -65,8 +94,8 @@
     display: flex; 
     justify-content: space-between;
     p{
-      color: #000;
-      text-shadow: #000 1px 0px;
+      color: #f0f8ff;
+      text-shadow: #f0f8ff 1px 0px;
       font-size: 36px;
     }
     img{
