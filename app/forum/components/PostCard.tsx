@@ -67,6 +67,23 @@ export default function PostCard({ post }: PostCardProps) {
           </h5>
         </Link>
 
+        {/* 顯示貼文圖片 */}
+        {post.image_url && (
+          <div className="post-image mb-3">
+            <Link href={`/forum/posts/${post.id}`}>
+              <div className="position-relative" style={{ height: '180px', overflow: 'hidden', borderRadius: '8px' }}>
+                <Image 
+                  src={post.image_url} 
+                  alt={post.title}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  className="hover-scale transition-all"
+                />
+              </div>
+            </Link>
+          </div>
+        )}
+
         <div className="post-content text-secondary mb-3">
           {post.content.length > 150
             ? `${post.content.substring(0, 150)}...`
@@ -118,7 +135,7 @@ export default function PostCard({ post }: PostCardProps) {
             className="read-more-link text-decoration-none small"
             style={{ color: '#C79650' }}
           >
-            閱讀全文 <i className="bi bi-arrow-right"></i>
+            查看更多
           </Link>
         </div>
       </div>

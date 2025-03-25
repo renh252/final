@@ -19,6 +19,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { Post } from '../../hooks/useForumData'
 import Link from 'next/link'
+import Image from 'next/image'
 import '../../styles/custom-theme.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
@@ -379,6 +380,22 @@ export default function PostDetailPage() {
                             {tag}
                           </Link>
                         ))}
+                      </div>
+                    )}
+
+                    {/* 文章圖片 */}
+                    {post.image_url && (
+                      <div className="post-image my-4">
+                        <div className="position-relative" style={{ maxHeight: '400px', overflow: 'hidden', borderRadius: '8px' }}>
+                          <Image 
+                            src={post.image_url} 
+                            alt={post.title}
+                            width={800}
+                            height={450}
+                            style={{ objectFit: 'contain', width: '100%', height: 'auto', maxHeight: '400px' }}
+                            className="shadow-sm"
+                          />
+                        </div>
                       </div>
                     )}
 
