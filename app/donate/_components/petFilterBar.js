@@ -20,7 +20,7 @@ export default function PetFilterBar({
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="搜尋名字"
+        placeholder="搜尋毛寶名字"
         className={styles.input}
       />
 
@@ -29,7 +29,7 @@ export default function PetFilterBar({
         onChange={(e) => setSelectedSpecies(e.target.value)}
         className={styles.select}
       >
-        <option value="">全部物種</option>
+        <option value="">選擇物種</option>
         <option value="狗">狗</option>
         <option value="貓">貓</option>
       </select>
@@ -39,9 +39,9 @@ export default function PetFilterBar({
         onChange={(e) => setSelectedGender(e.target.value)}
         className={styles.select}
       >
-        <option value="">全部性別</option>
-        <option value="公">男生</option>
-        <option value="母">女生</option>
+        <option value="">選擇性別</option>
+        <option value="公">公</option>
+        <option value="母">母</option>
       </select>
 
     </div>

@@ -13,3 +13,10 @@
   border-radius: 6px;
   border: 1px solid #ccc;
 }
+
+.input:focus,
+.select:focus {
+  border-color: #cda274;
+  box-shadow: 0 0 0 2px rgba(241, 190, 136, 0.3);
+  outline: none;
+}
