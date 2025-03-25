@@ -28,7 +28,7 @@ import AdminPageLayout, {
   AdminCard,
 } from '@/app/admin/_components/AdminPageLayout'
 
-// 模擬舉報數據
+// 模擬檢舉數據
 const MOCK_REPORTS = [
   {
     id: 1,
@@ -118,7 +118,7 @@ const MOCK_REPORTS = [
   },
 ]
 
-// 舉報原因選項
+// 檢舉原因選項
 const REASON_OPTIONS = [
   { value: 'all', label: '全部原因' },
   { value: 'inappropriate', label: '不適當內容', badge: 'warning' },
@@ -128,7 +128,7 @@ const REASON_OPTIONS = [
   { value: 'other', label: '其他', badge: 'dark' },
 ]
 
-// 舉報狀態選項
+// 檢舉狀態選項
 const STATUS_OPTIONS = [
   { value: 'all', label: '全部狀態' },
   { value: 'pending', label: '待處理', badge: 'warning' },
@@ -137,7 +137,7 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: '已駁回', badge: 'danger' },
 ]
 
-// 舉報內容類型選項
+// 檢舉內容類型選項
 const CONTENT_TYPE_OPTIONS = [
   { value: 'all', label: '全部類型' },
   { value: 'post', label: '文章', badge: 'primary' },
@@ -177,7 +177,7 @@ export default function ReportsPage() {
   const handleRefresh = () => {
     // 這裡在實際應用中會調用API重新獲取數據
     // 由於這是模擬數據，我們僅顯示一個刷新成功的通知
-    showToast('success', '資料已更新', '舉報列表已重新載入')
+    showToast('success', '資料已更新', '檢舉列表已重新載入')
   }
 
   // 處理搜尋
@@ -261,11 +261,11 @@ export default function ReportsPage() {
             : r
         )
       )
-      showToast('success', '狀態更新', `舉報 #${report.id} 已標記為調查中`)
+      showToast('success', '狀態更新', `檢舉 #${report.id} 已標記為調查中`)
     }, 500)
   }
 
-  // 處理解決舉報
+  // 處理解決檢舉
   const handleResolveReport = (report: any) => {
     setCurrentReport(report)
     setResolutionData({
@@ -275,7 +275,7 @@ export default function ReportsPage() {
     })
 
     confirm({
-      title: '解決舉報',
+      title: '解決檢舉',
       message: (
         <div>
           <p>請選擇解決方式：</p>
@@ -345,13 +345,13 @@ export default function ReportsPage() {
                 : r
             )
           )
-          showToast('success', '舉報已解決', `舉報 #${report.id} 已成功解決`)
+          showToast('success', '檢舉已解決', `檢舉 #${report.id} 已成功解決`)
         }, 500)
       },
     })
   }
 
-  // 處理駁回舉報
+  // 處理駁回檢舉
   const handleRejectReport = (report: any) => {
     setCurrentReport(report)
     setResolutionData({
@@ -361,10 +361,10 @@ export default function ReportsPage() {
     })
 
     confirm({
-      title: '駁回舉報',
+      title: '駁回檢舉',
       message: (
         <div>
-          <p>確定要駁回此舉報嗎？</p>
+          <p>確定要駁回此檢舉嗎？</p>
           <Form.Group className="mb-3">
             <Form.Label>駁回原因</Form.Label>
             <Form.Control
@@ -414,7 +414,7 @@ export default function ReportsPage() {
                 : r
             )
           )
-          showToast('success', '舉報已駁回', `舉報 #${report.id} 已駁回`)
+          showToast('success', '檢舉已駁回', `檢舉 #${report.id} 已駁回`)
         }, 500)
       },
     })
@@ -432,9 +432,9 @@ export default function ReportsPage() {
         return type ? <Badge bg={type.badge}>{type.label}</Badge> : value
       },
     },
-    { key: 'reported_content_title', label: '被舉報內容', sortable: true },
-    { key: 'reported_user_name', label: '被舉報用戶', sortable: true },
-    { key: 'reporter_name', label: '舉報者', sortable: true },
+    { key: 'reported_content_title', label: '被檢舉內容', sortable: true },
+    { key: 'reported_user_name', label: '被檢舉用戶', sortable: true },
+    { key: 'reporter_name', label: '檢舉者', sortable: true },
     {
       key: 'reason',
       label: '原因',
@@ -468,7 +468,7 @@ export default function ReportsPage() {
     },
     {
       key: 'created_at',
-      label: '舉報日期',
+      label: '檢舉日期',
       sortable: true,
       render: (value: string) => new Date(value).toLocaleDateString('zh-TW'),
     },
@@ -499,7 +499,7 @@ export default function ReportsPage() {
             variant="outline-success"
             size="sm"
             onClick={() => handleResolveReport(report)}
-            title="解決舉報"
+            title="解決檢舉"
           >
             <CheckCircle size={16} />
           </Button>
@@ -507,7 +507,7 @@ export default function ReportsPage() {
             variant="outline-danger"
             size="sm"
             onClick={() => handleRejectReport(report)}
-            title="駁回舉報"
+            title="駁回檢舉"
           >
             <XCircle size={16} />
           </Button>
@@ -518,7 +518,7 @@ export default function ReportsPage() {
 
   return (
     <AdminPageLayout
-      title="舉報管理"
+      title="檢舉管理"
       actions={
         <div className="d-flex gap-2">
           <Button
@@ -546,7 +546,7 @@ export default function ReportsPage() {
                 <Col md={4} className="mb-3">
                   <InputGroup>
                     <Form.Control
-                      placeholder="搜尋舉報內容、用戶或描述"
+                      placeholder="搜尋檢舉內容、用戶或描述"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -630,10 +630,10 @@ export default function ReportsPage() {
           <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">舉報列表</h5>
+                <h5 className="mb-0">檢舉列表</h5>
                 <div>
                   <span className="me-3">
-                    共 {filteredReports.length} 筆舉報
+                    共 {filteredReports.length} 筆檢舉
                   </span>
                   <span className="me-3">
                     待處理:{' '}

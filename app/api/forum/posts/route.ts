@@ -48,12 +48,25 @@ export async function GET(request: Request) {
     const total = countResult.total
     const totalPages = Math.ceil(total / limit)
 
-    // 簡化文章查詢
-    const postsQuery = `
+    // 檢查資料表是否有 image_url 欄位
+    const checkColumnQuery = `
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = 'pet_proj' 
+      AND TABLE_NAME = 'forum_posts' 
+      AND COLUMN_NAME = 'image_url'
+    `
+    
+    const columnExists = await executeQuery(checkColumnQuery) as any[]
+    const hasImageUrlColumn = columnExists.length > 0
+
+    // 根據資料表結構動態生成 SQL 查詢
+    let postsQuery = `
       SELECT 
         p.id,
         p.title,
         p.content,
+        ${hasImageUrlColumn ? 'p.image_url,' : ''}
         p.created_at,
         p.updated_at,
         p.view_count,
@@ -77,6 +90,8 @@ export async function GET(request: Request) {
       author_avatar: '',
       category_name: '熱門標籤',
       tags: '',
+      // 如果資料表沒有 image_url 欄位，添加默認值
+      ...(hasImageUrlColumn ? {} : { image_url: null })
     }))
 
     // 返回結果
@@ -110,7 +125,7 @@ export async function GET(request: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { title, content, categoryId, tags } = body
+    const { title, content, categoryId, tags, imageUrl } = body
 
     // 基本驗證
     if (!title || !content || !categoryId) {
@@ -126,46 +141,79 @@ export async function POST(req: Request) {
     // 使用預設用戶ID (1) 作為示範
     const userId = 1
 
-    // 簡化：只插入到 forum_posts 資料表
-    const insertPostQuery = `
-      INSERT INTO forum_posts (title, content, user_id, category_id)
-      VALUES (?, ?, ?, ?)
+    // 檢查資料表是否有 image_url 欄位
+    const checkColumnQuery = `
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = 'pet_proj' 
+      AND TABLE_NAME = 'forum_posts' 
+      AND COLUMN_NAME = 'image_url'
     `
+    
+    const columnExists = await executeQuery(checkColumnQuery) as any[]
+    const hasImageUrlColumn = columnExists.length > 0
+
+    // 根據資料表結構動態生成 SQL 查詢
+    let insertPostQuery = ''
+    let queryParams: any[] = []
+
+    if (hasImageUrlColumn) {
+      // 如果資料表有 image_url 欄位
+      insertPostQuery = `
+        INSERT INTO forum_posts (title, content, image_url, user_id, category_id)
+        VALUES (?, ?, ?, ?, ?)
+      `
+      queryParams = [title, content, imageUrl || null, userId, categoryId]
+    } else {
+      // 如果資料表沒有 image_url 欄位
+      insertPostQuery = `
+        INSERT INTO forum_posts (title, content, user_id, category_id)
+        VALUES (?, ?, ?, ?)
+      `
+      queryParams = [title, content, userId, categoryId]
+    }
 
     // 執行插入操作
-    const postResult = await executeQuery(insertPostQuery, [
-      title,
-      content,
-      userId,
-      categoryId
-    ]) as any
+    const postResult = await executeQuery(insertPostQuery, queryParams) as any
     
     const postId = postResult.insertId
 
     // 處理標籤 - 只有當資料庫中有 forum_tags 和 forum_post_tags 資料表時才執行
     try {
       if (tags && Array.isArray(tags) && tags.length > 0) {
-        // 為每個標籤創建記錄
-        for (const tagName of tags) {
-          // 先檢查標籤是否存在
-          const checkTagQuery = `SELECT id FROM forum_tags WHERE name = ?`
-          const existingTags = await executeQuery(checkTagQuery, [tagName]) as any[]
-          
-          let tagId
-          
-          if (existingTags.length > 0) {
-            // 標籤已存在，使用現有ID
-            tagId = existingTags[0].id
-          } else {
-            // 創建新標籤
-            const insertTagQuery = `INSERT INTO forum_tags (name, slug, created_at) VALUES (?, ?, NOW())`
-            const tagResult = await executeQuery(insertTagQuery, [tagName, tagName.toLowerCase().replace(/\s+/g, '-')]) as any
-            tagId = tagResult.insertId
+        // 檢查資料表是否存在
+        const checkTagsTableQuery = `
+          SELECT TABLE_NAME 
+          FROM INFORMATION_SCHEMA.TABLES 
+          WHERE TABLE_SCHEMA = 'pet_proj' 
+          AND TABLE_NAME = 'forum_tags'
+        `
+        
+        const tagsTableExists = await executeQuery(checkTagsTableQuery) as any[]
+        
+        if (tagsTableExists.length > 0) {
+          // 為每個標籤創建記錄
+          for (const tagName of tags) {
+            // 先檢查標籤是否存在
+            const checkTagQuery = `SELECT id FROM forum_tags WHERE name = ?`
+            const existingTags = await executeQuery(checkTagQuery, [tagName]) as any[]
+            
+            let tagId
+            
+            if (existingTags.length > 0) {
+              // 標籤已存在，使用現有ID
+              tagId = existingTags[0].id
+            } else {
+              // 創建新標籤
+              const insertTagQuery = `INSERT INTO forum_tags (name, slug, created_at) VALUES (?, ?, NOW())`
+              const tagResult = await executeQuery(insertTagQuery, [tagName, tagName.toLowerCase().replace(/\s+/g, '-')]) as any
+              tagId = tagResult.insertId
+            }
+            
+            // 關聯標籤與文章
+            const insertPostTagQuery = `INSERT INTO forum_post_tags (post_id, tag_id) VALUES (?, ?)`
+            await executeQuery(insertPostTagQuery, [postId, tagId])
           }
-          
-          // 關聯標籤與文章
-          const insertPostTagQuery = `INSERT INTO forum_post_tags (post_id, tag_id) VALUES (?, ?)`
-          await executeQuery(insertPostTagQuery, [postId, tagId])
         }
       }
     } catch (tagError) {
@@ -178,6 +226,7 @@ export async function POST(req: Request) {
       id: postId,
       title,
       content,
+      image_url: imageUrl || null, // 在客戶端保存 imageUrl
       user_id: userId,
       category_id: categoryId,
       created_at: new Date().toISOString(),

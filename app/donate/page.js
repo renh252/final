@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import useSWR from 'swr'
-import Form from 'react-bootstrap/Form'
 
 import styles from './donate.module.css'
 import SelectBasicExample from './_components/options'
 import RescueModal from './_components/modal'
-
 import MethodItem from './_components/methodItem'
+import PetFilterBar from './_components/petFilterBar'
+
 import Contents from './_data/Contents'
 
 import Card from '@/app/_components/ui/Card'
@@ -40,10 +40,23 @@ export default function DonatePage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false) // 選單狀態
   const [highlightIndex, setHighlightIndex] = useState(-1) // 鍵盤選擇索引
 
+  // 線上認養區設置懶加載
+  const [visibleCount, setVisibleCount] = useState(6) // 每次顯示的寵物數量
+
+  // 寵物篩選欄
+  const [searchTerm2, setSearchTerm2] = useState('')
+  const [selectedSpecies, setSelectedSpecies] = useState('')
+  const [selectedGender, setSelectedGender] = useState('')
   // 過濾符合搜尋條件的寵物
-  const filteredPets = pets.filter((pet) =>
-    pet.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredPets = pets
+    .filter((pet) =>
+      pet.name?.toLowerCase().includes(searchTerm2.toLowerCase())
+    )
+    .filter((pet) => {
+      if (selectedSpecies && pet.species !== selectedSpecies) return false
+      if (selectedGender && pet.gender !== selectedGender) return false
+      return true
+    })
 
   // 救援醫療
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -337,20 +350,21 @@ export default function DonatePage() {
                     {cases?.map((post) => (
                       <li key={post.id} className={styles.cases}>
                         {/* 顯示第一張圖片 */}
-                        {post.images?.[0] ? (
-                          <Image
-                            src={post.images[0]}
-                            alt="Case Image"
-                            width={300}
-                            height={300}
-                            objectFit="cover"
-                            className={styles.cases_img}
-                            priority
-                          />
-                        ) : (
-                          // 若沒有圖片時顯示的訊息
-                          <p>No images available</p>
-                        )}
+                        <div className={styles.caseImg_container}>
+                          {post.images?.[0] ? (
+                            <Image
+                              src={post.images[0]}
+                              alt="Case Image"
+                              layout="fill"
+                              objectFit="cover"
+                              className={styles.cases_img}
+                              priority
+                            />
+                          ) : (
+                            // 若沒有圖片時顯示的訊息
+                            <p>No images available</p>
+                          )}
+                        </div>
                         <h5>{post.title}</h5>
                         <button
                           type="button"
@@ -367,8 +381,11 @@ export default function DonatePage() {
                   <button
                     className="button"
                     style={{ width: '180px', height: '50px', fontSize: '28px' }}
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
                   >
-                    <Link href="/donate">立即捐款</Link>
+                    立即捐款
                   </button>
                   {/* Modal - 當 selectedCase 存在時顯示 */}
                   {selectedCase && (
@@ -391,10 +408,19 @@ export default function DonatePage() {
                     <h5>領養代替購買，給浪浪一個家</h5>
                   </div>
                 </div>
+                <PetFilterBar
+                  searchTerm={searchTerm2}
+                  setSearchTerm={setSearchTerm2}
+                  selectedSpecies={selectedSpecies}
+                  setSelectedSpecies={setSelectedSpecies}
+                  selectedGender={selectedGender}
+                  setSelectedGender={setSelectedGender}
+                  pets={pets}
+                />
                 <div className={styles.instructions_content}>
                   <div className={styles.petContainer}>
                     <ul className={styles.petList}>
-                      {pets.map((pet) => (
+                      {filteredPets.slice(0, visibleCount).map((pet) => (
                         <li key={pet.id} className={styles.petItem}>
                           <Link
                             href={`/pets/${pet.id}`}
@@ -420,6 +446,16 @@ export default function DonatePage() {
                         </li>
                       ))}
                     </ul>
+                    {visibleCount < pets.length && (
+                      <div style={{ textAlign: 'center', margin: '20px 0' }}>
+                        <button
+                          className={styles.loadMoreButton}
+                          onClick={() => setVisibleCount((prev) => prev + 6)}
+                        >
+                          顯示更多
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className={styles.donate_container3}>
                     <ul className={styles.ul2}>
@@ -443,8 +479,11 @@ export default function DonatePage() {
                             height: '50px',
                             fontSize: '28px',
                           }}
+                          onClick={() => {
+                            window.scrollTo({ top: 0, behavior: 'smooth' })
+                          }}
                         >
-                          <Link href="/donate">立即捐款</Link>
+                          立即捐款
                         </button>
                       </li>
                     </ul>
@@ -479,8 +518,11 @@ export default function DonatePage() {
                   <button
                     className="button"
                     style={{ width: '180px', height: '50px', fontSize: '28px' }}
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
                   >
-                    <Link href="/donate">立即捐款</Link>
+                    立即捐款
                   </button>
                 </div>
               </div>
