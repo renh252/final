@@ -153,7 +153,7 @@ export default function PetsPage() {
       <form onSubmit={handleSearch} className={styles.search}>
         <input 
           type="search" 
-          placeholder="搜尋商品" 
+          placeholder="搜尋全站商品..." 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
