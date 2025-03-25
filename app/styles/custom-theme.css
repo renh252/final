@@ -1,0 +1,141 @@
+:root {
+  /* Primary brown color scheme */
+  --primary-color: #8B5A2B; /* Main brown */
+  --primary-light: #D2B48C; /* Tan/Light brown */
+  --primary-dark: #654321; /* Dark brown */
+  
+  /* Secondary colors */
+  --secondary-color: #5D4037; /* Deep brown */
+  --secondary-light: #8D6E63; /* Medium brown */
+  
+  /* Accent colors */
+  --accent-color: #A1887F; /* Taupe */
+  --accent-light: #EFEBE9; /* Off-white */
+  
+  /* Background colors */
+  --bg-primary: #F8F5F0; /* Light cream */
+  --bg-secondary: #F0ECE5; /* Light beige */
+  
+  /* Text colors */
+  --text-primary: #3E2723; /* Dark brown for text */
+  --text-secondary: #5D4037; /* Medium brown for secondary text */
+  --text-light: #8D6E63; /* Light brown for tertiary text */
+}
+
+/* Button styling */
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+.btn-outline-primary {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus {
+  background-color: var(--primary-light) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--primary-dark) !important;
+}
+
+/* Card styling */
+.card {
+  border-radius: 0.75rem !important;
+  overflow: hidden;
+}
+
+.card-header {
+  border-bottom: none !important;
+}
+
+/* Form control styling */
+.form-control:focus {
+  border-color: var(--primary-light) !important;
+  box-shadow: 0 0 0 0.25rem rgba(139, 90, 43, 0.25) !important;
+}
+
+/* Forum layout specific styles */
+.forum-layout .post-content {
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.forum-layout .comment-item:hover {
+  background-color: var(--accent-light);
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+/* Badge styling */
+.badge {
+  font-weight: 500 !important;
+}
+
+/* Link styling */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--primary-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-color);
+}
+
+/* Dropdown styling */
+.dropdown-menu {
+  border-radius: 0.5rem;
+  border: 1px solid var(--primary-light);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item:hover {
+  background-color: var(--primary-light);
+  color: var(--text-primary);
+}
+
+/* Tooltip styling */
+.tooltip .tooltip-inner {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+/* Avatar styling */
+.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--secondary-color);
+  color: white;
+  font-weight: bold;
+}
+
+/* Loading spinner */
+.spinner-border {
+  color: var(--primary-color) !important;
+}
