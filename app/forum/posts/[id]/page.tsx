@@ -154,12 +154,10 @@ export default function PostDetailPage() {
 
   const tags = post.tags?.split(',').filter(Boolean) || [];
   const forumRules = [
-    '您的貼文必須是一個不受歡迎的觀點',
-    '不要發布低品質/諷刺/惡搞貼文',
-    '不要發布已經在首頁上出現過的觀點',
-    '保持禮貌',
-    '不要發布政治貼文',
-    '不要發布 r/self 風格的貼文'
+    '互相尊重，每個人都是毛孩的好家人',
+    '避免張貼廣告或無關內容',
+    '歡迎分享你家寶貝的大小事，越實用越好',
+    '發文時別忘了善用分類標籤，讓大家更容易找到',
   ];
 
   return (
@@ -519,7 +517,6 @@ export default function PostDetailPage() {
                     {forumRules.map((rule, index) => (
                       <li key={index} className="mb-2">
                         <div className="d-flex">
-                          <span className="me-2" style={{ color: 'var(--primary-color)' }}>{index + 1}.</span>
                           <span style={{ color: 'var(--text-primary)' }}>{rule}</span>
                         </div>
                       </li>
