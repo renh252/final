@@ -25,6 +25,8 @@ const routes = [
   { path: '/shop/cart', type: RouteType.PROTECTED }, // 購物車
   { path: '/shop/checkout', type: RouteType.PROTECTED }, // 結帳
   { path: '/donate/flow', type: RouteType.PROTECTED }, // 捐款流程
+  { path: '/pets/questionnaire', type: RouteType.PROTECTED }, // 問卷流程
+  { path: '/pets/questionnaire/results', type: RouteType.PROTECTED }, // 問卷結果頁面
 ]
 
 /**
