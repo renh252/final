@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import styles from './results.module.css'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
+import { useAuth } from '@/app/context/AuthContext'
 import {
   FaPaw,
   FaHome,
@@ -105,6 +106,8 @@ const getQuestionIcon = (category) => {
 export default function QuestionnaireResultPage() {
   const searchParams = useSearchParams()
   const questionnaireId = searchParams.get('id')
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -112,12 +115,17 @@ export default function QuestionnaireResultPage() {
   const [recommendations, setRecommendations] = useState([])
   const [petTraits, setPetTraits] = useState({})
 
-  // 獲取問卷數據和推薦結果
+  // 檢查登入狀態
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      setError(null)
+    if (!isAuthenticated) {
+      const returnUrl = encodeURIComponent(
+        window.location.pathname + window.location.search
+      )
+      router.push(`/member/MemberLogin/login?returnUrl=${returnUrl}`)
+      return
+    }
 
+    const fetchData = async () => {
       try {
         // 獲取問卷數據
         const questionnaireResponse = await fetch(
@@ -181,7 +189,19 @@ export default function QuestionnaireResultPage() {
     }
 
     fetchData()
-  }, [questionnaireId])
+  }, [isAuthenticated, questionnaireId, router])
+
+  // 如果未登入，顯示載入中狀態
+  if (!isAuthenticated) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p>正在檢查登入狀態...</p>
+        </div>
+      </div>
+    )
+  }
 
   // 獲取推薦寵物相匹配的特徵
   const getMatchingTraits = (petTraitIds, preferredTraits) => {
@@ -430,7 +450,8 @@ export default function QuestionnaireResultPage() {
                       className={styles.petImage}
                       width={300}
                       height={220}
-                      objectFit="cover"
+                      priority={true}
+                      style={{ objectFit: 'cover' }}
                     />
                   ) : (
                     <div className={styles.noImage}>
