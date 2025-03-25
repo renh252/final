@@ -1,30 +1,57 @@
-.productMenu{
+.productMenu {
   padding: 20px;
   background-color: #fff;
   border-radius: 20px;
-  a{
-    padding: 10px 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-decoration: none;
-    color: #6b4f37;
-    border-radius: 16px;
-    white-space: nowrap;
-  }
-  .title.parent p{
-      text-shadow: #6b4f37 0.5px 0.5px 1px;
-    }
-  .title p{
-    padding: 0;
-    margin: 0;
-    font-size: 18px;
-  }
-  a:hover{
-    text-decoration: underline;
-  }
-  a.active{
-    background-color: rgba(199, 150, 80, 1);
-    color: #fff;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.productMenu a {
+  padding: 12px 20px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  text-decoration: none;
+  color: #6b4f37;
+  border-radius: 16px;
+  white-space: nowrap;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.productMenu .title.parent {
+  font-weight: bold;
+  font-size: 20px;
+  padding-left: 5px;
+}
+
+.productMenu .title.parent p {
+  text-shadow: #6b4f37 0.5px 0.5px 1px;
+}
+
+.productMenu .title.child {
+  font-size: 16px;
+  padding-left: 20px;
+  opacity: 0.8;
+}
+
+.productMenu .title.child:hover {
+  opacity: 1;
+  font-weight: bold;
+}
+
+.productMenu a:hover {
+  text-decoration: underline;
+  background-color: rgba(199, 150, 80, 0.2);
+}
+
+.productMenu a.active {
+  background-color: rgba(199, 150, 80, 1);
+  color: #fff;
+  font-weight: bold;
+}
+
+.productMenu div:not(:last-child) {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
 }

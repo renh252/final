@@ -38,6 +38,7 @@ export async function GET(request) {
 
 const [products] = await connection.execute(`
   SELECT 
+    p.updated_at,
     p.product_id,
     p.product_name,
     COALESCE(v.price, p.price) AS price,
