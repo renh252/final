@@ -12,7 +12,7 @@ export default function MemberPage() {
   const [userData, setUserData] = useState(null); // 保存使用者資料
   const [editingField, setEditingField] = useState(null); // 目前正在編輯的欄位名稱
   const [draftValues, setDraftValues] = useState({}); // 儲存每個欄位編輯中的值
-  const [profilePhoto, setProfilePhoto] = useState(null); // 儲存使用者上傳的圖片
+  const [profilePhoto, setProfilePhoto] = useState('https://cdn.builder.io/api/v1/image/assets/TEMP/c07e5bb4325caeb94efd091416f6964123f3611a'); // 儲存使用者上傳的圖片
 
   const formatDate = (date) => {
     const formattedDate = new Date(date);
@@ -34,7 +34,7 @@ export default function MemberPage() {
         if (response.ok) {
           const data = await response.json();
           setUserData(data); // 更新使用者資料
-          setProfilePhoto(data.profile_photo); // 設定使用者上傳的圖片
+          setProfilePhoto(data.profile_picture  || 'https://cdn.builder.io/api/v1/image/assets/TEMP/c07e5bb4325caeb94efd091416f6964123f3611a'); // 設定使用者上傳的圖片
         } else {
           console.error('獲取使用者資料失敗:', response.statusText);
         }
@@ -97,30 +97,32 @@ export default function MemberPage() {
 
   const handleUploadPhoto = async (e) => {
     try {
-      const token = localStorage.getItem('token'); // 從 localStorage 獲取 token
+      const token = localStorage.getItem('token');
       if (!token) {
         console.error('未找到 token，無法上傳圖片');
         return;
       }
+      const file = e.target.files[0];
       const formData = new FormData();
-      formData.append('photo', e.target.files[0]);
-      const response = await fetch('/api/user/upload_photo', {
+      formData.append('profile_photo', file);
+  
+      const response = await fetch('/api/user/uploadPhoto', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: formData,
       });
-
+  
       if (response.ok) {
-        const updatedData = await response.json();
-        setUserData(updatedData); // 更新使用者資料
-        setProfilePhoto(updatedData.profile_photo); // 設定使用者上傳的圖片
+        const updatedUser = await response.json();
+        setUserData(updatedUser);
+        setProfilePhoto(updatedUser.profile_picture);
       } else {
         console.error('上傳圖片失敗:', response.statusText);
       }
     } catch (error) {
-      console.error('上傳圖片失敗:', error.message);
+      console.error('上傳圖片時發生錯誤:', error);
     }
   };
 
@@ -129,8 +131,19 @@ export default function MemberPage() {
         <div className={styles.member_container}>
           <section className={styles.profile_section}>
             <div className={styles.profile_photos}>
-              <img src={profilePhoto || 'https://cdn.builder.io/api/v1/image/assets/TEMP/c07e5bb4325caeb94efd091416f6964123f3611a'} alt="大頭照" className="profile-photo" />
-              <div>
+            <img src={profilePhoto}  alt="大頭照" 
+    className={styles.profile_photo}  />              
+            <div><br />
+            <label htmlFor="profile_photo" className="form_label">
+      上傳大頭照：
+      <input 
+        type="file" 
+        id="profile_photo" 
+        name="profile_photo" 
+        onChange={handleUploadPhoto} 
+        className={styles.label_input}
+      /></label>
+      <br /><br />
                 <p>
                   暱稱：
                   {editingField === 'user_level' ? (
@@ -155,12 +168,6 @@ export default function MemberPage() {
                     <span onClick={() => handleEditClick('user_level')} style={{ cursor: 'pointer' }}> <FontAwesomeIcon icon={faPenToSquare} style={{ color: "#d2ac83" }} /> </span> 
                   )}
                 </p>
-              </div>
-              <div>
-                <label htmlFor="profile_photo" className="form_label">
-                  上傳大頭照：
-                  <input type="file" id="profile_photo" name="profile_photo" onChange={handleUploadPhoto} className={styles.label_input}/>
-                </label>
               </div>
             </div>
 
