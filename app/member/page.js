@@ -134,7 +134,7 @@ export default function MemberPage() {
                 <p>
                   暱稱：
                   {editingField === 'user_level' ? (
-                    <select name="user_level" value={draftValues.user_level || userData?.user_level || ''} onChange={handleInputChange}>
+                    <select name="user_level" value={draftValues.user_level || userData?.user_level || ''} onChange={handleInputChange} className={styles.label_input}>
                       <option value="">請選擇暱稱</option>
                       <option value="愛心小天使">愛心小天使</option>
                       <option value="乾爹乾媽">乾爹乾媽</option>
@@ -146,8 +146,10 @@ export default function MemberPage() {
                   )}
                   {editingField === 'user_level' ? (
                     <>
-                      <button onClick={() => handleSaveClick('user_level')}>儲存</button>
-                      <button onClick={() => handleCancelEditClick('user_level')}>取消</button>
+                      <button onClick={() => handleSaveClick('user_level')}
+                      className={styles.edit_button} >儲存</button>
+                      <button onClick={() => handleCancelEditClick('user_level')}
+                      className={styles.edit_button} >取消</button>
                     </>
                   ) : (
                     <span onClick={() => handleEditClick('user_level')} style={{ cursor: 'pointer' }}> <FontAwesomeIcon icon={faPenToSquare} style={{ color: "#d2ac83" }} /> </span> 
@@ -157,7 +159,7 @@ export default function MemberPage() {
               <div>
                 <label htmlFor="profile_photo" className="form_label">
                   上傳大頭照：
-                  <input type="file" id="profile_photo" name="profile_photo" onChange={handleUploadPhoto} />
+                  <input type="file" id="profile_photo" name="profile_photo" onChange={handleUploadPhoto} className={styles.label_input}/>
                 </label>
               </div>
             </div>
@@ -168,14 +170,16 @@ export default function MemberPage() {
                 <label className={styles.form_label}>
                   姓名：
                   {editingField === 'user_name' ? (
-                    <input type="text" name="user_name" value={draftValues.user_name || userData?.user_name || ''} onChange={handleInputChange} />
+                    <input type="text" name="user_name" value={draftValues.user_name || userData?.user_name || ''} onChange={handleInputChange} className={styles.label_input}/>
                   ) : (
                     <span>{userData?.user_name}</span>
                   )}
                   {editingField === 'user_name' ? (
                     <>
-                      <button onClick={() => handleSaveClick('user_name')}>儲存</button>
-                      <button onClick={() => handleCancelEditClick('user_name')}>取消</button>
+                      <button onClick={() => handleSaveClick('user_name')}
+                      className={styles.edit_button} >儲存</button>
+                      <button onClick={() => handleCancelEditClick('user_name')}
+                      className={styles.edit_button} >取消</button>
                     </>
                   ) : (
                     <span onClick={() => handleEditClick('user_name')} style={{ cursor: 'pointer' }}> <FontAwesomeIcon icon={faPenToSquare} style={{ color: "#d2ac83" }} /> </span> 
@@ -186,14 +190,16 @@ export default function MemberPage() {
                 <label className={styles.form_label}>
                   電話：
                   {editingField === 'user_number' ? (
-                    <input type="text" name="user_number" value={draftValues.user_number || userData?.user_number || ''} onChange={handleInputChange} />
+                    <input type="text" name="user_number" value={draftValues.user_number || userData?.user_number || ''} onChange={handleInputChange} className={styles.label_input}/>
                   ) : (
                     <span>{userData?.user_number}</span>
                   )}
                   {editingField === 'user_number' ? (
                     <>
-                      <button onClick={() => handleSaveClick('user_number')}>儲存</button>
-                      <button onClick={() => handleCancelEditClick('user_number')}>取消</button>
+                      <button onClick={() => handleSaveClick('user_number')}
+                      className={styles.edit_button} >儲存</button>
+                      <button onClick={() => handleCancelEditClick('user_number')}
+                      className={styles.edit_button} >取消</button>
                     </>
                   ) : (
                     <span onClick={() => handleEditClick('user_number')} style={{ cursor: 'pointer' }}> <FontAwesomeIcon icon={faPenToSquare} style={{ color: "#d2ac83" }} /> </span> 
@@ -206,14 +212,16 @@ export default function MemberPage() {
                   {editingField === 'user_birthday' ? (
                     <input type="date" name="user_birthday"
                       value={draftValues.user_birthday ? formatDate(draftValues.user_birthday) : (userData?.user_birthday ? formatDate(userData.user_birthday) : '')}
-                      onChange={handleInputChange} />
+                      onChange={handleInputChange} className={styles.label_input}/>
                   ) : (
                     <span>{userData?.user_birthday ? formatDate(userData.user_birthday) : ''}</span>
                   )}
                   {editingField === 'user_birthday' ? (
                     <>
-                      <button onClick={() => handleSaveClick('user_birthday')}>儲存</button>
-                      <button onClick={() => handleCancelEditClick('user_birthday')}>取消</button>
+                      <button onClick={() => handleSaveClick('user_birthday')}
+                      className={styles.edit_button} >儲存</button>
+                      <button onClick={() => handleCancelEditClick('user_birthday')}
+                      className={styles.edit_button} >取消</button>
                     </>
                   ) : (
                     <span onClick={() => handleEditClick('user_birthday')} style={{ cursor: 'pointer' }}> <FontAwesomeIcon icon={faPenToSquare} style={{ color: "#d2ac83" }} /> </span>
@@ -224,14 +232,16 @@ export default function MemberPage() {
                 <label className={styles.form_label}>
                   論壇ID：
                   {editingField === 'user_nickname' ? (
-                    <input type="text" name="user_nickname" value={draftValues.user_nickname || userData?.user_nickname || ''} onChange={handleInputChange} />
+                    <input type="text" name="user_nickname" value={draftValues.user_nickname || userData?.user_nickname || ''} onChange={handleInputChange} className={styles.label_input}/>
                   ) : (
                     <span>{userData?.user_nickname}</span>
                   )}
                   {editingField === 'user_nickname' ? (
                     <>
-                      <button onClick={() => handleSaveClick('user_nickname')}>儲存</button>
-                      <button onClick={() => handleCancelEditClick('user_nickname')}>取消</button>
+                      <button onClick={() => handleSaveClick('user_nickname')}
+                      className={styles.edit_button} >儲存</button>
+                      <button onClick={() => handleCancelEditClick('user_nickname')}
+                      className={styles.edit_button} >取消</button>
                     </>
                   ) : (
                     <span onClick={() => handleEditClick('user_nickname')} style={{ cursor: 'pointer' }}> <FontAwesomeIcon icon={faPenToSquare} style={{ color: "#d2ac83" }} /> </span> 
@@ -242,14 +252,16 @@ export default function MemberPage() {
                 <label className={styles.form_label}>
                   地址：
                   {editingField === 'user_address' ? (
-                    <input type="text" name="user_address" value={draftValues.user_address || userData?.user_address || ''} onChange={handleInputChange} />
+                    <input type="text" name="user_address" value={draftValues.user_address || userData?.user_address || ''} onChange={handleInputChange} className={styles.label_input}/>
                   ) : (
                     <span>{userData?.user_address}</span>
                   )}
                   {editingField === 'user_address' ? (
                     <>
-                      <button onClick={() => handleSaveClick('user_address')}>儲存</button>
-                      <button onClick={() => handleCancelEditClick('user_address')}>取消</button>
+                      <button onClick={() => handleSaveClick('user_address')}
+                      className={styles.edit_button} >儲存</button> 
+                      <button onClick={() => handleCancelEditClick('user_address')}
+                      className={styles.edit_button} >取消</button>
                     </>
                   ) : (
                     <span onClick={() => handleEditClick('user_address')} style={{ cursor: 'pointer' }}> <FontAwesomeIcon icon={faPenToSquare} style={{ color: "#d2ac83" }} /> </span> 
