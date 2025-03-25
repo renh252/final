@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import ProductMenu from '@/app/shop/_components/productMenu'
 // style
 import styles from '@/app/shop/shop.module.css'
-import cid_styles from '@/app/shop/categories/[cidParent]/[cid]/cid.module.css'
+import cid_styles from '@/app/shop/search/search.module.css'
 // card
 import Card from '@/app/_components/ui/Card'
 import { FaArrowLeft, FaRegHeart, FaHeart } from 'react-icons/fa'
@@ -106,6 +106,17 @@ export default function CidPage(props) {
   const isValidCategory =
     currentCategory && currentCategory.parent_id == cidParent
 
+    const filteredProducts = products
+    .filter((product) => product.category_id == cid)
+    .filter((product) =>
+      product.product_name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortOption === "latest") return new Date(b.updated_at) - new Date(a.updated_at);
+      if (sortOption === "price_asc") return ((a.price * (100 - a.discount_percentage)) / 100) - ((b.price * (100 - b.discount_percentage)) / 100);
+      if (sortOption === "price_desc") return ((b.price * (100 - b.discount_percentage)) / 100) - ((a.price * (100 - a.discount_percentage)) / 100);
+      return 0;
+    });
 
   // -----------------
 
@@ -152,63 +163,58 @@ export default function CidPage(props) {
                     <option value="price_desc">價格高到低</option>
                   </select>
                 </div>
+                <div className={cid_styles.noProductMessage}>
+                  {filteredProducts
+                  ?(
+                    filteredProducts.length === 0
+                    ?'無此商品'
+                    :`共${filteredProducts.length}筆商品`
+                  )
+                  :products.length
+                  }
+                </div>
                 <div className={cid_styles.cardGroup}>
-                  {products
-                    .filter((product) => product.category_id == cid)
-                    .filter((product) =>
-                      product.product_name.includes(searchTerm)
-                    )
-                    .sort((a, b) => {
-                      if (sortOption === "latest") return new Date(b.updated_at) - new Date(a.updated_at);
-                      if (sortOption === "price_asc") return ((a.price *(100 - a.discount_percentage)) /100) - ((b.price *(100 - b.discount_percentage)) /100);
-                      if (sortOption === "price_desc") return ((b.price *(100 - b.discount_percentage)) /100) - ((a.price *(100 - a.discount_percentage)) /100);
-                      return 0;
-                    })
-                    .map((product) => {
-                      return (
-                        <Link
-                          key={product.product_id}
-                          href={`/shop/${product.product_id}`}
-                        >
-                          <Card
-                            image={
-                              product.image_url || '/images/default_no_pet.jpg'
-                            }
-                            title={product.product_name}
+                  {filteredProducts.map((product) => (
+                    <Link
+                      key={product.product_id}
+                      href={`/shop/${product.product_id}`}
+                    >
+                      <Card
+                        image={product.image_url || '/images/default_no_pet.jpg'}
+                        title={product.product_name}
+                      >
+                        <div className={styles.cardText}>
+                          {product?.discount_percentage ? (
+                            <p>
+                              $
+                              {Math.ceil(
+                                (product.price *
+                                  (100 - product.discount_percentage)) /
+                                  100
+                              )}{' '}
+                              <del>${product.price}</del>
+                            </p>
+                          ) : (
+                            <p>${product.price}</p>
+                          )}
+                          <button
+                            className={styles.likeButton}
+                            onClick={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                              toggleLike(product.product_id)
+                            }}
                           >
-                            <div className={styles.cardText}>
-                              {product?.discount_percentage ? (
-                                <p>
-                                  $
-                                  {Math.ceil(
-                                    (product.price *
-                                      (100 - product.discount_percentage)) /
-                                      100
-                                  )}{' '}
-                                  <del>${product.price}</del>
-                                </p>
-                              ) : (
-                                <p>${product.price}</p>
-                              )}
-                              <button
-                                className={styles.likeButton}
-                                onClick={(event) => {
-                                  event.preventDefault()
-                                  event.stopPropagation()
-                                  toggleLike(product.product_id)
-                                }}
-                              >
-                                {isProductLiked(product.product_id) ? (
-                                  <FaHeart />
-                                ) : (
-                                  <FaRegHeart />
-                                )}
-                              </button>
-                            </div>
-                          </Card>
-                        </Link>
-                      )
-                    })}
+                            {isProductLiked(product.product_id) ? (
+                              <FaHeart />
+                            ) : (
+                              <FaRegHeart />
+                            )}
+                          </button>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>

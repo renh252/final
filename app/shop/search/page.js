@@ -109,44 +109,44 @@ export default function SearchPage(props) {
 
   return (
     <div className={cid_styles.main}>
-      { products
-      ? 
-        <>
-          <Breadcrumbs
-            title={`搜尋【${query}】 /共 ${products.length} 筆資料`}
-            items={[
-              { label: '商城', href: `/shop` },
-              {
-                label: `${query}`,
-                href: `/shop/search?q=${query}`,
-              },
-            ]}
-          />
-          <div className={cid_styles.container}>
-            <div className="productMenu">
-              <ProductMenu />
-            </div>
-            <div className={cid_styles.contain_body}>
-              {/* 搜尋與排序選單 */}
-              <form  onSubmit={handleSearch} className={cid_styles.filterBar}>
-                  <input
-                    type="search"
-                    placeholder="搜尋全站商品..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className={cid_styles.searchInput}
-                  />
-                  <select
-                    value={sortOption}
-                    onChange={(e) => setSortOption(e.target.value)}
-                    className={cid_styles.sortSelect}
-                  >
-                    <option value="latest">最新</option>
-                    <option value="price_asc">價格低到高</option>
-                    <option value="price_desc">價格高到低</option>
-                  </select>
-              </form>
+        <Breadcrumbs
+          title={`搜尋【${query}】 /共 ${products.length} 筆資料`}
+          items={[
+            { label: '商城', href: `/shop` },
+            {
+              label: `${query}`,
+              href: `/shop/search?q=${query}`,
+            },
+          ]}
+        />
+        <div className={cid_styles.container}>
+          <div className="productMenu">
+            <ProductMenu />
+          </div>
+          <div className={cid_styles.contain_body}>
+            {/* 搜尋與排序選單 */}
+            <form  onSubmit={handleSearch} className={cid_styles.filterBar}>
+                <input
+                  type="search"
+                  placeholder="搜尋全站商品..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={cid_styles.searchInput}
+                />
+                <select
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                  className={cid_styles.sortSelect}
+                >
+                  <option value="latest">最新</option>
+                  <option value="price_asc">價格低到高</option>
+                  <option value="price_desc">價格高到低</option>
+                </select>
+            </form>
+            { products.length > 0
+            ? 
               <div className={cid_styles.cardGroup}>
+              <div className={cid_styles.noProductMessage}>共{products.length}筆商品</div>
                 {products
                     .sort((a, b) => {
                       if (sortOption === "latest") return new Date(b.updated_at) - new Date(a.updated_at);
@@ -199,20 +199,12 @@ export default function SearchPage(props) {
                     )
                   })}
               </div>
-            </div>
+            : (
+              <div className={cid_styles.noProductMessage}>查無此商品</div>
+            )}
           </div>
-        </> 
-      : (
-        <div className={cid_styles.noCategory}>
-          <Link href="/shop">
-            <div>
-              <FaArrowLeft />
-              返回商城
-            </div>
-          </Link>
-          <p>查無此類別</p>
         </div>
-      )}
+
     </div>
   )
 }
