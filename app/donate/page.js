@@ -350,20 +350,21 @@ export default function DonatePage() {
                     {cases?.map((post) => (
                       <li key={post.id} className={styles.cases}>
                         {/* 顯示第一張圖片 */}
-                        {post.images?.[0] ? (
-                          <Image
-                            src={post.images[0]}
-                            alt="Case Image"
-                            width={300}
-                            height={300}
-                            objectFit="cover"
-                            className={styles.cases_img}
-                            priority
-                          />
-                        ) : (
-                          // 若沒有圖片時顯示的訊息
-                          <p>No images available</p>
-                        )}
+                        <div className={styles.caseImg_container}>
+                          {post.images?.[0] ? (
+                            <Image
+                              src={post.images[0]}
+                              alt="Case Image"
+                              layout="fill"
+                              objectFit="cover"
+                              className={styles.cases_img}
+                              priority
+                            />
+                          ) : (
+                            // 若沒有圖片時顯示的訊息
+                            <p>No images available</p>
+                          )}
+                        </div>
                         <h5>{post.title}</h5>
                         <button
                           type="button"
