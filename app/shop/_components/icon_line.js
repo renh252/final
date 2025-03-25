@@ -6,20 +6,16 @@ import { MdOutlinePets } from "react-icons/md";
 
 export function IconLine({title}) {
   return (
-    <>
     <div className={styles.line}>
-      <Image src={favicon} alt="Icon Line" />
-      <Image src={favicon} alt="Icon Line" />
-      <Image src={favicon} alt="Icon Line" />
-      <Image src={favicon} alt="Icon Line" />
-      <p>{title}</p>
-      <Image src={favicon} alt="Icon Line" />
-      <Image src={favicon} alt="Icon Line" />
-      <Image src={favicon} alt="Icon Line" />
-      <Image src={favicon} alt="Icon Line" />
+      {[...Array(4)].map((_, i) => (
+        <Image key={i} src={favicon} alt="Icon Line" className={styles.icon} />
+      ))}
+      <p className={styles.title}>{title}</p>
+      {[...Array(4)].map((_, i) => (
+        <Image key={i + 4} src={favicon} alt="Icon Line" className={styles.icon} />
+      ))}
     </div>
-    </>
-  )
+  );
 }
 
 export function IconLine_lg({title}){
