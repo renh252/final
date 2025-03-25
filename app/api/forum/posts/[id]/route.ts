@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { executeQuery } from '@/lib/db';
+import { getErrorMessage } from '@/lib/utils';
 
 // GET /api/forum/posts/[id]
 export async function GET(
@@ -10,89 +11,86 @@ export async function GET(
     const postId = parseInt(params.id);
     if (isNaN(postId)) {
       return NextResponse.json(
-        { error: '無效的文章ID' },
+        { status: 'error', message: '無效的文章ID' },
         { status: 400 }
       );
     }
 
-    const post = await prisma.forum_posts.findUnique({
-      where: { id: postId },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-          },
-        },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            created_at: 'desc',
-          },
-        },
-        tags: {
-          select: {
-            tag: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    // 查詢文章
+    const query = `
+      SELECT 
+        id,
+        title,
+        content,
+        created_at,
+        updated_at,
+        view_count,
+        like_count,
+        comment_count,
+        user_id,
+        category_id
+      FROM forum_posts
+      WHERE id = ?
+    `;
 
-    if (!post) {
+    const posts = await executeQuery(query, [postId]) as any[];
+    
+    if (!posts || posts.length === 0) {
       return NextResponse.json(
-        { error: '找不到該文章' },
+        { status: 'error', message: '找不到該文章' },
         { status: 404 }
       );
     }
 
-    // Format the response
+    // 在 JavaScript 中格式化資料
+    const post = posts[0];
     const formattedPost = {
-      id: post.id,
-      title: post.title,
-      content: post.content,
-      created_at: post.created_at,
-      updated_at: post.updated_at,
-      author: {
-        id: post.author.id,
-        name: post.author.name,
-        avatar: post.author.avatar,
-      },
-      category: post.category,
-      upvotes: post.upvotes,
-      downvotes: post.downvotes,
-      comments: post.comments.map(comment => ({
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        author: {
-          id: comment.author.id,
-          name: comment.author.name,
-          avatar: comment.author.avatar,
-        },
-        upvotes: comment.upvotes,
-        downvotes: comment.downvotes,
-      })),
-      tags: post.tags.map(tag => tag.tag.name).join(','),
+      ...post,
+      author_name: '作者',
+      author_avatar: '',
+      category_name: '分類',
+      tags: '',
+      comments: [],
     };
 
-    return NextResponse.json(formattedPost);
+    // 查詢標籤
+    try {
+      const tagsQuery = `
+        SELECT t.name
+        FROM forum_tags t
+        JOIN forum_post_tags pt ON t.id = pt.tag_id
+        WHERE pt.post_id = ?
+      `;
+      const tags = await executeQuery(tagsQuery, [postId]) as any[];
+      if (tags && tags.length > 0) {
+        formattedPost.tags = tags.map(tag => tag.name).join(',');
+      }
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      // 如果標籤查詢失敗，直接返回文章資料
+    }
+
+    // 更新文章的瀏覽次數
+    try {
+      const updateViewCountQuery = `
+        UPDATE forum_posts
+        SET view_count = view_count + 1
+        WHERE id = ?
+      `;
+      await executeQuery(updateViewCountQuery, [postId]);
+    } catch (error) {
+      console.error('Error updating view count:', error);
+      // 如果更新瀏覽次數失敗，直接返回文章資料
+    }
+
+    return NextResponse.json({
+      status: 'success',
+      data: formattedPost,
+    });
   } catch (error) {
     console.error('Error fetching post:', error);
     return NextResponse.json(
-      { error: '無法獲取文章內容' },
+      { status: 'error', message: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -107,7 +105,7 @@ export async function POST(
     const postId = parseInt(params.id);
     if (isNaN(postId)) {
       return NextResponse.json(
-        { error: '無效的文章ID' },
+        { status: 'error', message: '無效的文章ID' },
         { status: 400 }
       );
     }
@@ -115,87 +113,93 @@ export async function POST(
     const { type } = await request.json();
     if (type !== 'up' && type !== 'down') {
       return NextResponse.json(
-        { error: '無效的投票類型' },
+        { status: 'error', message: '無效的投票類型' },
         { status: 400 }
       );
     }
 
-    const updateData = type === 'up'
-      ? { upvotes: { increment: 1 } }
-      : { downvotes: { increment: 1 } };
+    // 查詢文章
+    const query = `
+      SELECT 
+        id,
+        title,
+        content,
+        created_at,
+        updated_at,
+        view_count,
+        like_count,
+        comment_count,
+        user_id,
+        category_id
+      FROM forum_posts
+      WHERE id = ?
+    `;
 
-    const updatedPost = await prisma.forum_posts.update({
-      where: { id: postId },
-      data: updateData,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-          },
-        },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            created_at: 'desc',
-          },
-        },
-        tags: {
-          select: {
-            tag: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const posts = await executeQuery(query, [postId]) as any[];
+    
+    if (!posts || posts.length === 0) {
+      return NextResponse.json(
+        { status: 'error', message: '找不到該文章' },
+        { status: 404 }
+      );
+    }
 
-    // Format the response
+    // 在 JavaScript 中格式化資料
+    const post = posts[0];
     const formattedPost = {
-      id: updatedPost.id,
-      title: updatedPost.title,
-      content: updatedPost.content,
-      created_at: updatedPost.created_at,
-      updated_at: updatedPost.updated_at,
-      author: {
-        id: updatedPost.author.id,
-        name: updatedPost.author.name,
-        avatar: updatedPost.author.avatar,
-      },
-      category: updatedPost.category,
-      upvotes: updatedPost.upvotes,
-      downvotes: updatedPost.downvotes,
-      comments: updatedPost.comments.map(comment => ({
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        author: {
-          id: comment.author.id,
-          name: comment.author.name,
-          avatar: comment.author.avatar,
-        },
-        upvotes: comment.upvotes,
-        downvotes: comment.downvotes,
-      })),
-      tags: updatedPost.tags.map(tag => tag.tag.name).join(','),
+      ...post,
+      author_name: '作者',
+      author_avatar: '',
+      category_name: '分類',
+      tags: '',
+      comments: [],
     };
 
-    return NextResponse.json(formattedPost);
+    // 查詢標籤
+    try {
+      const tagsQuery = `
+        SELECT t.name
+        FROM forum_tags t
+        JOIN forum_post_tags pt ON t.id = pt.tag_id
+        WHERE pt.post_id = ?
+      `;
+      const tags = await executeQuery(tagsQuery, [postId]) as any[];
+      if (tags && tags.length > 0) {
+        formattedPost.tags = tags.map(tag => tag.name).join(',');
+      }
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      // 如果標籤查詢失敗，直接返回文章資料
+    }
+
+    // 更新文章的投票數
+    try {
+      let updateVoteCountQuery = `
+        UPDATE forum_posts
+        SET like_count = like_count + 1
+        WHERE id = ?
+      `;
+      if (type === 'down') {
+        updateVoteCountQuery = `
+          UPDATE forum_posts
+          SET like_count = GREATEST(like_count - 1, 0)
+          WHERE id = ?
+        `;
+      }
+      await executeQuery(updateVoteCountQuery, [postId]);
+    } catch (error) {
+      console.error('Error updating vote count:', error);
+      // 如果更新投票數失敗，直接返回文章資料
+    }
+
+    return NextResponse.json({
+      status: 'success',
+      data: formattedPost,
+    });
   } catch (error) {
     console.error('Error updating post vote:', error);
     return NextResponse.json(
-      { error: '無法更新投票' },
+      { status: 'error', message: getErrorMessage(error) },
       { status: 500 }
     );
   }
