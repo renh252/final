@@ -250,7 +250,11 @@ export default function PostDetailPage() {
                     <i className="bi bi-flag me-2"></i>檢舉
                   </Dropdown.Item>
                   <Dropdown.Item href="#">
-                    <i className="bi bi-eye-slash me-2"></i>隱藏
+                    <i
+                      className="bi bi-eye-fill-slash me-2"
+                      style={{ color: '#EDB25F' }}
+                    ></i>
+                    隱藏
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
@@ -394,11 +398,18 @@ export default function PostDetailPage() {
                     {/* 文章底部統計 */}
                     <div className="d-flex align-items-center text-muted mt-3 flex-wrap">
                       <div className="me-3 d-flex align-items-center mb-2">
-                        <i className="bi bi-chat-dots me-1"></i>
+                        <i
+                          className="bi bi-chat-dots-fill me-1"
+                          style={{ color: '#EDB25F' }}
+                        ></i>
                         <span>{comments.length} 評論</span>
                       </div>
                       <div className="me-3 d-flex align-items-center mb-2">
-                        <i className="bi bi-eye me-1"></i>
+                        <i
+                          className="bi bi-eye-fill me-1"
+                          style={{ color: '#EDB25F' }}
+                        ></i>
+
                         <span>{post.view_count || 0} 瀏覽</span>
                       </div>
                       <div className="me-3 d-flex align-items-center mb-2">
@@ -639,7 +650,7 @@ export default function PostDetailPage() {
                     ) : (
                       <div className="text-center text-muted py-4">
                         <i
-                          className="bi bi-chat-dots mb-2 fs-3"
+                          className="bi bi-chat-dots-fill mb-2 fs-3"
                           style={{ color: 'var(--primary-color)' }}
                         ></i>
                         <p>還沒有評論，成為第一個留言的人吧！</p>
