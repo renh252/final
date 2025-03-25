@@ -46,11 +46,13 @@ const petTraits = [
 export default function QuestionnaireForm() {
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
+
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 4
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [notification, setNotification] = useState({ message: '', type: '' })
+
   const [formData, setFormData] = useState({
     livingEnvironment: '',
     activityLevel: '',
@@ -97,6 +99,7 @@ export default function QuestionnaireForm() {
     allergies: '我或家人有過敏問題',
     hasChildren: '家中有12歲以下的兒童',
     hasOtherPets: '家中已有其他寵物',
+
   }
 
   // 處理輸入改變
@@ -148,6 +151,7 @@ export default function QuestionnaireForm() {
         allergies: formData.allergies,
         hasChildren: formData.hasChildren,
         hasOtherPets: formData.hasOtherPets,
+
         user_id: user?.id,
       }
 
@@ -164,6 +168,7 @@ export default function QuestionnaireForm() {
       if (!response.ok) {
         throw new Error(data.message || '提交問卷時出錯')
       }
+
 
       // 使用 setTimeout 確保狀態更新完成後再跳轉
       setTimeout(() => {
