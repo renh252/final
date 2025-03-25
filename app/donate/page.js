@@ -381,8 +381,11 @@ export default function DonatePage() {
                   <button
                     className="button"
                     style={{ width: '180px', height: '50px', fontSize: '28px' }}
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
                   >
-                    <Link href="/donate">立即捐款</Link>
+                    立即捐款
                   </button>
                   {/* Modal - 當 selectedCase 存在時顯示 */}
                   {selectedCase && (
@@ -476,8 +479,11 @@ export default function DonatePage() {
                             height: '50px',
                             fontSize: '28px',
                           }}
+                          onClick={() => {
+                            window.scrollTo({ top: 0, behavior: 'smooth' })
+                          }}
                         >
-                          <Link href="/donate">立即捐款</Link>
+                          立即捐款
                         </button>
                       </li>
                     </ul>
@@ -512,8 +518,11 @@ export default function DonatePage() {
                   <button
                     className="button"
                     style={{ width: '180px', height: '50px', fontSize: '28px' }}
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
                   >
-                    <Link href="/donate">立即捐款</Link>
+                    立即捐款
                   </button>
                 </div>
               </div>
