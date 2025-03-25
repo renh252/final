@@ -187,12 +187,12 @@ export async function POST(req) {
   const ItemName = itemName // 商品名稱
 
   // 在localhost上執行
-  // const ReturnURL = `http://localhost:3000/api/ecpay/notify`
-  // const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
+  const ReturnURL = `http://localhost:3000/api/ecpay/notify`
+  const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
 
   // 使用公開網域執行(ngrok)，無法運行請切換成localhost版本
-  const ReturnURL = `  https://b155-36-239-254-206.ngrok-free.app/api/ecpay/notify`
-  const OrderResultURL =
+  // const ReturnURL = `  https://b155-36-239-254-206.ngrok-free.app/api/ecpay/notify`
+  // const OrderResultURL =
     '  https://b155-36-239-254-206.ngrok-free.app/api/ecpay/callback'
 
   const stage = isStage ? '-stage' : ''
