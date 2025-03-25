@@ -6,8 +6,9 @@ C:\iSpan\final\app\shop
 
 活動輪播牆
 
-[cid]
-**搜尋/排序
+/主類別
+rwd排版
+
 
 C:\iSpan\final\app\shop\[pid]
 如果沒有'變體顯示','庫存為0'查無此商品
