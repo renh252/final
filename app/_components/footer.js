@@ -22,6 +22,8 @@ export default function Footer() {
                 alt="圖片描述"
                 width={120}
                 height={30}
+                priority={true}
+                style={{ objectFit: 'contain' }}
               />
             </li>
             <li>關於我們</li>
