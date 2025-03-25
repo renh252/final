@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { Post } from '../hooks/useForumData'
 import '../styles/custom-theme.css'
+import 'bootstrap-icons/font/bootstrap-icons.css'
 
 interface PostCardProps {
   post: Post
@@ -32,7 +33,11 @@ export default function PostCard({ post }: PostCardProps) {
               ) : (
                 <div
                   className="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center text-white"
-                  style={{ width: '40px', height: '40px', backgroundColor: '#593E2F' }}
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    backgroundColor: '#593E2F',
+                  }}
                 >
                   {post.author_name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
@@ -48,7 +53,10 @@ export default function PostCard({ post }: PostCardProps) {
               </div>
             </div>
           </div>
-          <div className="category-badge px-2 py-1 rounded-pill small" style={{ backgroundColor: '#C79650', color: 'white' }}>
+          <div
+            className="category-badge px-2 py-1 rounded-pill small"
+            style={{ backgroundColor: '#C79650', color: 'white' }}
+          >
             {post.category_name}
           </div>
         </div>
@@ -58,6 +66,23 @@ export default function PostCard({ post }: PostCardProps) {
             {post.title}
           </h5>
         </Link>
+
+        {/* 顯示貼文圖片 */}
+        {post.image_url && (
+          <div className="post-image mb-3">
+            <Link href={`/forum/posts/${post.id}`}>
+              <div className="position-relative" style={{ height: '180px', overflow: 'hidden', borderRadius: '8px' }}>
+                <Image 
+                  src={post.image_url} 
+                  alt={post.title}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  className="hover-scale transition-all"
+                />
+              </div>
+            </Link>
+          </div>
+        )}
 
         <div className="post-content text-secondary mb-3">
           {post.content.length > 150
@@ -83,15 +108,25 @@ export default function PostCard({ post }: PostCardProps) {
         <div className="post-stats d-flex justify-content-between align-items-center pt-3 border-top">
           <div className="d-flex gap-3">
             <div className="stat-item d-flex align-items-center text-muted">
-              <i className="bi bi-eye me-1"></i>
+              <i
+                className="bi bi-eye-fill me-1"
+                style={{ color: '#EDB25F' }}
+              ></i>
+
               <span>{post.view_count || 0}</span>
             </div>
             <div className="stat-item d-flex align-items-center text-muted">
-              <i className="bi bi-chat-dots me-1"></i>
+              <i
+                className="bi bi-chat-dots-fill me-1"
+                style={{ color: '#EDB25F' }}
+              ></i>
               <span>{post.comment_count || 0}</span>
             </div>
             <div className="stat-item d-flex align-items-center text-muted">
-              <i className="bi bi-heart me-1"></i>
+              <i
+                className="bi bi-heart-fill me-1"
+                style={{ color: '#EDB25F' }}
+              ></i>
               <span>{post.like_count || 0}</span>
             </div>
           </div>
@@ -100,7 +135,7 @@ export default function PostCard({ post }: PostCardProps) {
             className="read-more-link text-decoration-none small"
             style={{ color: '#C79650' }}
           >
-            閱讀全文 <i className="bi bi-arrow-right"></i>
+            查看更多
           </Link>
         </div>
       </div>
