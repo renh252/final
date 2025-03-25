@@ -54,12 +54,14 @@
 - 領養申請流程
 - 預約參觀系統
 - 寵物分類與搜尋功能
+- 寵物問卷推薦系統
 
 #### 資料模型
 
 - **Pets**: 寵物基本資訊
 - **PetCategories**: 寵物分類
 - **PetAppointment**: 預約資訊
+- **user_questionnaire**: 用戶問卷資訊
 
 #### 預約流程
 
@@ -195,6 +197,59 @@
 - `GET /api/pets`: 獲取寵物列表
 - `GET /api/pets/{id}`: 獲取寵物詳情
 - `POST /api/appointment`: 創建預約
+
+#### 問卷系統
+
+##### 提交問卷
+
+```javascript
+POST /api/pets/questionnaire
+Request:
+{
+  livingEnvironment: string,  // 'apartment' | 'house' | 'rural'
+  activityLevel: string,     // 'low' | 'medium' | 'high'
+  experienceLevel: string,   // 'none' | 'some' | 'experienced'
+  timeAvailable: string,     // 'little' | 'moderate' | 'plenty'
+  preferredSize: string,     // 'small' | 'medium' | 'large' | 'any'
+  preferredAge: string,      // 'young' | 'adult' | 'senior' | 'any'
+  preferredTraits: number[], // [1, 2, 3, ...]
+  allergies: boolean,
+  hasChildren: boolean,
+  hasOtherPets: boolean,
+  user_id?: number
+}
+
+Response:
+{
+  success: true,
+  message: "問卷提交成功",
+  questionnaireId: number
+}
+```
+
+##### 獲取問卷結果
+
+```javascript
+GET /api/pets/questionnaire/recommendations
+Response:
+{
+  success: true,
+  data: {
+    questionnaire: {
+      // 問卷資料
+    },
+    recommendations: [
+      {
+        id: number,
+        name: string,
+        photo: string,
+        matchScore: number,
+        // 其他寵物資訊
+      }
+    ]
+  }
+}
+```
 
 #### 商品管理
 
@@ -619,6 +674,54 @@ try {
   if (connection) connection.release()
 }
 ```
+
+#### 問題：問卷推薦結果不準確
+
+**症狀**：推薦的寵物與用戶偏好不符  
+**解決方案**：
+
+```typescript
+// 在計算匹配分數時考慮所有因素
+function calculateMatchScore(pet, questionnaire) {
+  let score = 0
+
+  // 基本條件匹配
+  if (
+    questionnaire.preferredSize === pet.size ||
+    questionnaire.preferredSize === 'any'
+  ) {
+    score += 30
+  }
+
+  // 年齡匹配
+  if (
+    questionnaire.preferredAge === getAgeCategory(pet.age) ||
+    questionnaire.preferredAge === 'any'
+  ) {
+    score += 20
+  }
+
+  // 特殊條件考慮
+  if (questionnaire.hasChildren && !pet.child_friendly) {
+    score -= 50
+  }
+
+  // 活動程度匹配
+  if (questionnaire.activityLevel === pet.activity_level) {
+    score += 25
+  }
+
+  // 性格特徵匹配
+  const matchingTraits = pet.traits.filter((trait) =>
+    questionnaire.preferredTraits.includes(trait)
+  ).length
+  score += matchingTraits * 5
+
+  return Math.max(0, Math.min(100, score))
+}
+```
+
+### 11.5 其他問題
 
 ## 12. 未來擴展規劃
 

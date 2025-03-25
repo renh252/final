@@ -46,13 +46,13 @@ const petTraits = [
 export default function QuestionnaireForm() {
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
+
+  const [currentStep, setCurrentStep] = useState(1)
+  const totalSteps = 4
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [notification, setNotification] = useState({ message: '', type: '' })
-  const [currentStep, setCurrentStep] = useState(1)
-  const totalSteps = 4
 
-  // 表單狀態
   const [formData, setFormData] = useState({
     livingEnvironment: '',
     activityLevel: '',
@@ -66,6 +66,27 @@ export default function QuestionnaireForm() {
     hasOtherPets: false,
   })
 
+  // 檢查登入狀態
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const returnUrl = encodeURIComponent(window.location.pathname)
+      router.push(`/member/MemberLogin/login?returnUrl=${returnUrl}`)
+      return
+    }
+  }, [isAuthenticated, router])
+
+  // 如果未登入，顯示載入中狀態
+  if (!isAuthenticated) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p>正在檢查登入狀態...</p>
+        </div>
+      </div>
+    )
+  }
+
   // 標題對照表
   const titleMappings = {
     livingEnvironment: '您的居住環境是？',
@@ -78,40 +99,7 @@ export default function QuestionnaireForm() {
     allergies: '我或家人有過敏問題',
     hasChildren: '家中有12歲以下的兒童',
     hasOtherPets: '家中已有其他寵物',
-  }
 
-  // 選項對照表
-  const optionMappings = {
-    // 居住環境
-    apartment: '公寓/大廈',
-    house: '獨立住宅',
-    rural: '鄉村/農場',
-
-    // 活動程度
-    low: '低',
-    medium_activity: '中等',
-    high: '高',
-
-    // 經驗程度
-    none: '無經驗',
-    some: '有一些經驗',
-    experienced: '經驗豐富',
-
-    // 可用時間
-    little: '少於2小時',
-    moderate: '2-4小時',
-    plenty: '4小時以上',
-
-    // 體型偏好
-    small: '小型',
-    medium_size: '中型',
-    large: '大型',
-    any: '不限',
-
-    // 年齡偏好
-    young: '幼年',
-    adult: '成年',
-    senior: '年長',
   }
 
   // 處理輸入改變
@@ -150,34 +138,20 @@ export default function QuestionnaireForm() {
       return
     }
 
-    setIsLoading(true)
-    setError(null)
-    setNotification({ message: '', type: '' })
-
     try {
-      // 轉換特徵標籤為中文
-      const selectedTraits = formData.preferredTraits.map(
-        (id) => petTraits.find((trait) => trait.id === id)?.tag
-      )
-
       // 準備要提交的資料，將英文 value 轉換為中文
       const submissionData = {
-        居住環境: optionMappings[formData.livingEnvironment],
-        活動程度:
-          formData.activityLevel === 'medium'
-            ? '中等'
-            : optionMappings[formData.activityLevel],
-        飼養經驗: optionMappings[formData.experienceLevel],
-        可用時間: optionMappings[formData.timeAvailable],
-        偏好體型:
-          formData.preferredSize === 'medium'
-            ? '中型'
-            : optionMappings[formData.preferredSize],
-        偏好年齡: optionMappings[formData.preferredAge],
-        性格特徵: selectedTraits,
-        過敏情況: formData.allergies,
-        家中兒童: formData.hasChildren,
-        其他寵物: formData.hasOtherPets,
+        livingEnvironment: formData.livingEnvironment,
+        activityLevel: formData.activityLevel,
+        experienceLevel: formData.experienceLevel,
+        timeAvailable: formData.timeAvailable,
+        preferredSize: formData.preferredSize,
+        preferredAge: formData.preferredAge,
+        preferredTraits: formData.preferredTraits,
+        allergies: formData.allergies,
+        hasChildren: formData.hasChildren,
+        hasOtherPets: formData.hasOtherPets,
+
         user_id: user?.id,
       }
 
@@ -195,7 +169,6 @@ export default function QuestionnaireForm() {
         throw new Error(data.message || '提交問卷時出錯')
       }
 
-      setNotification({ message: '問卷提交成功！', type: 'success' })
 
       // 使用 setTimeout 確保狀態更新完成後再跳轉
       setTimeout(() => {
@@ -213,8 +186,6 @@ export default function QuestionnaireForm() {
     } catch (err) {
       setError(err.message)
       setNotification({ message: '提交失敗：' + err.message, type: 'error' })
-    } finally {
-      setIsLoading(false)
     }
   }
 
