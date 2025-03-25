@@ -17,6 +17,9 @@ export default function FlowPage() {
   const [petName, setPetName] = useState('')
   const [petId, setPetId] = useState(null)
 
+  // 紀錄是否帶入會員資料
+  const [userInfoChecked, setUserInfoChecked] = useState(false)
+
   // 新增：用來存放捐款人資訊的狀態
   const [donorName, setDonorName] = useState('')
   const [donorPhone, setDonorPhone] = useState('')
@@ -76,12 +79,15 @@ export default function FlowPage() {
       setPaymentType('CreditPeriod') // 定期定額只能用信用卡
     }
   }
-  const { user, loading, logout, updateUser } = useAuth()
-  
+  const { user, loading } = useAuth()
+
   if (loading) return <div>載入中...</div>
   if (!user) return <div>請先登入</div>
-  
+
   const userId = user.id
+  const userName = user.name
+  const userNumber = user.number
+  const userEmail = user.email
 
   // 提交表單
   const handleSubmit = async (e) => {
@@ -297,6 +303,30 @@ export default function FlowPage() {
         </div>
         <div className={styles.order_container}>
           <h5>請填寫捐款人資料</h5>
+          <div className={styles.donate_info_checkbox}>
+            <input
+              type="checkbox"
+              id="userInfo"
+              checked={userInfoChecked}
+              onChange={(e) => {
+                const checked = e.target.checked
+                setUserInfoChecked(checked)
+
+                if (checked) {
+                  // 如果勾選了帶入會員資料，則使用會員資料填充捐款人資訊
+                  setDonorName(userName)
+                  setDonorPhone(userNumber)
+                  setDonorEmail(userEmail)
+                } else {
+                  // 如果取消勾選，則清空捐款人資訊
+                  setDonorName('')
+                  setDonorPhone('')
+                  setDonorEmail('')
+                }
+              }}
+            />
+            <label htmlFor="userInfo">帶入會員資料</label>
+          </div>
           <div className={styles.donate_info_container}>
             <div>
               <label>姓名</label>

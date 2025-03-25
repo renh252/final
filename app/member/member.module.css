@@ -1,4 +1,10 @@
-
+.member_container {
+  width: 80%; /* 舉例 */
+  margin: 20px auto; /* 舉例 */
+  border: 1px solid #ccc; /* 舉例 */
+  padding: 20px; /* 舉例 */
+  position: relative; /* 新增這一行 */
+}
 
 .profile_page {
   display: flex;
@@ -98,8 +104,31 @@
     padding: 20px;
   }
 
-  .edit_but{
-    position:relative;
-    left: 400px;  /* 設定按鈕為 absolute 以便定位 */        /* 距離右邊 10px */
-    bottom: -100px;        /* 距離下方 10px */
+.edit_button{
+  background-color: #c48d61; /* 設定背景顏色 (藍色範例) */
+  color: white; /* 設定文字顏色 */
+  padding: 10px 10px; /* 設定內邊距 */
+  border: none; /* 移除預設邊框 */
+  border-radius: 20px; /* 設定圓角，數值越大越圓 */
+  cursor: pointer; /* 設定滑鼠懸停時的游標樣式 */
+  font-size: 16px; /* 可以根據需要調整字體大小 */
+  transition: background-color 0.3s ease;
+  margin-left: 10px;
+ }
+ .edit_button:hover {
+  background-color: #303969; /* 設定滑鼠懸停時的背景顏色 (更深的藍色範例) */
+}
+
+  .label_input{
+  padding: 5px 10px; /* 增加一些內邊距，讓文字不會緊貼邊框 */
+  border: 1px solid #8b6565; /* 設定淺灰色框線 */
+  border-radius: 20px; /* 設定圓角，數值越大越圓 */
+  box-sizing: border-box; /* 確保內邊距和邊框不會增加元素的總寬度 */
+  font-size: 16px; /* 可以根據需要調整字體大小 */
+  }
+
+  .password_button {
+    position: absolute;
+    bottom: 90px; /* 調整底部邊距 */
+    left: 900px; /* 調整左邊邊距 */
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useRef} from 'react'
+import React, {useRef,useState} from 'react'
 import Link from 'next/link'
 
 // product_menu
@@ -11,7 +11,7 @@ import categories_styles from '../categories.module.css'
 // components
 import Card from '@/app/_components/ui/Card'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
-import { FaArrowLeft,FaRegHeart,FaHeart } from "react-icons/fa";
+import { FaArrowLeft,FaRegHeart,FaHeart,FaLongArrowAltRight } from "react-icons/fa";
 import { useParams } from 'next/navigation'
 import {Breadcrumbs} from '@/app/_components/breadcrumbs'
 // 連接資料庫
@@ -26,6 +26,8 @@ export default function PagesProductTitle() {
   const params = useParams()
   const cid_parent = params?.cidParent
   const { user, isAuthenticated } = useAuth()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortOption, setSortOption] = useState('latest')
   
 
   
@@ -119,8 +121,17 @@ export default function PagesProductTitle() {
   const currentCategory = categories.find(category => category.category_id == cid_parent);
   // 檢查是否有子類別（其他類別的 parent_id 等於 cid_parent）
   const childCategories = categories.filter(category => category.parent_id == cid_parent);
-  // const product_like = data.product_like
 
+  // 處理搜索邏輯
+  const filteredProducts = products
+  .filter((product) => 
+    categories.some(category => 
+      category.parent_id == cid_parent && 
+      category.category_id == product.category_id
+    ) && 
+    product.product_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
 
 
   // -----------------
@@ -140,26 +151,93 @@ export default function PagesProductTitle() {
               { label: currentCategory.category_name, href: `/shop/categories/${cid_parent}` }
             ]}
           />
-
         <div className={categories_styles.container}>
           <div className="productMenu">
             <ProductMenu/>
           </div>
-            <div className={categories_styles.contain_body}>
-                {/* subTitle */}
+          <div className={categories_styles.contain_body}>
+              <div className={categories_styles.searchBar}>
+                <input
+                  type="search"
+                  placeholder="搜尋商品..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {(filteredProducts.length > 0) && searchQuery
+                ? <select
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                    className={categories_styles.sortSelect}
+                  >
+                    <option value="latest">最新</option>
+                    <option value="price_asc">價格低到高</option>
+                    <option value="price_desc">價格高到低</option>
+                  </select>
+                : null
+                }
+              </div>
+              {/* 搜尋結果或顯示類別 */}
+              {searchQuery
+              ? (
+                <div className={categories_styles.searchGroup}>
+                  {/* 計算商品數 */}
+                  {filteredProducts.length !== 0
+                  ? <div className={categories_styles.noProductMessage}>共 {filteredProducts.length} 筆商品</div>
+                  : <div className={categories_styles.noProductMessage}>無此商品</div>
+                  }
+                  {filteredProducts
+                    .sort((a, b) => {
+                      if (sortOption === "latest") return new Date(b.updated_at) - new Date(a.updated_at);
+                      if (sortOption === "price_asc") return ((a.price *(100 - a.discount_percentage)) /100) - ((b.price *(100 - b.discount_percentage)) /100);
+                      if (sortOption === "price_desc") return ((b.price *(100 - b.discount_percentage)) /100) - ((a.price *(100 - a.discount_percentage)) /100);
+                      return 0;
+                    })
+                  .map((product) => (
+                      <Link key={product.product_id} href={`/shop/${product.product_id}`}>
+                        <Card
+                          image={product.image_url || '/images/default_no_pet.jpg'}
+                          title={product.product_name}
+                        >
+                          <div className={styles.cardText}>
+                            {product?.discount_percentage
+                              ? <p>${Math.ceil(product.price * (100 - product.discount_percentage) / 100)} <del>${product.price}</del></p>
+                              : <p>${product.price}</p> 
+                            }
+                            <button
+                              className={styles.likeButton}
+                              onClick={(event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                toggleLike(product.product_id)
+                              }}
+                            >
+                              {isProductLiked(product.product_id) ? <FaHeart /> : <FaRegHeart />}
+                            </button>
+                          </div>
+                        </Card>
+                      </Link>
+                  ))}
+                </div>
+                )
+              :
+              <>
                 {categories.filter((category) => category.parent_id == cid_parent).map((category) => (
-                  <div className={styles.group} key={category.category_id}>
-                    <div className={styles.groupTitle}>
+                  <div className={categories_styles.group} key={category.category_id}>
+                    <div className={categories_styles.groupTitle}>
                       <p>{category.category_name}</p>
+                      <Link href={`/shop/categories/${cid_parent}/${category.category_id}`}>查看更多 <FaLongArrowAltRight /></Link>
                     </div>
-                    <div className={styles.groupBody}>
+                    <div className={categories_styles.groupBody}>
                       <CardSwitchButton
                         direction="left"
                         onClick={() => scroll(-1, categoryRefs.current[category.category_id])}
                         aria-label="向左滑動"
                       />
-                      <div className={styles.cardGroup} ref={(el) => (categoryRefs.current[category.category_id] = { current: el })}>
-                        {products.filter((product) => product.category_id == category.category_id).map((product) => {
+                      <div className={categories_styles.cardGroup} ref={(el) => (categoryRefs.current[category.category_id] = { current: el })}>
+                      
+                        {products
+                        .filter((product) => product.category_id == category.category_id)
+                        .map((product) => {
                           return(
                             <Link key={product.	product_id} href={`/shop/${product.product_id}`}>
                               <Card
@@ -206,7 +284,10 @@ export default function PagesProductTitle() {
                     </div>
                   </div>
                 ))}
-            </div>
+              </>
+              }
+              
+          </div>
         </div>
       </>)
       :(

@@ -73,7 +73,7 @@ const lastPathSegment = pathname.split('/').pop()
               </Link>
             
           ))}
-          {index < parentsWithProducts.length - 1 && <hr />}
+          {/* {index < parentsWithProducts.length - 1 && <hr />} */}
           </div>
         ))}
         

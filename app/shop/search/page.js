@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 // style
 import styles from '@/app/shop/shop.module.css'
 import cid_styles from './search.module.css'
@@ -22,8 +23,9 @@ import { useAuth } from '@/app/context/AuthContext'
 export default function SearchPage(props) {
   const searchParams = useSearchParams()
   const query = searchParams.get('q')
-  const [searchResults, setSearchResults] = useState([])
-  const [loading, setLoading] = useState(true)
+  const router = useRouter() 
+  // const [searchResults, setSearchResults] = useState([])
+  // const [loading, setLoading] = useState(true)
   const { user, isAuthenticated } = useAuth()
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
@@ -34,47 +36,47 @@ export default function SearchPage(props) {
   const { data : shopData, searchError : shopError, mutate: shopMutate } = useSWR('/api/shop', fetcher)
 
 
-    // 處理喜愛商品數據
-    const toggleLike = async (productId) => {
-      // 如果用戶未登入，則提示登入
-      if (!isAuthenticated || !user) {
-        alert('請先登入才能收藏商品')
-        // 儲存當前頁面路徑，以便登入後返回
-        sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
-        window.location.href = '/member/MemberLogin/login'
-        return
-      }
-  
-      const userId = user.id
-      const product_like = shopData .product_like || []
-      const isLiked = product_like.some(
-        (product) =>
-          product.product_id === productId && product.user_id === userId
-      )
-  
-      try {
-        const response = await fetch('/api/shop/product_like', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            productId,
-            action: isLiked ? 'remove' : 'add',
-          }),
-        })
-  
-        if (response.ok) {
-          // 重新獲取商品數據
-          shopMutate()
-        } else {
-          console.shopError('收藏操作失敗')
-        }
-      } catch (searchError ) {
-        console.shopError('收藏操作錯誤:', searchError )
-      }
+  // 處理喜愛商品數據
+  const toggleLike = async (productId) => {
+    // 如果用戶未登入，則提示登入
+    if (!isAuthenticated || !user) {
+      alert('請先登入才能收藏商品')
+      // 儲存當前頁面路徑，以便登入後返回
+      sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+      window.location.href = '/member/MemberLogin/login'
+      return
     }
+
+    const userId = user.id
+    const product_like = shopData .product_like || []
+    const isLiked = product_like.some(
+      (product) =>
+        product.product_id === productId && product.user_id === userId
+    )
+
+    try {
+      const response = await fetch('/api/shop/product_like', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          productId,
+          action: isLiked ? 'remove' : 'add',
+        }),
+      })
+
+      if (response.ok) {
+        // 重新獲取商品數據
+        shopMutate()
+      } else {
+        console.shopError('收藏操作失敗')
+      }
+    } catch (searchError ) {
+      console.shopError('收藏操作錯誤:', searchError )
+    }
+  }
 
   const products = searchData ?.products
   const product_like = shopData?.product_like || []
@@ -86,6 +88,18 @@ export default function SearchPage(props) {
     )
   }
   
+  // 搜尋/排序
+  const [searchTerm, setSearchTerm] = useState('')
+  // 处理搜索按钮点击
+  const handleSearch = (e) => {
+    e.preventDefault()  // 防止表单默认提交行为
+    if (searchTerm.trim()) {
+      // 使用 encodeURIComponent 来正确处理 URL 中的特殊字符
+      router.push(`/shop/search?q=${encodeURIComponent(searchTerm.trim())}`)
+    }
+  }
+  const [sortOption, setSortOption] = useState('latest')
+  
 
   // 处理加载状态
   if (!searchData || !shopData) return <div>Loading products...</div>
@@ -95,27 +109,52 @@ export default function SearchPage(props) {
 
   return (
     <div className={cid_styles.main}>
-      { products
-      ? 
-        <>
-          <Breadcrumbs
-            title={`搜尋【${query}】 /共 ${products.length} 筆資料`}
-            items={[
-              { label: '商城', href: `/shop` },
-              {
-                label: `${query}`,
-                href: `/shop/search?q=${query}`,
-              },
-            ]}
-          />
-          <div className={cid_styles.container}>
-            <div className="productMenu">
-              <ProductMenu />
-            </div>
-            <div className={cid_styles.contain_body}>
-              <div className="select"></div>
+        <Breadcrumbs
+          title={`搜尋【${query}】 /共 ${products.length} 筆資料`}
+          items={[
+            { label: '商城', href: `/shop` },
+            {
+              label: `${query}`,
+              href: `/shop/search?q=${query}`,
+            },
+          ]}
+        />
+        <div className={cid_styles.container}>
+          <div className="productMenu">
+            <ProductMenu />
+          </div>
+          <div className={cid_styles.contain_body}>
+            {/* 搜尋與排序選單 */}
+            <form  onSubmit={handleSearch} className={cid_styles.filterBar}>
+                <input
+                  type="search"
+                  placeholder="搜尋全站商品..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={cid_styles.searchInput}
+                />
+                <select
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                  className={cid_styles.sortSelect}
+                >
+                  <option value="latest">最新</option>
+                  <option value="price_asc">價格低到高</option>
+                  <option value="price_desc">價格高到低</option>
+                </select>
+            </form>
+            { products.length > 0
+            ? 
               <div className={cid_styles.cardGroup}>
-                {products.map((product) => {
+              <div className={cid_styles.noProductMessage}>共{products.length}筆商品</div>
+                {products
+                    .sort((a, b) => {
+                      if (sortOption === "latest") return new Date(b.updated_at) - new Date(a.updated_at);
+                      if (sortOption === "price_asc") return ((a.price *(100 - a.discount_percentage)) /100) - ((b.price *(100 - b.discount_percentage)) /100);
+                      if (sortOption === "price_desc") return ((b.price *(100 - b.discount_percentage)) /100) - ((a.price *(100 - a.discount_percentage)) /100);
+                      return 0;
+                    })
+                    .map((product) => {
                     return (
                       <Link
                         key={product.product_id}
@@ -135,8 +174,7 @@ export default function SearchPage(props) {
                                   (product.price *
                                     (100 - product.discount_percentage)) /
                                     100
-                                )}{' '}
-                                <del>${product.price}</del>
+                                )} <del>${product.price}</del>
                               </p>
                             ) : (
                               <p>${product.price}</p>
@@ -161,20 +199,12 @@ export default function SearchPage(props) {
                     )
                   })}
               </div>
-            </div>
+            : (
+              <div className={cid_styles.noProductMessage}>查無此商品</div>
+            )}
           </div>
-        </> 
-      : (
-        <div className={cid_styles.noCategory}>
-          <Link href="/shop">
-            <div>
-              <FaArrowLeft />
-              返回商城
-            </div>
-          </Link>
-          <p>查無此類別</p>
         </div>
-      )}
+
     </div>
   )
 }
