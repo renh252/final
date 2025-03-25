@@ -9,7 +9,10 @@ export async function GET(
 ) {
   try {
     const postId = parseInt(params.id);
+    console.log('Fetching post with ID:', postId, 'Type:', typeof postId);
+    
     if (isNaN(postId)) {
+      console.log('Invalid post ID:', params.id);
       return NextResponse.json(
         { status: 'error', message: '無效的文章ID' },
         { status: 400 }
@@ -19,18 +22,18 @@ export async function GET(
     // 查詢文章
     const query = `
       SELECT 
-        id,
-        title,
-        content,
-        created_at,
-        updated_at,
-        view_count,
-        like_count,
-        comment_count,
-        user_id,
-        category_id
-      FROM forum_posts
-      WHERE id = ?
+        p.id,
+        p.title,
+        p.content,
+        p.created_at,
+        p.updated_at,
+        p.view_count,
+        p.like_count,
+        p.comment_count,
+        p.user_id,
+        p.category_id
+      FROM forum_posts p
+      WHERE p.id = ?
     `;
 
     const posts = await executeQuery(query, [postId]) as any[];
@@ -85,7 +88,10 @@ export async function GET(
 
     return NextResponse.json({
       status: 'success',
-      data: formattedPost,
+      data: {
+        post: formattedPost,
+        comments: [],
+      },
     });
   } catch (error) {
     console.error('Error fetching post:', error);
@@ -103,7 +109,10 @@ export async function POST(
 ) {
   try {
     const postId = parseInt(params.id);
+    console.log('Fetching post with ID:', postId, 'Type:', typeof postId);
+    
     if (isNaN(postId)) {
+      console.log('Invalid post ID:', params.id);
       return NextResponse.json(
         { status: 'error', message: '無效的文章ID' },
         { status: 400 }
@@ -121,18 +130,18 @@ export async function POST(
     // 查詢文章
     const query = `
       SELECT 
-        id,
-        title,
-        content,
-        created_at,
-        updated_at,
-        view_count,
-        like_count,
-        comment_count,
-        user_id,
-        category_id
-      FROM forum_posts
-      WHERE id = ?
+        p.id,
+        p.title,
+        p.content,
+        p.created_at,
+        p.updated_at,
+        p.view_count,
+        p.like_count,
+        p.comment_count,
+        p.user_id,
+        p.category_id
+      FROM forum_posts p
+      WHERE p.id = ?
     `;
 
     const posts = await executeQuery(query, [postId]) as any[];
