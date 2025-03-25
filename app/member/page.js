@@ -6,13 +6,14 @@ import styles from "./member.module.css";
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
+import Image from 'next/image'; 
 
 export default function MemberPage() {
   const router = useRouter();
   const [userData, setUserData] = useState(null); // 保存使用者資料
   const [editingField, setEditingField] = useState(null); // 目前正在編輯的欄位名稱
   const [draftValues, setDraftValues] = useState({}); // 儲存每個欄位編輯中的值
-  const [profilePhoto, setProfilePhoto] = useState('https://cdn.builder.io/api/v1/image/assets/TEMP/c07e5bb4325caeb94efd091416f6964123f3611a'); // 儲存使用者上傳的圖片
+  const [profilePhoto, setProfilePhoto] = useState('/path/to/default/image.jpg'); // 儲存使用者上傳的圖片
 
   const formatDate = (date) => {
     const formattedDate = new Date(date);
@@ -131,7 +132,10 @@ export default function MemberPage() {
         <div className={styles.member_container}>
           <section className={styles.profile_section}>
             <div className={styles.profile_photos}>
-            <img src={profilePhoto}  alt="大頭照" 
+            <Image
+             src={profilePhoto}  alt="大頭照" 
+             width={50}
+            height={50}
     className={styles.profile_photo}  />              
             <div><br />
             <label htmlFor="profile_photo" className="form_label">
