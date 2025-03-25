@@ -27,7 +27,7 @@ import { useConfirm } from '@/app/admin/_components/ConfirmDialog'
 import { useTheme } from '@/app/admin/ThemeContext'
 import Link from 'next/link'
 
-// 模擬舉報數據
+// 模擬檢舉數據
 const MOCK_REPORT = {
   id: 3,
   reporter_name: '張大山',
@@ -83,7 +83,7 @@ const MOCK_REPORT = {
   ],
 }
 
-// 舉報原因選項
+// 檢舉原因選項
 const REASON_OPTIONS = [
   { value: 'inappropriate', label: '不適當內容', badge: 'warning' },
   { value: 'harassment', label: '騷擾/攻擊', badge: 'danger' },
@@ -92,7 +92,7 @@ const REASON_OPTIONS = [
   { value: 'other', label: '其他', badge: 'dark' },
 ]
 
-// 舉報狀態選項
+// 檢舉狀態選項
 const STATUS_OPTIONS = [
   { value: 'pending', label: '待處理', badge: 'warning' },
   { value: 'investigating', label: '調查中', badge: 'info' },
@@ -100,7 +100,7 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: '已駁回', badge: 'danger' },
 ]
 
-// 舉報內容類型選項
+// 檢舉內容類型選項
 const CONTENT_TYPE_OPTIONS = [
   { value: 'post', label: '文章', badge: 'primary', icon: FileText },
   { value: 'comment', label: '評論', badge: 'info', icon: MessageSquare },
@@ -134,7 +134,7 @@ export default function ReportDetailPage({
   const { isDarkMode } = useTheme()
 
   useEffect(() => {
-    // 模擬從API獲取舉報數據
+    // 模擬從API獲取檢舉數據
     setTimeout(() => {
       setReport(MOCK_REPORT)
       setFormData({
@@ -171,7 +171,7 @@ export default function ReportDetailPage({
         updated_at: new Date().toISOString().split('T')[0],
       })
       setIsProcessing(false)
-      showToast('success', '更新成功', '舉報狀態已成功更新')
+      showToast('success', '更新成功', '檢舉狀態已成功更新')
     }, 500)
   }
 
@@ -189,13 +189,13 @@ export default function ReportDetailPage({
         status: 'investigating',
       })
       setIsProcessing(false)
-      showToast('success', '狀態更新', `舉報 #${report.id} 已標記為調查中`)
+      showToast('success', '狀態更新', `檢舉 #${report.id} 已標記為調查中`)
     }, 500)
   }
 
   const handleResolveReport = () => {
     confirm({
-      title: '解決舉報',
+      title: '解決檢舉',
       message: (
         <div>
           <p>請選擇解決方式：</p>
@@ -247,7 +247,7 @@ export default function ReportDetailPage({
             status: 'resolved',
           })
           setIsProcessing(false)
-          showToast('success', '舉報已解決', `舉報 #${report.id} 已成功解決`)
+          showToast('success', '檢舉已解決', `檢舉 #${report.id} 已成功解決`)
         }, 500)
       },
     })
@@ -255,10 +255,10 @@ export default function ReportDetailPage({
 
   const handleRejectReport = () => {
     confirm({
-      title: '駁回舉報',
+      title: '駁回檢舉',
       message: (
         <div>
-          <p>確定要駁回此舉報嗎？</p>
+          <p>確定要駁回此檢舉嗎？</p>
           <Form.Group className="mb-3">
             <Form.Label>駁回原因</Form.Label>
             <Form.Control
@@ -292,7 +292,7 @@ export default function ReportDetailPage({
             status: 'rejected',
           })
           setIsProcessing(false)
-          showToast('success', '舉報已駁回', `舉報 #${report.id} 已駁回`)
+          showToast('success', '檢舉已駁回', `檢舉 #${report.id} 已駁回`)
         }, 500)
       },
     })
@@ -346,7 +346,7 @@ export default function ReportDetailPage({
           >
             <ArrowLeft size={18} />
           </Link>
-          <h2 className="mb-0">舉報詳情 #{report.id}</h2>
+          <h2 className="mb-0">檢舉詳情 #{report.id}</h2>
         </div>
         <div className="d-flex gap-2">
           {report.status === 'pending' && (
@@ -366,14 +366,14 @@ export default function ReportDetailPage({
                 onClick={handleResolveReport}
                 disabled={isProcessing}
               >
-                <CheckCircle size={18} className="me-1" /> 解決舉報
+                <CheckCircle size={18} className="me-1" /> 解決檢舉
               </Button>
               <Button
                 variant="outline-danger"
                 onClick={handleRejectReport}
                 disabled={isProcessing}
               >
-                <XCircle size={18} className="me-1" /> 駁回舉報
+                <XCircle size={18} className="me-1" /> 駁回檢舉
               </Button>
             </>
           )}
@@ -389,7 +389,7 @@ export default function ReportDetailPage({
                 onSelect={(k) => setActiveTab(k || 'details')}
                 className="mb-3"
               >
-                <Tab eventKey="details" title="舉報詳情">
+                <Tab eventKey="details" title="檢舉詳情">
                   <div className="report-details">
                     <div className="d-flex align-items-center mb-4">
                       <div className="report-icon me-3">
@@ -410,7 +410,7 @@ export default function ReportDetailPage({
                     </div>
 
                     <div className="report-description mb-4">
-                      <h5>舉報描述</h5>
+                      <h5>檢舉描述</h5>
                       <Card
                         className={`${
                           isDarkMode
@@ -425,7 +425,7 @@ export default function ReportDetailPage({
                     </div>
 
                     <div className="reported-content mb-4">
-                      <h5>被舉報內容預覽</h5>
+                      <h5>被檢舉內容預覽</h5>
                       <Card
                         className={`${
                           isDarkMode
@@ -535,7 +535,7 @@ export default function ReportDetailPage({
                     </Form>
                   </div>
                 </Tab>
-                <Tab eventKey="reporter" title="舉報者資訊">
+                <Tab eventKey="reporter" title="檢舉者資訊">
                   <div className="reporter-info">
                     <div className="d-flex align-items-center mb-4">
                       <div className="user-avatar me-3">
@@ -555,7 +555,7 @@ export default function ReportDetailPage({
                     </div>
 
                     <div className="reporter-history mb-4">
-                      <h5>舉報歷史</h5>
+                      <h5>檢舉歷史</h5>
                       {report.reporter_history &&
                       report.reporter_history.length > 0 ? (
                         <ListGroup>
@@ -572,7 +572,7 @@ export default function ReportDetailPage({
                                 <div className="d-flex justify-content-between align-items-start">
                                   <div>
                                     <div className="fw-bold">
-                                      舉報{' '}
+                                      檢舉{' '}
                                       {getContentTypeBadge(
                                         history.content_type
                                       )}{' '}
@@ -594,7 +594,7 @@ export default function ReportDetailPage({
                           )}
                         </ListGroup>
                       ) : (
-                        <p className="text-center py-3">無舉報歷史</p>
+                        <p className="text-center py-3">無檢舉歷史</p>
                       )}
                     </div>
 
@@ -608,7 +608,7 @@ export default function ReportDetailPage({
                     </div>
                   </div>
                 </Tab>
-                <Tab eventKey="reported-user" title="被舉報用戶">
+                <Tab eventKey="reported-user" title="被檢舉用戶">
                   <div className="reported-user-info">
                     <div className="d-flex align-items-center mb-4">
                       <div className="user-avatar me-3">
@@ -628,7 +628,7 @@ export default function ReportDetailPage({
                     </div>
 
                     <div className="reported-user-history mb-4">
-                      <h5>被舉報歷史</h5>
+                      <h5>被檢舉歷史</h5>
                       {report.reported_user_history &&
                       report.reported_user_history.length > 0 ? (
                         <ListGroup>
@@ -645,7 +645,7 @@ export default function ReportDetailPage({
                                 <div className="d-flex justify-content-between align-items-start">
                                   <div>
                                     <div className="fw-bold">
-                                      被 {history.reporter_name} 舉報
+                                      被 {history.reporter_name} 檢舉
                                     </div>
                                     <p className="mb-1">
                                       原因: {getReasonBadge(history.reason)}
@@ -663,7 +663,7 @@ export default function ReportDetailPage({
                           )}
                         </ListGroup>
                       ) : (
-                        <p className="text-center py-3">無被舉報歷史</p>
+                        <p className="text-center py-3">無被檢舉歷史</p>
                       )}
                     </div>
 
@@ -693,19 +693,19 @@ export default function ReportDetailPage({
         <Col md={4}>
           <Card className={`mb-4 ${isDarkMode ? 'bg-dark text-light' : ''}`}>
             <Card.Body>
-              <h5 className="mb-3">舉報資訊</h5>
+              <h5 className="mb-3">檢舉資訊</h5>
               <p className="mb-2">
-                <strong>舉報 ID：</strong> {report.id}
+                <strong>檢舉 ID：</strong> {report.id}
               </p>
               <p className="mb-2">
-                <strong>舉報類型：</strong>{' '}
+                <strong>檢舉類型：</strong>{' '}
                 {getContentTypeBadge(report.reported_content_type)}
               </p>
               <p className="mb-2">
-                <strong>舉報原因：</strong> {getReasonBadge(report.reason)}
+                <strong>檢舉原因：</strong> {getReasonBadge(report.reason)}
               </p>
               <p className="mb-2">
-                <strong>舉報狀態：</strong> {getStatusBadge(report.status)}
+                <strong>檢舉狀態：</strong> {getStatusBadge(report.status)}
               </p>
               <p className="mb-2">
                 <strong>優先級：</strong>{' '}
@@ -718,7 +718,7 @@ export default function ReportDetailPage({
                 )}
               </p>
               <p className="mb-2">
-                <strong>舉報日期：</strong>{' '}
+                <strong>檢舉日期：</strong>{' '}
                 {new Date(report.created_at).toLocaleDateString('zh-TW')}
               </p>
               <p className="mb-0">
@@ -740,7 +740,7 @@ export default function ReportDetailPage({
                   }/${report.reported_content_id}`}
                   className="btn btn-outline-primary"
                 >
-                  查看被舉報內容
+                  查看被檢舉內容
                 </Link>
                 {report.reported_content_type === 'post' && (
                   <Button variant="outline-danger">刪除文章</Button>
@@ -754,8 +754,8 @@ export default function ReportDetailPage({
 
           <Card className={isDarkMode ? 'bg-dark text-light' : ''}>
             <Card.Body>
-              <h5 className="mb-3">相關舉報</h5>
-              <p className="text-center py-3">暫無相關舉報</p>
+              <h5 className="mb-3">相關檢舉</h5>
+              <p className="text-center py-3">暫無相關檢舉</p>
             </Card.Body>
           </Card>
         </Col>
