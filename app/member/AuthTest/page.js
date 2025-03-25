@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react'
-import { withAuth, useAuth } from '@/app/context/AuthContext' // 引入 withAuth 和 useAuth
+import { useAuth } from '@/app/context/AuthContext' // 引入 withAuth 和 useAuth
 import styles from '@/app/member/member.module.css' // 引入樣式
 
-function ProtectedPage() {
+export default function ProtectedPage() {
   const { user } = useAuth() // 使用 useAuth 取得用戶資訊
 
   return (
@@ -46,5 +46,3 @@ function ProtectedPage() {
   )
 }
 
-// 使用 withAuth 高階組件包裝原始組件，自動處理權限驗證
-export default withAuth(ProtectedPage)
