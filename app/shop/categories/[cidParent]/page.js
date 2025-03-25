@@ -26,6 +26,7 @@ export default function PagesProductTitle() {
   const params = useParams()
   const cid_parent = params?.cidParent
   const { user, isAuthenticated } = useAuth()
+  const [searchQuery, setSearchQuery] = React.useState('')
   
 
   
@@ -141,24 +142,75 @@ export default function PagesProductTitle() {
             ]}
           />
 
+
+
         <div className={categories_styles.container}>
           <div className="productMenu">
             <ProductMenu/>
           </div>
-            <div className={categories_styles.contain_body}>
-                {/* subTitle */}
+          <div className={categories_styles.contain_body}>
+              <div className={categories_styles.searchBar}>
+                <input
+                  type="text"
+                  placeholder="搜尋商品..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              {/* subTitle */}
+              {searchQuery
+              ? (
+                  <div className={categories_styles.cardGroup}>
+                    {products
+                      .filter((product) => 
+                        categories.some(category => 
+                          category.parent_id == cid_parent && 
+                          category.category_id == product.category_id
+                        ) && 
+                        product.product_name.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                      .map((product) => (
+                        <Link key={product.product_id} href={`/shop/${product.product_id}`}>
+                          <Card
+                            image={product.image_url || '/images/default_no_pet.jpg'}
+                            title={product.product_name}
+                          >
+                            <div className={styles.cardText}>
+                              {product?.discount_percentage
+                                ? <p>${Math.ceil(product.price * (100 - product.discount_percentage) / 100)} <del>${product.price}</del></p>
+                                : <p>${product.price}</p> 
+                              }
+                              <button
+                                className={styles.likeButton}
+                                onClick={(event) => {
+                                  event.preventDefault()
+                                  event.stopPropagation()
+                                  toggleLike(product.product_id)
+                                }}
+                              >
+                                {isProductLiked(product.product_id) ? <FaHeart /> : <FaRegHeart />}
+                              </button>
+                            </div>
+                          </Card>
+                        </Link>
+                      ))
+                    }
+                  </div>
+                )
+              :
+              <>
                 {categories.filter((category) => category.parent_id == cid_parent).map((category) => (
-                  <div className={styles.group} key={category.category_id}>
-                    <div className={styles.groupTitle}>
+                  <div className={categories_styles.group} key={category.category_id}>
+                    <div className={categories_styles.groupTitle}>
                       <p>{category.category_name}</p>
                     </div>
-                    <div className={styles.groupBody}>
+                    <div className={categories_styles.groupBody}>
                       <CardSwitchButton
                         direction="left"
                         onClick={() => scroll(-1, categoryRefs.current[category.category_id])}
                         aria-label="向左滑動"
                       />
-                      <div className={styles.cardGroup} ref={(el) => (categoryRefs.current[category.category_id] = { current: el })}>
+                      <div className={categories_styles.cardGroup} ref={(el) => (categoryRefs.current[category.category_id] = { current: el })}>
                         {products.filter((product) => product.category_id == category.category_id).map((product) => {
                           return(
                             <Link key={product.	product_id} href={`/shop/${product.product_id}`}>
@@ -206,7 +258,10 @@ export default function PagesProductTitle() {
                     </div>
                   </div>
                 ))}
-            </div>
+              </>
+              }
+              
+          </div>
         </div>
       </>)
       :(

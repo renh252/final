@@ -49,6 +49,7 @@
       }
 
       .sortSelect {
+        /* min-width: 50px; */
         padding: 10px;
         border: 1px solid #ddd;
         border-radius: 8px;
@@ -85,11 +86,12 @@
 
 @media (max-width: 768px) {
   .filterBar {
+    width: 100%;
     flex-direction: column;
     gap: 10px;
   }
 
   .searchInput {
-    width: 100%;
+    /* width: 100%; */
   }
 }
