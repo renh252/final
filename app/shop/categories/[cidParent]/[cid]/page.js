@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 // product_menu
 import ProductMenu from '@/app/shop/_components/productMenu'
 // style
@@ -24,6 +25,7 @@ import { useAuth } from '@/app/context/AuthContext'
 export default function CidPage(props) {
   // 從網址上得到動態路由參數
   const params = useParams()
+  const router = useRouter() 
   const cidParent = params?.cidParent
   const cid = params?.cid
   const { user, isAuthenticated } = useAuth()
@@ -72,6 +74,10 @@ export default function CidPage(props) {
       console.error('收藏操作錯誤:', error)
     }
   }
+
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const [sortOption, setSortOption] = useState('latest')
 
   // 处理加载状态
   if (!data) return <div>Loading...</div>
@@ -127,10 +133,37 @@ export default function CidPage(props) {
                 <ProductMenu />
               </div>
               <div className={cid_styles.contain_body}>
-                <div className="select"></div>
+                {/* 搜尋與排序選單 */}
+                <div  className={cid_styles.filterBar}>
+                  <input
+                    type="search"
+                    placeholder="搜尋商品..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className={cid_styles.searchInput}
+                  />
+                  <select
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                    className={cid_styles.sortSelect}
+                  >
+                    <option value="latest">最新</option>
+                    <option value="price_asc">價格低到高</option>
+                    <option value="price_desc">價格高到低</option>
+                  </select>
+                </div>
                 <div className={cid_styles.cardGroup}>
                   {products
                     .filter((product) => product.category_id == cid)
+                    .filter((product) =>
+                      product.product_name.includes(searchTerm)
+                    )
+                    .sort((a, b) => {
+                      if (sortOption === "latest") return new Date(b.updated_at) - new Date(a.updated_at);
+                      if (sortOption === "price_asc") return ((a.price *(100 - a.discount_percentage)) /100) - ((b.price *(100 - b.discount_percentage)) /100);
+                      if (sortOption === "price_desc") return ((b.price *(100 - b.discount_percentage)) /100) - ((a.price *(100 - a.discount_percentage)) /100);
+                      return 0;
+                    })
                     .map((product) => {
                       return (
                         <Link
@@ -194,4 +227,5 @@ export default function CidPage(props) {
       </div>
     </>
   )
+  
 }
