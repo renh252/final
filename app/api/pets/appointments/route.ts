@@ -55,21 +55,12 @@ export async function GET(request: NextRequest) {
 // 提交預約申請
 export async function POST(request: NextRequest) {
   try {
-    // 驗證用戶是否登入
-    const authResult = await auth.fromRequest(request)
-    if (!authResult.success) {
-      return NextResponse.json(
-        { success: false, message: '請先登入' },
-        { status: 401 }
-      )
-    }
-
     const data = await request.json()
-    const userId = authResult.user.user_id
 
     // 驗證必要欄位
     if (
       !data.pet_id ||
+      !data.user_id ||
       !data.appointment_date ||
       !data.appointment_time ||
       !data.house_type
@@ -83,7 +74,7 @@ export async function POST(request: NextRequest) {
     // 檢查寵物是否存在且可領養
     const [pets, petError] = await db.query(
       `
-      SELECT id, adopt_status FROM pets WHERE id = ? AND adopt_status = 'available'
+      SELECT id, is_adopted FROM pets WHERE id = ? AND is_adopted = 0
     `,
       [data.pet_id]
     )
@@ -101,7 +92,7 @@ export async function POST(request: NextRequest) {
       SELECT id FROM pet_appointment 
       WHERE pet_id = ? AND user_id = ? AND status IN ('pending', 'approved')
     `,
-      [data.pet_id, userId]
+      [data.pet_id, data.user_id]
     )
 
     if (
@@ -123,6 +114,7 @@ export async function POST(request: NextRequest) {
       `INSERT INTO pet_appointment (
         pet_id, 
         user_id, 
+        store_id,
         appointment_date, 
         appointment_time, 
         status, 
@@ -134,10 +126,11 @@ export async function POST(request: NextRequest) {
         note,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      ) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
         data.pet_id,
-        userId,
+        data.user_id,
+        data.store_id,
         data.appointment_date,
         data.appointment_time,
         data.house_type,
@@ -157,17 +150,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const insertId = (result as unknown as ResultSetHeader).insertId
-
-    // 更新寵物狀態為預約中
-    await db.query(`UPDATE pets SET adopt_status = 'pending' WHERE id = ?`, [
-      data.pet_id,
-    ])
-
     return NextResponse.json({
       success: true,
       message: '預約申請已成功提交，請等待審核',
-      data: { id: insertId },
+      data: { id: (result as any).insertId },
     })
   } catch (err) {
     console.error('提交預約申請時發生錯誤:', err)
