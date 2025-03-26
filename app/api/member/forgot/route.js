@@ -14,37 +14,45 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+if (!process.env.EMAIL_SERVICE || !process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    console.error('缺少必要的環境變量');
+    process.exit(1);
+}
+
 export async function POST(request) {
     const { action, email, otp, newPassword } = await request.json();
 
     if (!action) {
         return NextResponse.json({ message: '缺少操作類型 (action)' }, { status: 400 });
     }
+    console.log(`正在處理 ${action} 操作，用戶郵箱: ${email}`);
 
-    const db = await database(); // 建立資料庫連線 (根據您的 db.js 實作方式調整)
-
-    if (!db) {
-        console.error('資料庫連線失敗');
-        return NextResponse.json({ message: '資料庫連線失敗，請稍後重試' }, { status: 500 });
-    }
+    let dbConnection; // 在 try 區塊外部宣告
 
     try {
+        dbConnection = await database(); // 建立資料庫連線
+        if (!dbConnection) {
+            console.error('資料庫連線失敗');
+            return NextResponse.json({ message: '資料庫連線失敗，請稍後重試' }, { status: 500 });
+        }
+
         switch (action) {
             case 'request-otp':
                 if (!email || !/\S+@\S+\.\S+/.test(email)) {
                     return NextResponse.json({ message: '請輸入有效的電子郵件地址' }, { status: 400 });
                 }
                 try {
-                    const [users] = await db.execute('SELECT id FROM users WHERE email = ?', [email]);
+                    const [users] = await dbConnection.execute('SELECT user_id FROM users WHERE user_email = ?', [email]);
                     if (users.length === 0) {
                         return NextResponse.json({ message: '該電子郵件地址未註冊' }, { status: 404 });
                     }
 
-                    const newOtp = crypto.randomInt(100000, 999999).toString();
+                    // 生成 OTP
+                    const newOtp = crypto.randomInt(100000, 999999).toString().padStart(6, '0');
                     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 分鐘後過期
 
-                    // 儲存明碼 OTP 到資料庫 (不安全 - 僅供開發)
-                    await db.execute(
+                    // 儲存 OTP 到資料庫
+                    await dbConnection.execute(
                         'INSERT INTO password_reset_tokens (email, token, expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at)',
                         [email, newOtp, expiresAt]
                     );
@@ -52,8 +60,8 @@ export async function POST(request) {
                     const mailOptions = {
                         from: process.env.EMAIL_USER,
                         to: email,
-                        subject: '[您的應用程式名稱] 忘記密碼驗證碼',
-                        html: `<p>您請求了重設您在 [您的應用程式名稱] 的密碼。</p><p>您的驗證碼是： <strong>${newOtp}</strong></p><p>請在 10 分鐘內使用此驗證碼設定您的新密碼。</p><p>如果您沒有請求重設密碼，請忽略此郵件。</p>`,
+                        subject: '[毛孩之家] 忘記密碼驗證碼',
+                        html: `<p>[毛孩之家] 密碼重設請先輸入驗證碼，您的驗證碼是： <strong>${newOtp}</strong>，請於十分鐘內完成驗證，若非本人請忽略此訊息。</p>`,
                     };
 
                     try {
@@ -75,7 +83,7 @@ export async function POST(request) {
                     return NextResponse.json({ message: '請提供電子郵件和有效的 6 位數驗證碼' }, { status: 400 });
                 }
                 try {
-                    const [tokens] = await db.execute('SELECT token, expires_at FROM password_reset_tokens WHERE email = ?', [email]);
+                    const [tokens] = await dbConnection.execute('SELECT token, expires_at FROM password_reset_tokens WHERE email = ?', [email]);
                     if (tokens.length === 0) {
                         return NextResponse.json({ message: '無效的電子郵件或驗證碼' }, { status: 400 });
                     }
@@ -85,7 +93,6 @@ export async function POST(request) {
                         return NextResponse.json({ message: '驗證碼已過期' }, { status: 400 });
                     }
 
-                    // 比對明碼 OTP (不安全)
                     if (tokenData.token !== otp) {
                         return NextResponse.json({ message: '驗證碼錯誤' }, { status: 400 });
                     }
@@ -102,7 +109,7 @@ export async function POST(request) {
                     return NextResponse.json({ message: '請提供電子郵件、驗證碼和長度至少為 6 個字元的新密碼' }, { status: 400 });
                 }
                 try {
-                    const [tokens] = await db.execute('SELECT token, expires_at FROM password_reset_tokens WHERE email = ?', [email]);
+                    const [tokens] = await dbConnection.execute('SELECT token, expires_at FROM password_reset_tokens WHERE email = ?', [email]);
                     if (tokens.length === 0) {
                         return NextResponse.json({ message: '無效的電子郵件或驗證碼' }, { status: 400 });
                     }
@@ -112,16 +119,14 @@ export async function POST(request) {
                         return NextResponse.json({ message: '驗證碼已過期' }, { status: 400 });
                     }
 
-                    // 比對明碼 OTP (不安全)
                     if (tokenData.token !== otp) {
                         return NextResponse.json({ message: '驗證碼錯誤' }, { status: 400 });
                     }
 
-                    // 直接儲存明碼密碼 (非常不安全)
-                    const result = await db.execute('UPDATE users SET password = ? WHERE email = ?', [newPassword, email]);
+                    const result = await dbConnection.execute('UPDATE users SET password = ? WHERE email = ?', [newPassword, email]);
 
                     if (result.affectedRows > 0) {
-                        await db.execute('DELETE FROM password_reset_tokens WHERE email = ?', [email]);
+                        await dbConnection.execute('DELETE FROM password_reset_tokens WHERE email = ?', [email]);
                         return NextResponse.json({ message: '密碼已成功重設' }, { status: 200 });
                     } else {
                         return NextResponse.json({ message: '重設密碼失敗，請稍後重試' }, { status: 500 });
@@ -136,8 +141,8 @@ export async function POST(request) {
                 return NextResponse.json({ message: '無效的操作類型' }, { status: 400 });
         }
     } finally {
-        if (db && typeof db.end === 'function') {
-            await db.end(); // 關閉資料庫連線 (如果您的 db.js 需要手動關閉)
+        if (dbConnection && typeof dbConnection.end === 'function') {
+            await dbConnection.end(); // 關閉資料庫連線
         }
     }
 }
