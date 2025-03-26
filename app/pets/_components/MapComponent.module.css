@@ -48,15 +48,23 @@
 }
 
 /* 圖例樣式 */
+.mapContainer {
+  width: 100%;
+  position: relative;
+}
+
 .legend {
   position: absolute;
-  bottom: 30px;
-  right: 10px;
+  bottom: 200px;
+  left: 10px;
   background: white;
   padding: 10px;
   border-radius: 4px;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
   z-index: 1000;
+  font-size: 14px;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 
 .legendItem {
@@ -97,4 +105,10 @@
 
 .region-legend svg {
   fill: #0d6efd;
+}
+
+/* 在列表檢視中的地圖容器樣式 */
+:global(.list-view) .mapContainer {
+  height: 100% !important;
+  min-height: 400px;
 }

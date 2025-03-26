@@ -89,7 +89,7 @@ const calculateMapCenter = (point1, point2) => {
       ? [point1.lat, point1.lng]
       : point2
       ? [point2.lat, point2.lng]
-      : [25.033, 121.5654] // 預設台北市中心
+      : [22.997, 120.205] // 預設為台南
   }
 
   // 計算兩點的中心
@@ -570,7 +570,7 @@ export default function PetsPage() {
       return pets
     }
 
-    // 為每個寵物添加隨機偏移的位置
+    // 為每個寵物添加隨機偏移的位置和完整的店家資訊
     return pets.map((pet) => {
       // 檢查寵物是否有 store_id
       if (!pet.store_id) {
@@ -592,8 +592,17 @@ export default function PetsPage() {
         parseFloat(store.lng)
       )
 
+      // 返回包含完整店家資訊的寵物資料
       return {
         ...pet,
+        store: {
+          id: store.id,
+          name: store.name,
+          lat: store.lat,
+          lng: store.lng,
+          address: store.address,
+          phone: store.phone,
+        },
         offsetLat: lat,
         offsetLng: lng,
       }
@@ -1152,7 +1161,7 @@ export default function PetsPage() {
       const currentStore = selectedStoreLocation
 
       setMapMarkers([])
-      setMapCenter([25.033, 121.5654]) // 預設台北市中心
+      setMapCenter([22.997, 120.205]) // 預設台南市
       setMapZoom(13)
 
       // 延遲後恢復標記，確保地圖元件已經重新渲染
@@ -1567,7 +1576,6 @@ export default function PetsPage() {
                         onChange={handleRegionChange}
                       >
                         <option value="">請選擇地區</option>
-                        <option>台北市</option>
                         <option>新北市</option>
                         <option>桃園市</option>
                         <option>台南市</option>
@@ -1721,7 +1729,7 @@ export default function PetsPage() {
                 </div>
               </Col>
               <Col md={6}>
-                <div className={styles.mapContainer}>
+                <div className={`${styles.mapContainer} list-view`}>
                   <MapComponent
                     center={mapCenter}
                     zoom={mapZoom}
