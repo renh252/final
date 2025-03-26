@@ -133,9 +133,9 @@ export default function MemberPage() {
           <section className={styles.profile_section}>
             <div className={styles.profile_photos}>
             <Image
-             src={profilePhoto}  alt="大頭照" 
-             width={50}
-            height={50}
+            src={profilePhoto}  alt="大頭照" 
+            width={300}
+            height={300}
     className={styles.profile_photo}  />              
             <div><br />
             <label htmlFor="profile_photo" className="form_label">
