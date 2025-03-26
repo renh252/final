@@ -15,7 +15,6 @@ import {
 import 'leaflet/dist/leaflet.css'
 import {
   defaultIcon,
-  regionIcon,
   selectedIcon,
   storeIcon,
   userLocationIcon,
@@ -437,8 +436,6 @@ export default function MapComponent({
                 ? selectedIcon
                 : marker.isStore
                 ? storeIcon
-                : marker.isRegion
-                ? regionIcon
                 : defaultIcon
             }
           >
