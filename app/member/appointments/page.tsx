@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/app/context/AuthContext'
 import Image from 'next/image'
 import {
   Container,
@@ -61,58 +62,6 @@ interface User {
   name: string
   email: string
 }
-
-// 模擬預約資料
-const mockAppointments: Appointment[] = [
-  {
-    id: 1,
-    pet_id: 101,
-    pet_name: '小白',
-    pet_image: '/images/pets/pet1.jpg',
-    appointment_date: '2025-03-01',
-    appointment_time: '14:00',
-    status: 'pending',
-    store_name: '台北寵物之家',
-    created_at: '2025-03-01T10:00:00',
-    updated_at: '2025-03-01T10:00:00',
-  },
-  {
-    id: 2,
-    pet_id: 102,
-    pet_name: '黑妞',
-    pet_image: '/images/pets/pet2.jpg',
-    appointment_date: '2025-03-11',
-    appointment_time: '15:00',
-    status: 'approved',
-    store_name: '新北寵物中心',
-    created_at: '2025-03-10T14:30:00',
-    updated_at: '2025-03-11T09:00:00',
-  },
-  {
-    id: 3,
-    pet_id: 103,
-    pet_name: '橘子',
-    pet_image: '/images/pets/pet3.jpg',
-    appointment_date: '2025-03-15',
-    appointment_time: '10:30',
-    status: 'pending',
-    store_name: '台中寵物收容所',
-    created_at: '2025-03-14T08:15:00',
-    updated_at: '2025-03-14T08:15:00',
-  },
-  {
-    id: 4,
-    pet_id: 104,
-    pet_name: '小灰',
-    pet_image: '/images/pets/pet4.jpg',
-    appointment_date: '2025-03-19',
-    appointment_time: '11:00',
-    status: 'completed',
-    store_name: '高雄動物之家',
-    created_at: '2025-03-17T16:45:00',
-    updated_at: '2025-03-18T12:30:00',
-  },
-]
 
 // 狀態追蹤組件
 const AppointmentStatusTracker = ({
@@ -278,6 +227,7 @@ const AppointmentDetailModal = ({
 
 export default function AppointmentsPage() {
   const router = useRouter()
+  const { isAuthenticated, token } = useAuth()
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string>('')
   const [user, setUser] = useState<User | null>(null)
@@ -289,64 +239,87 @@ export default function AppointmentsPage() {
   const [showDetailModal, setShowDetailModal] = useState<boolean>(false)
 
   useEffect(() => {
-    // 檢查用戶登入狀態
-    const checkAuth = async () => {
+    console.log('檢查登入狀態:', isAuthenticated)
+    if (!isAuthenticated) {
+      console.log('用戶未登入，重定向到登入頁面')
+      router.push('/member/MemberLogin/login')
+      return
+    }
+
+    const fetchAppointments = async () => {
       try {
-        const response = await fetch('/api/member/me')
+        console.log('開始獲取預約資料...')
+        console.log('使用 token:', token)
+        const response = await fetch('/api/pets/appointments', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        console.log('API 回應狀態:', response.status)
 
         if (!response.ok) {
-          console.log('User not logged in')
-          return
+          throw new Error('獲取預約資料失敗')
         }
 
         const data = await response.json()
+        console.log('API 回應資料:', data)
 
-        if (data.success && data.data) {
-          setUser(data.data)
+        if (data.success) {
+          console.log('成功獲取預約資料，數量:', data.data.length)
+          setAppointments(data.data)
+        } else {
+          throw new Error(data.message || '獲取預約資料失敗')
         }
-      } catch (err) {
-        console.error('Error checking auth:', err)
-      }
-    }
-
-    // 模擬 API 請求
-    const fetchAppointments = async () => {
-      try {
-        // 實際專案中，這裡會呼叫 API
-        // const response = await fetch('/api/member/appointments')
-        // const data = await response.json()
-
-        // 使用模擬資料
-        setTimeout(() => {
-          setAppointments(mockAppointments)
-          setLoading(false)
-        }, 1000)
       } catch (err) {
         console.error('Error fetching appointments:', err)
         setError('獲取預約資料時發生錯誤')
+      } finally {
         setLoading(false)
       }
     }
 
-    checkAuth()
-    fetchAppointments()
-  }, [])
+    if (token) {
+      fetchAppointments()
+    }
+  }, [isAuthenticated, router, token])
 
   const handleCancelAppointment = async (appointmentId: number) => {
     try {
-      // 實際專案中，這裡會呼叫 API
-      // await fetch(`/api/member/appointments/${appointmentId}`, {
-      //   method: 'DELETE',
-      // })
+      console.log('開始取消預約，ID:', appointmentId)
+      console.log('使用 token:', token)
+      const response = await fetch(`/api/pets/appointments/${appointmentId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      console.log('取消預約回應狀態:', response.status)
 
-      // 模擬取消預約
-      setAppointments((prev) =>
-        prev.map((app) =>
-          app.id === appointmentId
-            ? { ...app, status: 'cancelled' as AppointmentStatus }
-            : app
+      if (!response.ok) {
+        throw new Error('取消預約失敗')
+      }
+
+      const data = await response.json()
+      console.log('取消預約回應資料:', data)
+
+      if (data.success) {
+        console.log('成功取消預約')
+        // 更新預約列表
+        setAppointments((prev) =>
+          prev.map((app) =>
+            app.id === appointmentId
+              ? { ...app, status: 'cancelled' as AppointmentStatus }
+              : app
+          )
         )
-      )
+      } else {
+        throw new Error(data.message || '取消預約失敗')
+      }
     } catch (err) {
       console.error('Error cancelling appointment:', err)
       setError('取消預約時發生錯誤')
@@ -393,21 +366,14 @@ export default function AppointmentsPage() {
     )
   }
 
-  // 渲染提示訊息
-  const renderAlerts = () => (
-    <>
-      {error && <Alert variant="danger">{error}</Alert>}
-      {!user && (
-        <Alert variant="warning" className="mb-4">
-          <FaInfoCircle className="me-2" />
-          請先登入以查看您的預約記錄。
-          <Link href="/member/login" className="alert-link ms-2">
-            立即登入
-          </Link>
-        </Alert>
-      )}
-    </>
-  )
+  // 渲染錯誤訊息
+  if (error) {
+    return (
+      <Container className="py-5">
+        <Alert variant="danger">{error}</Alert>
+      </Container>
+    )
+  }
 
   // 渲染空狀態
   const renderEmptyState = () => (
@@ -423,8 +389,8 @@ export default function AppointmentsPage() {
         <Link href="/pets" className="btn btn-primary">
           瀏覽寵物
         </Link>
-          </Card.Body>
-        </Card>
+      </Card.Body>
+    </Card>
   )
 
   // 渲染表格視圖
@@ -436,13 +402,13 @@ export default function AppointmentsPage() {
             <Row>
               <Col md={3}>
                 <div className={styles.petImageContainer}>
-                <Image
+                  <Image
                     src={appointment.pet_image}
                     alt={appointment.pet_name}
                     width={200}
                     height={200}
-                  className={styles.petImage}
-                />
+                    className={styles.petImage}
+                  />
                 </div>
               </Col>
               <Col md={6}>
@@ -468,7 +434,7 @@ export default function AppointmentsPage() {
                   <AppointmentStatusTracker status={appointment.status} />
                 </div>
               </Col>
-              <Col md={3} className="d-flex flex-column justify-content-center">
+              <Col md={3}>
                 <div className={styles.appointmentActions}>
                   <Button
                     variant="outline-primary"
@@ -495,8 +461,8 @@ export default function AppointmentsPage() {
                 </div>
               </Col>
             </Row>
-            </Card.Body>
-          </Card>
+          </Card.Body>
+        </Card>
       ))}
     </>
   )
@@ -507,8 +473,6 @@ export default function AppointmentsPage() {
         <FaCalendarAlt className="me-2" />
         我的預約記錄
       </h2>
-
-      {renderAlerts()}
 
       {appointments.length === 0 ? (
         renderEmptyState()
