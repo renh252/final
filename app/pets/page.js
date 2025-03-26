@@ -380,7 +380,15 @@ export default function PetsPage() {
   const [previousPetsData, setPreviousPetsData] = useState(null)
 
   // 優化API調用: 合併基礎資料請求
-  const { data: metaData } = useSWR('/api/pets?type=meta', fetcher)
+  const { data: metaData, mutate: mutateMetaData } = useSWR(
+    '/api/pets?type=meta',
+    fetcher,
+    {
+      revalidateOnFocus: true, // 當視窗重新獲得焦點時重新驗證
+      revalidateOnReconnect: true, // 當重新連接網路時重新驗證
+      refreshInterval: 30000, // 每30秒自動重新驗證一次
+    }
+  )
 
   // 從metaData中獲取數據
   const speciesData = useMemo(() => {
@@ -685,10 +693,18 @@ export default function PetsPage() {
     ]
   )
 
+  // 添加重新載入店家資料的函數
+  const reloadStoresData = useCallback(() => {
+    mutateMetaData()
+  }, [mutateMetaData])
+
   // 修改商店選擇函數
   const handleStoreChange = useCallback(
     (e) => {
       const storeId = e.target.value
+
+      // 重新載入店家資料
+      reloadStoresData()
 
       handleFilterUpdate(() => {
         setSelectedStore(storeId)
@@ -741,6 +757,7 @@ export default function PetsPage() {
       setMapMarkers,
       setSelectedLocation,
       debouncedMutatePets,
+      reloadStoresData,
     ]
   )
 
@@ -1119,6 +1136,12 @@ export default function PetsPage() {
   // 修改視圖切換邏輯，保留現有功能並添加抽屜控制
   const handleViewModeChange = useCallback(() => {
     const newViewMode = viewMode === 'map' ? 'list' : 'map'
+
+    // 如果切換到地圖視圖，重新載入店家資料
+    if (newViewMode === 'map') {
+      reloadStoresData()
+    }
+
     // 保存當前滾動位置
     const currentScrollPosition = window.scrollY
 
@@ -1247,6 +1270,7 @@ export default function PetsPage() {
     setMapCenter,
     setMapZoom,
     setIsDrawerOpen,
+    reloadStoresData,
   ])
 
   // 滾動功能
