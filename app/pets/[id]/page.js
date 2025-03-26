@@ -30,7 +30,7 @@ import {
   FaStar,
 } from 'react-icons/fa'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
-import { Button, Badge, ProgressBar } from 'react-bootstrap'
+import { Button, Badge, ProgressBar, Carousel } from 'react-bootstrap'
 
 export default function PetDetailPage() {
   const { id } = useParams()
@@ -166,44 +166,39 @@ export default function PetDetailPage() {
       <div className={styles.content}>
         <div className={styles.imageSection}>
           <div className={styles.imageContainer}>
-            <Image
-              src={getCurrentPhotoUrl()}
-              alt={pet?.name}
-              fill
-              className={styles.image}
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-            />
-            {pet?.photos && pet.photos.length > 1 && (
-              <>
-                <button
-                  className={`${styles.photoNavButton} ${styles.prevButton}`}
-                  onClick={prevPhoto}
-                  aria-label="上一張照片"
-                >
-                  <FaChevronLeft />
-                </button>
-                <button
-                  className={`${styles.photoNavButton} ${styles.nextButton}`}
-                  onClick={nextPhoto}
-                  aria-label="下一張照片"
-                >
-                  <FaChevronRight />
-                </button>
-                <div className={styles.photoIndicator}>
-                  {pet.photos.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`${styles.dot} ${
-                        index === currentPhotoIndex ? styles.activeDot : ''
-                      }`}
-                      onClick={() => setCurrentPhotoIndex(index)}
-                      aria-label={`查看第 ${index + 1} 張照片`}
-                      type="button"
-                    ></button>
-                  ))}
-                </div>
-              </>
+            {pet?.photos && pet.photos.length > 0 ? (
+              <Carousel
+                interval={5000}
+                indicators={true}
+                controls={true}
+                className={styles.carousel}
+                activeIndex={currentPhotoIndex}
+                onSelect={(index) => setCurrentPhotoIndex(index)}
+              >
+                {pet.photos.map((photo, index) => (
+                  <Carousel.Item key={index}>
+                    <div className={styles.carouselImageContainer}>
+                      <Image
+                        src={photo.photo_url || '/images/pet-placeholder.jpg'}
+                        alt={`${pet.name} 的照片 ${index + 1}`}
+                        fill
+                        className={styles.image}
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        priority={index === 0}
+                      />
+                    </div>
+                  </Carousel.Item>
+                ))}
+              </Carousel>
+            ) : (
+              <Image
+                src={pet?.main_image || '/images/pet-placeholder.jpg'}
+                alt={pet?.name}
+                fill
+                className={styles.image}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
             )}
           </div>
 
