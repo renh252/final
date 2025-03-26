@@ -8,7 +8,7 @@ import styles from '@/app/shop/shop.module.css'
 // card
 import Card from '@/app/_components/ui/Card'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
-import { FaRegHeart, FaHeart } from 'react-icons/fa'
+import { FaRegHeart, FaHeart,FaLongArrowAltRight } from 'react-icons/fa'
 import { useRouter } from 'next/navigation'
 // auth
 import { useAuth } from '@/app/context/AuthContext'
@@ -166,10 +166,14 @@ export default function PetsPage() {
             return (
               <div key={promotion.promotion_id} className={styles.contain}>
                 <div className={styles.contain_title}>
-                  <IconLine
+                  <div className={styles.title}>{promotion.promotion_name}</div>
+                  {/* <IconLine
                     key={promotion.promotion_id}
                     title={promotion.promotion_name}
-                  />
+                  /> */}
+                  <Link href={`/shop/promotions/${promotion.promotion_id}`} className={styles.viewMore}>
+                    <p>查看更多</p> <FaLongArrowAltRight/>
+                  </Link>
                 </div>
                 <div className={styles.contain_body}>
                   <div className={styles.group}>
@@ -277,6 +281,9 @@ export default function PetsPage() {
                   <div className={styles.group} key={category.category_id}>
                     <div className={styles.groupTitle}>
                       <p>{category.category_name}</p>
+                      <Link href={`/shop/categories/${parent.category_id}/${category.category_id}`} className={styles.viewMore}>
+                        <p>查看更多</p> <FaLongArrowAltRight/>
+                      </Link>
                     </div>
                     <div className={styles.groupBody}>
                       <CardSwitchButton
