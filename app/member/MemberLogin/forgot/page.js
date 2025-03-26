@@ -125,7 +125,8 @@ export default function ResetPasswordPage() {
 
             if (response.ok) {
                 const data = await response.json();
-                setMessage(`${data.message}，您現在可以<a href="/login">登入</a>。`);
+                alert(data.message); // 彈出成功訊息
+                 window.location.href = '/member/MemberLogin/login'; // 導向登入頁面
                 setIsCodeVerified(false);
                 setEmail('');
                 setVerificationCode('');
