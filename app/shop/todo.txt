@@ -16,9 +16,7 @@ C:\iSpan\final\app\shop
 加入訂單時，變更庫存(ok)
 超時處理：如果未付款，可以透過後端定時任務（cron job）或 WebSocket 來釋放庫存。(設定時間限制，例如 30 分鐘內未付款則釋放庫存)
 
-checkout/
-**帶入資料更新地址
-**如果沒有購物車商品就倒回購物車
+
 
 /favorite
 排版

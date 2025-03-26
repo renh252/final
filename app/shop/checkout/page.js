@@ -22,7 +22,6 @@ export default function CheckoutPage() {
   const cities = Object.keys(areaData)
   const [districts, setDistricts] = useState([])
 
-  console.log(cities)
 
   // 紀錄是否帶入會員資料
   const [userInfoChecked, setUserInfoChecked] = useState(false)
@@ -34,7 +33,13 @@ export default function CheckoutPage() {
   useEffect(() => {
     const storedProductPrice = localStorage.getItem('productPrice')
     if (storedProductPrice) {
-      setProductPrice(JSON.parse(storedProductPrice))
+      const parsedProductPrice = JSON.parse(storedProductPrice)
+      if(!parsedProductPrice.totalQuantity || parsedProductPrice.totalQuantity == 0){
+        router.push('/shop/cart')
+      }
+      setProductPrice(parsedProductPrice)
+    }else{
+      router.push('/shop/cart')
     }
   }, [])
   useEffect(() => {
@@ -71,9 +76,11 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (checkoutData.address.city) {
-      setDistricts(areaData[checkoutData.address.city] || [])
+      setDistricts(areaData[checkoutData.address.city] || []);
+    } else {
+      setDistricts([]);
     }
-  }, [checkoutData.address.city])
+  }, [checkoutData.address.city]);
 
   // 当用户输入时更新表单数据
   const handleInputChange = (e) => {
@@ -249,7 +256,7 @@ export default function CheckoutPage() {
     }
   }
 
-  // 在组件加载时检查URL参数
+  // 收到選取門市後...
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const CVSStoreID = urlParams.get('CVSStoreID')
@@ -385,13 +392,18 @@ export default function CheckoutPage() {
 
   const { user, loading } = useAuth()
 
+
+  
+
   if (loading) return <div>載入中...</div>
   if (!user) return <div>請先登入</div>
+
 
   const userName = user.name
   const userNumber = user.number
   const userEmail = user.email
   const userAddress = user.address
+  
 
   return (
     <>
@@ -403,8 +415,11 @@ export default function CheckoutPage() {
           onChange={(e) => {
             const checked = e.target.checked
             setUserInfoChecked(checked)
-            const fullAddress = user.address || ''
-            const city = fullAddress.slice(0, 3)
+            const fullAddress = userAddress || ''
+            const convertToTraditionalCity = (cityName) => {
+              return cityName.replace(/^台/, '臺');
+            };
+            const city = convertToTraditionalCity(fullAddress.slice(0, 3));
             const town = fullAddress.slice(3, 6)
             const detail = fullAddress.slice(6)
 
@@ -493,7 +508,7 @@ export default function CheckoutPage() {
                     <div className={styles.address}>
                       <p>配送地址</p>
                       <div className={styles.select}>
-                        <select
+                      <select
                           id="city"
                           name="city"
                           value={checkoutData.address.city}
@@ -514,13 +529,14 @@ export default function CheckoutPage() {
                           onChange={handleInputChange}
                           disabled={!checkoutData.address.city}
                         >
-                          <option value="">區域</option>
-                          {districts.map((district) => (
-                            <option key={district} value={district}>
-                              {district}
-                            </option>
-                          ))}
-                        </select>
+
+                        <option value="">區域</option>
+                        {districts.map((district) => (
+                          <option key={district} value={district}>
+                            {district}
+                          </option>
+                        ))}
+                      </select>
                         <input
                           name="address"
                           type="text"
