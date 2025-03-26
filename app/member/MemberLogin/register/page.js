@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import styles from './Register.module.css';
 import { useRouter } from 'next/navigation';
-
+import Image from 'next/image';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -73,10 +73,12 @@ export default function RegisterPage() {
               className="button"
               style={{ width: '350px', height: '60px', fontSize: '20px' }}
             >
-              <img
+              <Image
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/153b2dcd7ca2627a463800e38ebc91cf43bcd541ad79fa3fea9919eec17199df?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
                 alt="Google icon"
                 style={{ width: '100px', height: '50px' }}
+                width={100}
+                height={50}
               />
               以Google帳號註冊
             </button>
