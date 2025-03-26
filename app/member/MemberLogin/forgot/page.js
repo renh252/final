@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import styles from './forgot.module.css';
 
 export default function ResetPasswordPage() {
@@ -12,14 +12,21 @@ export default function ResetPasswordPage() {
     const [isCodeVerified, setIsCodeVerified] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleEmailChange = (e) => {
         setEmail(e.target.value);
     };
-
-    const handleSendCode = async () => {
+    const handleSendCode = useCallback(async () => {
         setMessage('');
         setError('');
+        setIsLoading(true);
+
+        if (!email || !/\S+@\S+\.\S+/.test(email)) {
+            setError('請輸入有效的電子郵件地址');
+            setIsLoading(false);
+            return;
+        }
         try {
             const response = await fetch('/api/member/forgot', {
                 method: 'POST',
@@ -28,24 +35,42 @@ export default function ResetPasswordPage() {
                 },
                 body: JSON.stringify({ action: 'request-otp', email }),
             });
-
-            const data = await response.json();
-
+            // 使用 console.log 檢查伺服器返回的內容
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
             if (response.ok) {
+                const data = await response.json();
+                console.log('Response data:', data); // 打印出伺服器返回的 JSON 資料
+
                 setMessage(data.message);
                 setIsCodeSent(true);
             } else {
-                setError(data.message);
+                let errorMessage = '發送驗證碼失敗';
+                try {
+                    const data = await response.json();
+                    errorMessage = data.message || errorMessage;
+                } catch (err) {
+                    console.error('無法解析錯誤訊息:', err);
+                }
+                setError(errorMessage);
             }
         } catch (err) {
             setError('請求驗證碼失敗，請檢查您的網路連線');
             console.error('請求驗證碼錯誤:', err);
+        } finally {
+            setIsLoading(false);
         }
-    };
+    }, [email]);
 
     const handleVerifyCode = async () => {
         setMessage('');
         setError('');
+
+        if (!verificationCode || verificationCode.length !== 6) {
+            setError('請輸入6位數驗證碼');
+            return;
+        }
+
         try {
             const response = await fetch('/api/member/forgot', {
                 method: 'POST',
@@ -55,13 +80,19 @@ export default function ResetPasswordPage() {
                 body: JSON.stringify({ action: 'verify-otp', email, otp: verificationCode }),
             });
 
-            const data = await response.json();
-
             if (response.ok) {
+                const data = await response.json();
                 setMessage(data.message);
                 setIsCodeVerified(true);
             } else {
-                setError(data.message);
+                let errorMessage = '驗證碼驗證失敗';
+                try {
+                    const data = await response.json();
+                    errorMessage = data.message || errorMessage;
+                } catch (err) {
+                    console.error('無法解析錯誤訊息:', err);
+                }
+                setError(errorMessage);
             }
         } catch (err) {
             setError('驗證驗證碼失敗，請檢查您的網路連線');
@@ -72,13 +103,19 @@ export default function ResetPasswordPage() {
     const handleResetPassword = async () => {
         setMessage('');
         setError('');
+
+        if (newPassword.length < 6) {
+            setError('新密碼長度至少為6個字符');
+            return;
+        }
+
         if (newPassword !== confirmNewPassword) {
             setError('新密碼與確認密碼不符');
             return;
         }
 
         try {
-            const response = await fetch('/api/member/forgot', { // 修改 API 端點
+            const response = await fetch('/api/member/forgot', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -86,10 +123,9 @@ export default function ResetPasswordPage() {
                 body: JSON.stringify({ action: 'reset-password', email, otp: verificationCode, newPassword }),
             });
 
-            const data = await response.json();
-
             if (response.ok) {
-                setMessage(data.message + '，您現在可以<a href="/login">登入</a>。'); // 假設有登入頁面
+                const data = await response.json();
+                setMessage(`${data.message}，您現在可以<a href="/login">登入</a>。`);
                 setIsCodeVerified(false);
                 setEmail('');
                 setVerificationCode('');
@@ -97,7 +133,14 @@ export default function ResetPasswordPage() {
                 setConfirmNewPassword('');
                 setIsCodeSent(false);
             } else {
-                setError(data.message);
+                let errorMessage = '重設密碼失敗';
+                try {
+                    const data = await response.json();
+                    errorMessage = data.message || errorMessage;
+                } catch (err) {
+                    console.error('無法解析錯誤訊息:', err);
+                }
+                setError(errorMessage);
             }
         } catch (err) {
             setError('重設密碼失敗，請檢查您的網路連線');
@@ -132,9 +175,9 @@ export default function ResetPasswordPage() {
                             className="button"
                             style={{ width: '200px', height: '60px', fontSize: '28px' }}
                             onClick={handleSendCode}
-                            disabled={!email}
+                            disabled={!email || isLoading}
                         >
-                            發送驗證碼
+                            {isLoading ? '發送中...' : '發送驗證碼'}
                         </button>
                     )}
 
