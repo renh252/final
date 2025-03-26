@@ -12,11 +12,7 @@ export async function GET(request, { params }) {
       `
       SELECT 
         p.*,
-        CASE 
-          WHEN p.variety LIKE '%貓%' THEN '貓'
-          WHEN p.variety LIKE '%犬%' OR p.variety LIKE '%狗%' THEN '狗'
-          ELSE '其他'
-        END as species_name,
+        p.species as species_name,
         p.variety as breed_name
       FROM pets p
       WHERE p.id = ?

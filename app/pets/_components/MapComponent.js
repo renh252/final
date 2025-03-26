@@ -15,11 +15,11 @@ import {
 import 'leaflet/dist/leaflet.css'
 import {
   defaultIcon,
-  regionIcon,
   selectedIcon,
   storeIcon,
   userLocationIcon,
   petIcon,
+  legendConfig,
 } from './CustomMarker'
 import styles from './MapComponent.module.css'
 
@@ -176,8 +176,29 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return distance.toFixed(2)
 }
 
+// 修改圖例組件
+const Legend = () => (
+  <div className={styles.legend}>
+    {legendConfig.map((item, index) => (
+      <div key={index} className={styles.legendItem}>
+        <div className={`${styles.legendIcon} ${styles[item.className]}`}>
+          {item.icon.options.html ? (
+            <div
+              className="custom-div-icon"
+              dangerouslySetInnerHTML={{ __html: item.icon.options.html }}
+            />
+          ) : (
+            <div className="custom-div-icon" />
+          )}
+        </div>
+        <span>{item.name}</span>
+      </div>
+    ))}
+  </div>
+)
+
 export default function MapComponent({
-  center = [25.033, 121.5654], // 預設為台北市中心
+  center = [22.997, 120.205], // 預設為台南
   zoom = 13,
   markers = [],
   onLocationSelect = () => {},
@@ -300,7 +321,8 @@ export default function MapComponent({
       <MapContainer
         center={center}
         zoom={zoom}
-        style={{ height: '100%', width: '100%' }}
+        className={styles.mapContainer}
+        style={{ height: showLegend ? '100vh' : '100%' }}
         ref={mapRef}
       >
         <ChangeView center={center} zoom={zoom} />
@@ -373,7 +395,6 @@ export default function MapComponent({
         {pets &&
           pets.length > 0 &&
           pets.map((pet) => {
-            // 檢查座標是否為有效數字
             const lat = parseFloat(pet.offsetLat)
             const lng = parseFloat(pet.offsetLng)
 
@@ -394,7 +415,7 @@ export default function MapComponent({
                     <p>
                       {pet.species} - {pet.variety || '未知品種'}
                     </p>
-                    <p>收容所：{pet.store?.name || '未知'}</p>
+                    <p>據點：{pet.store?.name || '未知'}</p>
                     <a href={`/pets/${pet.id}`} className={styles.detailLink}>
                       查看詳情
                     </a>
@@ -404,215 +425,40 @@ export default function MapComponent({
             )
           })}
 
-        {markers.map((marker, idx) => {
-          // 根據標記類型選擇圖標
-          let markerIcon = defaultIcon
-          if (marker.isUserLocation) {
-            markerIcon = userLocationIcon
-          } else if (marker.isSelected) {
-            markerIcon = selectedIcon
-          } else if (marker.isRegion) {
-            markerIcon = regionIcon
-          } else if (marker.isStore) {
-            // 所有商店使用相同圖標，不再使用突出顯示圖標
-            markerIcon = storeIcon
-          }
-
-          // 使用標記的 id 作為 key，如果沒有 id 則使用索引
-          const key = marker.id || idx
-
-          return (
-            <MarkerWithOpenPopup
-              key={key}
-              position={[marker.lat, marker.lng]}
-              icon={markerIcon}
-            >
-              <Popup>
-                {marker.isStore ? (
-                  <div className="store-popup">
-                    <h5
-                      style={{
-                        margin: '0 0 8px 0',
-                        color: '#8e44ad',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {marker.name}
-                    </h5>
-                    {marker.description && (
-                      <div>
-                        <div
-                          style={{ fontSize: '0.9rem', marginBottom: '5px' }}
-                        >
-                          {marker.description.includes('距離') ? (
-                            <>
-                              <p style={{ margin: '0 0 5px 0' }}>
-                                {marker.description.split('-')[0].trim()}
-                              </p>
-                              <p
-                                style={{
-                                  margin: '0',
-                                  color: '#dc3545',
-                                  fontWeight: 'bold',
-                                  fontSize: '1rem',
-                                }}
-                              >
-                                {marker.description.split('-')[1].trim()}
-                              </p>
-                            </>
-                          ) : (
-                            <p style={{ margin: '0' }}>{marker.description}</p>
-                          )}
-                        </div>
-                        {marker.distance && (
-                          <div
-                            style={{
-                              marginTop: '5px',
-                              padding: '5px',
-                              background: '#f5f5f5',
-                              borderRadius: '4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              fontSize: '0.9rem',
-                            }}
-                          >
-                            <span
-                              style={{ fontWeight: 'bold', marginRight: '5px' }}
-                            >
-                              距離：
-                            </span>
-                            <span
-                              style={{ color: '#dc3545', fontWeight: 'bold' }}
-                            >
-                              {marker.distance.toFixed(2)} 公里
-                            </span>
-                          </div>
-                        )}
-                        {userLocation && (
-                          <div
-                            style={{
-                              marginTop: '10px',
-                              fontSize: '0.85rem',
-                              color: '#666',
-                              fontStyle: 'italic',
-                            }}
-                          >
-                            點擊店家在地圖上顯示直線距離
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div>
-                    {marker.name || (regionName ? regionName : '選定位置')}
-                    <br />
-                    {marker.description ||
-                      `座標: ${marker.lat.toFixed(4)}, ${marker.lng.toFixed(
-                        4
-                      )}`}
-                  </div>
+        {markers.map((marker) => (
+          <Marker
+            key={marker.id}
+            position={[marker.lat, marker.lng]}
+            icon={
+              marker.isUserLocation
+                ? userLocationIcon
+                : marker.isSelected
+                ? selectedIcon
+                : marker.isStore
+                ? storeIcon
+                : defaultIcon
+            }
+          >
+            <Popup>
+              <div className={styles.markerPopup}>
+                <h3>{marker.name}</h3>
+                {marker.description && (
+                  <p>
+                    {marker.isStore
+                      ? marker.description.split('-')[0].trim() +
+                        (marker.distance
+                          ? ` - 距離: ${marker.distance.toFixed(2)} 公里`
+                          : '')
+                      : marker.description}
+                  </p>
                 )}
-              </Popup>
-            </MarkerWithOpenPopup>
-          )
-        })}
-      </MapContainer>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
 
-      {/* 地圖圖例 - 只在 showLegend 為 true 時顯示 */}
-      {showLegend && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            left: '10px',
-            background: 'white',
-            padding: '8px',
-            borderRadius: '5px',
-            fontSize: '12px',
-            boxShadow: '0 0 5px rgba(0,0,0,0.2)',
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '5px',
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="#0d6efd"
-            >
-              <path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
-            </svg>
-            <span style={{ marginLeft: '5px' }}>地區位置</span>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '5px',
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="#8e44ad"
-            >
-              <path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
-            </svg>
-            <span style={{ marginLeft: '5px' }}>商店位置</span>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '5px',
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="#dc3545"
-            >
-              <path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
-            </svg>
-            <span style={{ marginLeft: '5px' }}>選定位置</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div
-              style={{
-                width: '16px',
-                height: '16px',
-                borderRadius: '50%',
-                backgroundColor: '#2196f3',
-                position: 'relative',
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(33, 150, 243, 0.3)',
-                  animation: 'ripple 2s infinite ease-in-out',
-                }}
-              />
-            </div>
-            <span style={{ marginLeft: '5px' }}>您的位置</span>
-          </div>
-        </div>
-      )}
+        {showLegend && <Legend />}
+      </MapContainer>
 
       {/* 操作提示 - 只在 showLegend 為 true 時顯示 */}
       {showLegend && (
