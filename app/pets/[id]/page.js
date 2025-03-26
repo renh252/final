@@ -289,22 +289,18 @@ export default function PetDetailPage() {
             <div className={styles.statusBadge}>
               <span
                 className={`${styles.statusDot} ${
-                  styles[pet?.adopt_status || 'available']
+                  styles[pet?.is_adopted ? 'adopted' : 'available']
                 }`}
               ></span>
-              {pet?.adopt_status === 'available'
-                ? '可領養'
-                : pet?.adopt_status === 'pending'
-                ? '領養申請中'
-                : '已領養'}
+              {pet?.is_adopted ? '已領養' : '可領養'}
             </div>
-            {pet?.adopt_fee ? (
+            {!pet?.is_adopted && pet?.adopt_fee ? (
               <div className={styles.adoptFee}>
                 領養費用: <span className={styles.fee}>NT${pet.adopt_fee}</span>
               </div>
-            ) : (
+            ) : !pet?.is_adopted ? (
               <div className={styles.adoptFee}>免費領養</div>
-            )}
+            ) : null}
           </div>
 
           <div className={styles.tabContainer}>
@@ -470,9 +466,14 @@ export default function PetDetailPage() {
             </div>
           </div>
 
-          <Link href={`/pets/${id}/appointment`} className={styles.adoptButton}>
-            <FaHeart /> 申請領養
-          </Link>
+          {!pet?.is_adopted && (
+            <Link
+              href={`/pets/${id}/appointment`}
+              className={styles.adoptButton}
+            >
+              <FaHeart /> 申請領養
+            </Link>
+          )}
         </div>
       </div>
     </div>

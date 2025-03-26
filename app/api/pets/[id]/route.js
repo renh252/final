@@ -15,7 +15,7 @@ export async function GET(request, { params }) {
         p.species as species_name,
         p.variety as breed_name
       FROM pets p
-      WHERE p.id = ?
+      WHERE p.id = ? AND p.is_adopted = 0
     `,
       [id]
     )
