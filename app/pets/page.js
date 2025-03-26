@@ -535,18 +535,62 @@ export default function PetsPage() {
     return petsData
   }, [isPending, previousPetsData, petsData])
 
-  // 修改處理篩選結果的寵物
-  const filteredPets = useMemo(() => {
-    if (!displayPetsData?.pets || !Array.isArray(displayPetsData.pets))
-      return []
+  // 生成隨機偏移
+  const addRandomOffset = (lat, lng) => {
+    const offset = 0.001 // 約 100 公尺
+    return {
+      lat: parseFloat(lat) + (Math.random() - 0.5) * offset,
+      lng: parseFloat(lng) + (Math.random() - 0.5) * offset,
+    }
+  }
 
-    // 如果顯示收藏，需要額外篩選
-    if (showFavorites) {
-      return displayPetsData.pets.filter((pet) => pet.isFavorite)
+  // 修改 filteredPets 的 useMemo
+  const filteredPets = useMemo(() => {
+    if (!displayPetsData?.pets || !Array.isArray(displayPetsData.pets)) {
+      console.log('No pets data available')
+      return []
     }
 
-    return displayPetsData.pets
-  }, [displayPetsData, showFavorites])
+    // 如果顯示收藏，需要額外篩選
+    let pets = showFavorites
+      ? displayPetsData.pets.filter((pet) => pet.isFavorite)
+      : displayPetsData.pets
+
+    // 確保有店家資料
+    if (!storesData?.stores) {
+      console.log('No stores data available')
+      return pets
+    }
+
+    // 為每個寵物添加隨機偏移的位置
+    return pets.map((pet) => {
+      // 檢查寵物是否有 store_id
+      if (!pet.store_id) {
+        console.log('Pet has no store_id:', pet.id, pet.name)
+        return pet
+      }
+
+      // 從 storesData 中找到對應的店家
+      const store = storesData.stores.find((store) => store.id === pet.store_id)
+
+      if (!store || !store.lat || !store.lng) {
+        console.log('Store not found or has no coordinates:', pet.store_id)
+        return pet
+      }
+
+      // 生成隨機偏移
+      const { lat, lng } = addRandomOffset(
+        parseFloat(store.lat),
+        parseFloat(store.lng)
+      )
+
+      return {
+        ...pet,
+        offsetLat: lat,
+        offsetLng: lng,
+      }
+    })
+  }, [displayPetsData, showFavorites, storesData])
 
   // 修改使用伺服器返回的分頁資訊 - 基於 displayPetsData
   const totalPages = useMemo(() => {
@@ -1664,6 +1708,31 @@ export default function PetsPage() {
                     searchRadius={searchRadius}
                     userLocation={selectedLocation}
                     selectedStoreLocation={selectedStoreLocation}
+                    pets={
+                      selectedStore
+                        ? filteredPets.filter(
+                            (pet) =>
+                              pet.store &&
+                              pet.store.id.toString() === selectedStore
+                          )
+                        : filteredPets.filter((pet) => {
+                            if (
+                              selectedLocation &&
+                              pet.store &&
+                              pet.store.lat &&
+                              pet.store.lng
+                            ) {
+                              const distance = calculateDistance(
+                                selectedLocation.lat,
+                                selectedLocation.lng,
+                                parseFloat(pet.store.lat),
+                                parseFloat(pet.store.lng)
+                              )
+                              return distance <= searchRadius
+                            }
+                            return true
+                          })
+                    }
                   />
                 </div>
               </Col>
@@ -1930,6 +1999,30 @@ export default function PetsPage() {
               searchRadius={searchRadius}
               userLocation={selectedLocation}
               selectedStoreLocation={selectedStoreLocation}
+              pets={
+                selectedStore
+                  ? filteredPets.filter(
+                      (pet) =>
+                        pet.store && pet.store.id.toString() === selectedStore
+                    )
+                  : filteredPets.filter((pet) => {
+                      if (
+                        selectedLocation &&
+                        pet.store &&
+                        pet.store.lat &&
+                        pet.store.lng
+                      ) {
+                        const distance = calculateDistance(
+                          selectedLocation.lat,
+                          selectedLocation.lng,
+                          parseFloat(pet.store.lat),
+                          parseFloat(pet.store.lng)
+                        )
+                        return distance <= searchRadius
+                      }
+                      return true
+                    })
+              }
             />
           </div>
         </>
