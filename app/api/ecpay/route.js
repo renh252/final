@@ -96,7 +96,7 @@ export async function POST(req) {
         amount,
         '待付款', // 初始狀態
         '信用卡',
-        '付款失敗', // 尚未付款
+        '待付款', // 尚未付款
         invoiceMethod,
         invoice,
         mobileBarcode,
@@ -187,13 +187,12 @@ export async function POST(req) {
   const ItemName = itemName // 商品名稱
 
   // 在localhost上執行
-  const ReturnURL = `http://localhost:3000/api/ecpay/notify`
+  const ReturnURL = `http://localhost:3000/api/ecpay/notify` // 目前無作用
   const OrderResultURL = 'http://localhost:3000/api/ecpay/callback'
 
   // 使用公開網域執行(ngrok)，無法運行請切換成localhost版本
   // const ReturnURL = `  https://b155-36-239-254-206.ngrok-free.app/api/ecpay/notify`
-  // const OrderResultURL =
-    '  https://b155-36-239-254-206.ngrok-free.app/api/ecpay/callback'
+  // const OrderResultURL ='  https://b155-36-239-254-206.ngrok-free.app/api/ecpay/callback'
 
   const stage = isStage ? '-stage' : ''
   const algorithm = 'sha256'
@@ -222,7 +221,7 @@ export async function POST(req) {
     TotalAmount,
     TradeDesc,
     ItemName,
-    ReturnURL, // ✅ 確保 ECPay 正確通知 `notify.js`
+    ReturnURL, //  確保 ECPay 正確通知 `notify.js`，目前暫時以callback取代功能
     ChoosePayment: ecpayChoosePayment,
     OrderResultURL, // ✅ 確保交易完成後能正確回到前端
     CustomField1: orderType, // 儲存 orderType
