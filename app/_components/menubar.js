@@ -6,8 +6,17 @@ import Link from 'next/link'
 import { Navbar, Nav, NavDropdown, Button, Container } from 'react-bootstrap'
 import { usePathname } from 'next/navigation'
 import NotificationBell from './NotificationBell'
+import { LuShoppingCart } from "react-icons/lu";
+import { useAuth } from '@/app/context/AuthContext'
+// 連接資料庫
+import useSWR, { mutate } from 'swr'
+const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function Menubar() {
+  const { user, loading} = useAuth()
+  const userId = user?.id
+  // 獲取購物車數據
+  const { data:cartData, error:cartError } = useSWR(userId ? `/api/shop/cart?userId=${userId}` : null, fetcher)
   const pathname = usePathname()
   // console.log('pathname', pathname)
   useEffect(() => {
@@ -34,6 +43,8 @@ export default function Menubar() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [handleScroll])
+  const totalQuantity = cartData?.totalQuantity
+
 
   return (
     <>
@@ -52,7 +63,13 @@ export default function Menubar() {
                 <NotificationBell />
               </div>
               <Nav.Link href="/member">會員</Nav.Link>
-              <Nav.Link href="/shop/cart">購物車</Nav.Link>
+              <Nav.Link href="/shop/cart">
+              <div className={styles.cart}>
+                <LuShoppingCart />
+                <div className={styles.cartCount}>{totalQuantity || ''
+                }</div>
+              </div>
+              </Nav.Link>
               <Nav.Link href="/contact">聯絡我們</Nav.Link>
               <NavDropdown title="下拉式" id="basic-nav-dropdown">
                 <NavDropdown.Item href="/forum">論壇</NavDropdown.Item>
