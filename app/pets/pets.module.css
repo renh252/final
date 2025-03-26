@@ -473,37 +473,83 @@
 
 /* 地圖容器樣式 */
 .mapContainer {
+  height: calc(100vh - 64px); /* 減去導航欄高度 */
+  width: 100%;
+  position: relative;
+}
+
+.map {
   height: 100%;
   width: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 2rem;
-  min-height: 600px;
+  z-index: 1;
 }
 
-.mapContainer:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: transparent;
-  z-index: 1001;
-}
-
-.mapPlaceholder {
-  height: 400px;
-  width: 100%;
-  border-radius: 8px;
-  background-color: #f0f0f0;
+.loading,
+.error {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  font-size: 1.2rem;
   color: #666;
-  font-style: italic;
-  border: 1px dashed #ccc;
-  margin-bottom: 2rem;
+}
+
+.error {
+  color: #e74c3c;
+}
+
+.popup {
+  text-align: center;
+  padding: 8px;
+  min-width: 200px;
+}
+
+.popup h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.popup p {
+  margin: 4px 0;
+  color: #666;
+}
+
+.detailLink {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #4a90e2;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  margin-top: 8px;
+  transition: background-color 0.2s;
+}
+
+.detailLink:hover {
+  background-color: #357abd;
+  color: white;
+}
+
+/* 確保地圖控制項在正確的位置 */
+.map :global(.leaflet-control-container) {
+  position: absolute;
+  z-index: 1000;
+}
+
+/* 自定義彈出視窗樣式 */
+.map :global(.leaflet-popup-content-wrapper) {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.map :global(.leaflet-popup-content) {
+  margin: 8px 12px;
+}
+
+.map :global(.leaflet-popup-tip-container) {
+  margin-top: -1px;
 }
 
 /* 側邊信息容器樣式 */
