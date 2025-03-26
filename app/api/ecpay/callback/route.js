@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import db from '@/app/lib/db'
 
 export async function POST(req) {
   try {
@@ -19,6 +20,37 @@ export async function POST(req) {
     // **檢查交易是否成功**
     const isSuccess = params.RtnCode === '1'
     const orderType = params.CustomField1 // 🔹 讀取交易類型
+    const tradeNo = params.MerchantTradeNo
+    const paymentMethod = params.PaymentType.includes('_')
+      ? params.PaymentType.split('_')[0]
+      : params.PaymentType
+
+    // 模擬 notify：在 callback 中更新付款狀態
+    try {
+      if (orderType === 'donation') {
+        await db.query(
+          `UPDATE donations 
+           SET transaction_status = ?, payment_method = ? 
+           WHERE trade_no = ?`,
+          [isSuccess ? '已付款' : '付款失敗', paymentMethod, tradeNo]
+        )
+      } else if (orderType === 'shop') {
+        await db.query(
+          `UPDATE orders 
+           SET payment_status = ?, order_status = ? 
+           WHERE order_id = ?`,
+          [
+            isSuccess ? '已付款' : '付款失敗',
+            isSuccess ? '待出貨' : '待付款',
+            tradeNo,
+          ]
+        )
+      }
+    } catch (err) {
+      console.error('❌ 更新資料庫時發生錯誤:', err)
+    }
+
+    // 設定導回頁面
     let redirectUrl
 
     if (orderType === 'shop') {
