@@ -153,7 +153,7 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
   // 處理表單提交
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!formData) return
+    if (!formData || !pet) return
 
     try {
       setLoading(true)
@@ -161,10 +161,55 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
       // 準備提交資料，確保類型正確
       const submitData = {
         ...formData,
+        name: formData.name?.trim(),
+        species: formData.species,
+        variety: formData.variety?.trim(),
+        gender: formData.gender,
         weight: formData.weight ? Number(formData.weight) : null,
+        chip_number: formData.chip_number?.trim() || null,
         fixed: formData.fixed ? 1 : 0,
         is_adopted: formData.is_adopted ? 1 : 0,
+        story: formData.story?.trim() || null,
+        store_id: formData.store_id ? Number(formData.store_id) : null,
       }
+
+      // 檢查是否與原始資料有差異 (轉換成相同格式後比較)
+      const originalData = {
+        ...pet,
+        weight: pet.weight ? Number(pet.weight) : null,
+        fixed: pet.fixed ? 1 : 0,
+        is_adopted: pet.is_adopted ? 1 : 0,
+        store_id: pet.store_id ? Number(pet.store_id) : null,
+      }
+
+      // 檢查資料是否有變更
+      let hasChanges = false
+      const changes = {}
+
+      Object.keys(submitData).forEach((key) => {
+        // 忽略特定欄位
+        if (['id', 'photos', 'created_at'].includes(key)) return
+
+        // @ts-ignore - 動態屬性訪問
+        if (
+          JSON.stringify(submitData[key]) !== JSON.stringify(originalData[key])
+        ) {
+          hasChanges = true
+          // @ts-ignore - 動態屬性訪問
+          changes[key] = { from: originalData[key], to: submitData[key] }
+        }
+      })
+
+      console.log('資料變更:', changes, '有變更:', hasChanges)
+
+      // 如果沒有變更，直接返回
+      if (!hasChanges) {
+        showToast('info', '無需更新', '表單資料未有任何變更')
+        setLoading(false)
+        return
+      }
+
+      console.log('提交數據:', submitData)
 
       const response = await fetch(`/api/admin/pets/${params.id}`, {
         method: 'PUT',
@@ -179,14 +224,56 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
         throw new Error('更新寵物資料失敗')
       }
 
+      const result = await response.json()
+
+      // 取得已更新的欄位名稱
+      const updatedFields = Object.keys(changes)
+        .map((key) => {
+          switch (key) {
+            case 'name':
+              return '名稱'
+            case 'gender':
+              return '性別'
+            case 'species':
+              return '品種'
+            case 'variety':
+              return '品系'
+            case 'birthday':
+              return '生日'
+            case 'weight':
+              return '體重'
+            case 'chip_number':
+              return '晶片號碼'
+            case 'fixed':
+              return '結紮狀態'
+            case 'story':
+              return '故事'
+            case 'store_id':
+              return '所屬店鋪'
+            case 'is_adopted':
+              return '領養狀態'
+            default:
+              return key
+          }
+        })
+        .join('、')
+
+      // 只要有變更就顯示成功訊息
+      showToast('success', '更新成功', `已更新以下資料：${updatedFields}`)
+
+      // 重新獲取最新資料
       await fetchPet()
-      showToast('success', '更新成功', '寵物資料已更新')
+
+      // 重新整理路由，確保列表頁面也會更新
+      router.refresh()
     } catch (error) {
       console.error('更新寵物資料時發生錯誤:', error)
       showToast(
         'error',
         '更新失敗',
-        error instanceof Error ? error.message : '無法更新寵物資料，請稍後再試'
+        error instanceof Error
+          ? error.message
+          : '更新寵物資料時發生錯誤，請稍後再試'
       )
     } finally {
       setLoading(false)
@@ -586,7 +673,18 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
                       id="store_id"
                       name="store_id"
                       value={formData.store_id || 0}
-                      onChange={handleInputChange}
+                      onChange={(e) => {
+                        // 處理店鋪選擇
+                        const value = e.target.value
+                        const storeId = value === '0' ? null : Number(value)
+                        setFormData((prev) => {
+                          if (!prev) return prev
+                          return {
+                            ...prev,
+                            store_id: storeId,
+                          }
+                        })
+                      }}
                     >
                       {storeOptions.map((option) => (
                         <option key={option.value} value={option.value}>
