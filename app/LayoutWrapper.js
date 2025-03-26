@@ -135,9 +135,16 @@ export default function LayoutWrapper({ children }) {
     <>
       <Menubar />
       <Banner />
-      <Container fluid="lg" className="flex-grow-1 px-3 py-4">
-        {renderContent()}
-      </Container>
+      {pathname === '/home' ? (
+        // 首頁不要套用 container，直接顯示內容
+        <>{renderContent()}</>
+      ) : (
+        // 其他頁面維持 container 包裹
+        <Container fluid="lg" className="flex-grow-1 px-3 py-4">
+          {renderContent()}
+        </Container>
+      )}
+
       <Footer />
     </>
   )
