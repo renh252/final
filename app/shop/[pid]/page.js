@@ -54,7 +54,8 @@ export default function PidPage() {
   
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error } = useSWR(`/api/shop/${pid}`, fetcher)
-  const { data:likeData, error:likeError, mutate } = useSWR('/api/shop', fetcher)
+  const { data:likeData, error:likeError, mutate:likeMutate } = useSWR('/api/shop', fetcher)
+  const { data:cartData, error:cartError, mutate:cartMutate } = useSWR(`/api/shop/cart?userId=${userId}`,fetcher)
 
 // 卡片滑動-------------------------------
 const categoryRefs = useRef(null)
@@ -114,7 +115,7 @@ const scroll = (direction, ref) => {
 
       if (response.ok) {
         // 重新獲取商品數據
-        mutate()
+        likeMutate()
       } else {
         console.error('收藏操作失敗')
       }
@@ -257,8 +258,9 @@ const calculateDisplayPrice = () => {
           title:'成功加入購物車',
           timer:1000
         })
-        // 如果使用了 SWR，可以在這裡調用 mutate 來刷新購物車數據
-        // mutate('/api/shop/cart');
+        // 如果使用了 SWR，可以在這裡調用 cartMutate 來刷新購物車數據
+        cartMutate(`/api/shop/cart/${userId}`);
+        
       } else {
         Alert({ 
           icon:'error',
