@@ -161,6 +161,7 @@ export default function CartPage() {
     const shippingFee = 0; // 假设运费为 0
     // 将价格信息存入 localStorage
     const productPrice = {
+      totalQuantity,
       totalDiscount,
       totalOriginalPrice,
       shippingFee,

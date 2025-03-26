@@ -22,7 +22,6 @@ export default function CheckoutPage() {
   const cities = Object.keys(areaData)
   const [districts, setDistricts] = useState([])
 
-  console.log(cities)
 
   // 紀錄是否帶入會員資料
   const [userInfoChecked, setUserInfoChecked] = useState(false)
@@ -34,7 +33,13 @@ export default function CheckoutPage() {
   useEffect(() => {
     const storedProductPrice = localStorage.getItem('productPrice')
     if (storedProductPrice) {
-      setProductPrice(JSON.parse(storedProductPrice))
+      const parsedProductPrice = JSON.parse(storedProductPrice)
+      if(!parsedProductPrice.totalQuantity || parsedProductPrice.totalQuantity == 0){
+        router.push('/shop/cart')
+      }
+      setProductPrice(parsedProductPrice)
+    }else{
+      router.push('/shop/cart')
     }
   }, [])
   useEffect(() => {
@@ -393,6 +398,7 @@ export default function CheckoutPage() {
   if (loading) return <div>載入中...</div>
   if (!user) return <div>請先登入</div>
 
+
   const userName = user.name
   const userNumber = user.number
   const userEmail = user.email
@@ -409,7 +415,7 @@ export default function CheckoutPage() {
           onChange={(e) => {
             const checked = e.target.checked
             setUserInfoChecked(checked)
-            const fullAddress = user.address || ''
+            const fullAddress = userAddress || ''
             const convertToTraditionalCity = (cityName) => {
               return cityName.replace(/^台/, '臺');
             };
