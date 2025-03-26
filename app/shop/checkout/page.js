@@ -8,19 +8,24 @@ import styles from './checkout.module.css'
 import { useCheckoutData } from '@/app/shop/_components/useCheckoutData'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import areaData from '@/app/shop/_data/areaData.js'
+import { useAuth } from '@/app/context/AuthContext'
 
 export default function CheckoutPage() {
   const router = useRouter()
+
   // 表單資料
   const [checkoutData, setCheckoutData] = useCheckoutData()
   // 新增 totalAmount 状态
   const [productPrice, setProductPrice] = useState(0)
-  
+
   // 縣市區域
   const cities = Object.keys(areaData)
   const [districts, setDistricts] = useState([])
 
   console.log(cities)
+
+  // 紀錄是否帶入會員資料
+  const [userInfoChecked, setUserInfoChecked] = useState(false)
 
   // 表單驗證錯誤信息
   const [errors, setErrors] = useState({})
@@ -38,7 +43,10 @@ export default function CheckoutPage() {
 
       if (checkoutData.delivery === '宅配') {
         newShippingFee = 60
-      } else if (checkoutData.delivery === '7-ELEVEN' || checkoutData.delivery === '全家') {
+      } else if (
+        checkoutData.delivery === '7-ELEVEN' ||
+        checkoutData.delivery === '全家'
+      ) {
         newShippingFee = 45
       }
 
@@ -46,11 +54,17 @@ export default function CheckoutPage() {
         const updatedProductPrice = {
           ...productPrice,
           shippingFee: newShippingFee,
-          totalAmount: productPrice.totalOriginalPrice - productPrice.totalDiscount + newShippingFee
+          totalAmount:
+            productPrice.totalOriginalPrice -
+            productPrice.totalDiscount +
+            newShippingFee,
         }
 
         setProductPrice(updatedProductPrice)
-        localStorage.setItem('productPrice', JSON.stringify(updatedProductPrice))
+        localStorage.setItem(
+          'productPrice',
+          JSON.stringify(updatedProductPrice)
+        )
       }
     }
   }, [checkoutData.delivery, productPrice])
@@ -101,30 +115,33 @@ export default function CheckoutPage() {
 
     if (name === 'delivery') {
       if (value === '宅配') {
-        setCheckoutData((prev) => ({ 
-          ...prev, 
-          CVSStoreID: '', 
-          CVSStoreName: '', 
-          storeId: '' }))
+        setCheckoutData((prev) => ({
+          ...prev,
+          CVSStoreID: '',
+          CVSStoreName: '',
+          storeId: '',
+        }))
         setPayload({ ...Payload, CvsType: '' })
       }
       if (value === '7-ELEVEN') {
-        setCheckoutData((prev) => ({ 
-          ...prev, 
-          address: { city: '', town: '', else: '' }, 
-          CVSStoreID: '', 
-          CVSStoreName: '', 
-          storeId: '' }))
+        setCheckoutData((prev) => ({
+          ...prev,
+          address: { city: '', town: '', else: '' },
+          CVSStoreID: '',
+          CVSStoreName: '',
+          storeId: '',
+        }))
         setPayload({ ...Payload, CvsType: 'UNIMART' })
         // SendParams()
       }
       if (value === '全家') {
-        setCheckoutData((prev) => ({ 
-          ...prev, 
+        setCheckoutData((prev) => ({
+          ...prev,
           address: { city: '', town: '', else: '' },
-          CVSStoreID: '', 
-          CVSStoreName: '', 
-          storeId: '' }))
+          CVSStoreID: '',
+          CVSStoreName: '',
+          storeId: '',
+        }))
         setPayload({ ...Payload, CvsType: 'FAMI' })
         // SendParams()
       }
@@ -140,7 +157,6 @@ export default function CheckoutPage() {
       }
     }
   }
-  
 
   // ------------串超商地圖
 
@@ -153,46 +169,51 @@ export default function CheckoutPage() {
     CheckMacValue: '',
   })
 
-
-
   //  計算CheckMacValue
-  const crypto = require('crypto');
+  const crypto = require('crypto')
 
   function calculateCheckMacValue(params, hashKey, hashIV) {
     // 按参数名字母顺序排序并拼接
-    const sortedParams = Object.keys(params).sort().map(key => `${key}=${params[key]}`).join('&');
-  
+    const sortedParams = Object.keys(params)
+      .sort()
+      .map((key) => `${key}=${params[key]}`)
+      .join('&')
+
     // 加上 HashKey 和 HashIV
-    const checkString = `HashKey=${hashKey}&${sortedParams}&HashIV=${hashIV}`;
-  
+    const checkString = `HashKey=${hashKey}&${sortedParams}&HashIV=${hashIV}`
+
     // URL encode
-    const encodedString = encodeURIComponent(checkString).toLowerCase();
-  
+    const encodedString = encodeURIComponent(checkString).toLowerCase()
+
     // MD5 加密
-    return crypto.createHash('md5').update(encodedString).digest('hex').toUpperCase();
+    return crypto
+      .createHash('md5')
+      .update(encodedString)
+      .digest('hex')
+      .toUpperCase()
   }
-  
+
   // 使用示例
   const params = {
     MerchantID: '3002607',
     MerchantTradeNo: 'Test1234',
     // ... 其他参数
-  };
-  
-  const hashKey = 'pwFHCqoQZGmho4w6';
-  const hashIV = 'EkRm7iFT261dpevs';
-  
-  const checkMacValue = calculateCheckMacValue(params, hashKey, hashIV);
-  console.log(checkMacValue);
+  }
 
-// 向綠屆要求門市資料
+  const hashKey = 'pwFHCqoQZGmho4w6'
+  const hashIV = 'EkRm7iFT261dpevs'
+
+  const checkMacValue = calculateCheckMacValue(params, hashKey, hashIV)
+  console.log(checkMacValue)
+
+  // 向綠屆要求門市資料
   const handleSelectStore = async (event) => {
-    event.preventDefault();
-    setIsLoading(true);
-  
-    const merchantTradeNo = `ECpay${Date.now()}`;
-    const extraData = JSON.stringify(checkoutData);
-  
+    event.preventDefault()
+    setIsLoading(true)
+
+    const merchantTradeNo = `ECpay${Date.now()}`
+    const extraData = JSON.stringify(checkoutData)
+
     const apiParams = {
       MerchantID: '3002607',
       MerchantTradeNo: merchantTradeNo,
@@ -202,9 +223,9 @@ export default function CheckoutPage() {
       ServerReplyURL: `${window.location.origin}/api/shop/ecpay-callback`,
       ExtraData: extraData,
       Device: 0,
-      LogisticsID: '0'
-    };
-  
+      LogisticsID: '0',
+    }
+
     try {
       const response = await fetch('/api/shop/ecpay-redirect', {
         method: 'POST',
@@ -212,60 +233,61 @@ export default function CheckoutPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(apiParams),
-      });
-  
+      })
+
       if (!response.ok) {
-        throw new Error('Server responded with an error');
+        throw new Error('Server responded with an error')
       }
-  
-      const data = await response.json();
-      window.location.href = data.redirectUrl;
+
+      const data = await response.json()
+      window.location.href = data.redirectUrl
     } catch (error) {
-      console.error('Error:', error);
-      alert('发生错误，请稍后再试');
+      console.error('Error:', error)
+      alert('发生错误，请稍后再试')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
-  
+  }
+
   // 在组件加载时检查URL参数
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const CVSStoreID = urlParams.get('CVSStoreID');
-    const CVSStoreName = urlParams.get('CVSStoreName');
-    const CVSAddress = urlParams.get('CVSAddress');
-    const extraDataStr = urlParams.get('ExtraData');
+    const urlParams = new URLSearchParams(window.location.search)
+    const CVSStoreID = urlParams.get('CVSStoreID')
+    const CVSStoreName = urlParams.get('CVSStoreName')
+    const CVSAddress = urlParams.get('CVSAddress')
+    const extraDataStr = urlParams.get('ExtraData')
     if (CVSStoreID && CVSStoreName && CVSAddress && extraDataStr) {
       try {
-        const extraData = JSON.parse(decodeURIComponent(extraDataStr));
-        
-        setCheckoutData(prev => ({
+        const extraData = JSON.parse(decodeURIComponent(extraDataStr))
+
+        setCheckoutData((prev) => ({
           ...prev,
           ...extraData,
           delivery: extraData.delivery || prev.delivery,
           address: {
             ...prev.address,
-            ...extraData.address
+            ...extraData.address,
           },
           storeName: CVSStoreName,
           storeId: CVSStoreID,
           CVSStoreID,
           CVSStoreName,
-          CVSAddress
-        }));
-  
+          CVSAddress,
+        }))
+
         // 清除URL中的参数
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        )
       } catch (error) {
-        console.error('Error parsing ExtraData:', error);
+        console.error('Error parsing ExtraData:', error)
       }
     }
-  }, []);
-
-
+  }, [])
 
   // -----------------
-
 
   // 表單驗證
   const validateForm = () => {
@@ -336,10 +358,9 @@ export default function CheckoutPage() {
       }
     }
 
-    if(checkoutData.delivery !== '宅配'){
+    if (checkoutData.delivery !== '宅配') {
       if (!checkoutData.CVSStoreName) {
         newErrors.CVSStoreName = '* 請選擇超商門市'
-
       }
     }
 
@@ -362,9 +383,60 @@ export default function CheckoutPage() {
     router.push('/shop/cart')
   }
 
+  const { user, loading } = useAuth()
+
+  if (loading) return <div>載入中...</div>
+  if (!user) return <div>請先登入</div>
+
+  const userName = user.name
+  const userNumber = user.number
+  const userEmail = user.email
+  const userAddress = user.address
 
   return (
     <>
+      <div className={styles.donate_info_checkbox}>
+        <input
+          type="checkbox"
+          id="userInfo"
+          checked={userInfoChecked}
+          onChange={(e) => {
+            const checked = e.target.checked
+            setUserInfoChecked(checked)
+            const fullAddress = user.address || ''
+            const city = fullAddress.slice(0, 3)
+            const town = fullAddress.slice(3, 6)
+            const detail = fullAddress.slice(6)
+
+            if (checked) {
+              setCheckoutData((prev) => ({
+                ...prev,
+                recipient_name: userName,
+                recipient_phone: userNumber,
+                recipient_email: userEmail,
+                address: {
+                  city,
+                  town,
+                  else: detail,
+                },
+              }))
+            } else {
+              setCheckoutData((prev) => ({
+                ...prev,
+                recipient_name: '',
+                recipient_phone: '',
+                recipient_email: '',
+                address: {
+                  city: '',
+                  town: '',
+                  else: '',
+                },
+              }))
+            }
+          }}
+        />
+        <label htmlFor="userInfo">帶入會員資料</label>
+      </div>
       <Breadcrumbs
         title="配送/付款方式"
         items={[
@@ -372,7 +444,7 @@ export default function CheckoutPage() {
           { label: '填寫資料', href: '/shop/checkout' },
         ]}
       />
-        <form className={styles.main} onSubmit={handleSubmit}>
+      <form className={styles.main} onSubmit={handleSubmit}>
         <div className={styles.row}>
           <div className={styles.container}>
             <div className={styles.containTitle}>
@@ -462,10 +534,14 @@ export default function CheckoutPage() {
                   </>
                 ) : (
                   <>
-                    <button type="button" onClick={handleSelectStore} disabled={isLoading}>
+                    <button
+                      type="button"
+                      onClick={handleSelectStore}
+                      disabled={isLoading}
+                    >
                       {isLoading ? '加載中...' : '選擇門市'}
                     </button>
-                    
+
                     <label>
                       <p>門市名稱：</p>
                       <input
@@ -666,9 +742,11 @@ export default function CheckoutPage() {
               </div>
               <div className={styles.item}>
                 <p>運費</p>
-                <p>{productPrice.shippingFee
-                ?('+'+ productPrice.shippingFee)
-                : '--'}</p>
+                <p>
+                  {productPrice.shippingFee
+                    ? '+' + productPrice.shippingFee
+                    : '--'}
+                </p>
               </div>
               <hr />
               <div className={styles.item}>
@@ -677,24 +755,21 @@ export default function CheckoutPage() {
               </div>
             </div>
           </div>
-
         </div>
 
-          {checkoutData.delivery ? (
-            <div className={styles.btns}>
-              <button type="button" onClick={handleCancelPurchase}>
-                返回購物車
-              </button>
-              <button type="submit">下一步</button>
-            </div>
-          ) : (
+        {checkoutData.delivery ? (
+          <div className={styles.btns}>
             <button type="button" onClick={handleCancelPurchase}>
               返回購物車
             </button>
-          )}
-        </form>
-        
-      
+            <button type="submit">下一步</button>
+          </div>
+        ) : (
+          <button type="button" onClick={handleCancelPurchase}>
+            返回購物車
+          </button>
+        )}
+      </form>
     </>
   )
 }
