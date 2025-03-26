@@ -147,6 +147,28 @@ export default function PetsPage() {
     }
   }
 
+  // 獲取店鋪列表
+  const fetchStores = useCallback(async () => {
+    try {
+      const response = await fetchApi('/api/admin/pets/stores')
+
+      if (response.success && Array.isArray(response.stores)) {
+        // 將店鋪數據轉換為選項格式
+        const options = response.stores.map((store) => ({
+          value: store.id,
+          label: store.name,
+        }))
+
+        // 添加空選項
+        options.unshift({ value: 0, label: '請選擇所屬店鋪' })
+
+        setStoreOptions(options)
+      }
+    } catch (error) {
+      console.error('獲取店鋪列表時發生錯誤:', error)
+    }
+  }, [])
+
   useEffect(() => {
     // 只有在嘗試次數小於 3 次時才獲取資料
     if (fetchAttempt < 3) {
@@ -163,6 +185,11 @@ export default function PetsPage() {
       }
     }
   }, [fetchAttempt, fetchPets, pets.length])
+
+  // 當組件載入時獲取店鋪列表
+  useEffect(() => {
+    fetchStores()
+  }, [fetchStores])
 
   // 重試獲取資料
   const handleRetry = () => {
