@@ -473,7 +473,7 @@
 
 /* 地圖容器樣式 */
 .mapContainer {
-  height: calc(100vh - 64px); /* 減去導航欄高度 */
+  height: 100%; /* 減去導航欄高度 */
   width: 100%;
   position: relative;
 }
