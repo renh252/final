@@ -131,6 +131,7 @@ export async function GET(request) {
           p.store_id, p.birthday, ps.address as store_address
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
+        WHERE p.is_adopted = 0
         ORDER BY p.created_at DESC
         LIMIT 10
       `)
@@ -143,6 +144,7 @@ export async function GET(request) {
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
         LEFT JOIN pets_like pl ON p.id = pl.pet_id
+        WHERE p.is_adopted = 0
         GROUP BY p.id
         ORDER BY like_count DESC, p.created_at DESC
         LIMIT 10
@@ -429,6 +431,7 @@ export async function GET(request) {
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
         LEFT JOIN pets_like pl ON p.id = pl.pet_id
+        WHERE p.is_adopted = 0
         GROUP BY p.id 
         ORDER BY p.created_at DESC
         LIMIT ${limit}
