@@ -109,6 +109,5 @@
 
 /* 在列表檢視中的地圖容器樣式 */
 :global(.list-view) .mapContainer {
-  height: 100% !important;
-  min-height: 400px;
+  height: 480px !important;
 }
