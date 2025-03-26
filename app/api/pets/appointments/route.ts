@@ -7,17 +7,23 @@ import { ResultSetHeader } from 'mysql2'
 export async function GET(request: NextRequest) {
   try {
     // 驗證用戶是否登入
+    console.log('開始驗證用戶登入狀態...')
     const authResult = await auth.fromRequest(request)
-    if (!authResult.success) {
+    console.log('auth.fromRequest 結果:', authResult)
+
+    if (!authResult) {
+      console.log('用戶未登入，返回 401')
       return NextResponse.json(
         { success: false, message: '請先登入' },
         { status: 401 }
       )
     }
 
-    const userId = authResult.user.user_id
+    const userId = authResult.id
+    console.log('用戶ID:', userId)
 
     // 查詢用戶的預約資料
+    console.log('開始查詢預約資料...')
     const [appointments, error] = await db.query(
       `
       SELECT 
@@ -42,6 +48,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    console.log('成功獲取預約資料，數量:', (appointments as any[]).length)
     return NextResponse.json({ success: true, data: appointments })
   } catch (err) {
     console.error('獲取預約列表時發生錯誤:', err)
