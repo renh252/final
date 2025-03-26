@@ -37,6 +37,7 @@ interface Photo {
   created_at: string
 }
 
+
 // 添加店鋪選項類型
 interface StoreOption {
   value: number
@@ -48,7 +49,9 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<Pet> | null>(null)
+
   const [storeOptions, setStoreOptions] = useState<StoreOption[]>([])
+
   const router = useRouter()
   const { showToast } = useToast()
   const { confirm } = useConfirm()
@@ -108,6 +111,7 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
     }
   }, [params.id])
 
+
   // 獲取店鋪列表
   const fetchStores = useCallback(async () => {
     try {
@@ -150,9 +154,11 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
     fetchStores()
   }, [fetchPet, fetchStores])
 
+
   // 處理表單提交
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
     if (!formData || !pet) return
 
     try {
@@ -161,6 +167,7 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
       // 準備提交資料，確保類型正確
       const submitData = {
         ...formData,
+
         name: formData.name?.trim(),
         species: formData.species,
         variety: formData.variety?.trim(),
@@ -211,6 +218,7 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
 
       console.log('提交數據:', submitData)
 
+
       const response = await fetch(`/api/admin/pets/${params.id}`, {
         method: 'PUT',
         headers: {
@@ -223,6 +231,7 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
       if (!response.ok) {
         throw new Error('更新寵物資料失敗')
       }
+
 
       const result = await response.json()
 
@@ -266,14 +275,17 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
 
       // 重新整理路由，確保列表頁面也會更新
       router.refresh()
+
     } catch (error) {
       console.error('更新寵物資料時發生錯誤:', error)
       showToast(
         'error',
         '更新失敗',
+
         error instanceof Error
           ? error.message
           : '更新寵物資料時發生錯誤，請稍後再試'
+
       )
     } finally {
       setLoading(false)
@@ -331,6 +343,7 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
         formData.append('photos', file)
       })
 
+
       const token = getToken()
       if (!token) {
         throw new Error('您尚未登入或登入已過期，請重新登入')
@@ -353,6 +366,7 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
         throw new Error(`上傳照片失敗 (狀態碼: ${response.status})`)
       }
 
+
       const data = await response.json()
 
       // 顯示成功訊息，包含上傳數量
@@ -360,6 +374,7 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
 
       // 重新獲取寵物資料，包含最新照片
       await fetchPet()
+
 
       // 清除檔案輸入
       if (fileInputRef.current) {

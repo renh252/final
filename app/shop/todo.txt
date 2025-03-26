@@ -10,15 +10,12 @@ C:\iSpan\final\app\shop
 活動輪播牆
 
 
-C:\iSpan\final\app\shop\[pid]
-如果'庫存為0'查無此商品
+
 
 /orders
 ** 重新付款
 查看/前往評論按鈕
-
-/[pid]
-** 收藏功能*2
+完成結帳，更新商品庫存
 
 /checkout
 帶入用戶資料

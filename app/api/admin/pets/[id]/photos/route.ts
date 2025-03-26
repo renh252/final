@@ -71,7 +71,6 @@ export async function POST(
     }
 
     const formData = await request.formData()
-
     // 取得所有照片檔案
     const files: File[] = []
     const photosEntries = formData.getAll('photos')

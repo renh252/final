@@ -76,6 +76,11 @@ const [products] = await connection.execute(`
     WHERE 
       p.start_date <= CURDATE() AND (p.end_date IS NULL OR p.end_date >= CURDATE())
   ) AS promo ON p.product_id = promo.product_id AND promo.rn = 1
+  WHERE EXISTS (
+    SELECT 1
+    FROM product_variants pv
+    WHERE pv.product_id = p.product_id AND pv.stock_quantity > 0
+  )
   ORDER BY p.product_id
 `)
 responseData.products = products
