@@ -130,29 +130,37 @@ export async function updatePet(id: number, pet: Partial<Pet>) {
   try {
     console.log(`嘗試更新寵物 ID: ${id}，數據:`, pet)
 
+    // 先獲取原始數據，用於比較和調試
+    const originalPet = await getPetById(id)
+    console.log(`更新前的原始寵物數據:`, originalPet)
+
     // 構建動態更新查詢
     const updateFields: string[] = []
     const values: any[] = []
+    const debugChanges: any = {} // 用於記錄欄位變更
 
     // 檢查每個可能的欄位
-    if (pet.name !== undefined) {
+    if (pet.name !== undefined && pet.name !== originalPet?.name) {
       updateFields.push('name = ?')
       values.push(pet.name)
+      debugChanges.name = { old: originalPet?.name, new: pet.name }
     }
-    if (pet.gender !== undefined) {
+    if (pet.gender !== undefined && pet.gender !== originalPet?.gender) {
       updateFields.push('gender = ?')
       values.push(pet.gender)
+      debugChanges.gender = { old: originalPet?.gender, new: pet.gender }
     }
-    if (pet.species !== undefined) {
+    if (pet.species !== undefined && pet.species !== originalPet?.species) {
       updateFields.push('species = ?')
       values.push(pet.species)
+      debugChanges.species = { old: originalPet?.species, new: pet.species }
     }
-    if (pet.variety !== undefined) {
+    if (pet.variety !== undefined && pet.variety !== originalPet?.variety) {
       updateFields.push('variety = ?')
       values.push(pet.variety)
+      debugChanges.variety = { old: originalPet?.variety, new: pet.variety }
     }
     if (pet.birthday !== undefined) {
-      updateFields.push('birthday = ?')
       // 處理日期格式，將 ISO 格式轉換為 YYYY-MM-DD 格式
       let birthdayValue = null
       if (pet.birthday && pet.birthday !== '') {
@@ -167,10 +175,19 @@ export async function updatePet(id: number, pet: Partial<Pet>) {
           birthdayValue = null
         }
       }
-      values.push(birthdayValue)
+
+      // 對比轉換後的格式
+      const originalBirthday = originalPet?.birthday
+        ? new Date(originalPet.birthday).toISOString().split('T')[0]
+        : null
+
+      if (birthdayValue !== originalBirthday) {
+        updateFields.push('birthday = ?')
+        values.push(birthdayValue)
+        debugChanges.birthday = { old: originalBirthday, new: birthdayValue }
+      }
     }
     if (pet.weight !== undefined) {
-      updateFields.push('weight = ?')
       // 處理 weight 可能是字符串或數字的情況
       const weightValue =
         typeof pet.weight === 'string'
@@ -180,34 +197,81 @@ export async function updatePet(id: number, pet: Partial<Pet>) {
           : pet.weight === null
           ? null
           : pet.weight
-      values.push(weightValue)
+
+      if (weightValue !== originalPet?.weight) {
+        updateFields.push('weight = ?')
+        values.push(weightValue)
+        debugChanges.weight = { old: originalPet?.weight, new: weightValue }
+      }
     }
     if (pet.chip_number !== undefined) {
-      updateFields.push('chip_number = ?')
-      values.push(pet.chip_number === '' ? null : pet.chip_number)
+      const chipValue = pet.chip_number === '' ? null : pet.chip_number
+      if (chipValue !== originalPet?.chip_number) {
+        updateFields.push('chip_number = ?')
+        values.push(chipValue)
+        debugChanges.chip_number = {
+          old: originalPet?.chip_number,
+          new: chipValue,
+        }
+      }
     }
     if (pet.fixed !== undefined) {
-      updateFields.push('fixed = ?')
-      values.push(Number(pet.fixed) || 0)
+      const fixedValue = Number(pet.fixed) || 0
+      if (fixedValue !== originalPet?.fixed) {
+        updateFields.push('fixed = ?')
+        values.push(fixedValue)
+        debugChanges.fixed = { old: originalPet?.fixed, new: fixedValue }
+      }
     }
     if (pet.story !== undefined) {
-      updateFields.push('story = ?')
-      values.push(pet.story === '' ? null : pet.story)
+      const storyValue = pet.story === '' ? null : pet.story
+      if (storyValue !== originalPet?.story) {
+        updateFields.push('story = ?')
+        values.push(storyValue)
+        debugChanges.story = { old: originalPet?.story, new: storyValue }
+      }
     }
     if (pet.store_id !== undefined) {
-      updateFields.push('store_id = ?')
-      values.push(Number(pet.store_id) || null)
+      // 正確處理 store_id，Number(0) 仍應為 0，不轉為 null
+      const storeIdValue = pet.store_id === null ? null : Number(pet.store_id)
+      // 使用 === 嚴格比較會導致 null 和 0 無法區分，所以使用 JSON.stringify
+      if (
+        JSON.stringify(storeIdValue) !== JSON.stringify(originalPet?.store_id)
+      ) {
+        updateFields.push('store_id = ?')
+        values.push(storeIdValue)
+        debugChanges.store_id = {
+          old: originalPet?.store_id,
+          new: storeIdValue,
+        }
+      }
     }
     if (pet.is_adopted !== undefined) {
-      updateFields.push('is_adopted = ?')
-      values.push(Number(pet.is_adopted) || 0)
+      const adoptedValue = Number(pet.is_adopted) || 0
+      if (adoptedValue !== originalPet?.is_adopted) {
+        updateFields.push('is_adopted = ?')
+        values.push(adoptedValue)
+        debugChanges.is_adopted = {
+          old: originalPet?.is_adopted,
+          new: adoptedValue,
+        }
+      }
     }
     if (pet.main_photo !== undefined) {
-      updateFields.push('main_photo = ?')
-      values.push(
+      const photoValue =
         pet.main_photo === '' ? '/images/default_no_pet.jpg' : pet.main_photo
-      )
+      if (photoValue !== originalPet?.main_photo) {
+        updateFields.push('main_photo = ?')
+        values.push(photoValue)
+        debugChanges.main_photo = {
+          old: originalPet?.main_photo,
+          new: photoValue,
+        }
+      }
     }
+
+    // 打印欄位變更記錄，用於調試
+    console.log(`欄位變更記錄:`, debugChanges)
 
     // 如果沒有要更新的欄位，則返回
     if (updateFields.length === 0) {
@@ -228,7 +292,8 @@ export async function updatePet(id: number, pet: Partial<Pet>) {
 
     const result = await executeQuery<ResultSetHeader>(query, values)
     console.log(
-      `更新寵物成功，寵物 ID: ${id}，影響行數: ${result[0]?.affectedRows}`
+      `更新寵物結果，寵物 ID: ${id}，影響行數: ${result[0]?.affectedRows}，結果:`,
+      result
     )
     return { affectedRows: result[0]?.affectedRows || 0 }
   } catch (error) {
