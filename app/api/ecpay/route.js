@@ -168,6 +168,12 @@ export async function POST(req) {
           discountedPrice,
         ]
       )
+      await db.execute(
+        `UPDATE product_variants 
+        SET stock_quantity = stock_quantity - ? 
+        WHERE variant_id = ?`,
+        [item.quantity, item.variant_id]
+      )
     }
 
     // 清空購物車
