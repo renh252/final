@@ -77,6 +77,10 @@ export default function ReviewPage() {
       return
     }
 
+    // 案提交後將localStorage清空
+    localStorage.removeItem('productPrice')
+    localStorage.removeItem('checkoutData')
+
     const orderData = {
       orderType: 'shop',
       amount: productPrice.totalAmount || 0, // ✅ 確保金額存在
