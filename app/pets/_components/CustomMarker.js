@@ -28,10 +28,10 @@ const createCustomIcon = (color = '#0d6efd', size = 25) => {
   })
 }
 
-// 寵物標記圖標 - 使用愛心形狀
+// 寵物標記圖標 - 使用愛心形狀，改為藍色
 const petIcon = L.divIcon({
   html: `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="25" height="25" fill="#e74c3c">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="25" height="25" fill="#3498db">
       <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
     </svg>
     <div style="
@@ -58,7 +58,7 @@ const defaultIcon = createCustomIcon()
 // 地區圖標 - 藍色
 const regionIcon = createCustomIcon('#0d6efd', 30)
 
-// 選定位置圖標 - 紅色
+// 選定位置圖標 - 保持紅色
 const selectedIcon = createCustomIcon('#dc3545', 30)
 
 // 商店圖標 - 紫色
@@ -78,6 +78,35 @@ const userLocationIcon = L.divIcon({
   popupAnchor: [0, -10],
 })
 
+// 導出圖例配置
+const legendConfig = [
+  {
+    name: '您的位置',
+    icon: userLocationIcon,
+    className: 'user-location-legend',
+  },
+  {
+    name: '已選擇的位置',
+    icon: selectedIcon,
+    className: 'selected-location-legend',
+  },
+  {
+    name: '寵物',
+    icon: petIcon,
+    className: 'pet-legend',
+  },
+  {
+    name: '據點',
+    icon: storeIcon,
+    className: 'store-legend',
+  },
+  {
+    name: '地區',
+    icon: regionIcon,
+    className: 'region-legend',
+  },
+]
+
 export {
   defaultIcon,
   regionIcon,
@@ -85,4 +114,5 @@ export {
   storeIcon,
   userLocationIcon,
   petIcon,
+  legendConfig,
 }

@@ -18,7 +18,7 @@
   display: inline-block;
   margin-top: 8px;
   padding: 6px 12px;
-  background-color: #007bff;
+  background-color: #bed1df;
   color: white;
   text-decoration: none;
   border-radius: 4px;
@@ -26,7 +26,75 @@
 }
 
 .detailLink:hover {
-  background-color: #0056b3;
+  background-color: #2980b9;
   text-decoration: none;
   color: white;
+}
+
+.markerPopup {
+  padding: 10px;
+  text-align: center;
+}
+
+.markerPopup h3 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.markerPopup p {
+  margin: 4px 0;
+  color: #666;
+}
+
+/* 圖例樣式 */
+.legend {
+  position: absolute;
+  bottom: 30px;
+  right: 10px;
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.legendIcon {
+  width: 25px;
+  height: 25px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.legendIcon :global(.custom-div-icon) {
+  transform: scale(0.8);
+}
+
+/* 圖例項目特定樣式 */
+.user-location-legend :global(.user-location-marker) {
+  transform: scale(0.8);
+}
+
+.selected-location-legend svg {
+  fill: #dc3545;
+}
+
+.pet-legend svg {
+  fill: #3498db;
+}
+
+.store-legend svg {
+  fill: #8e44ad;
+}
+
+.region-legend svg {
+  fill: #0d6efd;
 }
