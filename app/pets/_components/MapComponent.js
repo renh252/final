@@ -183,7 +183,14 @@ const Legend = () => (
     {legendConfig.map((item, index) => (
       <div key={index} className={styles.legendItem}>
         <div className={`${styles.legendIcon} ${styles[item.className]}`}>
-          <div className="custom-div-icon">{item.icon.options.html}</div>
+          {item.icon.options.html ? (
+            <div
+              className="custom-div-icon"
+              dangerouslySetInnerHTML={{ __html: item.icon.options.html }}
+            />
+          ) : (
+            <div className="custom-div-icon" />
+          )}
         </div>
         <span>{item.name}</span>
       </div>
@@ -192,7 +199,7 @@ const Legend = () => (
 )
 
 export default function MapComponent({
-  center = [25.033, 121.5654], // 預設為台北市中心
+  center = [22.997, 120.205], // 預設為台南
   zoom = 13,
   markers = [],
   onLocationSelect = () => {},
@@ -315,7 +322,8 @@ export default function MapComponent({
       <MapContainer
         center={center}
         zoom={zoom}
-        style={{ height: '100%', width: '100%' }}
+        className={styles.mapContainer}
+        style={{ height: showLegend ? '100vh' : '100%' }}
         ref={mapRef}
       >
         <ChangeView center={center} zoom={zoom} />
@@ -440,7 +448,10 @@ export default function MapComponent({
                 {marker.description && (
                   <p>
                     {marker.isStore
-                      ? marker.description.split('-')[0].trim() // 只顯示地址和電話，不顯示距離
+                      ? marker.description.split('-')[0].trim() +
+                        (marker.distance
+                          ? ` - 距離: ${marker.distance.toFixed(2)} 公里`
+                          : '')
                       : marker.description}
                   </p>
                 )}
@@ -448,102 +459,9 @@ export default function MapComponent({
             </Popup>
           </Marker>
         ))}
-      </MapContainer>
 
-      {/* 地圖圖例 - 只在 showLegend 為 true 時顯示 */}
-      {showLegend && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            left: '10px',
-            background: 'white',
-            padding: '8px',
-            borderRadius: '5px',
-            fontSize: '12px',
-            boxShadow: '0 0 5px rgba(0,0,0,0.2)',
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '5px',
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="#0d6efd"
-            >
-              <path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
-            </svg>
-            <span style={{ marginLeft: '5px' }}>地區位置</span>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '5px',
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="#8e44ad"
-            >
-              <path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
-            </svg>
-            <span style={{ marginLeft: '5px' }}>商店位置</span>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '5px',
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="#dc3545"
-            >
-              <path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
-            </svg>
-            <span style={{ marginLeft: '5px' }}>選定位置</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div
-              style={{
-                width: '16px',
-                height: '16px',
-                borderRadius: '50%',
-                backgroundColor: '#2196f3',
-                position: 'relative',
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(33, 150, 243, 0.3)',
-                  animation: 'ripple 2s infinite ease-in-out',
-                }}
-              />
-            </div>
-            <span style={{ marginLeft: '5px' }}>您的位置</span>
-          </div>
-        </div>
-      )}
+        {showLegend && <Legend />}
+      </MapContainer>
 
       {/* 操作提示 - 只在 showLegend 為 true 時顯示 */}
       {showLegend && (
