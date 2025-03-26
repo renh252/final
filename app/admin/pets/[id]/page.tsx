@@ -37,11 +37,18 @@ interface Photo {
   created_at: string
 }
 
+// 添加店鋪選項類型
+interface StoreOption {
+  value: number
+  label: string
+}
+
 export default function PetDetailPage({ params }: { params: { id: string } }) {
   const [pet, setPet] = useState<Pet | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<Pet> | null>(null)
+  const [storeOptions, setStoreOptions] = useState<StoreOption[]>([])
   const router = useRouter()
   const { showToast } = useToast()
   const { confirm } = useConfirm()
@@ -101,10 +108,47 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
     }
   }, [params.id])
 
+  // 獲取店鋪列表
+  const fetchStores = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/pets/stores', {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      })
+
+      if (!response.ok) {
+        console.error('獲取店鋪列表失敗')
+        return
+      }
+
+      const data = await response.json()
+
+      if (data.success && Array.isArray(data.stores)) {
+        // 將店鋪數據轉換為選項格式
+        const options = data.stores.map((store) => ({
+          value: store.id,
+          label: store.name,
+        }))
+
+        // 添加空選項
+        options.unshift({ value: 0, label: '請選擇所屬店鋪' })
+
+        setStoreOptions(options)
+      }
+    } catch (error) {
+      console.error('獲取店鋪列表時發生錯誤:', error)
+    }
+  }, [])
+
   // 初始載入
   useEffect(() => {
     fetchPet()
-  }, [fetchPet])
+    fetchStores()
+  }, [fetchPet, fetchStores])
 
   // 處理表單提交
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -533,6 +577,27 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
                       onChange={handleInputChange}
                     />
                   </div>
+                  <div className="col-md-6">
+                    <label htmlFor="store_id" className="form-label">
+                      所屬店鋪
+                    </label>
+                    <select
+                      className="form-select"
+                      id="store_id"
+                      name="store_id"
+                      value={formData.store_id || 0}
+                      onChange={handleInputChange}
+                    >
+                      {storeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="row mb-3">
                   <div className="col-md-6">
                     <div className="form-check mt-4">
                       <input
