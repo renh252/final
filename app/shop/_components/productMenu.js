@@ -31,10 +31,10 @@ const lastPathSegment = pathname.split('/').pop()
 
   const categories = data.categories
   const products = data.products
+  const promotions = data.promotions
+
   // 创建一个Set来存储所有有商品的分类ID
   const categoriesWithProducts = new Set(products.map(product => product.category_id));
-
-  
  
   // 检查父类别是否有至少一个包含商品的子类别
   const parentHasProductsInChildren = (parentId) => {
@@ -56,18 +56,29 @@ const lastPathSegment = pathname.split('/').pop()
   );
   // -----------------
 
+  // 判断是否为活动页面
+  const isPromotionPage = pathname.includes('/shop/promotions/')
+  // 判断是否为类别页面
+  const isCategoryPage = pathname.includes('/shop/categories/')
 
   return (
     <>
       <div className={styles.productMenu}>
-      {parentsWithProducts.map((parent,index) => (
+      {promotions?.map((promotion) => (
+        <div key={promotion.promotion_id}>
+          <Link href = {`/shop/promotions/${promotion.promotion_id}`} className={`${styles.title} ${styles.parent} ${isPromotionPage && lastPathSegment == promotion.promotion_id? styles.active : ''}`}>
+            <p>{promotion.promotion_name}</p>
+          </Link>
+        </div>
+      ))}
+      {parentsWithProducts.map((parent) => (
           <div key={parent.category_id}>
-          <Link href = {`/shop/categories/${parent.category_id} `} className={`${styles.title} ${styles.parent} ${lastPathSegment == parent.category_id ? styles.active : ''}`}>
+          <Link href = {`/shop/categories/${parent.category_id} `} className={`${styles.title} ${styles.parent} ${isCategoryPage && lastPathSegment == parent.category_id ? styles.active : ''}`}>
             <p>{parent.category_name}</p>
           </Link>
           {getChildrenWithProducts(parent.category_id).map((child) => (
             
-              <Link key={child.category_id} href = {`/shop/categories/${parent.category_id}/${child.category_id}`} className={`${styles.title} ${styles.child} ${lastPathSegment == child.category_id ? styles.active : ''}`}
+              <Link key={child.category_id} href = {`/shop/categories/${parent.category_id}/${child.category_id}`} className={`${styles.title} ${styles.child} ${isCategoryPage && lastPathSegment == child.category_id ? styles.active : ''}`}
               >
                 <p>{child.category_name}</p>
               </Link>
