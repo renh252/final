@@ -100,7 +100,7 @@ export async function POST(req) {
          SET payment_status = ?
          , order_status = ?
          WHERE order_id = ?`,
-        [transactionStatus,orderStatus, tradeNo]
+        [transactionStatus, orderStatus, tradeNo]
       )
     } else if (orderType === 'donation') {
       // **捐款**
