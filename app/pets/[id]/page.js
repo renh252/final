@@ -97,10 +97,10 @@ export default function PetDetailPage() {
 
   // 取得寵物類型圖標
   const getTypeIcon = () => {
-    switch (pet?.type?.toLowerCase()) {
-      case 'dog':
+    switch (pet?.species_name) {
+      case '狗':
         return <FaDog size={20} color="#e67e22" />
-      case 'cat':
+      case '貓':
         return <FaCat size={20} color="#8e44ad" />
       default:
         return <FaPaw size={20} color="#3498db" />
@@ -270,9 +270,7 @@ export default function PetDetailPage() {
               style={{ backgroundColor: getTypeColor() }}
             >
               {getTypeIcon()}
-              <span>
-              {pet?.species_name || '其他'}
-              </span>
+              <span>{pet?.species_name || '其他'}</span>
             </div>
           </div>
 
