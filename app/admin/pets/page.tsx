@@ -147,6 +147,28 @@ export default function PetsPage() {
     }
   }
 
+  // 獲取店鋪列表
+  const fetchStores = useCallback(async () => {
+    try {
+      const response = await fetchApi('/api/admin/pets/stores')
+
+      if (response.success && Array.isArray(response.stores)) {
+        // 將店鋪數據轉換為選項格式
+        const options = response.stores.map((store) => ({
+          value: store.id,
+          label: store.name,
+        }))
+
+        // 添加空選項
+        options.unshift({ value: 0, label: '請選擇所屬店鋪' })
+
+        setStoreOptions(options)
+      }
+    } catch (error) {
+      console.error('獲取店鋪列表時發生錯誤:', error)
+    }
+  }, [])
+
   useEffect(() => {
     // 只有在嘗試次數小於 3 次時才獲取資料
     if (fetchAttempt < 3) {
@@ -163,6 +185,11 @@ export default function PetsPage() {
       }
     }
   }, [fetchAttempt, fetchPets, pets.length])
+
+  // 當組件載入時獲取店鋪列表
+  useEffect(() => {
+    fetchStores()
+  }, [fetchStores])
 
   // 重試獲取資料
   const handleRetry = () => {
@@ -323,6 +350,8 @@ export default function PetsPage() {
 
   // 處理新增寵物
   const handleAddPet = () => {
+    // 刷新店鋪列表
+    fetchStores()
     setCurrentPet(null)
     setModalMode('add')
     setShowModal(true)
@@ -330,6 +359,8 @@ export default function PetsPage() {
 
   // 處理編輯寵物
   const handleEditPet = (pet: Pet) => {
+    // 刷新店鋪列表
+    fetchStores()
     // 設置當前寵物和模態框模式
     setCurrentPet(pet)
     setModalMode('edit')
@@ -371,12 +402,34 @@ export default function PetsPage() {
     try {
       console.log('提交寵物表單數據:', formData)
 
+      // 處理所有欄位，確保格式正確
+      const processedData: Partial<Pet> = {
+        name: formData.name?.trim(),
+        species: formData.species,
+        variety: formData.variety?.trim(),
+        gender: formData.gender,
+        birthday: formData.birthday || undefined,
+        weight: formData.weight ? Number(formData.weight) : undefined,
+        chip_number: formData.chip_number?.trim() || undefined,
+        fixed: formData.fixed !== undefined ? Number(formData.fixed) : 0,
+        story: formData.story?.trim() || undefined,
+        store_id:
+          !formData.store_id || formData.store_id === '0'
+            ? undefined
+            : Number(formData.store_id),
+        is_adopted:
+          formData.is_adopted !== undefined ? Number(formData.is_adopted) : 0,
+        main_photo: formData.main_photo?.trim() || '/images/default_no_pet.jpg',
+      }
+
+      console.log('處理後的數據:', processedData)
+
       if (modalMode === 'add') {
         // 新增寵物
         console.log('執行新增寵物操作')
         const response = await fetchApi('/api/admin/pets', {
           method: 'POST',
-          body: JSON.stringify(formData),
+          body: JSON.stringify(processedData),
         })
 
         if (response.success) {
@@ -398,22 +451,38 @@ export default function PetsPage() {
         // 更新寵物
         console.log(`執行更新寵物操作，ID: ${currentPet.id}`)
 
-        // 處理數值型欄位
-        const processedData = { ...formData }
-        if (processedData.weight !== undefined && processedData.weight !== '') {
-          processedData.weight = Number(processedData.weight)
-        }
-        if (processedData.fixed !== undefined) {
-          processedData.fixed = Number(processedData.fixed)
-        }
-        if (processedData.is_adopted !== undefined) {
-          processedData.is_adopted = Number(processedData.is_adopted)
-        }
-        if (processedData.store_id !== undefined) {
-          processedData.store_id = Number(processedData.store_id)
-        }
+        // 比較資料是否有變更
+        const hasChanges = Object.keys(processedData).some((key) => {
+          // 忽略未定義的值
+          if (processedData[key] === undefined) return false
 
-        console.log('處理後的更新數據:', processedData)
+          // 特殊處理數字類型
+          if (key === 'weight') {
+            const oldValue = currentPet[key]
+              ? Number(currentPet[key])
+              : undefined
+            const newValue = processedData[key]
+              ? Number(processedData[key])
+              : undefined
+            return oldValue !== newValue
+          }
+
+          // 特殊處理布林值轉數字
+          if (key === 'fixed' || key === 'is_adopted') {
+            const oldValue = Number(currentPet[key])
+            const newValue = Number(processedData[key])
+            return oldValue !== newValue
+          }
+
+          return currentPet[key] !== processedData[key]
+        })
+
+        // 如果沒有變更，直接返回
+        if (!hasChanges) {
+          showToast('info', '無需更新', '表單資料未有任何變更')
+          setShowModal(false)
+          return
+        }
 
         const response = await fetchApi(`/api/admin/pets/${currentPet.id}`, {
           method: 'PUT',
@@ -422,6 +491,45 @@ export default function PetsPage() {
 
         if (response.success) {
           console.log('更新寵物成功，結果:', response)
+
+          // 取得已更新的欄位名稱
+          const updatedFields = Object.keys(processedData)
+            .filter(
+              (key) =>
+                processedData[key] !== undefined &&
+                currentPet[key] !== processedData[key]
+            )
+            .map((key) => {
+              switch (key) {
+                case 'name':
+                  return '名稱'
+                case 'gender':
+                  return '性別'
+                case 'species':
+                  return '品種'
+                case 'variety':
+                  return '品系'
+                case 'birthday':
+                  return '生日'
+                case 'weight':
+                  return '體重'
+                case 'chip_number':
+                  return '晶片號碼'
+                case 'fixed':
+                  return '結紮狀態'
+                case 'story':
+                  return '故事'
+                case 'store_id':
+                  return '所屬店鋪'
+                case 'is_adopted':
+                  return '領養狀態'
+                default:
+                  return key
+              }
+            })
+            .join('、')
+
+          showToast('success', '更新成功', `已更新以下資料：${updatedFields}`)
 
           // 更新寵物列表
           setPets((prev) =>
@@ -433,12 +541,6 @@ export default function PetsPage() {
                   }
                 : p
             )
-          )
-
-          showToast(
-            'success',
-            '更新成功',
-            `寵物 ${formData.name} 資料已成功更新`
           )
         } else {
           throw new Error(response.message || '更新寵物失敗')
