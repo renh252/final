@@ -37,11 +37,21 @@ interface Photo {
   created_at: string
 }
 
+
+// 添加店鋪選項類型
+interface StoreOption {
+  value: number
+  label: string
+}
+
 export default function PetDetailPage({ params }: { params: { id: string } }) {
   const [pet, setPet] = useState<Pet | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<Pet> | null>(null)
+
+  const [storeOptions, setStoreOptions] = useState<StoreOption[]>([])
+
   const router = useRouter()
   const { showToast } = useToast()
   const { confirm } = useConfirm()
@@ -101,15 +111,55 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
     }
   }, [params.id])
 
+
+  // 獲取店鋪列表
+  const fetchStores = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/pets/stores', {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      })
+
+      if (!response.ok) {
+        console.error('獲取店鋪列表失敗')
+        return
+      }
+
+      const data = await response.json()
+
+      if (data.success && Array.isArray(data.stores)) {
+        // 將店鋪數據轉換為選項格式
+        const options = data.stores.map((store) => ({
+          value: store.id,
+          label: store.name,
+        }))
+
+        // 添加空選項
+        options.unshift({ value: 0, label: '請選擇所屬店鋪' })
+
+        setStoreOptions(options)
+      }
+    } catch (error) {
+      console.error('獲取店鋪列表時發生錯誤:', error)
+    }
+  }, [])
+
   // 初始載入
   useEffect(() => {
     fetchPet()
-  }, [fetchPet])
+    fetchStores()
+  }, [fetchPet, fetchStores])
+
 
   // 處理表單提交
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!formData) return
+
+    if (!formData || !pet) return
 
     try {
       setLoading(true)
@@ -117,10 +167,57 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
       // 準備提交資料，確保類型正確
       const submitData = {
         ...formData,
+
+        name: formData.name?.trim(),
+        species: formData.species,
+        variety: formData.variety?.trim(),
+        gender: formData.gender,
         weight: formData.weight ? Number(formData.weight) : null,
+        chip_number: formData.chip_number?.trim() || null,
         fixed: formData.fixed ? 1 : 0,
         is_adopted: formData.is_adopted ? 1 : 0,
+        story: formData.story?.trim() || null,
+        store_id: formData.store_id ? Number(formData.store_id) : null,
       }
+
+      // 檢查是否與原始資料有差異 (轉換成相同格式後比較)
+      const originalData = {
+        ...pet,
+        weight: pet.weight ? Number(pet.weight) : null,
+        fixed: pet.fixed ? 1 : 0,
+        is_adopted: pet.is_adopted ? 1 : 0,
+        store_id: pet.store_id ? Number(pet.store_id) : null,
+      }
+
+      // 檢查資料是否有變更
+      let hasChanges = false
+      const changes = {}
+
+      Object.keys(submitData).forEach((key) => {
+        // 忽略特定欄位
+        if (['id', 'photos', 'created_at'].includes(key)) return
+
+        // @ts-ignore - 動態屬性訪問
+        if (
+          JSON.stringify(submitData[key]) !== JSON.stringify(originalData[key])
+        ) {
+          hasChanges = true
+          // @ts-ignore - 動態屬性訪問
+          changes[key] = { from: originalData[key], to: submitData[key] }
+        }
+      })
+
+      console.log('資料變更:', changes, '有變更:', hasChanges)
+
+      // 如果沒有變更，直接返回
+      if (!hasChanges) {
+        showToast('info', '無需更新', '表單資料未有任何變更')
+        setLoading(false)
+        return
+      }
+
+      console.log('提交數據:', submitData)
+
 
       const response = await fetch(`/api/admin/pets/${params.id}`, {
         method: 'PUT',
@@ -135,14 +232,60 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
         throw new Error('更新寵物資料失敗')
       }
 
+
+      const result = await response.json()
+
+      // 取得已更新的欄位名稱
+      const updatedFields = Object.keys(changes)
+        .map((key) => {
+          switch (key) {
+            case 'name':
+              return '名稱'
+            case 'gender':
+              return '性別'
+            case 'species':
+              return '品種'
+            case 'variety':
+              return '品系'
+            case 'birthday':
+              return '生日'
+            case 'weight':
+              return '體重'
+            case 'chip_number':
+              return '晶片號碼'
+            case 'fixed':
+              return '結紮狀態'
+            case 'story':
+              return '故事'
+            case 'store_id':
+              return '所屬店鋪'
+            case 'is_adopted':
+              return '領養狀態'
+            default:
+              return key
+          }
+        })
+        .join('、')
+
+      // 只要有變更就顯示成功訊息
+      showToast('success', '更新成功', `已更新以下資料：${updatedFields}`)
+
+      // 重新獲取最新資料
       await fetchPet()
-      showToast('success', '更新成功', '寵物資料已更新')
+
+      // 重新整理路由，確保列表頁面也會更新
+      router.refresh()
+
     } catch (error) {
       console.error('更新寵物資料時發生錯誤:', error)
       showToast(
         'error',
         '更新失敗',
-        error instanceof Error ? error.message : '無法更新寵物資料，請稍後再試'
+
+        error instanceof Error
+          ? error.message
+          : '更新寵物資料時發生錯誤，請稍後再試'
+
       )
     } finally {
       setLoading(false)
@@ -194,9 +337,13 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
     try {
       setLoading(true)
       const formData = new FormData()
-      formData.append('photo', files[0])
 
-      // 檢查 token
+      // 支援多張照片上傳
+      Array.from(files).forEach((file) => {
+        formData.append('photos', file)
+      })
+
+
       const token = getToken()
       if (!token) {
         throw new Error('您尚未登入或登入已過期，請重新登入')
@@ -219,8 +366,15 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
         throw new Error(`上傳照片失敗 (狀態碼: ${response.status})`)
       }
 
+
+      const data = await response.json()
+
+      // 顯示成功訊息，包含上傳數量
+      showToast('success', '上傳成功', `成功上傳 ${data.count} 張照片`)
+
+      // 重新獲取寵物資料，包含最新照片
       await fetchPet()
-      showToast('success', '上傳成功', '照片已上傳')
+
 
       // 清除檔案輸入
       if (fileInputRef.current) {
@@ -526,6 +680,38 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
                     />
                   </div>
                   <div className="col-md-6">
+                    <label htmlFor="store_id" className="form-label">
+                      所屬店鋪
+                    </label>
+                    <select
+                      className="form-select"
+                      id="store_id"
+                      name="store_id"
+                      value={formData.store_id || 0}
+                      onChange={(e) => {
+                        // 處理店鋪選擇
+                        const value = e.target.value
+                        const storeId = value === '0' ? null : Number(value)
+                        setFormData((prev) => {
+                          if (!prev) return prev
+                          return {
+                            ...prev,
+                            store_id: storeId,
+                          }
+                        })
+                      }}
+                    >
+                      {storeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="row mb-3">
+                  <div className="col-md-6">
                     <div className="form-check mt-4">
                       <input
                         className="form-check-input"
@@ -591,8 +777,11 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
                   onChange={handlePhotoUpload}
                   ref={fileInputRef}
                   disabled={loading}
+                  multiple
                 />
-                <div className="form-text">最大檔案大小: 5MB</div>
+                <div className="form-text">
+                  最大檔案大小: 5MB，可選擇多張照片
+                </div>
               </div>
 
               <div className="photo-gallery mt-4">
@@ -601,37 +790,42 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
                     {pet.photos.map((photo) => (
                       <div key={photo.id} className="col">
                         <div
-                          className={`card ${
+                          className={`card h-100 ${
                             photo.is_main ? 'border-primary' : ''
                           }`}
                         >
-                          <img
-                            src={photo.photo_url}
-                            className="card-img-top"
-                            alt={pet.name}
-                            style={{ height: '150px', objectFit: 'cover' }}
-                          />
-                          <div className="card-body p-2">
-                            <div className="d-flex justify-content-between align-items-center">
-                              {photo.is_main ? (
+                          <div className="position-relative">
+                            <img
+                              src={photo.photo_url}
+                              className="card-img-top"
+                              alt={pet.name}
+                              style={{ height: '150px', objectFit: 'cover' }}
+                            />
+                            {photo.is_main && (
+                              <div className="position-absolute top-0 start-0 m-2">
                                 <span className="badge bg-primary">主照片</span>
-                              ) : (
-                                <button
-                                  className="btn btn-sm btn-outline-primary"
-                                  onClick={() => handleSetMainPhoto(photo.id)}
-                                  disabled={loading}
-                                >
-                                  設為主照片
-                                </button>
-                              )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="card-body p-2">
+                            <div className="btn-group w-100">
                               {!photo.is_main && (
-                                <button
-                                  className="btn btn-sm btn-outline-danger"
-                                  onClick={() => handleDeletePhoto(photo.id)}
-                                  disabled={loading}
-                                >
-                                  刪除
-                                </button>
+                                <>
+                                  <button
+                                    className="btn btn-sm btn-outline-primary"
+                                    onClick={() => handleSetMainPhoto(photo.id)}
+                                    disabled={loading}
+                                  >
+                                    設為主照片
+                                  </button>
+                                  <button
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={() => handleDeletePhoto(photo.id)}
+                                    disabled={loading}
+                                  >
+                                    刪除
+                                  </button>
+                                </>
                               )}
                             </div>
                           </div>
