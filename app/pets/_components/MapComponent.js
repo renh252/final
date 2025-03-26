@@ -19,7 +19,9 @@ import {
   selectedIcon,
   storeIcon,
   userLocationIcon,
+  petIcon,
 } from './CustomMarker'
+import styles from './MapComponent.module.css'
 
 // 地圖中心點更新組件
 function ChangeView({ center, zoom }) {
@@ -184,6 +186,7 @@ export default function MapComponent({
   searchRadius = 20, // 新增：搜尋範圍參數，預設 20 公里
   userLocation = null, // 新增：用戶位置參數
   selectedStoreLocation = null, // 新增：選中的店家位置，用於繪製直線
+  pets = [], // 新增：寵物資料陣列
 }) {
   const [mapReady, setMapReady] = useState(false)
   const mapRef = useRef(null)
@@ -365,6 +368,41 @@ export default function MapComponent({
             </Tooltip>
           </Polyline>
         )}
+
+        {/* 顯示寵物標記 */}
+        {pets &&
+          pets.length > 0 &&
+          pets.map((pet) => {
+            // 檢查座標是否為有效數字
+            const lat = parseFloat(pet.offsetLat)
+            const lng = parseFloat(pet.offsetLng)
+
+            if (isNaN(lat) || isNaN(lng)) {
+              console.log('Invalid coordinates for pet:', pet.id, pet.name)
+              return null
+            }
+
+            return (
+              <Marker
+                key={`pet-${pet.id}`}
+                position={[lat, lng]}
+                icon={petIcon}
+              >
+                <Popup>
+                  <div className={styles.petPopup}>
+                    <h3>{pet.name}</h3>
+                    <p>
+                      {pet.species} - {pet.variety || '未知品種'}
+                    </p>
+                    <p>收容所：{pet.store?.name || '未知'}</p>
+                    <a href={`/pets/${pet.id}`} className={styles.detailLink}>
+                      查看詳情
+                    </a>
+                  </div>
+                </Popup>
+              </Marker>
+            )
+          })}
 
         {markers.map((marker, idx) => {
           // 根據標記類型選擇圖標
