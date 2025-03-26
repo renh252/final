@@ -71,74 +71,116 @@ export async function POST(
     }
 
     const formData = await request.formData()
-    const file = formData.get('photo') as File
 
-    // 驗證檔案
-    if (!file) {
+    // 取得所有照片檔案
+    const files: File[] = []
+    const photosEntries = formData.getAll('photos')
+
+    for (const photoEntry of photosEntries) {
+      if (photoEntry instanceof File) {
+        files.push(photoEntry)
+      }
+    }
+
+    // 檢查是否有上傳檔案
+    if (files.length === 0) {
       return NextResponse.json({ error: '未提供檔案' }, { status: 400 })
-    }
-
-    // 驗證檔案類型
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: '不支援的檔案類型' }, { status: 400 })
-    }
-
-    // 驗證檔案大小
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: '檔案大小超過限制' }, { status: 400 })
     }
 
     // 確保上傳目錄存在
     await ensureUploadDir()
 
-    // 生成唯一檔名
-    const timestamp = Date.now()
-    const filename = `${params.id}_${timestamp}.webp`
-    const filepath = join(process.cwd(), UPLOAD_DIR, filename)
-    const publicPath = `/uploads/pets/${filename}`
-
-    // 讀取檔案內容
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    // 使用 sharp 處理圖片
-    await sharp(buffer)
-      .resize(800, 800, {
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
-      .webp({ quality: 80 })
-      .toFile(filepath)
-
-    // 檢查是否為第一張照片
+    // 檢查是否為第一批照片
     const [existingPhotos] = await conn.execute<mysql.RowDataPacket[]>(
       'SELECT COUNT(*) as count FROM pet_photos WHERE pet_id = ?',
       [params.id]
     )
-    const isFirst = existingPhotos[0].count === 0
+    let isFirst = existingPhotos[0].count === 0
+    let firstPhotoPath: string | null = null
 
-    // 儲存到資料庫
-    const [result] = await conn.execute<mysql.ResultSetHeader>(
-      'INSERT INTO pet_photos (pet_id, photo_url, is_main) VALUES (?, ?, ?)',
-      [params.id, publicPath, isFirst ? 1 : 0]
-    )
+    // 儲存所有上傳的照片資訊
+    const uploadedPhotos: Array<{
+      id: number
+      photo_url: string
+      is_main: number
+    }> = []
 
-    // 如果是第一張照片，設為主照片
-    if (isFirst) {
-      await conn.execute('UPDATE pets SET main_photo = ? WHERE id = ?', [
-        publicPath,
-        params.id,
-      ])
+    // 開始資料庫交易
+    await conn.beginTransaction()
+
+    try {
+      for (const file of files) {
+        // 驗證檔案類型
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          continue // 跳過不支援的檔案類型
+        }
+
+        // 驗證檔案大小
+        if (file.size > MAX_FILE_SIZE) {
+          continue // 跳過超過大小限制的檔案
+        }
+
+        // 生成唯一檔名
+        const timestamp = Date.now() + Math.floor(Math.random() * 1000)
+        const filename = `${params.id}_${timestamp}.webp`
+        const filepath = join(process.cwd(), UPLOAD_DIR, filename)
+        const publicPath = `/uploads/pets/${filename}`
+
+        // 讀取檔案內容
+        const bytes = await file.arrayBuffer()
+        const buffer = Buffer.from(bytes)
+
+        // 使用 sharp 處理圖片
+        await sharp(buffer)
+          .resize(800, 800, {
+            fit: 'inside',
+            withoutEnlargement: true,
+          })
+          .webp({ quality: 80 })
+          .toFile(filepath)
+
+        // 儲存到資料庫
+        const [result] = await conn.execute<mysql.ResultSetHeader>(
+          'INSERT INTO pet_photos (pet_id, photo_url, is_main) VALUES (?, ?, ?)',
+          [params.id, publicPath, isFirst ? 1 : 0]
+        )
+
+        // 如果是第一張照片，記錄路徑以便更新寵物主照片
+        if (isFirst) {
+          firstPhotoPath = publicPath
+          // 之後的照片都不是第一張
+          isFirst = false
+        }
+
+        // 添加到上傳照片列表
+        uploadedPhotos.push({
+          id: result.insertId,
+          photo_url: publicPath,
+          is_main: isFirst ? 1 : 0,
+        })
+      }
+
+      // 如果有新上傳的第一張照片，更新寵物主照片
+      if (firstPhotoPath) {
+        await conn.execute('UPDATE pets SET main_photo = ? WHERE id = ?', [
+          firstPhotoPath,
+          params.id,
+        ])
+      }
+
+      // 提交交易
+      await conn.commit()
+
+      return NextResponse.json({
+        success: true,
+        photos: uploadedPhotos,
+        count: uploadedPhotos.length,
+      })
+    } catch (error) {
+      // 發生錯誤時回滾交易
+      await conn.rollback()
+      throw error
     }
-
-    return NextResponse.json({
-      success: true,
-      photo: {
-        id: result.insertId,
-        photo_url: publicPath,
-        is_main: isFirst ? 1 : 0,
-      },
-    })
   } catch (error) {
     console.error('上傳照片時發生錯誤:', error)
     return NextResponse.json({ error: '上傳照片失敗' }, { status: 500 })

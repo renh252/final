@@ -194,9 +194,12 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
     try {
       setLoading(true)
       const formData = new FormData()
-      formData.append('photo', files[0])
 
-      // 檢查 token
+      // 支援多張照片上傳
+      Array.from(files).forEach((file) => {
+        formData.append('photos', file)
+      })
+
       const token = getToken()
       if (!token) {
         throw new Error('您尚未登入或登入已過期，請重新登入')
@@ -219,8 +222,13 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
         throw new Error(`上傳照片失敗 (狀態碼: ${response.status})`)
       }
 
+      const data = await response.json()
+
+      // 顯示成功訊息，包含上傳數量
+      showToast('success', '上傳成功', `成功上傳 ${data.count} 張照片`)
+
+      // 重新獲取寵物資料，包含最新照片
       await fetchPet()
-      showToast('success', '上傳成功', '照片已上傳')
 
       // 清除檔案輸入
       if (fileInputRef.current) {
@@ -591,8 +599,11 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
                   onChange={handlePhotoUpload}
                   ref={fileInputRef}
                   disabled={loading}
+                  multiple
                 />
-                <div className="form-text">最大檔案大小: 5MB</div>
+                <div className="form-text">
+                  最大檔案大小: 5MB，可選擇多張照片
+                </div>
               </div>
 
               <div className="photo-gallery mt-4">
@@ -601,37 +612,42 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
                     {pet.photos.map((photo) => (
                       <div key={photo.id} className="col">
                         <div
-                          className={`card ${
+                          className={`card h-100 ${
                             photo.is_main ? 'border-primary' : ''
                           }`}
                         >
-                          <img
-                            src={photo.photo_url}
-                            className="card-img-top"
-                            alt={pet.name}
-                            style={{ height: '150px', objectFit: 'cover' }}
-                          />
-                          <div className="card-body p-2">
-                            <div className="d-flex justify-content-between align-items-center">
-                              {photo.is_main ? (
+                          <div className="position-relative">
+                            <img
+                              src={photo.photo_url}
+                              className="card-img-top"
+                              alt={pet.name}
+                              style={{ height: '150px', objectFit: 'cover' }}
+                            />
+                            {photo.is_main && (
+                              <div className="position-absolute top-0 start-0 m-2">
                                 <span className="badge bg-primary">主照片</span>
-                              ) : (
-                                <button
-                                  className="btn btn-sm btn-outline-primary"
-                                  onClick={() => handleSetMainPhoto(photo.id)}
-                                  disabled={loading}
-                                >
-                                  設為主照片
-                                </button>
-                              )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="card-body p-2">
+                            <div className="btn-group w-100">
                               {!photo.is_main && (
-                                <button
-                                  className="btn btn-sm btn-outline-danger"
-                                  onClick={() => handleDeletePhoto(photo.id)}
-                                  disabled={loading}
-                                >
-                                  刪除
-                                </button>
+                                <>
+                                  <button
+                                    className="btn btn-sm btn-outline-primary"
+                                    onClick={() => handleSetMainPhoto(photo.id)}
+                                    disabled={loading}
+                                  >
+                                    設為主照片
+                                  </button>
+                                  <button
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={() => handleDeletePhoto(photo.id)}
+                                    disabled={loading}
+                                  >
+                                    刪除
+                                  </button>
+                                </>
                               )}
                             </div>
                           </div>
