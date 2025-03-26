@@ -152,6 +152,14 @@
     flex-direction: row;
     align-items:flex-start;
     gap: 14px;
+
+    >div,button{
+      width: 148px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .countBtn{
       background-color: rgba(243, 243, 243, 1);
       color: rgba(58, 73, 128, 1);
@@ -188,6 +196,18 @@
     }
     .addCartBtn{
       background-color: rgba(58, 73, 128, 1);
+      color: rgba(243, 243, 243, 1);
+      border: none;
+      border-radius: 23px;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .noStock{
+      background-color: rgb(141, 141, 141);
       color: rgba(243, 243, 243, 1);
       border: none;
       border-radius: 23px;
@@ -341,4 +361,13 @@
   gap: 50px;
   max-width: 100%;
   
+}
+
+.thisLike{
+  color: #d75951;
+  background-color: transparent;
+  border: none;
+}
+.thisLike:hover {
+  opacity: 0.8;
 }

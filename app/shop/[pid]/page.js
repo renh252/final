@@ -54,24 +54,75 @@ export default function PidPage() {
   
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error } = useSWR(`/api/shop/${pid}`, fetcher)
+  const { data:likeData, error:likeError, mutate } = useSWR('/api/shop', fetcher)
 
-  // 卡片滑動-------------------------------
-  const categoryRefs = useRef(null)
+// 卡片滑動-------------------------------
+const categoryRefs = useRef(null)
 
-  const scroll = (direction, ref) => {
-    const container = ref.current
-    const cardWidth = 280 // 卡片寬度
-    const gap = 30 // gap 值轉換為像素
-    const scrollAmount = (cardWidth + gap) * 4 // 每次滾動四個卡片的寬度加上間距
+const scroll = (direction, ref) => {
+  const container = ref.current
+  const cardWidth = 280 // 卡片寬度
+  const gap = 30 // gap 值轉換為像素
+  const scrollAmount = (cardWidth + gap) * 4 // 每次滾動四個卡片的寬度加上間距
 
-    const currentScroll = container.scrollLeft
-    const targetScroll = currentScroll + direction * scrollAmount
+  const currentScroll = container.scrollLeft
+  const targetScroll = currentScroll + direction * scrollAmount
 
-    container.scrollTo({
-      left: targetScroll,
-      behavior: 'smooth',
-    })
+  container.scrollTo({
+    left: targetScroll,
+    behavior: 'smooth',
+  })
+}
+
+  // 處理喜愛商品數據
+  const toggleLike = async (productId) => {
+    // 如果用戶未登入，則提示登入
+    if (!isAuthenticated || !user) {
+      Alert({ 
+        icon: 'error',
+        title: '請先登入才能收藏商品',
+        showCancelBtn: true,
+        showconfirmBtn: true,
+        confirmBtnText: '登入',
+        cancelBtnText: '取消',
+        function: () => {
+          sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+          window.location.href = '/member/MemberLogin/login'},
+      })
+      return
+    }
+
+    const userId = user.id
+    const product_like = likeData.product_like || []
+    const isLiked = product_like.some(
+      (product) =>
+        product.product_id === productId && product.user_id === userId
+    )
+
+    try {
+      const response = await fetch('/api/shop/product_like', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          productId,
+          action: isLiked ? 'remove' : 'add',
+        }),
+      })
+
+      if (response.ok) {
+        // 重新獲取商品數據
+        mutate()
+      } else {
+        console.error('收藏操作失敗')
+      }
+    } catch (error) {
+      console.error('收藏操作錯誤:', error)
+    }
   }
+
 
 // 选择商品规格
 const [selectedVariant, setSelectedVariant] = useState(null)
@@ -120,10 +171,10 @@ const calculateDisplayPrice = () => {
   // ----------------------------
 
   // 处理加载状态
-  if (!data) return <div>Loading...</div>
+  if (!data || !likeData) return <div>Loading...</div>
 
   // 处理错误状态
-  if (error) return <div>Failed to load</div>
+  if (error || likeError) return <div>Failed to load</div>
 
   // 获取 promotions 数据
 
@@ -138,6 +189,14 @@ const calculateDisplayPrice = () => {
     categories
   } = data
 
+  const product_like = likeData.product_like || []
+  // 判斷商品是否被當前用戶收藏
+  const isProductLiked = (productId) => {
+    if (!isAuthenticated || !user) return false
+    return product_like.some(
+      (item) => item.product_id === productId && item.user_id === user.id
+    )
+  }
   
   // ------------------------
 
@@ -164,12 +223,14 @@ const calculateDisplayPrice = () => {
     if (!userId) {
       Alert({ 
         icon: 'error',
-        title: '請先登入',
+        title: '請先登入才能加入購物車',
         showCancelBtn: true,
         showconfirmBtn: true,
         confirmBtnText: '登入',
         cancelBtnText: '取消',
-        function: () => {router.push('/member/MemberLogin/login')},
+        function: () => {
+          sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+          window.location.href = '/member/MemberLogin/login'},
       })
       return
     }
@@ -196,7 +257,6 @@ const calculateDisplayPrice = () => {
           title:'成功加入購物車',
           timer:1000
         })
-        console.log('商品已成功加入購物車');
         // 如果使用了 SWR，可以在這裡調用 mutate 來刷新購物車數據
         // mutate('/api/shop/cart');
       } else {
@@ -311,10 +371,23 @@ const calculateDisplayPrice = () => {
             <p className={styles.h3}>{product.product_name}</p>
             <div className={styles.iconGroup}>
               <div className={styles.comment}>
-                庫存:{product.stock_quantity}
+                庫存:{selectedVariant?.stock_quantity}
               </div>
               <div className={styles.comment}>
-                <FaRegHeart />
+                  <button
+                    className={styles.thisLike}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      toggleLike(product.product_id)
+                    }}
+                  >
+                    {isProductLiked(product.product_id) ? (
+                      <FaHeart />
+                    ) : (
+                      <FaRegHeart />
+                    )}
+                  </button>
               </div>
               {/* <div className={styles.comment}>
                 <FaShareNodes />
@@ -416,10 +489,16 @@ const calculateDisplayPrice = () => {
                 <FaPlus />
               </button>
             </div>
+            {selectedVariant?.stock_quantity <= 0
+            ?
+            <button  className={styles.noStock} disabled>補貨中</button>
+            :<>
+            
             <button className={styles.addCartBtn} onClick={() => handleAddToCart(product.id, selectedVariant.variant_id)}>
               <FaCartShopping />
               加入購物車
             </button>
+            </> }
           </div>
           {promotion.length > 0 ? (
             <div className={styles.promotions}>
@@ -518,16 +597,20 @@ const calculateDisplayPrice = () => {
                     <p>
                       ${product.price} <del>${product.price}</del>
                     </p>
-                    <button
-                      className={shopStyles.likeButton}
-                      onClick={(event) => {
-                        event.preventDefault()
-                        event.stopPropagation()
-                        // onToggleFav(product.id)
-                      }}
-                    >
-                      {product.fav ? <FaHeart /> : <FaRegHeart />}
-                    </button>
+                      <button
+                        className={shopStyles.likeButton}
+                        onClick={(event) => {
+                          event.preventDefault()
+                          event.stopPropagation()
+                          toggleLike(product.product_id)
+                        }}
+                      >
+                        {isProductLiked(product.product_id) ? (
+                          <FaHeart />
+                        ) : (
+                          <FaRegHeart />
+                        )}
+                      </button>
                   </div>
                 </Card>
               </Link>
