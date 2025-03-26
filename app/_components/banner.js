@@ -16,6 +16,11 @@ const bannerHome = {
   },
 }
 const bannerConfig = {
+  '/home': {
+    show: true,
+    image: '/images/Banner.jpg',
+    title: '毛孩之家',
+  },
   '/pets': {
     show: true,
     image: '/images/banner-pets.png',
@@ -44,7 +49,8 @@ export default function Banner() {
   // 修改这里的逻辑以处理 /member 开头的路径
   const config = pathname.startsWith('/member')
     ? bannerConfig['/member/layout']
-    : bannerConfig[pathname] || bannerHome[pathname] || {
+    : bannerConfig[pathname] ||
+      bannerHome[pathname] || {
         show: false,
         image: '/images/Banner.jpg',
         title: '毛孩之家',
