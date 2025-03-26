@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
+import { useAuth } from '@/app/context/AuthContext'
 import Image from 'next/image'
 import {
   Container,
@@ -33,10 +34,12 @@ import {
 import Link from 'next/link'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import styles from './appointment.module.css'
+import Cookies from 'js-cookie'
 
-export default function PetAppointmentPage({ params }) {
+export default function PetAppointmentPage() {
   const router = useRouter()
-  const { id } = params
+  const params = useParams()
+  const { user, token, isAuthenticated } = useAuth()
 
   // 狀態設定
   const [pet, setPet] = useState(null)
@@ -44,7 +47,6 @@ export default function PetAppointmentPage({ params }) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const [user, setUser] = useState(null)
   const [formErrors, setFormErrors] = useState({})
   const [availableTimes, setAvailableTimes] = useState([
     { time: '10:00', available: true },
@@ -57,6 +59,8 @@ export default function PetAppointmentPage({ params }) {
 
   // 表單狀態
   const [formData, setFormData] = useState({
+    pet_id: params.id,
+    store_id: '',
     appointment_date: '',
     appointment_time: '',
     house_type: '',
@@ -67,19 +71,28 @@ export default function PetAppointmentPage({ params }) {
     note: '',
   })
 
-  // 獲取寵物資料
+  // 獲取寵物資料和可用時段
   useEffect(() => {
-    const fetchPet = async () => {
+    const fetchPetAndAvailability = async () => {
       try {
-        const response = await fetch(`/api/pets/${id}`)
+        // 獲取寵物資料
+        const response = await fetch(`/api/pets/${params.id}`)
         const data = await response.json()
 
-        if (data.pet) {
-          setPet(data.pet)
-          // 模擬獲取可用時間段
-          generateAvailableTimes(data.pet.id)
-        } else {
-          setError('無法獲取寵物資料')
+        if (!response.ok) {
+          throw new Error(data.error || '無法獲取寵物資料')
+        }
+
+        if (data.pet.is_adopted) {
+          setError('此寵物已被領養')
+          return
+        }
+
+        setPet(data.pet)
+
+        // 獲取該日期的預約時段
+        if (formData.appointment_date) {
+          await checkTimeSlotAvailability(formData.appointment_date)
         }
       } catch (err) {
         console.error('Error fetching pet:', err)
@@ -89,41 +102,41 @@ export default function PetAppointmentPage({ params }) {
       }
     }
 
-    // 模擬獲取可用時間段的函數
-    const generateAvailableTimes = (petId) => {
-      // 在實際應用中，這應該是從API獲取的數據
-      // 這裡我們使用模擬數據
-      const mockAvailability = [
-        { time: '10:00', available: Math.random() > 0.3 },
-        { time: '11:00', available: Math.random() > 0.3 },
-        { time: '13:00', available: Math.random() > 0.3 },
-        { time: '14:00', available: Math.random() > 0.3 },
-        { time: '15:00', available: Math.random() > 0.3 },
-        { time: '16:00', available: Math.random() > 0.3 },
-      ]
-      setAvailableTimes(mockAvailability)
-    }
+    fetchPetAndAvailability()
+  }, [params.id, formData.appointment_date])
 
-    // 檢查用戶登入狀態
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/me')
-        const data = await response.json()
+  // 檢查時段可用性
+  const checkTimeSlotAvailability = async (date) => {
+    try {
+      // 確保日期格式正確
+      const formattedDate = new Date(date + 'T00:00:00')
+        .toISOString()
+        .split('T')[0]
 
-        if (data.success && data.data) {
-          setUser(data.data)
-        }
-      } catch (err) {
-        console.error('Error checking auth:', err)
+      const response = await fetch(
+        `/api/pets/appointments/availability?date=${formattedDate}&pet_id=${params.id}`
+      )
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '無法獲取可用時段')
       }
-    }
 
-    fetchPet()
-    checkAuth()
-  }, [id])
+      // 更新可用時段
+      const updatedTimes = availableTimes.map((timeSlot) => ({
+        ...timeSlot,
+        available: !data.bookedTimes.includes(timeSlot.time),
+      }))
+
+      setAvailableTimes(updatedTimes)
+    } catch (err) {
+      console.error('Error checking availability:', err)
+      setError('檢查可用時段時發生錯誤')
+    }
+  }
 
   // 處理表單變更
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value, type, checked } = e.target
 
     // 清除對應欄位的錯誤訊息
@@ -132,18 +145,55 @@ export default function PetAppointmentPage({ params }) {
       [name]: '',
     })
 
+    const newValue = type === 'checkbox' ? checked : value
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: newValue,
     }))
+
+    // 如果是日期變更，檢查時段可用性
+    if (name === 'appointment_date' && value) {
+      await checkTimeSlotAvailability(value)
+    }
+  }
+
+  // 處理時間段選擇
+  const handleTimeSelect = (time) => {
+    const timeInfo = availableTimes.find((t) => t.time === time)
+    if (timeInfo && timeInfo.available) {
+      setFormData((prev) => ({
+        ...prev,
+        appointment_time: time,
+      }))
+      setFormErrors((prev) => ({
+        ...prev,
+        appointment_time: '',
+      }))
+    }
   }
 
   // 表單驗證
   const validateForm = () => {
     const errors = {}
 
+    // 設定今天凌晨的時間
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    // 設定選擇日期凌晨的時間
+    const selectedDate = new Date(formData.appointment_date + 'T00:00:00')
+
+    // 設定兩週後凌晨的時間
+    const twoWeeksLater = new Date(today)
+    twoWeeksLater.setDate(today.getDate() + 14)
+    twoWeeksLater.setHours(0, 0, 0, 0)
+
     if (!formData.appointment_date) {
-      errors.appointment_date = '請選擇預約日期'
+      errors.appointment_date = '請選擇預約日期（未來14天內）'
+    } else if (selectedDate < today) {
+      errors.appointment_date = '不能選擇過去的日期'
+    } else if (selectedDate > twoWeeksLater) {
+      errors.appointment_date = '只能預約未來14天內的時段'
     }
 
     if (!formData.appointment_time) {
@@ -166,35 +216,16 @@ export default function PetAppointmentPage({ params }) {
     return Object.keys(errors).length === 0
   }
 
-  // 處理時間段選擇
-  const handleTimeSelect = (time) => {
-    const timeInfo = availableTimes.find((t) => t.time === time)
-    if (timeInfo && timeInfo.available) {
-      setFormData({
-        ...formData,
-        appointment_time: time,
-      })
-      setFormErrors({
-        ...formErrors,
-        appointment_time: '',
-      })
-    }
-  }
-
   // 處理表單提交
   const handleSubmit = async (e) => {
     e.preventDefault()
-
-    // 檢查用戶是否登入
-    if (!user) {
-      setError('請先登入後再預約')
-      router.push(`/member/login?redirect=/pets/${id}/appointment`)
+    if (!isAuthenticated) {
+      setError('請先登入')
+      router.push('/member/MemberLogin/login')
       return
     }
 
-    // 驗證表單
     if (!validateForm()) {
-      setError('請修正表單中的錯誤')
       return
     }
 
@@ -208,33 +239,29 @@ export default function PetAppointmentPage({ params }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          pet_id: id,
-          user_id: user.user_id,
           ...formData,
+          user_id: user.id,
+          store_id: pet.store_id,
+          appointment_time: formData.appointment_time + ':00',
+          adult_number: parseInt(formData.adult_number),
+          child_number: parseInt(formData.child_number),
+          adopted_experience: Boolean(formData.adopted_experience),
+          other_pets: formData.other_pets || '',
+          note: formData.note || '',
         }),
       })
 
       const data = await response.json()
 
-      if (data.success) {
-        setSuccess(true)
-        // 重置表單
-        setFormData({
-          appointment_date: '',
-          appointment_time: '',
-          house_type: '',
-          adult_number: 1,
-          child_number: 0,
-          adopted_experience: false,
-          other_pets: '',
-          note: '',
-        })
-      } else {
-        setError(data.message || '預約失敗，請稍後再試')
+      if (!response.ok) {
+        throw new Error(data.message || '提交預約申請失敗')
       }
+
+      // 成功處理
+      alert('預約申請已成功提交，請等待審核')
+      router.push('/member/appointments')
     } catch (err) {
-      console.error('Error submitting appointment:', err)
-      setError('提交預約時發生錯誤')
+      setError(err.message)
     } finally {
       setSubmitting(false)
     }
@@ -320,7 +347,7 @@ export default function PetAppointmentPage({ params }) {
               </div>
             </div>
             <div className="d-flex justify-content-center gap-3 mt-4">
-              <Button variant="primary" as={Link} href={`/pets/${id}`}>
+              <Button variant="primary" as={Link} href={`/pets/${params.id}`}>
                 返回寵物頁面
               </Button>
               <Button
@@ -348,11 +375,11 @@ export default function PetAppointmentPage({ params }) {
           },
           {
             label: pet?.name || '寵物',
-            href: `/pets/${id}`,
+            href: `/pets/${params.id}`,
           },
           {
             label: '預約',
-            href: `/pets/${id}/appointment`,
+            href: `/pets/${params.id}/appointment`,
           },
         ]}
       />
@@ -454,7 +481,7 @@ export default function PetAppointmentPage({ params }) {
 
               <div className="mt-3">
                 <Link
-                  href={`/pets/${id}`}
+                  href={`/pets/${params.id}`}
                   className="btn btn-outline-primary btn-sm w-100"
                 >
                   查看詳情
@@ -497,7 +524,7 @@ export default function PetAppointmentPage({ params }) {
 
               {error && <Alert variant="danger">{error}</Alert>}
 
-              {!user && (
+              {!isAuthenticated && (
                 <Alert variant="warning" className={styles.loginAlert}>
                   <div className="d-flex align-items-center">
                     <FaInfoCircle size={20} className="me-3 text-warning" />
@@ -506,7 +533,7 @@ export default function PetAppointmentPage({ params }) {
                       <p className="mb-0">
                         請先{' '}
                         <Link
-                          href={`/member/login?redirect=/pets/${id}/appointment`}
+                          href={`/member/MemberLogin/login?redirect=/pets/${params.id}/appointment`}
                           className="alert-link"
                         >
                           登入會員
@@ -542,9 +569,6 @@ export default function PetAppointmentPage({ params }) {
                       <Form.Control.Feedback type="invalid">
                         {formErrors.appointment_date}
                       </Form.Control.Feedback>
-                      <Form.Text className="text-muted">
-                        請選擇未來14天內的日期
-                      </Form.Text>
                     </Form.Group>
                   </Row>
 
@@ -694,7 +718,7 @@ export default function PetAppointmentPage({ params }) {
                     type="submit"
                     size="lg"
                     className={styles.submitButton}
-                    disabled={submitting || !user}
+                    disabled={submitting || !isAuthenticated}
                   >
                     {submitting ? (
                       <>
