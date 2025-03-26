@@ -55,9 +55,6 @@ const petIcon = L.divIcon({
 // 預設圖標
 const defaultIcon = createCustomIcon()
 
-// 地區圖標 - 藍色
-const regionIcon = createCustomIcon('#0d6efd', 30)
-
 // 選定位置圖標 - 保持紅色
 const selectedIcon = createCustomIcon('#dc3545', 30)
 
@@ -78,15 +75,16 @@ const userLocationIcon = L.divIcon({
   popupAnchor: [0, -10],
 })
 
-// 導出圖例配置
-const legendConfig = [
+export { defaultIcon, selectedIcon, storeIcon, userLocationIcon, petIcon }
+
+export const legendConfig = [
   {
-    name: '您的位置',
+    name: '用戶位置',
     icon: userLocationIcon,
     className: 'user-location-legend',
   },
   {
-    name: '已選擇的位置',
+    name: '選中位置',
     icon: selectedIcon,
     className: 'selected-location-legend',
   },
@@ -96,23 +94,8 @@ const legendConfig = [
     className: 'pet-legend',
   },
   {
-    name: '據點',
+    name: '店家',
     icon: storeIcon,
     className: 'store-legend',
   },
-  {
-    name: '地區',
-    icon: regionIcon,
-    className: 'region-legend',
-  },
 ]
-
-export {
-  defaultIcon,
-  regionIcon,
-  selectedIcon,
-  storeIcon,
-  userLocationIcon,
-  petIcon,
-  legendConfig,
-}
