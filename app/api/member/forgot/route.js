@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { database } from '@/app/api/_lib/db'; // 引入您的資料庫連接
+import { database } from '@/app/api/_lib/db'; // 引入您的資料庫物件
 
 dotenv.config();
 
@@ -27,23 +27,15 @@ export async function POST(request) {
     }
     console.log(`正在處理 ${action} 操作，用戶郵箱: ${email}`);
 
-    let dbConnection; // 在 try 區塊外部宣告
-
     try {
-        dbConnection = await database(); // 建立資料庫連線
-        if (!dbConnection) {
-            console.error('資料庫連線失敗');
-            return NextResponse.json({ message: '資料庫連線失敗，請稍後重試' }, { status: 500 });
-        }
-
         switch (action) {
             case 'request-otp':
                 if (!email || !/\S+@\S+\.\S+/.test(email)) {
                     return NextResponse.json({ message: '請輸入有效的電子郵件地址' }, { status: 400 });
                 }
                 try {
-                    const [users] = await dbConnection.execute('SELECT user_id FROM users WHERE user_email = ?', [email]);
-                    if (users.length === 0) {
+                    const [users] = await database.execute('SELECT user_id FROM users WHERE user_email = ?', [email]);
+                    if (users && users.length === 0) {
                         return NextResponse.json({ message: '該電子郵件地址未註冊' }, { status: 404 });
                     }
 
@@ -52,7 +44,7 @@ export async function POST(request) {
                     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 分鐘後過期
 
                     // 儲存 OTP 到資料庫
-                    await dbConnection.execute(
+                    await database.execute(
                         'INSERT INTO password_reset_tokens (email, token, expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at)',
                         [email, newOtp, expiresAt]
                     );
@@ -83,17 +75,17 @@ export async function POST(request) {
                     return NextResponse.json({ message: '請提供電子郵件和有效的 6 位數驗證碼' }, { status: 400 });
                 }
                 try {
-                    const [tokens] = await dbConnection.execute('SELECT token, expires_at FROM password_reset_tokens WHERE email = ?', [email]);
-                    if (tokens.length === 0) {
+                    const [tokens] = await database.execute('SELECT token, expires_at FROM password_reset_tokens WHERE user_email = ?', [email]);
+                    if (tokens && tokens.length === 0) {
                         return NextResponse.json({ message: '無效的電子郵件或驗證碼' }, { status: 400 });
                     }
 
-                    const tokenData = tokens[0];
-                    if (new Date(tokenData.expires_at).getTime() < Date.now()) {
+                    const tokenData = tokens && tokens[0];
+                    if (tokenData && new Date(tokenData.expires_at).getTime() < Date.now()) {
                         return NextResponse.json({ message: '驗證碼已過期' }, { status: 400 });
                     }
 
-                    if (tokenData.token !== otp) {
+                    if (tokenData && tokenData.token !== otp) {
                         return NextResponse.json({ message: '驗證碼錯誤' }, { status: 400 });
                     }
 
@@ -109,24 +101,24 @@ export async function POST(request) {
                     return NextResponse.json({ message: '請提供電子郵件、驗證碼和長度至少為 6 個字元的新密碼' }, { status: 400 });
                 }
                 try {
-                    const [tokens] = await dbConnection.execute('SELECT token, expires_at FROM password_reset_tokens WHERE email = ?', [email]);
-                    if (tokens.length === 0) {
+                    const [tokens] = await database.execute('SELECT token, expires_at FROM password_reset_tokens WHERE user_email = ?', [email]);
+                    if (tokens && tokens.length === 0) {
                         return NextResponse.json({ message: '無效的電子郵件或驗證碼' }, { status: 400 });
                     }
 
-                    const tokenData = tokens[0];
-                    if (new Date(tokenData.expires_at).getTime() < Date.now()) {
+                    const tokenData = tokens && tokens[0];
+                    if (tokenData && new Date(tokenData.expires_at).getTime() < Date.now()) {
                         return NextResponse.json({ message: '驗證碼已過期' }, { status: 400 });
                     }
 
-                    if (tokenData.token !== otp) {
+                    if (tokenData && tokenData.token !== otp) {
                         return NextResponse.json({ message: '驗證碼錯誤' }, { status: 400 });
                     }
 
-                    const result = await dbConnection.execute('UPDATE users SET password = ? WHERE email = ?', [newPassword, email]);
+                    const [result] = await database.execute('UPDATE users SET user_password = ? WHERE user_email = ?', [newPassword, email]);
 
-                    if (result.affectedRows > 0) {
-                        await dbConnection.execute('DELETE FROM password_reset_tokens WHERE email = ?', [email]);
+                    if (result && result.affectedRows > 0) {
+                        await database.execute('DELETE FROM password_reset_tokens WHERE email = ?', [email]);
                         return NextResponse.json({ message: '密碼已成功重設' }, { status: 200 });
                     } else {
                         return NextResponse.json({ message: '重設密碼失敗，請稍後重試' }, { status: 500 });
@@ -140,9 +132,8 @@ export async function POST(request) {
             default:
                 return NextResponse.json({ message: '無效的操作類型' }, { status: 400 });
         }
-    } finally {
-        if (dbConnection && typeof dbConnection.end === 'function') {
-            await dbConnection.end(); // 關閉資料庫連線
-        }
+    } catch (error) {
+        console.error('處理請求時發生錯誤:', error);
+        return NextResponse.json({ message: '伺服器錯誤，請稍後重試' }, { status: 500 });
     }
-}
+} 
