@@ -271,11 +271,7 @@ export default function PetDetailPage() {
             >
               {getTypeIcon()}
               <span>
-                {pet?.type === 'dog'
-                  ? '狗'
-                  : pet?.type === 'cat'
-                  ? '貓'
-                  : '其他'}
+              {pet?.species_name || '其他'}
               </span>
             </div>
           </div>

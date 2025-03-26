@@ -1514,259 +1514,256 @@ export default function PetsPage() {
         {viewMode === 'list' && (
           <div className={styles.filterSection}>
             <Row>
-              <Col md={6}>
-                <div className={styles.filterForm}>
-                  <Form>
-                    <div className={styles.formGroupRow}>
+              <Col lg={3}>
+                {/* 篩選表單 */}
+                <Form className={styles.filterForm}>
+                  <div className={styles.formGroupRow}>
+                    <Form.Check
+                      type="checkbox"
+                      label="已收藏"
+                      className="mb-0"
+                      checked={showFavorites}
+                      onChange={handleFavoritesToggle}
+                    />
+                    <div className={styles.viewModeSwitchWrapper}>
                       <Form.Check
-                        type="checkbox"
-                        label="已收藏"
-                        className="mb-0"
-                        checked={showFavorites}
-                        onChange={handleFavoritesToggle}
+                        type="switch"
+                        id="view-mode-switch"
+                        label={viewMode === 'map' ? '地圖檢視' : '列表檢視'}
+                        checked={viewMode === 'map'}
+                        onChange={handleViewModeChange}
+                        className={styles.viewModeSwitch}
                       />
-                      <div className={styles.viewModeSwitchWrapper}>
-                        <Form.Check
-                          type="switch"
-                          id="view-mode-switch"
-                          label={viewMode === 'map' ? '地圖檢視' : '列表檢視'}
-                          checked={viewMode === 'map'}
-                          onChange={handleViewModeChange}
-                          className={styles.viewModeSwitch}
-                        />
-                      </div>
                     </div>
+                  </div>
 
-                    <Form.Group className="mb-3">
-                      <Form.Label>物種</Form.Label>
-                      <Form.Select
-                        value={selectedSpecies}
-                        onChange={handleSpeciesChange}
-                      >
-                        <option value="">請選擇物種</option>
-                        {speciesData?.map((species) => (
-                          <option key={species.id} value={species.id}>
-                            {species.name}
+                  <Form.Group className="mb-3">
+                    <Form.Label>物種</Form.Label>
+                    <Form.Select
+                      value={selectedSpecies}
+                      onChange={handleSpeciesChange}
+                    >
+                      <option value="">請選擇物種</option>
+                      {speciesData?.map((species) => (
+                        <option key={species.id} value={species.id}>
+                          {species.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>品種</Form.Label>
+                    {/* 使用自定義的可搜尋下拉選單，更新 onChange 處理函數 */}
+                    <SearchableSelect
+                      options={varietiesData || []}
+                      value={selectedBreed}
+                      onChange={handleBreedChange}
+                      placeholder="請選擇品種"
+                      disabled={!varietiesData || varietiesData.length === 0}
+                    />
+                    <div className={styles.varietyInfo}>
+                      {varietiesData
+                        ? `已找到 ${varietiesData.length} 個品種`
+                        : '正在載入品種資料...'}
+                    </div>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>地區</Form.Label>
+                    <Form.Select
+                      value={selectedRegion}
+                      onChange={handleRegionChange}
+                    >
+                      <option value="">請選擇地區</option>
+                      <option>新北市</option>
+                      <option>桃園市</option>
+                      <option>台南市</option>
+                      <option>高雄市</option>
+                      <option>基隆市</option>
+                      <option>新竹市</option>
+                    </Form.Select>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>據點位置</Form.Label>
+                    <Form.Select
+                      value={selectedStore}
+                      onChange={handleStoreChange}
+                    >
+                      <option value="">請選擇據點</option>
+                      {storesData?.stores
+                        ?.filter(
+                          (store) =>
+                            // 如果有選擇地區，只顯示該地區的商店
+                            !selectedRegion ||
+                            store.address.startsWith(selectedRegion)
+                        )
+                        .map((store) => (
+                          <option key={store.id} value={store.id}>
+                            {store.name} - {store.address}
                           </option>
                         ))}
-                      </Form.Select>
-                    </Form.Group>
+                    </Form.Select>
+                  </Form.Group>
 
-                    <Form.Group className="mb-3">
-                      <Form.Label>品種</Form.Label>
-                      {/* 使用自定義的可搜尋下拉選單，更新 onChange 處理函數 */}
-                      <SearchableSelect
-                        options={varietiesData || []}
-                        value={selectedBreed}
-                        onChange={handleBreedChange}
-                        placeholder="請選擇品種"
-                        disabled={!varietiesData || varietiesData.length === 0}
-                      />
-                      <div className={styles.varietyInfo}>
-                        {varietiesData
-                          ? `已找到 ${varietiesData.length} 個品種`
-                          : '正在載入品種資料...'}
-                      </div>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                      <Form.Label>地區</Form.Label>
-                      <Form.Select
-                        value={selectedRegion}
-                        onChange={handleRegionChange}
-                      >
-                        <option value="">請選擇地區</option>
-                        <option>新北市</option>
-                        <option>桃園市</option>
-                        <option>台南市</option>
-                        <option>高雄市</option>
-                        <option>基隆市</option>
-                        <option>新竹市</option>
-                      </Form.Select>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                      <Form.Label>據點位置</Form.Label>
-                      <Form.Select
-                        value={selectedStore}
-                        onChange={handleStoreChange}
-                      >
-                        <option value="">請選擇據點</option>
-                        {storesData?.stores
-                          ?.filter(
-                            (store) =>
-                              // 如果有選擇地區，只顯示該地區的商店
-                              !selectedRegion ||
-                              store.address.startsWith(selectedRegion)
-                          )
-                          .map((store) => (
-                            <option key={store.id} value={store.id}>
-                              {store.name} - {store.address}
-                            </option>
-                          ))}
-                      </Form.Select>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                      <Button
-                        variant="outline-primary"
-                        className={styles.locationButton}
-                        onClick={getUserLocation}
-                        disabled={isGettingLocation}
-                      >
-                        {isGettingLocation ? '獲取位置中...' : '使用我的位置'}
-                      </Button>
-                      {locationError && (
-                        <div className={styles.locationError}>
-                          {locationError}
-                        </div>
-                      )}
-
-                      {/* 搜尋範圍設定 */}
-                      {selectedLocation && (
-                        <div className={styles.radiusSelector}>
-                          <Form.Label>搜尋範圍：{searchRadius} 公里</Form.Label>
-                          <Form.Range
-                            min={1}
-                            max={100}
-                            step={1}
-                            value={searchRadius}
-                            onChange={(e) => {
-                              const newRadius = parseInt(e.target.value)
-                              handleFilterUpdate(() => {
-                                setSearchRadius(newRadius)
-                                if (selectedLocation) {
-                                  // 查找附近商店
-                                  const nearby = findNearbyStores(
-                                    selectedLocation.lat,
-                                    selectedLocation.lng
-                                  )
-                                  setNearbyStores(nearby)
-
-                                  // 更新地圖標記，保留用戶位置標記，添加商店標記
-                                  const newMarkers = [
-                                    // 用戶選擇的位置
-                                    {
-                                      lat: selectedLocation.lat,
-                                      lng: selectedLocation.lng,
-                                      name: '已選擇的位置',
-                                      isSelected: true,
-                                      id: Date.now(),
-                                      isUserLocation:
-                                        selectedLocation.isUserLocation ||
-                                        false,
-                                    },
-                                  ]
-
-                                  // 將附近商店添加到標記中
-                                  if (nearby && nearby.length > 0) {
-                                    nearby.forEach((store) => {
-                                      newMarkers.push({
-                                        lat: parseFloat(store.lat),
-                                        lng: parseFloat(store.lng),
-                                        name: store.name,
-                                        description: `${store.address} (${
-                                          store.phone
-                                        }) - 距離: ${store.distance.toFixed(
-                                          2
-                                        )} 公里`,
-                                        isStore: true,
-                                        id: `store-${store.id}`,
-                                        distance: store.distance,
-                                      })
-                                    })
-                                  }
-
-                                  // 更新標記
-                                  setMapMarkers(newMarkers)
-                                }
-                              })
-                            }}
-                          />
-                        </div>
-                      )}
-                    </Form.Group>
-
-                    {selectedLocation && (
-                      <div className={styles.selectedLocation}>
-                        <span>已選擇位置：</span>
-                        <span className="mx-2">
-                          緯度 {selectedLocation.lat.toFixed(4)}
-                        </span>
-                        <span className="mx-2">
-                          經度 {selectedLocation.lng.toFixed(4)}
-                        </span>
-                        <Button
-                          className="mx-2"
-                          variant="outline-secondary"
-                          size="sm"
-                          onClick={() => {
-                            handleFilterUpdate(() => {
-                              setSelectedLocation(null)
-                              setSelectedStoreLocation(null)
-                              setMapMarkers([])
-                              setNearbyStores([])
-                            })
-                          }}
-                        >
-                          清除位置
-                        </Button>
+                  <Form.Group className="mb-3">
+                    <Button
+                      variant="outline-primary"
+                      className={styles.locationButton}
+                      onClick={getUserLocation}
+                      disabled={isGettingLocation}
+                    >
+                      {isGettingLocation ? '獲取位置中...' : '使用我的位置'}
+                    </Button>
+                    {locationError && (
+                      <div className={styles.locationError}>
+                        {locationError}
                       </div>
                     )}
 
-                    {/* 清除所有篩選按鈕 */}
-                    <div className={styles.clearFiltersContainer}>
+                    {/* 搜尋範圍設定 */}
+                    {selectedLocation && (
+                      <div className={styles.radiusSelector}>
+                        <Form.Label>搜尋範圍：{searchRadius} 公里</Form.Label>
+                        <Form.Range
+                          min={1}
+                          max={100}
+                          step={1}
+                          value={searchRadius}
+                          onChange={(e) => {
+                            const newRadius = parseInt(e.target.value)
+                            handleFilterUpdate(() => {
+                              setSearchRadius(newRadius)
+                              if (selectedLocation) {
+                                // 查找附近商店
+                                const nearby = findNearbyStores(
+                                  selectedLocation.lat,
+                                  selectedLocation.lng
+                                )
+                                setNearbyStores(nearby)
+
+                                // 更新地圖標記，保留用戶位置標記，添加商店標記
+                                const newMarkers = [
+                                  // 用戶選擇的位置
+                                  {
+                                    lat: selectedLocation.lat,
+                                    lng: selectedLocation.lng,
+                                    name: '已選擇的位置',
+                                    isSelected: true,
+                                    id: Date.now(),
+                                    isUserLocation:
+                                      selectedLocation.isUserLocation || false,
+                                  },
+                                ]
+
+                                // 將附近商店添加到標記中
+                                if (nearby && nearby.length > 0) {
+                                  nearby.forEach((store) => {
+                                    newMarkers.push({
+                                      lat: parseFloat(store.lat),
+                                      lng: parseFloat(store.lng),
+                                      name: store.name,
+                                      description: `${store.address} (${
+                                        store.phone
+                                      }) - 距離: ${store.distance.toFixed(
+                                        2
+                                      )} 公里`,
+                                      isStore: true,
+                                      id: `store-${store.id}`,
+                                      distance: store.distance,
+                                    })
+                                  })
+                                }
+
+                                // 更新標記
+                                setMapMarkers(newMarkers)
+                              }
+                            })
+                          }}
+                        />
+                      </div>
+                    )}
+                  </Form.Group>
+
+                  {selectedLocation && (
+                    <div className={styles.selectedLocation}>
+                      <span>已選擇位置：</span>
+                      <span className="mx-2">
+                        緯度 {selectedLocation.lat.toFixed(4)}
+                      </span>
+                      <span className="mx-2">
+                        經度 {selectedLocation.lng.toFixed(4)}
+                      </span>
                       <Button
-                        variant="outline-primary"
-                        onClick={clearAllFilters}
-                        className={styles.clearFiltersButton}
+                        className="mx-2"
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={() => {
+                          handleFilterUpdate(() => {
+                            setSelectedLocation(null)
+                            setSelectedStoreLocation(null)
+                            setMapMarkers([])
+                            setNearbyStores([])
+                          })
+                        }}
                       >
-                        <FaSearch className="me-2" />
-                        清除所有篩選條件
+                        清除位置
                       </Button>
                     </div>
-                  </Form>
-                </div>
+                  )}
+
+                  {/* 清除所有篩選按鈕 */}
+                  <div className={styles.clearFiltersContainer}>
+                    <Button
+                      variant="outline-primary"
+                      onClick={clearAllFilters}
+                      className={styles.clearFiltersButton}
+                    >
+                      <FaSearch className="me-2" />
+                      清除所有篩選條件
+                    </Button>
+                  </div>
+                </Form>
               </Col>
-              <Col md={6}>
-                <div className={`${styles.mapContainer} list-view`}>
-                  <MapComponent
-                    center={mapCenter}
-                    zoom={mapZoom}
-                    markers={mapMarkers}
-                    onLocationSelect={handleMapLocationSelect}
-                    regionName={selectedRegion}
-                    showLegend={false}
-                    searchRadius={searchRadius}
-                    userLocation={selectedLocation}
-                    selectedStoreLocation={selectedStoreLocation}
-                    pets={
-                      selectedStore
-                        ? filteredPets.filter(
-                            (pet) =>
-                              pet.store &&
-                              pet.store.id.toString() === selectedStore
-                          )
-                        : filteredPets.filter((pet) => {
-                            if (
-                              selectedLocation &&
-                              pet.store &&
-                              pet.store.lat &&
-                              pet.store.lng
-                            ) {
-                              const distance = calculateDistance(
-                                selectedLocation.lat,
-                                selectedLocation.lng,
-                                parseFloat(pet.store.lat),
-                                parseFloat(pet.store.lng)
-                              )
-                              return distance <= searchRadius
-                            }
-                            return true
-                          })
-                    }
-                  />
-                </div>
+              <Col lg={9}>
+                {/* 地圖組件 */}
+                <MapComponent
+                  center={mapCenter}
+                  zoom={mapZoom}
+                  markers={mapMarkers}
+                  onLocationSelect={handleMapLocationSelect}
+                  regionName={selectedRegion}
+                  showLegend={false}
+                  searchRadius={searchRadius}
+                  userLocation={selectedLocation}
+                  selectedStoreLocation={selectedStoreLocation}
+                  pets={
+                    selectedStore
+                      ? filteredPets.filter(
+                          (pet) =>
+                            pet.store &&
+                            pet.store.id.toString() === selectedStore
+                        )
+                      : filteredPets.filter((pet) => {
+                          if (
+                            selectedLocation &&
+                            pet.store &&
+                            pet.store.lat &&
+                            pet.store.lng
+                          ) {
+                            const distance = calculateDistance(
+                              selectedLocation.lat,
+                              selectedLocation.lng,
+                              parseFloat(pet.store.lat),
+                              parseFloat(pet.store.lng)
+                            )
+                            return distance <= searchRadius
+                          }
+                          return true
+                        })
+                  }
+                />
               </Col>
             </Row>
           </div>
