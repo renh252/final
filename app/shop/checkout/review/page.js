@@ -15,12 +15,11 @@ import useSWR, { mutate } from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function ReviewPage() {
-
-  const { user} = useAuth()
+  const { user } = useAuth()
   const userId = user?.id
 
   const [checkoutData] = useCheckoutData()
-  const [isLoading, setIsLoading] = useState(true)
+
   const router = useRouter()
   const { data, error } = useSWR(`/api/shop/cart?userId=${userId}`, fetcher)
 
@@ -29,37 +28,31 @@ export default function ReviewPage() {
     shippingFee: 0,
     totalAmount: 0,
     totalDiscount: 0,
-    totalOriginalPrice: 0
+    totalOriginalPrice: 0,
   })
   useEffect(() => {
-      if (!checkoutData?.recipient_name) {
-        router.push('/shop/checkout')
-        setIsLoading(false)
-      } else {
-        // 从 localStorage 获取数据
-        const storedProductPrice = localStorage.getItem('productPrice')
-        if (storedProductPrice) {
-          setProductPrice(JSON.parse(storedProductPrice))
-        }
+    // 从 localStorage 获取数据
+    const storedProductPrice = localStorage.getItem('productPrice')
+    if (storedProductPrice) {
+      const parsedProductPrice = JSON.parse(storedProductPrice)
+      if (
+        !parsedProductPrice.totalQuantity ||
+        parsedProductPrice.totalQuantity == 0
+      ) {
+        router.push('/shop/cart')
+        return
       }
-    
-  }, [checkoutData, router])
-  
-  
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (!checkoutData?.delivery) {
-        router.push('/shop/checkout')
-        setIsLoading(false)
-      }
+      setProductPrice(parsedProductPrice)
+    } else {
+      router.push('/shop/cart')
+      return
     }
-  })
 
-  if (!isLoading) {
-    <div>沒有訂單數據，正在跳轉...</div>
-    router.push('/shop/checkout')
-  }
+    if (!checkoutData?.recipient_name || !checkoutData?.delivery) {
+      <div>沒有訂單數據，正在跳轉...</div>
+      router.push('/shop/checkout')
+    }
+  }, [checkoutData, router])
 
   // 修改订单
   const handleModifyOrder = (e) => {
@@ -209,12 +202,10 @@ export default function ReviewPage() {
                     ) : (
                       <div>
                         {checkoutData?.address.else
-                        ?
-                        checkoutData?.address.city +
-                        checkoutData?.address?.town +
-                        checkoutData?.address?.else
-                        :
-                        checkoutData?.CVSStoreName}
+                          ? checkoutData?.address.city +
+                            checkoutData?.address?.town +
+                            checkoutData?.address?.else
+                          : checkoutData?.CVSStoreName}
                       </div>
                     )}
                   </div>
@@ -312,26 +303,24 @@ export default function ReviewPage() {
                 })}
               </div>
               <div className={styles.containFooter}>
-              <div>
                 <div>
-                  <p>小計 :</p>
-                  <p>$ {productPrice.totalOriginalPrice}</p>
+                  <div>
+                    <p>小計 :</p>
+                    <p>$ {productPrice.totalOriginalPrice}</p>
+                  </div>
+                  <div>
+                    <p>優惠 :</p>
+                    <p>$ {productPrice.totalDiscount}</p>
+                  </div>
+                  <div>
+                    <p>運費 :</p>
+                    <p>$ {productPrice.shippingFee}</p>
+                  </div>
                 </div>
-                <div>
-                  <p>優惠 :</p>
-                  <p>$ {productPrice.totalDiscount}</p>
-                </div>
-                <div>
-                  <p>運費 :</p>
-                  <p>$ {productPrice.shippingFee}</p>
-                </div>
-              </div>
                 <hr />
                 <div>
                   <p>合計 :</p>
-                  <p>
-                    ${productPrice.totalAmount}
-                  </p>
+                  <p>${productPrice.totalAmount}</p>
                 </div>
               </div>
             </div>

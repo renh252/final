@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter,useParams } from 'next/navigation'
+import { useRouter,useParams,useSearchParams  } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 // 取得用戶
@@ -26,10 +26,25 @@ export default function OrderIdPage(props) {
   const oid = params?.id
 
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [reviews, setReviews] = useState({});
   const [hoverRating, setHoverRating] = useState({});
 
+  // 滑動至商品區塊
+  useEffect(() => {
+    const scrollToProducts = searchParams.get('scrollTo') === 'products'
+    if (scrollToProducts) {
+      const scrollToElement = () => {
+        const productsElement = document.getElementById('products')
+        if (productsElement) {
+          productsElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }
+      // 延迟执行滚动
+      setTimeout(scrollToElement, 200)
+    }
+  }, [searchParams])
 
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
@@ -243,7 +258,8 @@ const submitReview = async (orderItemId, productId, variantId) => {
               </div>
       </div>
 
-      <div className={styles.productContainer}>
+      {/* 商品列表 */}
+      <div  id="products" className={styles.productContainer}>
               <div className={styles.containTitle}>
                 <div>#</div>
                 <div>商品</div>

@@ -94,9 +94,9 @@ export async function POST(req) {
         MerchantTradeNo,
         userId,
         amount,
-        '待付款', // 初始狀態
+        '未付款', // 初始狀態
         '信用卡',
-        '待付款', // 尚未付款
+        '未付款', // 尚未付款
         invoiceMethod,
         invoice,
         mobileBarcode,
