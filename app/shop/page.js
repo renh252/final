@@ -1,15 +1,18 @@
 'use client'
 
 import React, { useRef, useState } from 'react'
-import { IconLine } from '@/app/shop/_components/icon_line'
 import Link from 'next/link'
+import { usePageTitle } from '@/app/context/TitleContext'
+import { useRouter } from 'next/navigation'
 // style
 import styles from '@/app/shop/shop.module.css'
 // card
 import Card from '@/app/_components/ui/Card'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import { FaRegHeart, FaHeart,FaLongArrowAltRight } from 'react-icons/fa'
-import { useRouter } from 'next/navigation'
+// components
+import Carousel from '@/app/shop/_components/carousel'
+import { IconLine } from '@/app/shop/_components/icon_line'
 // auth
 import { useAuth } from '@/app/context/AuthContext'
 
@@ -24,6 +27,7 @@ export default function PetsPage() {
   const { user, isAuthenticated } = useAuth()
   const router = useRouter()  
   const [searchTerm, setSearchTerm] = useState('')
+  usePageTitle('商城')
   // 处理搜索按钮点击
   const handleSearch = (e) => {
     e.preventDefault()  // 防止表单默认提交行为
@@ -160,23 +164,32 @@ export default function PetsPage() {
         <button type="submit" className='button'>搜尋</button>
       </form>
       <FirstPageNav />
+      <Carousel/>
         <div className={styles.contains}>
+          <div className={styles.title}>
+            <p>毛孩優惠專區</p>
+            <span>精選飼料、零食、玩具超值折扣，讓毛孩開心又健康！</span>
+          </div>
           {/* 促銷區 */}
-          {promotions.map((promotion) => {
-            return (
-              <div key={promotion.promotion_id} className={styles.contain}>
-                <div className={styles.contain_title}>
-                  <div className={styles.title}>{promotion.promotion_name}</div>
-                  {/* <IconLine
-                    key={promotion.promotion_id}
-                    title={promotion.promotion_name}
-                  /> */}
-                  <Link href={`/shop/promotions/${promotion.promotion_id}`} className={styles.viewMore}>
-                    <p>查看更多</p> <FaLongArrowAltRight/>
-                  </Link>
-                </div>
-                <div className={styles.contain_body}>
-                  <div className={styles.group}>
+          {promotions
+          ?
+          <div className={styles.contain}>
+            <div className={styles.contain_title}>
+              <IconLine
+                key={parent.category_id}
+                title={'促銷活動區'}
+              />
+            </div>
+            <div className={styles.contain_body}>
+              {promotions?.map((promotion) => {
+                return (
+                  <div key={promotion.promotion_id} className={styles.group}>
+                    <div className={styles.groupTitle}>
+                      <p>{promotion.promotion_name}</p>
+                      <Link href={`/shop/promotions/${promotion.promotion_id}`} className={styles.viewMore}>
+                        <p>查看更多</p> <FaLongArrowAltRight/>
+                      </Link>
+                    </div>
                     <div className={styles.groupBody}>
                       <CardSwitchButton
                         direction="left"
@@ -261,13 +274,17 @@ export default function PetsPage() {
                         </button> */}
                     </div>
                   </div>
-                </div>
-              </div>
-            )
-          })}
+                )})}
+            </div>
+          </div>
+          :null}
 
+          <div className={styles.title}>
+            <p>精選寵物用品</p>
+            <span>快來挑選最適合你家寶貝的用品！</span>
+          </div>
           {/* 主分類區 */}
-          {parentsWithProducts.map((parent) => (
+          {parentsWithProducts?.map((parent) => (
             <div key={parent.category_id} className={styles.contain}>
               <div className={styles.contain_title}>
                 <IconLine
