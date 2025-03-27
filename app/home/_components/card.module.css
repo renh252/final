@@ -1,0 +1,51 @@
+/* app/home/components/petCard.module.css */
+
+.card {
+  background-color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.imageWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.image {
+  object-fit: cover;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+
+.info {
+  padding: 1rem;
+  color: #5a4b3c;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.name {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 0 0 0.25rem 0;
+}
+
+.detail {
+  font-size: 0.9rem;
+  color: #7b6d5f;
+  margin: 0;
+  line-height: 1.4;
+}
