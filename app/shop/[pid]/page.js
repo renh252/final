@@ -511,16 +511,12 @@ const calculateDisplayPrice = () => {
             </div>
             {promotion.length > 0 ? (
               <div className={styles.promotions}>
-                {promotion.map((p) => {
-                  return (
-                    <div key={p.promotion_id} className={styles.promotion}>
-                      <IoCheckmarkDoneSharp />
-                      {/* <Link href={'/'}> */}
-                      {p.promotion_name}
-                      {/* </Link> */}
-                    </div>
-                  )
-                })}
+                <div key={promotion[0].promotion_id} className={styles.promotion}>
+                  <IoCheckmarkDoneSharp />
+                  {/* <Link href={'/'}> */}
+                  {promotion[0].promotion_name}
+                  {/* </Link> */}
+                </div>
               </div>
             ) : (
               ''

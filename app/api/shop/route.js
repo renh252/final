@@ -68,7 +68,7 @@ const [products] = await connection.execute(`
       p.discount_percentage,
       p.start_date,
       p.end_date,
-      ROW_NUMBER() OVER (PARTITION BY pp.product_id ORDER BY p.start_date DESC) as rn
+      ROW_NUMBER() OVER (PARTITION BY pp.product_id ORDER BY p.discount_percentage DESC, p.start_date DESC) as rn
     FROM 
       promotion_products pp
     JOIN 
