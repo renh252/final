@@ -31,11 +31,40 @@
 .menubar {
   background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0.7;
 }
 
 .menubar.hidden {
   transform: translateY(-100%);
+}
+
+.menubar.solid {
+  opacity: 1;
+}
+
+/* 讓menubar中的文字和圖片保持不透明 */
+.menubar a,
+.menubar .navbar-brand,
+.menubar .nav-link,
+.menubar .dropdown-toggle,
+.menubar svg {
+  font-weight: 700 !important;
+  opacity: 1 !important;
+  color: #000 !important;
+}
+
+/* 加強透明時的辨識度 */
+.menubar:not(.solid) .navbar-brand,
+.menubar:not(.solid) .nav-link {
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+/* 防止右側導航欄位移 */
+:global(.navbar-nav.ms-auto) {
+  margin-left: auto !important;
+  display: flex !important;
+  position: static !important;
 }
 
 .notificationWrapper {
@@ -44,7 +73,7 @@
   margin: 0 8px;
 }
 
-.cart{
+.cart {
   position: relative;
   font-size: 18px;
   display: flex;
@@ -52,7 +81,7 @@
   justify-content: center;
   height: 100%;
   padding: 0 8px;
-  
+
   .cartCount {
     position: absolute;
     top: -5px;
@@ -69,7 +98,7 @@
     border-radius: 50%;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
   }
-  
+
   /* 當購物車數量為 0 時，隱藏徽章 */
   .cartCount:empty {
     display: none;
@@ -79,5 +108,38 @@
 @media (max-width: 991px) {
   .notificationWrapper {
     margin: 8px 0;
+  }
+}
+
+/* 調整Bootstrap Container的初始行為，減少內容偏移 */
+:global(.container),
+:global(.container-lg),
+:global(.container-fluid) {
+  transition: none !important;
+  transform: translateZ(0);
+  will-change: transform;
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  max-width: var(--bs-container-max-width, 100%) !important;
+}
+
+@media (min-width: 992px) {
+  :global(.container-lg) {
+    max-width: var(--bs-container-lg, 960px) !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  :global(.container-lg) {
+    max-width: var(--bs-container-xl, 1140px) !important;
+  }
+}
+
+@media (min-width: 1400px) {
+  :global(.container-lg) {
+    max-width: var(--bs-container-xxl, 1320px) !important;
   }
 }
