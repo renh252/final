@@ -10,7 +10,8 @@ export default function HomePage(props) {
   return (
     <>
       <PetCarousel />
-      <section className={styles.featureGrid}>
+      <div className={styles.featureGrid_container}>
+        <section className={styles.featureGrid}>
         <FeatureBlock
           icon={<FaStore />}
           title="浪浪商城"
@@ -36,6 +37,8 @@ export default function HomePage(props) {
           link="/pets"
         />
       </section>
+      </div>
+      
     </>
   )
 }
