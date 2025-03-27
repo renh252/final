@@ -15,6 +15,7 @@ import { FaArrowLeft, FaRegHeart, FaHeart } from 'react-icons/fa'
 
 // components
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
+import { usePageTitle } from '@/app/context/TitleContext'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -32,6 +33,7 @@ export default function CidPage(props) {
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error, mutate } = useSWR('/api/shop', fetcher)
+  usePageTitle(data?.categories?.find((category) => category.category_id == cid)?.category_name)
 
   // 處理喜愛商品數據
   const toggleLike = async (productId) => {

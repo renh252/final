@@ -11,6 +11,7 @@ import styles from './order_id.module.css'
 import { MdOutlinePets } from 'react-icons/md'
 // components
 import Alert from '@/app/_components/alert'
+import { usePageTitle } from '@/app/context/TitleContext'
 // 連接資料庫
 import useSWR from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
@@ -49,10 +50,12 @@ export default function OrderIdPage(props) {
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error, mutate } = useSWR(`/api/shop/orders/${oid}`, fetcher)
+  usePageTitle('訂單')
   // 处理加载状态
   if (!data) return <div>Loading...</div>
   // 处理错误状态
   if (error) return <div>Failed to load</div>
+  
 
   const order = data.order
   const products = data.products

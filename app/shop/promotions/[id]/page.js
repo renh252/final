@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 // product_menu
 import ProductMenu from '@/app/shop/_components/productMenu'
 // style
@@ -15,6 +14,7 @@ import { FaArrowLeft, FaRegHeart, FaHeart } from 'react-icons/fa'
 
 // components
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
+import { usePageTitle } from '@/app/context/TitleContext'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -26,6 +26,7 @@ export default function CidPage(props) {
   const params = useParams()
   const promotionId = params?.id
   
+  
   const { user, isAuthenticated } = useAuth()
   
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
@@ -35,6 +36,7 @@ export default function CidPage(props) {
     fetcher
   )
 
+  usePageTitle(promotionData?.promotion?.promotion_name)
   
   // 在這裡使用 promotion 數據
   

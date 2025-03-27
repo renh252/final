@@ -14,6 +14,7 @@ import { MdOutlinePets } from 'react-icons/md'
 // components
 import Alert from '@/app/_components/alert'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
+import { usePageTitle } from '@/app/context/TitleContext'
 
 // 連接資料庫
 import useSWR, { mutate } from 'swr'
@@ -24,6 +25,7 @@ export default function CartPage() {
   // 獲取用戶信息
   const { user, loading} = useAuth()
   const userId = user?.id
+  usePageTitle('購物車')
   // 獲取購物車數據
   const { data, error } = useSWR(userId ? `/api/shop/cart?userId=${userId}` : null, fetcher)
 
