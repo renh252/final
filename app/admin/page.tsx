@@ -172,7 +172,8 @@ export default function AdminPage() {
         {showWelcome && admin && (
           <div className="alert alert-info mb-4">
             <p className="mb-0">
-              歡迎，{admin.account}！您的權限：{admin.privileges}
+              歡迎，{admin.manager_account}！您的權限：
+              {admin.manager_privileges}
             </p>
             <button
               type="button"
