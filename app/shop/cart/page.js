@@ -185,7 +185,19 @@ export default function CartPage() {
 
   if (data?.error || !cart || cart.length === 0) {
     console.log(data?.error)
-    return <div>購物車目前沒有商品</div>
+    return (
+    <>
+    <Breadcrumbs
+      title="購物車"
+      items={[{ label: '購物車', href: '/shop/cart' }]}
+    />
+    <div className={styles.noProduct}>
+      <p>購物車目前沒有商品</p>
+      <Link href={'/shop'}>前往逛逛</Link>
+    </div>
+
+    </>
+  )
   }
 
   
