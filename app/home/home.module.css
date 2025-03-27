@@ -1,14 +1,80 @@
-body {
-  padding: 0 !important;
-  margin: 0 !important;
-  background-color: #efefef;
+/* home/_components/featureGrid.module.css */
+
+.featureGrid_container {
+  background: linear-gradient(135deg, #faf4e6 0%, #e9e0cf 100%);
+  clip-path: polygon(0 5%, 100% 0, 100% 95%, 0 100%);
+  padding: 5rem 1rem;
+  position: relative;
+  z-index: 1;
 }
 
 .featureGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 2rem;
-  padding: 2rem 1rem 4rem;
+  gap: 2.5rem;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.featureCard {
+  background-color: #fffdf6;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.featureCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.featureCard img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+}
+
+.featureCard h3 {
+  font-size: 1.25rem;
+  color: #5a4b3c;
+  margin-bottom: 0.25rem;
+}
+
+.featureCard p {
+  font-size: 0.95rem;
+  color: #7b6d5f;
+  margin: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .featureGrid {
+    gap: 1.5rem;
+  }
+
+  .featureCard {
+    padding: 1.5rem 1rem;
+  }
+
+  .featureCard img {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (max-width: 480px) {
+  .featureCard h3 {
+    font-size: 1.1rem;
+  }
+
+  .featureCard p {
+    font-size: 0.85rem;
+  }
 }

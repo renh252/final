@@ -1,6 +1,8 @@
+/* petCarousel.module.css - 更新：加入背景與上下留白 */
+
 .carouselSection {
-  padding: 4rem 1rem;
-  background-color: #f0ecd6;
+  padding: 6rem 1rem 5rem;
+  background-color: #fdf8ef; /* 淡米黃背景 */
   position: relative;
   overflow: hidden;
 }
@@ -11,15 +13,18 @@
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: 2.25rem;
   color: #5a4b3c;
-  margin-bottom: 0.5rem;
+  font-weight: bold;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.5rem;
 }
 
 .subtitle {
   font-size: 1rem;
   color: #7b6d5f;
+  margin-top: 0.5rem;
 }
 
 .carouselContainer {
@@ -74,38 +79,14 @@
 }
 
 .slide:not(:last-child) {
-  margin-right: 40px;
+  margin-right: 24px;
 }
 
 .slide {
-  width: 320px;
   flex: 0 0 auto;
-}
-
-.track:after {
-  content: '';
-  flex: 0 0 auto;
-  width: 100%;
-  max-width: 320px;
-  visibility: hidden;
-}
-
-@media (max-width: 1024px) {
-  .slide {
-    width: 280px;
-  }
-  .track:after {
-    max-width: 280px;
-  }
 }
 
 @media (max-width: 768px) {
-  .slide {
-    width: 220px;
-  }
-  .track:after {
-    max-width: 220px;
-  }
   .navButton {
     font-size: 1.5rem;
     width: 40px;
@@ -116,14 +97,11 @@
 
 @media (max-width: 480px) {
   .slide {
-    width: calc(100vw - 2px);
-    margin: 0 8px;
+    width: calc(100vw - 32px);
+    margin: 0;
   }
   .track {
     justify-content: center;
-  }
-  .track:after {
-    display: none;
   }
   .navButton {
     font-size: 1.25rem;
