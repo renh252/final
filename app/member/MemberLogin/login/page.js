@@ -1,27 +1,88 @@
-'use client'
-import React, { useState, useEffect } from 'react'
-import { useAuth } from '@/app/context/AuthContext' // 引入 AuthContext
-import styles from './login.module.css'
-import Link from 'next/link'
-import Swal from 'sweetalert2'
-import Image from 'next/image'
+'use client';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/app/context/AuthContext'; // 引入 AuthContext
+import styles from './login.module.css';
+import Link from 'next/link';
+import Swal from 'sweetalert2';
+import Image from 'next/image';
+import { auth, googleProvider, signInWithPopup, onAuthStateChanged } from '@/lib/firebase'; // 引入 Firebase 相關函式
 
 export default function MemberPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const { login } = useAuth() // 使用 Context 的 login 函式
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login } = useAuth(); // 使用 Context 的 login 函式
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(true); // 添加 loading 狀態
 
-  const [rememberMe, setRememberMe] = useState(false)
   useEffect(() => {
-    const rememberedEmail = localStorage.getItem('rememberedEmail')
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(false);
+      if (currentUser) {
+        try {
+          const response = await fetch(`/api/user/${currentUser.uid}`); // 假設後端 API 端點
+          if (response.ok) {
+            const userData = await response.json();
+            if (userData.has_additional_info) {
+              login(currentUser); // 使用 Firebase User 物件更新 Context 並導航
+            } else {
+              router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(currentUser.email)}`); // 導向填寫額外資料
+            }
+          } else {
+            console.error('獲取使用者資料失敗');
+            // 處理錯誤
+          }
+        } catch (error) {
+          console.error('獲取使用者資料時發生錯誤:', error);
+          // 處理錯誤
+        }
+      }
+    });
+
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
-      setEmail(rememberedEmail)
-      setRememberMe(true)
+      setEmail(rememberedEmail);
+      setRememberMe(true);
     }
-  }, [])
+
+    return () => unsubscribe();
+  }, [login]); // 依賴 login 確保在 auth 狀態改變後重新檢查
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      if (user && user.email) {
+        try {
+          const response = await fetch(`/api/user/${user.uid}`);
+          if (response.ok) {
+            const userData = await response.json();
+            if (userData.has_additional_info) {
+              login(user); // 使用 Firebase User 物件更新 Context 並導航
+            } else {
+              router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(user.email)}`);
+            }
+          } else {
+            console.error('獲取使用者資料失敗');
+          }
+        } catch (error) {
+          console.error('獲取使用者資料時發生錯誤:', error);
+        }
+      } else {
+        console.log('未獲取到 Google 登入的使用者資訊。');
+      }
+    } catch (error) {
+      console.error('Google 登入失敗：', error);
+      await Swal.fire({
+        title: '登入失敗',
+        text: error.message || '使用 Google 帳號登入失敗，請稍後再試。',
+        icon: 'error',
+        confirmButtonText: '確定',
+      });
+    }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!email || !password) {
       await Swal.fire({
@@ -29,8 +90,8 @@ export default function MemberPage() {
         text: '請填寫所有欄位',
         icon: 'error',
         confirmButtonText: '確定',
-      })
-      return
+      });
+      return;
     }
 
     try {
@@ -40,16 +101,16 @@ export default function MemberPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok && data.success) {
         // 處理記住我功能
         if (rememberMe) {
-          localStorage.setItem('rememberedEmail', email)
+          localStorage.setItem('rememberedEmail', email);
         } else {
-          localStorage.removeItem('rememberedEmail')
+          localStorage.removeItem('rememberedEmail');
         }
 
         // 顯示成功訊息
@@ -58,28 +119,44 @@ export default function MemberPage() {
           icon: 'success',
           timer: 1500,
           showConfirmButton: false,
-        })
+        });
 
-        // 使用 Context 的 login 函式，它會負責處理重定向
-        login(data.data)
-        // 不需要再手動導航，讓 AuthContext 處理跳轉邏輯
+        // 在這裡獲取使用者資訊並檢查 has_additional_info
+        const userResponse = await fetch(`/api/user/${data.data.firebase_uid}`);
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          if (userData.has_additional_info) {
+            login(data.data); // 使用後端回傳的使用者資料更新 Context 並導航
+          } else {
+            router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(email)}`);
+          }
+        } else {
+          console.error('登入成功但獲取使用者詳細資料失敗');
+          login(data.data); // 即使獲取詳細資料失敗，也先登入
+        }
       } else {
         await Swal.fire({
           title: '登入失敗',
           text: data.message || '請檢查您的電子郵件和密碼。',
           icon: 'error',
           confirmButtonText: '確定',
-        })
+        });
       }
     } catch (error) {
-      console.error('登入請求失敗:', error)
+      console.error('登入請求失敗:', error);
       await Swal.fire({
         title: '錯誤',
         text: '登入時發生錯誤，請稍後再試。',
         icon: 'error',
         confirmButtonText: '確定',
-      })
+      });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  if (loading) {
+    return <div>載入中...</div>;
   }
 
   return (
@@ -91,6 +168,7 @@ export default function MemberPage() {
             <button
               className="button"
               style={{ width: '350px', height: '60px', fontSize: '20px' }}
+              onClick={handleGoogleSignIn}
             >
               <Image
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/153b2dcd7ca2627a463800e38ebc91cf43bcd541ad79fa3fea9919eec17199df?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
@@ -177,5 +255,5 @@ export default function MemberPage() {
         </div>
       </div>
     </>
-  )
+  );
 }
