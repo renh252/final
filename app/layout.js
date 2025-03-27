@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import './globals.css'
 import Script from 'next/script'
 import LayoutWrapper from './LayoutWrapper'
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext'
 
 const fontIansui = localFont({
   src: '../public/fonts/Iansui-Regular.ttf',
@@ -15,7 +15,10 @@ const fontIansui = localFont({
 })
 
 export const metadata = {
-  title: '毛孩之家',
+  title: {
+    template: '%s - 毛孩之家',
+    default: '毛孩之家',
+  },
   description:
     '這是一個寵物領養網站，旨在提供寵物領養服務，讓更多毛孩能有溫暖的家。',
 }
@@ -43,5 +46,5 @@ export default function RootLayout({ children }) {
         />
       </body>
     </html>
-  );
+  )
 }

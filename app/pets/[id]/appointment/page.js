@@ -34,9 +34,10 @@ import {
 import Link from 'next/link'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import styles from './appointment.module.css'
-import Cookies from 'js-cookie'
+import { usePageTitle } from '@/app/context/TitleContext'
 
 export default function PetAppointmentPage() {
+  usePageTitle('寵物領養')
   const router = useRouter()
   const params = useParams()
   const { user, token, isAuthenticated } = useAuth()

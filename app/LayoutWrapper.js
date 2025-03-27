@@ -8,6 +8,7 @@ import Banner from './_components/banner'
 import { Container } from 'react-bootstrap'
 import { requiresAuth } from './config/routes'
 import { useAuth } from './context/AuthContext'
+import { TitleProvider } from './context/TitleContext'
 
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname()
@@ -127,18 +128,18 @@ export default function LayoutWrapper({ children }) {
 
   // 如果是後台路由，直接返回
   if (isAdminRoute) {
-    return children
+    return <TitleProvider>{children}</TitleProvider>
   }
 
   // 前台路由，使用標準佈局，但只在內容區域應用加載/權限效果
   return (
-    <>
+    <TitleProvider>
       <Menubar />
       <Banner />
       <Container fluid="lg" className="flex-grow-1 px-3 py-4">
         {renderContent()}
       </Container>
       <Footer />
-    </>
+    </TitleProvider>
   )
 }
