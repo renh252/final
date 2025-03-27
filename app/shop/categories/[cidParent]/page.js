@@ -14,6 +14,7 @@ import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import { FaArrowLeft,FaRegHeart,FaHeart,FaLongArrowAltRight } from "react-icons/fa";
 import { useParams } from 'next/navigation'
 import {Breadcrumbs} from '@/app/_components/breadcrumbs'
+import { usePageTitle } from '@/app/context/TitleContext'
 // 連接資料庫
 import useSWR from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
@@ -54,6 +55,7 @@ export default function PagesProductTitle() {
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error, mutate } = useSWR('/api/shop', fetcher)
+  usePageTitle(data?.categories?.find(category => category.category_id == cid_parent)?.category_name)
 
   // 處理喜愛商品數據
   const toggleLike = async (productId) => {

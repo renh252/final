@@ -9,9 +9,11 @@ import { useCheckoutData } from '@/app/shop/_components/useCheckoutData'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import areaData from '@/app/shop/_data/areaData.js'
 import { useAuth } from '@/app/context/AuthContext'
+import { usePageTitle } from '@/app/context/TitleContext'
 
 export default function CheckoutPage() {
   const router = useRouter()
+  usePageTitle('結帳')
 
   // 表單資料
   const [checkoutData, setCheckoutData] = useCheckoutData()

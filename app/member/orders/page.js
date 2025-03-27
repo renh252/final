@@ -9,10 +9,12 @@ import RecordPage from '@/app/member/_components/RecordPage'
 import StatusBadge from '../_components/StatusBadge'
 import { useAuth } from '@/app/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import { usePageTitle } from '@/app/context/TitleContext'
 
 export default function OrdersPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  usePageTitle('我的訂單')
 
   if (loading) return <div>載入中...</div>
   if (!user) return <div>請先登入</div>
