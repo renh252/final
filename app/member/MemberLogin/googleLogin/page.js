@@ -13,43 +13,62 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [user, setUser] = useState(null); // 用於追蹤使用者登入狀態
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // 添加 loading 狀態
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(false);
       if (currentUser) {
-        setUser(currentUser);
-        const email = currentUser.email;
-        console.log('目前登入使用者的電子郵件：', email);
-        // 這裡檢查是否需要導向 register2 頁面，並傳遞 email
-        router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(email)}`);
-      } else {
-        setUser(null);
-        console.log('目前沒有使用者登入。');
-        // 導向登入頁面
-        router.push('/member/MemberLogin/login');
+        try {
+          const response = await fetch(`/api/user/${currentUser.uid}`); // 假設後端 API 端點
+          if (response.ok) {
+            const userData = await response.json();
+            if (userData.has_additional_info) {
+              router.push('/dashboard'); // 導向主要頁面
+            } else {
+              router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(currentUser.email)}`); // 導向填寫額外資料
+            }
+          } else {
+            console.error('獲取使用者資料失敗');
+            // 處理錯誤
+          }
+        } catch (error) {
+          console.error('獲取使用者資料時發生錯誤:', error);
+          // 處理錯誤
+        }
       }
     });
 
-    return () => unsubscribe();// 清理監聽器
+    return () => unsubscribe();
   }, [router]);
 
   const handleGoogleSignIn = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      // 登入成功後，onAuthStateChanged 會處理導向
-      if (user) {
-        const email = user.email;
-        console.log('Google 登入使用者的電子郵件：', email);
-        // 在這裡您可以將 email 儲存到 state 或傳遞給下一個頁面
-        // 例如，使用 router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(email)}`);
+      if (user && user.email) {
+        try {
+          const response = await fetch(`/api/user/${user.uid}`);
+          if (response.ok) {
+            const userData = await response.json();
+            if (userData.has_additional_info) {
+              router.push('/dashboard');
+            } else {
+              router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(user.email)}`);
+            }
+          } else {
+            console.error('獲取使用者資料失敗');
+          }
+        } catch (error) {
+          console.error('獲取使用者資料時發生錯誤:', error);
+        }
       } else {
         console.log('未獲取到 Google 登入的使用者資訊。');
       }
     } catch (error) {
       console.error('Google 註冊/登入失敗：', error);
-      setError(error.message); // 顯示錯誤訊息
+      setError(error.message);
     }
   };
 
@@ -57,21 +76,18 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
 
-    // 電子郵件格式驗證
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError('請輸入有效的電子郵件地址');
       return;
     }
 
-    // 密碼強度驗證（至少 8 個字符，包含字母和數字）
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
     if (!passwordRegex.test(password)) {
       setError('密碼強度不足，請使用至少 8 個字符，包含字母和數字');
       return;
     }
 
-    // 確認密碼是否一致
     if (password !== confirmPassword) {
       setError('密碼和確認密碼不一致');
       return;
@@ -83,8 +99,7 @@ export default function RegisterPage() {
       // 註冊成功後，onAuthStateChanged 會處理導向
     } catch (error) {
       console.error('電子郵件註冊失敗：', error);
-      setError(error.message); // 顯示 Firebase 的錯誤訊息
-      // 可以根據 error.code 顯示更具體的錯誤訊息
+      setError(error.message);
       if (error.code === 'auth/email-already-in-use') {
         setError('此電子郵件已註冊，請使用其他電子郵件登入。');
       } else if (error.code === 'auth/weak-password') {
@@ -92,6 +107,10 @@ export default function RegisterPage() {
       }
     }
   };
+
+  if (loading) {
+    return <div>載入中...</div>;
+  }
 
   return (
     <>
@@ -102,7 +121,7 @@ export default function RegisterPage() {
             <button
               className="button"
               style={{ width: '350px', height: '60px', fontSize: '20px' }}
-              onClick={handleGoogleSignIn} // 綁定 Google 登入函式
+              onClick={handleGoogleSignIn}
             >
               <Image
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/153b2dcd7ca2627a463800e38ebc91cf43bcd541ad79fa3fea9919eec17199df?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
@@ -116,7 +135,7 @@ export default function RegisterPage() {
           </div>
 
           <h2 className={styles.sectionTitle}>加入會員</h2>
-          <form onSubmit={handleEmailRegister}> {/* 使用新的 handleEmailRegister 函式 */}
+          <form onSubmit={handleEmailRegister}>
             <div className={styles.formGroup}>
               <label htmlFor="email" className={styles.formLabel}>
                 電子信箱 :
@@ -162,7 +181,7 @@ export default function RegisterPage() {
               <button
                 className="button"
                 style={{ width: '200px', height: '50px', fontSize: '28px' }}
-                type="submit" // 更改 button 的 type 為 submit
+                type="submit"
               >
                 註冊
               </button>
