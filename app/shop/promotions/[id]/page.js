@@ -15,6 +15,7 @@ import { FaArrowLeft, FaRegHeart, FaHeart } from 'react-icons/fa'
 // components
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import { usePageTitle } from '@/app/context/TitleContext'
+import FixedElements from '@/app/shop/_components/FixedElements'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -25,9 +26,8 @@ import { useAuth } from '@/app/context/AuthContext'
 export default function CidPage(props) {
   const params = useParams()
   const promotionId = params?.id
-  
-  
   const { user, isAuthenticated } = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
   
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error, mutate } = useSWR('/api/shop', fetcher)
@@ -123,6 +123,7 @@ export default function CidPage(props) {
       <div className={cid_styles.main}>
         {promotion ? (
           <>
+            <FixedElements menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
             <Breadcrumbs
               title={`活動【${promotion.promotion_name}】 折扣${promotion.discount_percentage}%`}
               items={[
@@ -134,7 +135,7 @@ export default function CidPage(props) {
               ]}
             />
             <div className={cid_styles.container}>
-              <div className="productMenu">
+              <div className={styles.productMenu}>
                 <ProductMenu />
               </div>
               <div className={cid_styles.contain_body}>

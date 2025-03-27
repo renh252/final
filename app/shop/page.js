@@ -18,6 +18,7 @@ import { useAuth } from '@/app/context/AuthContext'
 
 //firstPageNav
 import FirstPageNav from '@/app/shop/_components/firstPageNav'
+import FixedElements from '@/app/shop/_components/FixedElements'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -27,6 +28,7 @@ export default function PetsPage() {
   const { user, isAuthenticated } = useAuth()
   const router = useRouter()  
   const [searchTerm, setSearchTerm] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
   usePageTitle('商城')
   // 处理搜索按钮点击
   const handleSearch = (e) => {
@@ -151,6 +153,7 @@ export default function PetsPage() {
   // -----------------
   return (
     <>
+    <FixedElements menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       {/* main */}
       <main className={styles.main}>
       {/* search */}
@@ -163,7 +166,7 @@ export default function PetsPage() {
         />
         <button type="submit" className='button'>搜尋</button>
       </form>
-      <FirstPageNav />
+        <FirstPageNav />
       <Carousel/>
         <div className={styles.contains}>
           <div className={styles.title}>
