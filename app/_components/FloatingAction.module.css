@@ -1,0 +1,212 @@
+.floatingContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background-color: #d9bb92;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  overflow: visible;
+  width: 66px;
+  height: 66px;
+  padding: 0;
+}
+
+.floatingContainer.expanded {
+  border-radius: 50%;
+  height: auto;
+  padding: 0;
+}
+
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+  padding: 12px 0 0 0;
+  transition: all 0.3s ease;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  margin-bottom: 8px;
+  pointer-events: none;
+}
+
+.actionButtons.visible {
+  pointer-events: all;
+}
+
+.toggleButtonContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.toggleButton {
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  min-height: 50px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 2px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #333;
+  transition: all 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.toggleButton:hover {
+  transform: scale(1.05);
+}
+
+.actionButton {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  background-color: #d9bb92;
+  border: 2px solid #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 22px;
+  position: relative;
+  transform: translateY(50px) rotate(-90deg);
+  opacity: 0;
+}
+
+.actionButtons.visible .actionButton {
+  transform: translateY(0) rotate(0);
+  opacity: 1;
+}
+
+.actionButton:hover {
+  transform: scale(1.1) !important;
+}
+
+.actionButtons.visible .actionButton:hover {
+  transform: scale(1.1) !important;
+}
+
+.actionButtons.visible .actionButton:nth-child(1) {
+  transition-delay: 0.05s;
+}
+
+.actionButtons.visible .actionButton:nth-child(2) {
+  transition-delay: 0.1s;
+}
+
+.actionButtons.visible .actionButton:nth-child(3) {
+  transition-delay: 0.15s;
+}
+
+.cart {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.cartCount {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #d75951;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  padding: 0 4px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.toggleButtonCount {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #d75951;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  padding: 0 4px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* RWD 適配 */
+@media (max-width: 768px) {
+  .floatingContainer {
+    bottom: 16px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .actionButtons {
+    padding: 8px 0 0 0;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .toggleButtonContainer {
+    padding: 6px 0;
+  }
+
+  .toggleButton {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 16px;
+  }
+
+  .cartCount,
+  .toggleButtonCount {
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+    top: -6px;
+    right: -6px;
+  }
+
+  .actionButton {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    transform: translateY(40px) rotate(-90deg);
+  }
+}
