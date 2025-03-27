@@ -6,19 +6,22 @@ import Link from 'next/link'
 import { Navbar, Nav, NavDropdown, Button, Container } from 'react-bootstrap'
 import { usePathname } from 'next/navigation'
 import NotificationBell from './NotificationBell'
-import { LuShoppingCart } from "react-icons/lu";
+import { LuShoppingCart } from 'react-icons/lu'
 import { useAuth } from '@/app/context/AuthContext'
 // 連接資料庫
 import useSWR, { mutate } from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function Menubar() {
-  const { user, loading} = useAuth()
+  const { user, loading } = useAuth()
   const userId = user?.id
   // 獲取購物車數據
-  const { data:cartData, error:cartError } = useSWR(userId ? `/api/shop/cart?userId=${userId}` : null, fetcher)
+  const { data: cartData, error: cartError } = useSWR(
+    userId ? `/api/shop/cart?userId=${userId}` : null,
+    fetcher
+  )
   const pathname = usePathname()
-  // console.log('pathname', pathname)
+
   useEffect(() => {
     // 確保這段程式碼只會在瀏覽器端執行
     require('bootstrap/dist/js/bootstrap.bundle.min.js')
@@ -27,15 +30,36 @@ export default function Menubar() {
   // 監聽滾動事件做隱藏效果
   const [prevScrollPos, setPrevScrollPos] = useState(0)
   const [visible, setVisible] = useState(true)
+  const [solid, setSolid] = useState(false)
 
   const handleScroll = useCallback(() => {
     const currentScrollPos = window.scrollY
-    // console.log(currentScrollPos)
-    setVisible(
-      (prevScrollPos > currentScrollPos &&
-        prevScrollPos - currentScrollPos > 70) ||
-        currentScrollPos < 10
+
+    // 簡化隱藏/顯示邏輯:
+    // 1. 頁面位於頂部時總是顯示
+    // 2. 向上滾動時顯示
+    // 3. 向下滾動超過50像素時隱藏
+    const isScrollingDown = currentScrollPos > prevScrollPos
+    const isScrollingUp = currentScrollPos < prevScrollPos
+    const isAtTop = currentScrollPos < 10
+
+    // 向下滾動且超過50像素，則隱藏
+    if (isScrollingDown && currentScrollPos > 50) {
+      setVisible(false)
+    }
+    // 向上滾動或在頂部，則顯示
+    else if (isScrollingUp || isAtTop) {
+      setVisible(true)
+    }
+
+    // 處理透明度邏輯：
+    // 1. 向上滾動超過30像素時變為不透明
+    // 2. 滾動位置低於10像素時保持半透明
+    setSolid(
+      (isScrollingUp && prevScrollPos - currentScrollPos > 30) ||
+        currentScrollPos > 100 // 也在頁面滾動超過100像素時變為不透明
     )
+
     setPrevScrollPos(currentScrollPos)
   }, [prevScrollPos])
 
@@ -43,12 +67,18 @@ export default function Menubar() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [handleScroll])
-  const totalQuantity = cartData?.totalQuantity
 
+  const totalQuantity = cartData?.totalQuantity || ''
 
   return (
     <>
-      <Navbar expand="lg" className="bg-body-tertiary fixed-top">
+      <Navbar
+        expand="lg"
+        collapseOnSelect // 保留這個改進，有助於導航栏穩定性
+        className={`bg-body-tertiary fixed-top ${styles.menubar} ${
+          visible ? '' : styles.hidden
+        } ${solid ? styles.solid : ''}`}
+      >
         <Container>
           <Navbar.Brand href="/">毛孩之家</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
@@ -64,11 +94,10 @@ export default function Menubar() {
               </div>
               <Nav.Link href="/member">會員</Nav.Link>
               <Nav.Link href="/shop/cart">
-              <div className={styles.cart}>
-                <LuShoppingCart />
-                <div className={styles.cartCount}>{totalQuantity || ''
-                }</div>
-              </div>
+                <div className={styles.cart}>
+                  <LuShoppingCart />
+                  <div className={styles.cartCount}>{totalQuantity}</div>
+                </div>
               </Nav.Link>
               <Nav.Link href="/contact">聯絡我們</Nav.Link>
               <NavDropdown title="下拉式" id="basic-nav-dropdown">
