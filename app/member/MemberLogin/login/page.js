@@ -5,6 +5,7 @@ import styles from './login.module.css';
 import Link from 'next/link';
 import Swal from 'sweetalert2';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { auth, googleProvider, signInWithPopup, onAuthStateChanged } from '@/lib/firebase'; // 引入 Firebase 相關函式
 
 export default function MemberPage() {
@@ -13,31 +14,12 @@ export default function MemberPage() {
   const { login } = useAuth(); // 使用 Context 的 login 函式
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(true); // 添加 loading 狀態
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(false);
-      if (currentUser) {
-        try {
-          const response = await fetch(`/api/user/${currentUser.uid}`); // 假設後端 API 端點
-          if (response.ok) {
-            const userData = await response.json();
-            if (userData.has_additional_info) {
-              login(currentUser); // 使用 Firebase User 物件更新 Context 並導航
-            } else {
-              router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(currentUser.email)}`); // 導向填寫額外資料
-            }
-          } else {
-            console.error('獲取使用者資料失敗');
-            // 處理錯誤
-          }
-        } catch (error) {
-          console.error('獲取使用者資料時發生錯誤:', error);
-          // 處理錯誤
-        }
-      }
-    });
-
+});
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
       setEmail(rememberedEmail);
@@ -53,22 +35,50 @@ export default function MemberPage() {
       const user = result.user;
       if (user && user.email) {
         try {
-          const response = await fetch(`/api/user/${user.uid}`);
-          if (response.ok) {
-            const userData = await response.json();
-            if (userData.has_additional_info) {
-              login(user); // 使用 Firebase User 物件更新 Context 並導航
-            } else {
-              router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(user.email)}`);
-            }
+          const response = await fetch('/api/member', { // 呼叫您的登入 API
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: user.email,
+              firebaseUid: user.uid,
+            }),
+          });
+  
+          const data = await response.json();
+  
+          if (response.ok && data.success) {
+            localStorage.setItem('authToken', data.data.token); // 儲存 JWT
+            router.push('/member'); // 導航到會員中心頁面
+            // 如果您的 login 函式還有其他必要操作，可以在這裡調用
+            // 例如：login(data.data.user); // 如果後端返回了完整的 user 資料
           } else {
-            console.error('獲取使用者資料失敗');
+            await Swal.fire({
+              title: '登入失敗',
+              text: data.message || '使用 Google 帳號登入失敗，請稍後再試。',
+              icon: 'error',
+              confirmButtonText: '確定',
+            });
+            console.error('Google 登入失敗:', data.message);
           }
         } catch (error) {
-          console.error('獲取使用者資料時發生錯誤:', error);
+          console.error('呼叫後端登入 API 失敗:', error);
+          await Swal.fire({
+            title: '登入失敗',
+            text: '呼叫後端登入 API 失敗，請稍後再試。',
+            icon: 'error',
+            confirmButtonText: '確定',
+          });
         }
       } else {
         console.log('未獲取到 Google 登入的使用者資訊。');
+        await Swal.fire({
+          title: '登入失敗',
+          text: '無法獲取 Google 登入的使用者資訊，請稍後再試。',
+          icon: 'error',
+          confirmButtonText: '確定',
+        });
       }
     } catch (error) {
       console.error('Google 登入失敗：', error);
