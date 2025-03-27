@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import Menubar from './_components/menubar'
 import Footer from './_components/footer'
 import Banner from './_components/banner'
+import FloatingAction from './_components/FloatingAction'
 import { Container } from 'react-bootstrap'
 import { requiresAuth } from './config/routes'
 import { useAuth } from './context/AuthContext'
@@ -147,6 +148,7 @@ export default function LayoutWrapper({ children }) {
       )}
 
       <Footer />
+      <FloatingAction />
     </TitleProvider>
   )
 }
