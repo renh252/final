@@ -1,0 +1,208 @@
+.toggleContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.catToggle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 60px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+/* 貓耳朵 */
+.ears {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 40px;
+}
+
+.earLeft,
+.earRight {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 40px solid #666;
+  transition: all 0.3s ease;
+}
+
+.earLeft {
+  left: 0;
+  transform: rotate(-30deg);
+}
+
+.earRight {
+  right: 0;
+  transform: rotate(30deg);
+}
+
+/* 貓臉 */
+.face {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+}
+
+/* 眼睛 */
+.eyes {
+  display: flex;
+  justify-content: space-between;
+  width: 60px;
+  margin: 20px auto;
+}
+
+.eye {
+  width: 8px;
+  height: 20px;
+  background: #333;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+/* 鼻子 */
+.nose {
+  width: 12px;
+  height: 8px;
+  background: #ff9999;
+  border-radius: 50%;
+  margin: 8px auto;
+}
+
+/* 鬍鬚 */
+.whiskers {
+  position: relative;
+  width: 100%;
+  height: 30px;
+}
+
+.whiskerLeft,
+.whiskerRight {
+  position: absolute;
+  top: 0;
+  width: 30px;
+  height: 100%;
+}
+
+.whiskerLeft {
+  left: 0;
+}
+
+.whiskerRight {
+  right: 0;
+}
+
+.whiskerLeft span,
+.whiskerRight span {
+  display: block;
+  width: 30px;
+  height: 1px;
+  background: #666;
+  margin: 6px 0;
+  transition: all 0.3s ease;
+}
+
+.whiskerLeft span {
+  transform-origin: right center;
+}
+
+.whiskerRight span {
+  transform-origin: left center;
+}
+
+.whiskerLeft span:nth-child(1) {
+  transform: rotate(-10deg);
+}
+.whiskerLeft span:nth-child(2) {
+  transform: rotate(0deg);
+}
+.whiskerLeft span:nth-child(3) {
+  transform: rotate(10deg);
+}
+
+.whiskerRight span:nth-child(1) {
+  transform: rotate(10deg);
+}
+.whiskerRight span:nth-child(2) {
+  transform: rotate(0deg);
+}
+.whiskerRight span:nth-child(3) {
+  transform: rotate(-10deg);
+}
+
+/* 進度條 */
+.progressBar {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  height: 4px;
+  background: #ddd;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.3s ease;
+}
+
+/* 啟用狀態 */
+.enabled {
+  background: #e6f7e6;
+}
+
+.enabled .eye {
+  height: 8px;
+  border-radius: 50%;
+}
+
+.enabled .earLeft,
+.enabled .earRight {
+  border-bottom-color: #4caf50;
+}
+
+.enabled .whiskerLeft span,
+.enabled .whiskerRight span {
+  background: #4caf50;
+}
+
+/* 搖動動畫 */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+.shake {
+  animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
