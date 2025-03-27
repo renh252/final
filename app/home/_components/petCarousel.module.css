@@ -1,0 +1,55 @@
+/* PetCarousel.module.css */
+.keen-slider {
+  width: 100%;
+}
+.carouselSection {
+  width: 100vw;
+  background-color: #f0ecd6;
+  position: relative;
+  overflow: hidden;
+}
+
+.headerWrap {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #5a4b3c;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #7b6d5f;
+}
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  font-size: 2rem;
+  color: #c4a484;
+  cursor: pointer;
+  z-index: 10;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease;
+}
+
+.navButton:hover {
+  background: #fceba8;
+}
+
+.prev {
+  left: 0.5rem;
+}
+
+.next {
+  right: 0.5rem;
+}
