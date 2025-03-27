@@ -10,6 +10,7 @@ import { useCheckoutData } from '@/app/shop/_components/useCheckoutData'
 // components
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import { MdOutlinePets } from 'react-icons/md'
+import { usePageTitle } from '@/app/context/TitleContext'
 // api
 import useSWR, { mutate } from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
@@ -17,6 +18,7 @@ const fetcher = (url) => fetch(url).then((res) => res.json())
 export default function ReviewPage() {
   const { user } = useAuth()
   const userId = user?.id
+  usePageTitle('結帳')
 
   const [checkoutData] = useCheckoutData()
 

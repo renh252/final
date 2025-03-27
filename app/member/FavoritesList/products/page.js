@@ -23,6 +23,7 @@ import {
   FaRegHeart,
   FaHeart,
 } from 'react-icons/fa'
+import { usePageTitle } from '@/app/context/TitleContext'
 
 export default function ShopLikePage() {
   const { user } = useAuth()
@@ -30,6 +31,7 @@ export default function ShopLikePage() {
   const [favoriteProducts, setFavoriteProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  usePageTitle('商品收藏')
 
   // 篩選狀態
   const [selectedFilters, setSelectedFilters] = useState({
