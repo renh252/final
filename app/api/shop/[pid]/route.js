@@ -40,7 +40,8 @@ export async function GET(request, { params }) {
       SELECT * FROM promotion_products
       JOIN promotions
       ON promotion_products.promotion_id = promotions.promotion_id
-      WHERE product_id =? AND start_date <= CURDATE() AND (end_date IS NULL OR end_date >= CURDATE())`
+      WHERE product_id =? AND start_date <= CURDATE() AND (end_date IS NULL OR end_date >= CURDATE())
+      ORDER BY discount_percentage DESC`
     , [id]
     )
     responseData.promotion = promotion
