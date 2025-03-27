@@ -5,17 +5,20 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  p{
+    margin: 0;
+  }
 }
 
-.productMenu a {
-  padding: 12px 20px;
+.productMenu .title {
+  padding: 15px 20px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
   text-decoration: none;
-  color: #6b4f37;
   border-radius: 16px;
   white-space: nowrap;
+  color: #6b4f37;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
@@ -51,7 +54,7 @@
   font-weight: bold;
 }
 
-.productMenu div:not(:last-child) {
+.productMenu >div:not(:last-child) {
   border-bottom: 1px solid #e0e0e0;
   padding-bottom: 10px;
 }
