@@ -263,7 +263,7 @@
   }
   
   .cardGroup{
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
   .angle{
     display: none;
@@ -273,9 +273,11 @@
 
 @media screen and (max-width: 768px) {
   .cardGroup {
-    display: grid;
+    display: flex;
     grid-template-columns: repeat(2, 1fr); /* 兩列 */
     gap: 15px;
+    flex-wrap: nowrap;
+
   }
 }
 
