@@ -1,10 +1,10 @@
-// app/home/components/SimplePetCarousel.jsx
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
 import PetCard from './card'
 import styles from './petCarousel.module.css'
+import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 
 const fetcher = (...args) => fetch(...args).then((res) => res.json())
 
@@ -12,52 +12,75 @@ export default function SimplePetCarousel() {
   const { data } = useSWR('/api/pets?type=meta', fetcher)
   const pets = data?.latestPets || []
 
-  const visibleCount = 3
-  const cardWidth = 320
-  const gap = 24
-  const itemWidth = cardWidth + gap
-
-  const [currentIndex, setCurrentIndex] = useState(visibleCount)
-  const [isTransitioning, setIsTransitioning] = useState(true)
-  const trackRef = useRef(null)
   const containerRef = useRef(null)
+  const trackRef = useRef(null)
   const intervalRef = useRef(null)
 
-  const loopedPets = [...pets, ...pets, ...pets] // 複製三份以便無限滑動
-  const centerOffset = pets.length // 中央索引偏移量
+  const [itemWidth, setItemWidth] = useState(384) // 卡片寬 + 間距
+  const [visibleCount, setVisibleCount] = useState(5)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isTransitioning, setIsTransitioning] = useState(true)
+  const [leftSpacer, setLeftSpacer] = useState(0)
 
-  // 初始化 currentIndex 為中央索引
+  const updateLayout = () => {
+    const width = window.innerWidth
+    if (width <= 480) {
+      const cardWidth = 300
+      const spacer = (width - cardWidth) / 2
+      setItemWidth(cardWidth + 24)
+      setVisibleCount(1)
+      setLeftSpacer(spacer > 0 ? spacer : 0)
+    } else if (width <= 768) {
+      setItemWidth(220 + 24)
+      setVisibleCount(2)
+      setLeftSpacer(0)
+    } else if (width <= 1024) {
+      setItemWidth(280 + 24)
+      setVisibleCount(3)
+      setLeftSpacer(0)
+    } else {
+      setItemWidth(320 + 24)
+      setVisibleCount(5)
+      setLeftSpacer(0)
+    }
+  }
+
+  useEffect(() => {
+    updateLayout()
+    window.addEventListener('resize', updateLayout)
+    return () => window.removeEventListener('resize', updateLayout)
+  }, [])
+
+  const loopedPets = [...pets, ...pets, ...pets]
+  const centerOffset = pets.length
+
   useEffect(() => {
     setCurrentIndex(centerOffset)
   }, [centerOffset])
 
-  // 自動滑動 (hover 暫停)
   useEffect(() => {
-    const startAutoSlide = () => {
+    const start = () => {
       intervalRef.current = setInterval(() => {
         setCurrentIndex((prev) => prev + 1)
       }, 5000)
     }
+    const stop = () => clearInterval(intervalRef.current)
 
-    const stopAutoSlide = () => clearInterval(intervalRef.current)
-    const container = containerRef.current
-
-    if (container) {
-      container.addEventListener('mouseenter', stopAutoSlide)
-      container.addEventListener('mouseleave', startAutoSlide)
+    const node = containerRef.current
+    if (node) {
+      node.addEventListener('mouseenter', stop)
+      node.addEventListener('mouseleave', start)
     }
-
-    startAutoSlide()
+    start()
     return () => {
-      stopAutoSlide()
-      if (container) {
-        container.removeEventListener('mouseenter', stopAutoSlide)
-        container.removeEventListener('mouseleave', startAutoSlide)
+      stop()
+      if (node) {
+        node.removeEventListener('mouseenter', stop)
+        node.removeEventListener('mouseleave', start)
       }
     }
   }, [])
 
-  // 無限滑動邏輯：到尾部或開頭時，瞬移到中心
   useEffect(() => {
     if (currentIndex >= loopedPets.length - visibleCount || currentIndex <= 0) {
       const timeout = setTimeout(() => {
@@ -70,76 +93,43 @@ export default function SimplePetCarousel() {
     } else {
       setIsTransitioning(true)
     }
-  }, [currentIndex, loopedPets.length, centerOffset])
+  }, [currentIndex, loopedPets.length, centerOffset, visibleCount])
 
-  // 手機觸控滑動
-  useEffect(() => {
-    let startX = 0
-    let isDragging = false
-
-    const handleTouchStart = (e) => {
-      startX = e.touches[0].clientX
-      isDragging = true
-    }
-
-    const handleTouchMove = (e) => {
-      if (!isDragging) return
-      const diff = e.touches[0].clientX - startX
-      if (Math.abs(diff) > 50) {
-        setCurrentIndex((prev) => prev + (diff > 0 ? -1 : 1))
-        isDragging = false
-      }
-    }
-
-    const container = containerRef.current
-    if (container) {
-      container.addEventListener('touchstart', handleTouchStart)
-      container.addEventListener('touchmove', handleTouchMove)
-    }
-    return () => {
-      if (container) {
-        container.removeEventListener('touchstart', handleTouchStart)
-        container.removeEventListener('touchmove', handleTouchMove)
-      }
-    }
-  }, [])
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => prev - 1)
-  }
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => prev + 1)
-  }
+  const handleNext = () => setCurrentIndex((prev) => prev + 1)
+  const handlePrev = () => setCurrentIndex((prev) => prev - 1)
 
   return (
     <section className={styles.carouselSection}>
       <div className={styles.headerWrap}>
-        <h2 className={styles.title}>毛孩們</h2>
+        <h2 className={styles.title}>毛孩推薦區</h2>
         <p className={styles.subtitle}>領養代替購買，給浪浪一個家</p>
       </div>
       <div className={styles.carouselContainer} ref={containerRef}>
         <button className={styles.navButton} onClick={handlePrev}>
-          ‹
+          <FaAngleLeft />
         </button>
         <div className={styles.viewport}>
           <div
             className={styles.track}
             ref={trackRef}
             style={{
-              transform: `translateX(-${currentIndex * itemWidth}px)`,
+              transform: `translateX(calc(${leftSpacer}px - ${currentIndex * itemWidth}px))`,
               transition: isTransitioning ? 'transform 0.6s ease' : 'none',
             }}
           >
             {loopedPets.map((pet, index) => (
-              <div className={styles.slide} key={`${pet.id}-${index}`}>
+              <div
+                className={styles.slide}
+                key={`${pet.id}-${index}`}
+                style={{ width: itemWidth - 24, marginRight: 24 }}
+              >
                 <PetCard pet={pet} />
               </div>
             ))}
           </div>
         </div>
         <button className={styles.navButton} onClick={handleNext}>
-          ›
+          <FaAngleRight />
         </button>
       </div>
     </section>

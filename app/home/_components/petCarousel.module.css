@@ -1,8 +1,6 @@
-/* simplePetCarousel.module.css */
-
 .carouselSection {
   padding: 4rem 1rem;
-  background-color: #fffdf6;
+  background-color: #f0ecd6;
   position: relative;
   overflow: hidden;
 }
@@ -29,20 +27,30 @@
   align-items: center;
   position: relative;
   justify-content: center;
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
 .navButton {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.5);
   border: none;
   font-size: 2rem;
   color: #c4a484;
   cursor: pointer;
   z-index: 10;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  padding: 10px;
+  border-radius: 50%;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: background 0.3s ease;
-  height: fit-content;
+  height: 50px;
+  width: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 10px;
 }
 
 .navButton:hover {
@@ -52,25 +60,28 @@
 .viewport {
   overflow: hidden;
   width: 100%;
-  /* max-width: 1200px; */
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .track {
   display: flex;
   transition: transform 0.6s ease;
-  gap: 40px;
-  padding: 0 12px;
-  box-sizing: border-box;
+  padding: 0;
+  margin: 0 auto;
+  gap: 0;
+  width: fit-content;
+}
+
+.slide:not(:last-child) {
+  margin-right: 40px;
 }
 
 .slide {
+  width: 320px;
   flex: 0 0 auto;
-  width: 100%;
-  max-width: 320px;
-  box-sizing: border-box;
 }
 
-/* 讓 slide 鏈接頭尾銜接時不會出現空白的過場 */
 .track:after {
   content: '';
   flex: 0 0 auto;
@@ -81,7 +92,7 @@
 
 @media (max-width: 1024px) {
   .slide {
-    max-width: 280px;
+    width: 280px;
   }
   .track:after {
     max-width: 280px;
@@ -90,22 +101,35 @@
 
 @media (max-width: 768px) {
   .slide {
-    max-width: 220px;
+    width: 220px;
   }
   .track:after {
     max-width: 220px;
+  }
+  .navButton {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    padding: 6px;
   }
 }
 
 @media (max-width: 480px) {
   .slide {
-    max-width: 100%;
-    margin: 0 auto;
+    width: calc(100vw - 2px);
+    margin: 0 8px;
   }
   .track {
     justify-content: center;
   }
   .track:after {
     display: none;
+  }
+  .navButton {
+    font-size: 1.25rem;
+    width: 36px;
+    height: 36px;
+    padding: 4px;
+    margin: 0 6px;
   }
 }
