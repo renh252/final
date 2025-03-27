@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react'
 import { IconLine } from '@/app/shop/_components/icon_line'
 import Link from 'next/link'
+import { usePageTitle } from '@/app/context/TitleContext'
 // style
 import styles from '@/app/shop/shop.module.css'
 // card
@@ -24,6 +25,7 @@ export default function PetsPage() {
   const { user, isAuthenticated } = useAuth()
   const router = useRouter()  
   const [searchTerm, setSearchTerm] = useState('')
+  usePageTitle('商城')
   // 处理搜索按钮点击
   const handleSearch = (e) => {
     e.preventDefault()  // 防止表单默认提交行为

@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { useParams } from 'next/navigation'
+import { useParams,useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 // 驗證登入狀態
 import { useAuth } from '@/app/context/AuthContext'
@@ -26,6 +25,8 @@ import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 import { IconLine_lg } from '@/app/shop/_components/icon_line'
 import Alert from '@/app/_components/alert'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
+import { usePageTitle } from '@/app/context/TitleContext'
+
 // card
 import Card from '@/app/_components/ui/Card'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
@@ -56,6 +57,10 @@ export default function PidPage() {
   const { data, error } = useSWR(`/api/shop/${pid}`, fetcher)
   const { data:likeData, error:likeError, mutate:likeMutate } = useSWR('/api/shop', fetcher)
   const { data:cartData, error:cartError, mutate:cartMutate } = useSWR(`/api/shop/cart?userId=${userId}`,fetcher)
+  console.log(data);
+  
+
+  usePageTitle(data?.product?.product_name)
 
 // 卡片滑動-------------------------------
 const categoryRefs = useRef(null)
@@ -189,6 +194,8 @@ const calculateDisplayPrice = () => {
     similarProducts,
     categories
   } = data
+  
+  
 
   const product_like = likeData.product_like || []
   // 判斷商品是否被當前用戶收藏
@@ -282,7 +289,7 @@ const calculateDisplayPrice = () => {
 
 
   return (
-    <main className={styles.main}>
+    <>
       <Breadcrumbs
         title=''
         items={[
@@ -292,340 +299,341 @@ const calculateDisplayPrice = () => {
           { label: product.product_name, href: `/shop/${product.product_id}` },
         ]}
       />
+      <main className={styles.main}>
+        <div className={styles.row}>
+          <div className={styles.imgs}>
+            <div className={styles.imgContainer}>
+              <Image
+                src={currentImage}
+                alt='Product Image'
+                width={600}
+                height={600}
+              />
+              <p>{}</p>
+            </div>
 
-      <div className={styles.row}>
-        <div className={styles.imgs}>
-          <div className={styles.imgContainer}>
-            <Image
-              src={currentImage}
-              alt='Product Image'
-              width={600}
-              height={600}
-            />
-            <p>{}</p>
-          </div>
-
-          {hasCustomImages ? (
-            <div className={styles.imgsBottom}>
-            <button>
-              <FaAngleLeft />
-            </button>
-              <div className={styles.img_group}>
-              {productImages.map((imgUrl, index) => (
-                <button 
-                  className={styles.imgs_item} 
-                  key={`product-img-${index}`}
-                  onClick={() => handleImageClick(imgUrl)}
-                >
-                  <Image
-                    src={imgUrl}
-                    alt={`Product image ${index + 1}`}
-                    width={100}
-                    height={100}
-                  />
-                </button>
-              ))}
-                {variants?.map((variant, index) => (variant.image_url && 
-                  (<button className={styles.imgs_item} key={variant.variant_id}
-                  onClick={() => handleImageClick(variant.image_url)}>
-                    <Image
-                      key={`v${index}`}
-                      src={variant.image_url}
-                      alt={variant.variant_name}
-                      width={100}
-                      height={100}
-                    />
-                    {/* <p>{variant.variant_name}</p> */}
-                  </button>)
-                ))}
-                {product_imgs?.map((img, index) => (
-                  <button className={styles.imgs_item} key={index}
-                  onClick={() => handleImageClick(img.image_url)}>
-                    <Image
-                      key={`imgs${index}`}
-                      src={img.image_url}
-                      alt={`image ${index + 1}`}
-                      width={100}
-                      height={100}
-                    />
-                  </button>
-                ))}
-              </div>
+            {hasCustomImages ? (
+              <div className={styles.imgsBottom}>
               <button>
-                <FaAngleRight />
+                <FaAngleLeft />
               </button>
-            </div>
-          ) : (
-            <div className={styles.img_group}>
-              <div className={styles.imgs_item} key={pid}>
-                <Image
-                  src="/images/default_no_pet.jpg"
-                  alt="Default product image"
-                  width={100}
-                  height={100}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-        <div className={styles.info}>
-          <div>
-            <p className={styles.h3}>{product.product_name}</p>
-            <div className={styles.iconGroup}>
-              <div className={styles.comment}>
-                庫存:{selectedVariant?.stock_quantity}
-              </div>
-              <div className={styles.comment}>
-                  <button
-                    className={styles.thisLike}
-                    onClick={(event) => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      toggleLike(product.product_id)
-                    }}
+                <div className={styles.img_group}>
+                {productImages.map((imgUrl, index) => (
+                  <button 
+                    className={styles.imgs_item} 
+                    key={`product-img-${index}`}
+                    onClick={() => handleImageClick(imgUrl)}
                   >
-                    {isProductLiked(product.product_id) ? (
-                      <FaHeart />
-                    ) : (
-                      <FaRegHeart />
-                    )}
+                    <Image
+                      src={imgUrl}
+                      alt={`Product image ${index + 1}`}
+                      width={100}
+                      height={100}
+                    />
                   </button>
-              </div>
-              {/* <div className={styles.comment}>
-                <FaShareNodes />
-              </div> */}
-            </div>
-          </div>
-          <hr />
-          <div>
-            <div className={styles.priceGroup}>
-              {variants && variants.length > 0 ? (
-                <>
-                  {promotion && promotion.length > 0 ? (
-                    <>
-                      <p className={styles.h3}>${calculateDisplayPrice().discountedPrice}</p>
-                      <p className={styles.p2}>
-                        <del>${calculateDisplayPrice().basePrice}</del>
-                      </p>
-                    </>
-                  ) : (
-                    <p className={styles.h3}>${calculateDisplayPrice().basePrice}</p>
-                  )}
-                </>
-              ) : (
-                <>
-                  {promotion && promotion.length > 0 ? (
-                    <>
-                      <p className={styles.h3}>${calculateDisplayPrice().discountedPrice}</p>
-                      <p className={styles.p2}>
-                        <del>${calculateDisplayPrice().basePrice}</del>
-                      </p>
-                    </>
-                  ) : (
-                    <p className={styles.h3}>${calculateDisplayPrice().basePrice}</p>
-                  )}
-                </>
-              )}
-            </div>
-            <div className={styles.iconGroup}>
-              <div className={styles.comment}>
-                <FaRegStar />:
-                {reviewCount?.avg_rating 
-                  ? Number(reviewCount.avg_rating).toFixed(1)
-                  : '暂无评分'}
-              </div>
-              <div className={styles.comment}>
-                <IoChatboxEllipsesOutline  onClick={scrollToReviewRef}/>
-              </div>
-            </div>
-          </div>
-          {variants?.length > 0 ? (
-            <>
-              <hr />
-              <div className={styles.productVariant}>
-                <div>
-                  <p className={styles.p2}>款式</p>
-                </div>
-                <div className={styles.variantGroup}>
-                  {variants.map((variant) => (
-                    <button
-                      key={variant.variant_id}
-                      className={`${styles.comment} ${
-                        selectedVariant?.variant_id === variant.variant_id
-                          ? styles.active
-                          : ''
-                      }`}
-                      onClick={() => handleVariantClick(variant)}
-                    >
-                      {variant.variant_name}
+                ))}
+                  {variants?.map((variant, index) => (variant.image_url && 
+                    (<button className={styles.imgs_item} key={variant.variant_id}
+                    onClick={() => handleImageClick(variant.image_url)}>
+                      <Image
+                        key={`v${index}`}
+                        src={variant.image_url}
+                        alt={variant.variant_name}
+                        width={100}
+                        height={100}
+                      />
+                      {/* <p>{variant.variant_name}</p> */}
+                    </button>)
+                  ))}
+                  {product_imgs?.map((img, index) => (
+                    <button className={styles.imgs_item} key={index}
+                    onClick={() => handleImageClick(img.image_url)}>
+                      <Image
+                        key={`imgs${index}`}
+                        src={img.image_url}
+                        alt={`image ${index + 1}`}
+                        width={100}
+                        height={100}
+                      />
                     </button>
                   ))}
                 </div>
+                <button>
+                  <FaAngleRight />
+                </button>
               </div>
-            </>
-          ) : (
-            ''
-          )}
-          <hr />
-          <div className={styles.btnGroup}>
-            <div className={styles.countBtn}>
-              <button
-                onClick={() => {
-                  setCount(count - 1)
-                }}
-              >
-                <FaMinus />
-              </button>
-              <input
-                type="text"
-                value={count}
-                onChange={(event) => {
-                  setCount(Number(event.target.value))
-                }}
-              />
-              <button
-                onClick={() => {
-                  setCount(count + 1)
-                }}
-              >
-                <FaPlus />
-              </button>
-            </div>
-            {selectedVariant?.stock_quantity <= 0
-            ?
-            <button  className={styles.noStock} disabled>補貨中</button>
-            :<>
-            
-            <button className={styles.addCartBtn} onClick={() => handleAddToCart(product.id, selectedVariant.variant_id)}>
-              <FaCartShopping />
-              加入購物車
-            </button>
-            </> }
+            ) : (
+              <div className={styles.img_group}>
+                <div className={styles.imgs_item} key={pid}>
+                  <Image
+                    src="/images/default_no_pet.jpg"
+                    alt="Default product image"
+                    width={100}
+                    height={100}
+                  />
+                </div>
+              </div>
+            )}
           </div>
-          {promotion.length > 0 ? (
-            <div className={styles.promotions}>
-              {promotion.map((p) => {
+          <div className={styles.info}>
+            <div>
+              <p className={styles.h3}>{product.product_name}</p>
+              <div className={styles.iconGroup}>
+                <div className={styles.comment}>
+                  庫存:{selectedVariant?.stock_quantity}
+                </div>
+                <div className={styles.comment}>
+                    <button
+                      className={styles.thisLike}
+                      onClick={(event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        toggleLike(product.product_id)
+                      }}
+                    >
+                      {isProductLiked(product.product_id) ? (
+                        <FaHeart />
+                      ) : (
+                        <FaRegHeart />
+                      )}
+                    </button>
+                </div>
+                {/* <div className={styles.comment}>
+                  <FaShareNodes />
+                </div> */}
+              </div>
+            </div>
+            <hr />
+            <div>
+              <div className={styles.priceGroup}>
+                {variants && variants.length > 0 ? (
+                  <>
+                    {promotion && promotion.length > 0 ? (
+                      <>
+                        <p className={styles.h3}>${calculateDisplayPrice().discountedPrice}</p>
+                        <p className={styles.p2}>
+                          <del>${calculateDisplayPrice().basePrice}</del>
+                        </p>
+                      </>
+                    ) : (
+                      <p className={styles.h3}>${calculateDisplayPrice().basePrice}</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {promotion && promotion.length > 0 ? (
+                      <>
+                        <p className={styles.h3}>${calculateDisplayPrice().discountedPrice}</p>
+                        <p className={styles.p2}>
+                          <del>${calculateDisplayPrice().basePrice}</del>
+                        </p>
+                      </>
+                    ) : (
+                      <p className={styles.h3}>${calculateDisplayPrice().basePrice}</p>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className={styles.iconGroup}>
+                <div className={styles.comment}>
+                  <FaRegStar />:
+                  {reviewCount?.avg_rating 
+                    ? Number(reviewCount.avg_rating).toFixed(1)
+                    : '暂无评分'}
+                </div>
+                <div className={styles.comment}>
+                  <IoChatboxEllipsesOutline  onClick={scrollToReviewRef}/>
+                </div>
+              </div>
+            </div>
+            {variants?.length > 0 ? (
+              <>
+                <hr />
+                <div className={styles.productVariant}>
+                  <div>
+                    <p className={styles.p2}>款式</p>
+                  </div>
+                  <div className={styles.variantGroup}>
+                    {variants.map((variant) => (
+                      <button
+                        key={variant.variant_id}
+                        className={`${styles.comment} ${
+                          selectedVariant?.variant_id === variant.variant_id
+                            ? styles.active
+                            : ''
+                        }`}
+                        onClick={() => handleVariantClick(variant)}
+                      >
+                        {variant.variant_name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              ''
+            )}
+            <hr />
+            <div className={styles.btnGroup}>
+              <div className={styles.countBtn}>
+                <button
+                  onClick={() => {
+                    setCount(count - 1)
+                  }}
+                >
+                  <FaMinus />
+                </button>
+                <input
+                  type="text"
+                  value={count}
+                  onChange={(event) => {
+                    setCount(Number(event.target.value))
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    setCount(count + 1)
+                  }}
+                >
+                  <FaPlus />
+                </button>
+              </div>
+              {selectedVariant?.stock_quantity <= 0
+              ?
+              <button  className={styles.noStock} disabled>補貨中</button>
+              :<>
+              
+              <button className={styles.addCartBtn} onClick={() => handleAddToCart(product.id, selectedVariant.variant_id)}>
+                <FaCartShopping />
+                加入購物車
+              </button>
+              </> }
+            </div>
+            {promotion.length > 0 ? (
+              <div className={styles.promotions}>
+                {promotion.map((p) => {
+                  return (
+                    <div key={p.promotion_id} className={styles.promotion}>
+                      <IoCheckmarkDoneSharp />
+                      {/* <Link href={'/'}> */}
+                      {p.promotion_name}
+                      {/* </Link> */}
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              ''
+            )}
+          </div>
+        </div>
+        <IconLine_lg title="商品介紹" />
+        <div className={styles.row}>
+          <p>{product.product_description}</p>
+        </div>
+        <div ref={reviewRef} className={styles.iconLine}>
+          <IconLine_lg title="評價" />
+        </div>
+        <div className={styles.contain}>
+          <div className={styles.containTitle}>
+            <p>{reviewCount?.total_reviews}則評論</p>
+          </div>
+          <div className={styles.containBody}>
+            {reviews.length > 0 ? (
+              reviews.map((r) => {
                 return (
-                  <div key={p.promotion_id} className={styles.promotion}>
-                    <IoCheckmarkDoneSharp />
-                    {/* <Link href={'/'}> */}
-                    {p.promotion_name}
-                    {/* </Link> */}
+                  <div key={r.review_id} className={styles.reviewItem}>
+                    <div className={styles.reviewItemTitle}>
+                      <div className={styles.left}>
+                        <div className={styles.top}>
+                          <div className={styles.user}>
+                            <div className={styles.userImg}>
+                              {r.profile_picture ? (
+                                <Image
+                                  src={r.profile_picture}
+                                  alt={r.user_name}
+                                  width={50}
+                                  height={50}
+                                />
+                              ) : (
+                                <FaUser />
+                              )}
+                            </div>
+                            {r.user_name}
+                          </div>
+                          <div className={styles.creatAt}>
+                            {new Date(r.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className={styles.reviewProduct}>
+                          {r.product_name}
+                          {r.variant_name ? `( ${r.variant_name} )` : ''}
+                        </div>
+                      </div>
+                      <div className={styles.rating}>
+                        <FaRegStar />
+                        {r.rating}
+                      </div>
+                    </div>
+                    <p>{r.review_text}</p>
                   </div>
                 )
-              })}
-            </div>
-          ) : (
-            ''
-          )}
+              })
+            ) : (
+              <p>目前無評論</p>
+            )}
+          </div>
         </div>
-      </div>
-      <IconLine_lg title="商品介紹" />
-      <div className={styles.row}>
-        <p>{product.product_description}</p>
-      </div>
-      <div ref={reviewRef} className={styles.iconLine}>
-        <IconLine_lg title="評價" />
-      </div>
-      <div className={styles.contain}>
-        <div className={styles.containTitle}>
-          <p>{reviewCount?.total_reviews}則評論</p>
-        </div>
-        <div className={styles.containBody}>
-          {reviews.length > 0 ? (
-            reviews.map((r) => {
+        <IconLine_lg title="推薦商品" />
+        <div className={styles.groupBody}>
+          <CardSwitchButton
+            direction="left"
+            onClick={() => scroll(-1, categoryRefs)}
+            aria-label="向左滑動"
+          />
+          <div className={shopStyles.cardGroup} ref={categoryRefs}>
+            {similarProducts.map((product) => {
               return (
-                <div key={r.review_id} className={styles.reviewItem}>
-                  <div className={styles.reviewItemTitle}>
-                    <div className={styles.left}>
-                      <div className={styles.top}>
-                        <div className={styles.user}>
-                          <div className={styles.userImg}>
-                            {r.profile_picture ? (
-                              <Image
-                                src={r.profile_picture}
-                                alt={r.user_name}
-                                width={50}
-                                height={50}
-                              />
-                            ) : (
-                              <FaUser />
-                            )}
-                          </div>
-                          {r.user_name}
-                        </div>
-                        <div className={styles.creatAt}>
-                          {new Date(r.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div className={styles.reviewProduct}>
-                        {r.product_name}
-                        {r.variant_name ? `( ${r.variant_name} )` : ''}
-                      </div>
-                    </div>
-                    <div className={styles.rating}>
-                      <FaRegStar />
-                      {r.rating}
-                    </div>
-                  </div>
-                  <p>{r.review_text}</p>
-                </div>
-              )
-            })
-          ) : (
-            <p>目前無評論</p>
-          )}
-        </div>
-      </div>
-      <IconLine_lg title="推薦商品" />
-      <div className={styles.groupBody}>
-        <CardSwitchButton
-          direction="left"
-          onClick={() => scroll(-1, categoryRefs)}
-          aria-label="向左滑動"
-        />
-        <div className={shopStyles.cardGroup} ref={categoryRefs}>
-          {similarProducts.map((product) => {
-            return (
-              <Link
-                key={product.product_id}
-                href={`/shop/${product.product_id}`}
-              >
-                <Card
-                  image={product.image_url || '/images/default_no_pet.jpg'}
-                  title={product.product_name}
+                <Link
+                  key={product.product_id}
+                  href={`/shop/${product.product_id}`}
                 >
-                  <div className={shopStyles.cardText}>
-                    <p>
-                      ${product.price} <del>${product.price}</del>
-                    </p>
-                      <button
-                        className={shopStyles.likeButton}
-                        onClick={(event) => {
-                          event.preventDefault()
-                          event.stopPropagation()
-                          toggleLike(product.product_id)
-                        }}
-                      >
-                        {isProductLiked(product.product_id) ? (
-                          <FaHeart />
-                        ) : (
-                          <FaRegHeart />
-                        )}
-                      </button>
-                  </div>
-                </Card>
-              </Link>
-            )
-          })}
-        </div>
+                  <Card
+                    image={product.image_url || '/images/default_no_pet.jpg'}
+                    title={product.product_name}
+                  >
+                    <div className={shopStyles.cardText}>
+                      <p>
+                        ${product.price} <del>${product.price}</del>
+                      </p>
+                        <button
+                          className={shopStyles.likeButton}
+                          onClick={(event) => {
+                            event.preventDefault()
+                            event.stopPropagation()
+                            toggleLike(product.product_id)
+                          }}
+                        >
+                          {isProductLiked(product.product_id) ? (
+                            <FaHeart />
+                          ) : (
+                            <FaRegHeart />
+                          )}
+                        </button>
+                    </div>
+                  </Card>
+                </Link>
+              )
+            })}
+          </div>
 
-        <CardSwitchButton
-          direction="right"
-          onClick={() => scroll(1, categoryRefs)}
-          aria-label="向左滑動"
-        />
-      </div>
-    </main>
+          <CardSwitchButton
+            direction="right"
+            onClick={() => scroll(1, categoryRefs)}
+            aria-label="向左滑動"
+          />
+        </div>
+      </main>
+    </>
   )
 }
