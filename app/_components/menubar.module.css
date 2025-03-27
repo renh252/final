@@ -109,6 +109,9 @@
   .notificationWrapper {
     margin: 8px 0;
   }
+  .menubar{
+    opacity: 1;
+  }
 }
 
 /* 調整Bootstrap Container的初始行為，減少內容偏移 */
