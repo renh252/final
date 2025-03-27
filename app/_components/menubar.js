@@ -68,26 +68,44 @@ export default function Menubar() {
         } ${solid ? styles.solid : ''}`}
       >
         <Container>
-          <Navbar.Brand href="/">毛孩之家</Navbar.Brand>
+          <Link href="/" passHref legacyBehavior>
+            <Navbar.Brand>毛孩之家</Navbar.Brand>
+          </Link>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto">
-              <Nav.Link href="/">首頁</Nav.Link>
-              <Nav.Link href="/shop">商城</Nav.Link>
-              <Nav.Link href="/pets">寵物列表</Nav.Link>
-              <Nav.Link href="/forum">論壇</Nav.Link>
-              <Nav.Link href="/donate">捐款</Nav.Link>
-              <Nav.Link href="/member">會員</Nav.Link>
+              <Link href="/" passHref legacyBehavior>
+                <Nav.Link>首頁</Nav.Link>
+              </Link>
+              <Link href="/shop" passHref legacyBehavior>
+                <Nav.Link>商城</Nav.Link>
+              </Link>
+              <Link href="/pets" passHref legacyBehavior>
+                <Nav.Link>寵物列表</Nav.Link>
+              </Link>
+              <Link href="/forum" passHref legacyBehavior>
+                <Nav.Link>論壇</Nav.Link>
+              </Link>
+              <Link href="/donate" passHref legacyBehavior>
+                <Nav.Link>捐款</Nav.Link>
+              </Link>
+              <Link href="/member" passHref legacyBehavior>
+                <Nav.Link>會員</Nav.Link>
+              </Link>
               <div className={styles.notificationWrapper}>
                 <NotificationBell />
               </div>
               <NavDropdown title="下拉式" id="basic-nav-dropdown">
-                <NavDropdown.Item href="/forum">論壇</NavDropdown.Item>
-                <NavDropdown.Item href="/donate">捐款</NavDropdown.Item>
+                <Link href="/forum" passHref legacyBehavior>
+                  <NavDropdown.Item>論壇</NavDropdown.Item>
+                </Link>
+                <Link href="/donate" passHref legacyBehavior>
+                  <NavDropdown.Item>捐款</NavDropdown.Item>
+                </Link>
                 <NavDropdown.Divider />
-                <NavDropdown.Item href="#action/3.4">
-                  Separated link
-                </NavDropdown.Item>
+                <Link href="#action/3.4" passHref legacyBehavior>
+                  <NavDropdown.Item>Separated link</NavDropdown.Item>
+                </Link>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>
