@@ -5,6 +5,7 @@ import styles from './login.module.css';
 import Link from 'next/link';
 import Swal from 'sweetalert2';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { auth, googleProvider, signInWithPopup, onAuthStateChanged } from '@/lib/firebase'; // 引入 Firebase 相關函式
 
 export default function MemberPage() {
@@ -13,31 +14,12 @@ export default function MemberPage() {
   const { login } = useAuth(); // 使用 Context 的 login 函式
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(true); // 添加 loading 狀態
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(false);
-      if (currentUser) {
-        try {
-          const response = await fetch(`/api/user/${currentUser.uid}`); // 假設後端 API 端點
-          if (response.ok) {
-            const userData = await response.json();
-            if (userData.has_additional_info) {
-              login(currentUser); // 使用 Firebase User 物件更新 Context 並導航
-            } else {
-              router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(currentUser.email)}`); // 導向填寫額外資料
-            }
-          } else {
-            console.error('獲取使用者資料失敗');
-            // 處理錯誤
-          }
-        } catch (error) {
-          console.error('獲取使用者資料時發生錯誤:', error);
-          // 處理錯誤
-        }
-      }
-    });
-
+});
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
       setEmail(rememberedEmail);
