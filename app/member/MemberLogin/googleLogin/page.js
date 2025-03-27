@@ -19,20 +19,34 @@ export default function RegisterPage() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        router.push('/member/MemberLogin/register2'); // 登入後導向 register2
+        const email = currentUser.email;
+        console.log('目前登入使用者的電子郵件：', email);
+        // 這裡檢查是否需要導向 register2 頁面，並傳遞 email
+        router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(email)}`);
       } else {
         setUser(null);
-        console.log('使用者已登出');
+        console.log('目前沒有使用者登入。');
+        // 導向登入頁面
+        router.push('/member/MemberLogin/login');
       }
     });
 
-    return () => unsubscribe();
+    return () => unsubscribe();// 清理監聽器
   }, [router]);
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
       // 登入成功後，onAuthStateChanged 會處理導向
+      if (user) {
+        const email = user.email;
+        console.log('Google 登入使用者的電子郵件：', email);
+        // 在這裡您可以將 email 儲存到 state 或傳遞給下一個頁面
+        // 例如，使用 router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(email)}`);
+      } else {
+        console.log('未獲取到 Google 登入的使用者資訊。');
+      }
     } catch (error) {
       console.error('Google 註冊/登入失敗：', error);
       setError(error.message); // 顯示錯誤訊息
