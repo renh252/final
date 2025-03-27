@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log('驗證成功，返回管理員信息:', JSON.stringify(managerData))
+    console.log('驗證成功，返回管理員資訊:', JSON.stringify(managerData))
 
     // 返回管理員信息 - 直接使用資料庫欄位名稱
     return NextResponse.json({
