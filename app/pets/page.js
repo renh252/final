@@ -36,6 +36,8 @@ import {
 } from 'react-icons/fa'
 import { useAuth } from '@/app/context/AuthContext'
 
+import { usePageTitle } from '@/app/context/TitleContext'
+
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 // 動態導入 MapComponent，避免 SSR 問題
@@ -340,8 +342,8 @@ const LeftSideDrawer = ({
 }
 
 export default function PetsPage() {
+  usePageTitle('寵物領養')
   const latestRef = useRef(null)
-  const popularRef = useRef(null)
   const fullMapRef = useRef(null)
 
   // 使用 useAuth 獲取用戶信息
@@ -424,7 +426,12 @@ export default function PetsPage() {
   // 從metaData中獲取最新寵物資料
   const latestPets = useMemo(() => {
     if (!metaData?.latestPets || !Array.isArray(metaData.latestPets)) return []
-    return metaData.latestPets
+
+    // 為每個寵物添加物種名稱
+    return metaData.latestPets.map((pet) => {
+      // 直接使用 species 欄位，這是 API 返回的原始物種名稱
+      return { ...pet, species_name: pet.species || '寵物' }
+    })
   }, [metaData])
 
   // 使用服務器端分頁獲取寵物資料
@@ -572,10 +579,14 @@ export default function PetsPage() {
 
     // 為每個寵物添加隨機偏移的位置和完整的店家資訊
     return pets.map((pet) => {
+      // 處理物種名稱 - 直接使用 species 欄位
+      // API 返回的是 species (狗/貓) 而不是 species_id
+      const species_name = pet.species || '寵物'
+
       // 檢查寵物是否有 store_id
       if (!pet.store_id) {
         console.log('Pet has no store_id:', pet.id, pet.name)
-        return pet
+        return { ...pet, species_name }
       }
 
       // 從 storesData 中找到對應的店家
@@ -583,7 +594,7 @@ export default function PetsPage() {
 
       if (!store || !store.lat || !store.lng) {
         console.log('Store not found or has no coordinates:', pet.store_id)
-        return pet
+        return { ...pet, species_name }
       }
 
       // 生成隨機偏移
@@ -595,6 +606,7 @@ export default function PetsPage() {
       // 返回包含完整店家資訊的寵物資料
       return {
         ...pet,
+        species_name,
         store: {
           id: store.id,
           name: store.name,
@@ -1298,22 +1310,6 @@ export default function PetsPage() {
     })
   }, [])
 
-  // 頁面變更
-  const handlePageChange = useCallback(
-    (pageNumber) => {
-      // 防止重複操作
-      if (pageNumber === currentPage) return
-
-      setCurrentPage(pageNumber)
-      // 滾動到頂部 - 頁面變更時需要滾動
-      window.scrollTo({
-        top: document.querySelector(`.${styles.contain_title}`).offsetTop - 100,
-        behavior: 'smooth',
-      })
-    },
-    [currentPage, setCurrentPage]
-  )
-
   // 在結果區塊加入篩選結果統計
   const ResultsHeader = () => (
     <div className={styles.resultsHeader}>
@@ -1347,12 +1343,6 @@ export default function PetsPage() {
       </div>
     </div>
   )
-
-  // 初始化地圖標記 - 已經不需要，在選擇地區時會自動設置標記
-  useEffect(() => {
-    // 空的依賴數組，只在組件初次渲染時執行一次
-    // 初始不設置任何標記，只在用戶選擇時才顯示
-  }, [])
 
   // 處理地圖位置選擇的統一函數
   const handleMapLocationSelect = useCallback(
@@ -2079,26 +2069,14 @@ export default function PetsPage() {
                             '/images/default_no_pet.jpg'
                           }
                           title={pet.name}
+                          location={pet.location}
+                          species={pet.species_name}
+                          breed={pet.variety}
+                          age={pet.age}
+                          gender={pet.gender}
                           className={styles.petCard}
+                          variant="pet"
                         >
-                          <div className={styles.petCardContent}>
-                            <div className={styles.petCardInfo}>
-                              <p>
-                                <span className={styles.label}>品種</span>
-                                {pet.variety || '未知'}
-                              </p>
-                              <p>
-                                <span className={styles.label}>年齡</span>
-                                {pet.age || '未知'}
-                                <span className={styles.separator}>・</span>
-                                {pet.gender === 'M' ? '男生' : '女生'}
-                              </p>
-                            </div>
-                            <div className={styles.petCardLocation}>
-                              <FaMapMarkerAlt />
-                              {pet.location || '地點未提供'}
-                            </div>
-                          </div>
                           <button
                             className={styles.likeButton}
                             onClick={(e) => handleToggleFavorite(e, pet.id)}
@@ -2161,26 +2139,14 @@ export default function PetsPage() {
                               '/images/default_no_pet.jpg'
                             }
                             title={pet.name}
+                            location={pet.location}
+                            species={pet.species_name}
+                            breed={pet.variety}
+                            age={pet.age}
+                            gender={pet.gender}
                             className={styles.petCard}
+                            variant="pet"
                           >
-                            <div className={styles.petCardContent}>
-                              <div className={styles.petCardInfo}>
-                                <p>
-                                  <span className={styles.label}>品種</span>
-                                  {pet.variety || '未知'}
-                                </p>
-                                <p>
-                                  <span className={styles.label}>年齡</span>
-                                  {pet.age || '未知'}
-                                  <span className={styles.separator}>・</span>
-                                  {pet.gender === 'M' ? '男生' : '女生'}
-                                </p>
-                              </div>
-                              <div className={styles.petCardLocation}>
-                                <FaMapMarkerAlt />
-                                {pet.location || '地點未提供'}
-                              </div>
-                            </div>
                             <button
                               className={styles.likeButton}
                               onClick={(e) => handleToggleFavorite(e, pet.id)}
