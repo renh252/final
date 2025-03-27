@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import styles from './summary.module.css'
 import { MdCheckCircle } from 'react-icons/md'
+import { usePageTitle } from '@/app/context/TitleContext'
 
 export default function SummaryPage() {
   const searchParams = useSearchParams()
@@ -17,6 +18,7 @@ export default function SummaryPage() {
     shippingFee: 0,
     totalAmount: 0,
   })
+  usePageTitle('結帳')
 
   useEffect(() => {
     // 🔹 讀取 `localStorage` 內的金額資訊
