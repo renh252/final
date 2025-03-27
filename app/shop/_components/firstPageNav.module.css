@@ -127,3 +127,10 @@
   /* background-color: rgba(199, 150, 80, 0.8); */
   box-shadow: 0 1px 20px rgb(199, 149, 80);
 }
+
+/* 手機 */
+@media screen and (max-width: 768px) {
+  .nav{
+    display: none;
+  }
+}
