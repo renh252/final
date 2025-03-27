@@ -277,7 +277,9 @@
     grid-template-columns: repeat(2, 1fr); /* 兩列 */
     gap: 15px;
     flex-wrap: nowrap;
+  }
 
+  .productMenu{
+    display: none;
   }
 }
-

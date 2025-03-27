@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 // product_menu
 import ProductMenu from '@/app/shop/_components/productMenu'
+import FixedElements from '@/app/shop/_components/FixedElements'
 // style
 import styles from '@/app/shop/shop.module.css'
 import cid_styles from '@/app/shop/search/search.module.css'
@@ -26,10 +27,11 @@ import { useAuth } from '@/app/context/AuthContext'
 export default function CidPage(props) {
   // 從網址上得到動態路由參數
   const params = useParams()
-  const router = useRouter() 
+  const router = useRouter()
   const cidParent = params?.cidParent
   const cid = params?.cid
   const { user, isAuthenticated } = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error, mutate } = useSWR('/api/shop', fetcher)
@@ -108,17 +110,26 @@ export default function CidPage(props) {
   const isValidCategory =
     currentCategory && currentCategory.parent_id == cidParent
 
-    const filteredProducts = products
+  const filteredProducts = products
     .filter((product) => product.category_id == cid)
     .filter((product) =>
       product.product_name.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      if (sortOption === "latest") return new Date(b.updated_at) - new Date(a.updated_at);
-      if (sortOption === "price_asc") return ((a.price * (100 - a.discount_percentage)) / 100) - ((b.price * (100 - b.discount_percentage)) / 100);
-      if (sortOption === "price_desc") return ((b.price * (100 - b.discount_percentage)) / 100) - ((a.price * (100 - a.discount_percentage)) / 100);
-      return 0;
-    });
+      if (sortOption === 'latest')
+        return new Date(b.updated_at) - new Date(a.updated_at)
+      if (sortOption === 'price_asc')
+        return (
+          (a.price * (100 - a.discount_percentage)) / 100 -
+          (b.price * (100 - b.discount_percentage)) / 100
+        )
+      if (sortOption === 'price_desc')
+        return (
+          (b.price * (100 - b.discount_percentage)) / 100 -
+          (a.price * (100 - a.discount_percentage)) / 100
+        )
+      return 0
+    })
 
   // -----------------
 
@@ -127,6 +138,7 @@ export default function CidPage(props) {
       <div className={cid_styles.main}>
         {isValidCategory ? (
           <>
+            <FixedElements menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
             <Breadcrumbs
               title={currentCategory.category_name}
               items={[
@@ -142,12 +154,12 @@ export default function CidPage(props) {
               ]}
             />
             <div className={cid_styles.container}>
-              <div className="productMenu">
+              <div className={styles.productMenu}>
                 <ProductMenu />
               </div>
               <div className={cid_styles.contain_body}>
                 {/* 搜尋與排序選單 */}
-                <div  className={cid_styles.filterBar}>
+                <div className={cid_styles.filterBar}>
                   <input
                     type="search"
                     placeholder="搜尋商品..."
@@ -167,13 +179,10 @@ export default function CidPage(props) {
                 </div>
                 <div className={cid_styles.noProductMessage}>
                   {filteredProducts
-                  ?(
-                    filteredProducts.length === 0
-                    ?'無此商品'
-                    :`共${filteredProducts.length}筆商品`
-                  )
-                  :products.length
-                  }
+                    ? filteredProducts.length === 0
+                      ? '無此商品'
+                      : `共${filteredProducts.length}筆商品`
+                    : products.length}
                 </div>
                 <div className={cid_styles.cardGroup}>
                   {filteredProducts.map((product) => (
@@ -182,7 +191,9 @@ export default function CidPage(props) {
                       href={`/shop/${product.product_id}`}
                     >
                       <Card
-                        image={product.image_url || '/images/default_no_pet.jpg'}
+                        image={
+                          product.image_url || '/images/default_no_pet.jpg'
+                        }
                         title={product.product_name}
                       >
                         <div className={styles.cardText}>
@@ -235,5 +246,4 @@ export default function CidPage(props) {
       </div>
     </>
   )
-  
 }
