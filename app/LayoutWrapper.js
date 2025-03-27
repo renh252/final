@@ -50,9 +50,9 @@ export default function LayoutWrapper({ children }) {
       document.documentElement.style.paddingTop = '0'
       document.body.style.paddingTop = '0'
     } else {
-      // 前台路由 - 恢復原有樣式
-      document.documentElement.style.paddingTop = '28px'
-      document.body.style.paddingTop = '28px'
+      // 前台路由 - 不再需要padding-top
+      document.documentElement.style.paddingTop = '0'
+      document.body.style.paddingTop = '0'
     }
 
     // 清理函數
@@ -136,11 +136,11 @@ export default function LayoutWrapper({ children }) {
     <TitleProvider>
       <Menubar />
       <Banner />
-      {pathname === '/home' ? (
-        // 首頁不要套用 container，直接顯示內容
+      {pathname === '/' ? (
+        // 根路由不要套用 container，直接顯示內容
         <>{renderContent()}</>
       ) : (
-        // 其他頁面維持 container 包裹
+        // 其他頁面(包括/home)維持 container 包裹
         <Container fluid="lg" className="flex-grow-1 px-3 py-4">
           {renderContent()}
         </Container>
