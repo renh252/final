@@ -1,0 +1,3 @@
+ALTER TABLE users
+ADD COLUMN firebase_uid VARCHAR(255) NULL UNIQUE, -- 儲存 Firebase UID
+ADD COLUMN has_additional_info BOOLEAN NOT NULL DEFAULT FALSE
