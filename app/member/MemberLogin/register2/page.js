@@ -1,37 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styles from './Register2.module.css';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase'; // 引入 auth 物件
 
 export default function Register2Page() {
-
+  
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialEmail = searchParams.get('email'); // 從 URL 獲取 email
+  const email = searchParams.get('email');
+  const password = searchParams.get('password');
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [birthday, setBirthday] = useState('');
   const [address, setAddress] = useState('');
-  const [email, setEmail] = useState(initialEmail || ''); // 使用從 URL 獲取的 email 初始化 state
-  const [loading, setLoading] = useState(true); // 新增 loading state
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setLoading(false);
-        if (!initialEmail && user.email) {
-          setEmail(user.email); // 如果 URL 沒有 email，嘗試從 auth 物件獲取
-        }
-      } else {
-        router.push('/member/MemberLogin/login');
-      }
-    });
-
-    return () => unsubscribe();
-  }, [router, initialEmail]);
 
   const validatePhoneNumber = (phoneNumber) => {
     const phoneRegex = /^09\d{8}$/;
@@ -49,7 +32,7 @@ export default function Register2Page() {
     }
     if (!phone) {
       errors.push('請填寫電話欄位');
-    } else if (!validatePhoneNumber(phone)) {
+    }else if (!validatePhoneNumber(phone)) {
       errors.push('電話號碼格式不正確，請輸入有效的台灣手機號碼');
     }
     if (!birthday) {
@@ -66,36 +49,32 @@ export default function Register2Page() {
     }
 
     try {
-      const response = await fetch('/api/user/updateInfo', { // 呼叫更新資訊的 API
+      const response = await fetch('/api/member/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, name, phone, birthday, address }), // 傳遞詳細資料
+        body: JSON.stringify({ email, password, name, phone, birthday, address }),
       });
 
       const data = await response.json();
       console.log('伺服器返回資料:', data);
 
-      if (response.ok && data.success) {
+      if (response.ok) {
         alert(data.message);
-        router.push('/dashboard'); // 導向儀表板或登入頁面
+        window.location.href = '/member/MemberLogin/login';
       } else {
-        alert(data.message || '更新詳細資料失敗，請稍後重試');
+        alert(data.message);
       }
     } catch (error) {
-      console.error('更新詳細資料錯誤:', error);
-      alert('更新詳細資料失敗，請稍後重試');
+      console.error('註冊錯誤:', error);
+      alert('註冊失敗，請稍後重試');
     }
   };
 
   const handleGoBack = () => {
     router.push('/member/MemberLogin/register');
   };
-
-  if (loading) {
-    return <div>載入中...</div>;
-  }
 
   return (
     <>
@@ -163,8 +142,6 @@ export default function Register2Page() {
               required
             />
           </div>
-          {/* 隱藏的 email 輸入框 */}
-          <input type="hidden" name="email" value={email} />
         </form>
 
         <div className={styles.form_button}>
