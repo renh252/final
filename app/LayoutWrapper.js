@@ -137,7 +137,7 @@ export default function LayoutWrapper({ children }) {
     <TitleProvider>
       <Menubar />
       <Banner />
-      {pathname === '/' ? (
+      {pathname === '/' || pathname === '/home' ? (
         // 根路由不要套用 container，直接顯示內容
         <>{renderContent()}</>
       ) : (
