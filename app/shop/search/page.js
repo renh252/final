@@ -11,6 +11,7 @@ import cid_styles from './search.module.css'
 // components
 import ProductMenu from '@/app/shop/_components/productMenu'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
+import FixedElements from '@/app/shop/_components/FixedElements'
 // card
 import Card from '@/app/_components/ui/Card'
 import { FaArrowLeft, FaRegHeart, FaHeart } from 'react-icons/fa'
@@ -26,6 +27,7 @@ export default function SearchPage(props) {
   const router = useRouter() 
   usePageTitle('搜索商品')
   const { user, isAuthenticated } = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data : searchData , searchError : searchError  } = useSWR(
@@ -108,6 +110,7 @@ export default function SearchPage(props) {
 
   return (
     <div className={cid_styles.main}>
+        <FixedElements menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
         <Breadcrumbs
           title={`搜尋【${query}】 /共 ${products.length} 筆資料`}
           items={[
@@ -119,7 +122,7 @@ export default function SearchPage(props) {
           ]}
         />
         <div className={cid_styles.container}>
-          <div className="productMenu">
+          <div className={styles.productMenu}>
             <ProductMenu />
           </div>
           <div className={cid_styles.contain_body}>
