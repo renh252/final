@@ -1,0 +1,217 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.section {
+  margin-bottom: 3rem;
+  padding: 2rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 1rem;
+  background: white;
+}
+
+.section h2 {
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.sectionDescription {
+  margin-bottom: 1.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* 基本用法示例 */
+.demo {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.demoItem {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: #f8f8f8;
+  border-radius: 0.5rem;
+}
+
+.demoDescription {
+  color: #666;
+}
+
+.demoDescription p {
+  margin-bottom: 0.5rem;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: #888;
+  font-style: italic;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  color: #666;
+  padding: 1rem;
+  background: #f0f0f0;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.checkboxLabel:hover {
+  background: #e8e8e8;
+}
+
+/* 自定義樣式示例 */
+.customDemo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+  background: #f5f5f5;
+  border-radius: 0.5rem;
+}
+
+.styleInfo {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.styleInfo p {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+.styleInfo span {
+  font-weight: 500;
+}
+
+/* 領養同意書示例 */
+.termsDemo {
+  background: #fff;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.termsContent {
+  height: 250px;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: #fafafa;
+}
+
+.termsContent h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.termsContent p {
+  margin-bottom: 1rem;
+  color: #666;
+}
+
+.termsContent ol {
+  padding-left: 1.5rem;
+  color: #666;
+}
+
+.termsContent li {
+  margin: 0.75rem 0;
+  line-height: 1.5;
+}
+
+.termsFooter {
+  padding: 1.5rem;
+  background: white;
+  border-top: 1px solid #eee;
+}
+
+.readProgress {
+  margin-bottom: 1.5rem;
+  color: #666;
+}
+
+.readProgress span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.progressBar {
+  margin: 0.75rem 0;
+  height: 4px;
+  background: #eee;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.3s ease;
+}
+
+.termsToggleLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: #f9f9f9;
+  border-radius: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.thankYou {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #e8f5e9;
+  border-radius: 0.5rem;
+  color: #4caf50;
+  animation: fadeIn 0.3s ease;
+}
+
+/* 不可能三角示例 */
+.impossibleDemo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.impossibleLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f5f5f5;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
