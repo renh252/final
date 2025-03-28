@@ -1,148 +1,67 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styles from './Register.module.css';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { auth, googleProvider, signInWithPopup, onAuthStateChanged } from '@/lib/firebase'; // 引入 Firebase 相關函式
-import { createUserWithEmailAndPassword } from 'firebase/auth'; // 引入電子郵件/密碼註冊函式
+
 
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [emailExists, setEmailExists] = useState(false);
   const [emailCheckLoading, setEmailCheckLoading] = useState(false);
-  const [loading, setLoading] = useState(true); // 添加 loading 狀態
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(false);
-      if (currentUser) {
-        try {
-          const response = await fetch(`/api/user/${currentUser.uid}`); // 假設後端 API 端點
-          if (response.ok) {
-            const userData = await response.json();
-            if (userData.has_additional_info) {
-              router.push('/dashboard'); // 導向主要頁面
-            } else {
-              router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(currentUser.email)}`); // 導向填寫額外資料
-            }
-          } else {
-            console.error('獲取使用者資料失敗');
-            // 處理錯誤
-          }
-        } catch (error) {
-          console.error('獲取使用者資料時發生錯誤:', error);
-          // 處理錯誤
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, [router]);
-
-  const handleGoogleSignIn = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      if (user && user.email) {
-        try {
-          const response = await fetch('/api/member/register', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: user.email, name: user.displayName || '', firebaseUid: user.uid }),
-          });
-
-          const data = await response.json();
-
-          if (response.ok && data.message === '註冊成功') {
-            router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(user.email)}`);
-          } else {
-            setError(data.message || 'Google 註冊失敗，請稍後重試。');
-          }
-        } catch (error) {
-          console.error('呼叫後端註冊 API 失敗:', error);
-          setError('Google 註冊失敗，請稍後重試。');
-        }
-      } else {
-        console.log('未獲取到 Google 登入的使用者資訊。');
-        setError('Google 登入失敗，無法獲取使用者資訊。');
-      }
-    } catch (error) {
-      console.error('Google 註冊/登入失敗：', error);
-      setError(error.message);
-    }
-  };
 
   const handleEmailChange = async (e) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
-    setEmailExists(false); // Reset emailExists when the email changes
-    setError(''); // Clear any previous errors related to email
-    // 您可以根據需要在這裡添加前端的電子郵件格式驗證
-  };
-
-  const handleEmailRegister = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError('請輸入有效的電子郵件地址');
-      return;
-    }
-
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      setError('密碼強度不足，請使用至少 8 個字符，包含字母和數字');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('密碼和確認密碼不一致');
-      return;
-    }
+    setEmailCheckLoading(true); // 開始檢查時設定為 true
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('電子郵件註冊成功：', userCredential.user);
-      const firebaseUid = userCredential.user.uid;
-
       const response = await fetch('/api/member/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, firebaseUid }),
+        body: JSON.stringify({ email: newEmail }),
       });
 
       const data = await response.json();
-
-      if (response.ok && data.message === '註冊成功') {
-        // 註冊成功後，直接導向 register2 並傳遞 email
-        router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(email)}`);
-      } else {
-        setError(data.message || '電子郵件註冊失敗，請稍後重試。');
-      }
-    } catch (firebaseError) {
-      console.error('Firebase 電子郵件註冊失敗：', firebaseError);
-      setError(firebaseError.message);
-      if (firebaseError.code === 'auth/email-already-in-use') {
-        setError('此電子郵件已註冊，請使用其他電子郵件登入。');
-      } else if (firebaseError.code === 'auth/weak-password') {
-        setError('密碼強度不足，請使用至少 6 個字元的密碼。');
-      }
+      setEmailExists(data.exists);
+    } catch (error) {
+      console.error('檢查電子郵件錯誤:', error);
+    } finally {
+      setEmailCheckLoading(false); // 檢查完成後設定為 false
     }
   };
 
-  if (loading) {
-    return <div>載入中...</div>;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // 電子郵件格式驗證
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('請輸入有效的電子郵件地址');
+      return;
+    }
+
+    // 密碼強度驗證（至少 8 個字符，包含字母和數字）
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      alert('密碼強度不足，請使用至少 8 個字符，包含字母和數字');
+      return;
+    }
+
+    // 確認密碼是否一致
+    if (password !== confirmPassword) {
+      alert('密碼和確認密碼不一致');
+      return;
+    }
+
+    // 導航到 register2 頁面，並傳遞資料
+    router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
+  };
 
   return (
     <>
@@ -153,99 +72,100 @@ export default function RegisterPage() {
             <button
               className="button"
               style={{ width: '350px', height: '60px', fontSize: '20px' }}
-              onClick={handleGoogleSignIn}
             >
-              <Image
+              <img
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/153b2dcd7ca2627a463800e38ebc91cf43bcd541ad79fa3fea9919eec17199df?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
                 alt="Google icon"
                 style={{ width: '100px', height: '50px' }}
-                width={100}
-                height={50}
               />
               以Google帳號註冊
             </button>
           </div>
 
           <h2 className={styles.sectionTitle}>加入會員</h2>
-          <form onSubmit={handleEmailRegister}>
-            <div className={styles.formGroup}>
-              <label htmlFor="email" className={styles.formLabel}>
-                電子信箱 :
-              </label>
-              <br />
-              <input
-                type="email"
-                id="email"
-                className={styles.formInput}
-                required
-                value={email}
-                onChange={handleEmailChange}
-              />
-              {error && error.includes('電子郵件') && <p className={styles.error}>{error}</p>}
-              <br /> <br />
-              <label htmlFor="password" className={styles.formLabel}>
-                密碼 :
-              </label>
-              <br />
-              <input
-                type="password"
-                id="password"
-                className={styles.formInput}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              {error && error.includes('密碼') && <p className={styles.error}>{error}</p>}
-              <br /> <br />
-              <label htmlFor="confirmPassword" className={styles.formLabel}>
-                確認密碼 :
-              </label>
-              <br />
-              <input
-                type="password"
-                id="confirmPassword"
-                className={styles.formInput}
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-              {error && error.includes('不一致') && <p className={styles.error}>{error}</p>}
-              <br /> <br />
-              {error && !error.includes('電子郵件') && !error.includes('密碼') && !error.includes('不一致') && <p className={styles.error}>{error}</p>}
-              <br />
-              <button
-                className="button"
-                style={{ width: '200px', height: '50px', fontSize: '28px' }}
-                type="submit"
-              >
-                註冊
-              </button>
-              <br /><br />
-              <div>
-                <p className={styles.loginLink}>
-                  已經是會員?
-                  <a
-                    href="/member/MemberLogin/login"
-                    className={styles.link}
-                    style={{ fontSize: '20px' }}
-                  >
-                    點此登入
-                  </a>
-                </p>
-                <p className={styles.termsText}>
-                  點擊「註冊」即表示你同意我們的
-                  <a href="#" className={styles.link} style={{ fontSize: '20px' }}>
-                    使用條款
-                  </a>
-                  及
-                  <a href="#" className={styles.link} style={{ fontSize: '20px' }}>
-                    私隱政策
-                  </a>
-                  。
-                </p>
-              </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="email" className={styles.formLabel}>
+              電子信箱 :
+            </label>
+            <br />
+            <input
+              type="email"
+              id="email"
+              className={styles.formInput}
+              required
+              value={email} // 添加 value 和 onChange
+              onChange={handleEmailChange}
+            />
+            {emailCheckLoading && <p>檢查中...</p>}
+            {emailExists && <p className={styles.error}>此電子郵件已註冊，請使用其他電子郵件</p>}
+            <br /> <br />
+            <label htmlFor="password" className={styles.formLabel}>
+              密碼 :
+            </label>
+            <br />
+            <input
+              type="password"
+              id="password"
+              className={styles.formInput}
+              required
+              value={password} // 添加 value 和 onChange
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <br /> <br />
+            <label htmlFor="confirmPassword" className={styles.formLabel}>
+              確認密碼 :
+            </label>
+            <br />
+            <input
+              type="password"
+              id="confirmPassword"
+              className={styles.formInput}
+              required
+              value={confirmPassword} // 添加 value 和 onChange
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <br /> <br />
+            <br />
+            <button
+              className="button"
+              style={{ width: '200px', height: '50px', fontSize: '28px' }}
+              onClick={handleSubmit} // 提交表單
+            >
+              註冊
+            </button>
+            <br /><br />
+            <div>
+              <p className={styles.loginLink}>
+                已經是會員?
+                <a
+                  href="\member\MemberLogin\login"
+                  className={styles.link}
+                  style={{ fontSize: '20px' }}
+                >
+                  點此登入
+                </a>
+              </p>
+              <p className={styles.termsText}>
+                點擊「註冊」即表示你同意我們的
+                <a
+                  href="#"
+                  className={styles.link}
+                  style={{ fontSize: '20px' }}
+                >
+                  使用條款
+                </a>
+                及
+                <a
+                  href="#"
+                  className={styles.link}
+                  style={{ fontSize: '20px' }}
+                >
+                  私隱政策
+                </a>
+                。
+              </p>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </>
