@@ -1,23 +1,20 @@
 .toggleContainer {
-  position: relative;
-  aspect-ratio: 1.8;
-  width: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
 }
 
 .catToggle {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 120px;
+  height: 120px;
   border: none;
-  border-radius: 9999px;
-  background-color: #dfdfdf;
+  background: #f0f0f0;
+  border-radius: 60px;
   cursor: pointer;
-  transition: background-color 0.4s;
-  overflow: visible;
-}
-
-.catToggle.enabled {
-  background-color: #22c55e;
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 /* 貓耳朵 */
@@ -210,93 +207,55 @@
   animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-/* 貓爪容器 */
-.catPaw {
+.toggleProactive {
+  aspect-ratio: 2;
+  height: var(--toggle-size, 4rem);
+  position: relative;
+  overflow: visible;
+}
+
+.svg {
   position: absolute;
   top: 0;
-  left: 50%;
+  left: 0;
   height: 100%;
-  aspect-ratio: 640/155;
-  transform: translateX(-50%);
-  pointer-events: none;
+  aspect-ratio: 640 / 155;
+  width: auto;
   z-index: 0;
 }
 
-/* 貓爪鏡像效果 */
 .mirror {
-  scale: -1 1;
-  transform-origin: left center;
+  transform: scaleX(-1);
+  transform-origin: center center;
 }
 
-/* SVG 元素定位 */
-.arm,
-.elbow {
-  position: absolute;
-  top: 0;
-  left: 50%;
+.track {
+  position: relative;
+  width: 100%;
   height: 100%;
-  aspect-ratio: 640/155;
-  transform: translateX(-50%);
+  transition-duration: 0.4s;
+  z-index: 0;
 }
 
-/* 動畫相關類 */
-.playing .elbow {
-  z-index: 1;
-  animation: moveElbow 0.6s ease-in-out;
+.trackActive {
+  background-color: #4caf50;
 }
 
-/* 開關按鈕 */
-.catToggle::after {
-  content: '';
+.trackInactive {
+  background-color: #dfdfdf;
+}
+
+.thumb {
   position: absolute;
   height: 80%;
-  aspect-ratio: 1;
   top: 10%;
   left: 50%;
-  background-color: white;
-  border-radius: 9999px;
-  transition: transform 0.4s cubic-bezier(0.505, -0.005, 0.005, 1.23);
+  aspect-ratio: 1;
+  transition-duration: 0.4s;
   transform: translateX(-100%);
+  transition-timing-function: cubic-bezier(0.505, -0.005, 0.005, 1.23);
 }
 
-.catToggle.enabled::after {
-  transform: translateX(0);
-}
-
-@keyframes shakeAnimation {
-  10%,
-  90% {
-    transform: translate3d(-1px, 0, 0);
-  }
-  20%,
-  80% {
-    transform: translate3d(2px, 0, 0);
-  }
-  30%,
-  50%,
-  70% {
-    transform: translate3d(-4px, 0, 0);
-  }
-  40%,
-  60% {
-    transform: translate3d(4px, 0, 0);
-  }
-}
-
-@keyframes moveElbow {
-  0% {
-    d: path('M322 75C345 75 383.5 75 399.5 75');
-  }
-  25% {
-    d: path('M531.5 75C554.5 75 563.5 75 579.5 75');
-  }
-  50% {
-    d: path('M514 74.76C528.5 75.76 536 72.76 541 80.26');
-  }
-  75% {
-    d: path('M524 75C548.5 75 537.5 105 506 105');
-  }
-  100% {
-    d: path('M531.5 82C559.5 91 449 122 405.5 102.5');
-  }
+.thumb.active {
+  transform: translateX(0%);
 }
