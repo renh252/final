@@ -4,30 +4,40 @@ import { database } from '@/app/api/_lib/db';
 
 export async function POST(req) {
   try {
-    const requestBody = await req.json();
-    const { email, name, phone, birthday, address } = requestBody;
+    console.log('請求 body:', req.body);
+    const { email, password, name, phone, birthday, address } = await req.json();
 
-    if (!email) {
-      return NextResponse.json({ success: false, message: '缺少電子郵件，無法更新使用者資訊' }, { status: 400 });
-    }
-
-    const [result, error] = await database.executeSecureQuery(
-      'UPDATE users SET user_name = ?, user_number = ?, user_birthday = ?, user_address = ?, has_additional_info = ? WHERE user_email = ?',
-      [name, phone, birthday, address, true, email]
+    // 檢查電子郵件是否已存在
+    const [rows, error1] = await database.executeSecureQuery(
+      'SELECT * FROM users WHERE user_email = ?',
+      [email]
     );
 
-    if (error) {
-      console.error('更新使用者資訊失敗:', error);
-      return NextResponse.json({ success: false, message: '更新使用者資訊失敗，請稍後重試' }, { status: 500 });
+    if (error1) {
+      console.error('查詢電子郵件錯誤:', error1);
+      return NextResponse.json({ message: '資料庫查詢錯誤', error: error1.message }, { status: 500 });
     }
 
-    if (result.affectedRows > 0) {
-      return NextResponse.json({ success: true, message: '詳細資料更新成功' });
-    } else {
-      return NextResponse.json({ success: false, message: '找不到該電子郵件的使用者或更新失敗' }, { status: 404 });
+    if (rows && rows.length > 0) {
+      return NextResponse.json({ message: '電子郵件已存在' }, { status: 400 });
     }
+
+    // 直接儲存明碼密碼
+    const [result, error2] = await database.executeSecureQuery(
+      'INSERT INTO users (user_email, user_password, user_name, user_number, user_birthday, user_address) VALUES (?, ?, ?, ?, ?, ?)',
+      [email, password, name, phone, birthday, address]
+    );
+
+    if (error2) {
+      console.error('資料庫插入錯誤:', error2);
+      return NextResponse.json({ message: '資料庫插入錯誤', error: error2.message }, { status: 500 });
+    }
+
+    console.log('資料庫插入結果:', result);
+
+    return NextResponse.json({ message: '註冊成功' }, { status: 200 });
   } catch (error) {
-    console.error('更新使用者資訊時發生錯誤:', error);
-    return NextResponse.json({ success: false, message: '更新使用者資訊時發生錯誤，請稍後重試' }, { status: 500 });
+    console.error('註冊錯誤:', error);
+    return NextResponse.json({ message: '註冊失敗，請稍後重試', error: error.message }, { status: 500 });
   }
 }
