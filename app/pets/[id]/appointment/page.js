@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/app/context/AuthContext'
 import Image from 'next/image'
@@ -35,6 +35,7 @@ import Link from 'next/link'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import styles from './appointment.module.css'
 import { usePageTitle } from '@/app/context/TitleContext'
+import CatPawToggle from '@/app/pets/_components/CatPawToggle'
 
 export default function PetAppointmentPage() {
   usePageTitle('寵物領養')
@@ -70,7 +71,12 @@ export default function PetAppointmentPage() {
     adopted_experience: false,
     other_pets: '',
     note: '',
+    agreed_terms: false,
   })
+
+  // 閱讀進度相關
+  const [readingProgress, setReadingProgress] = useState(0)
+  const termsRef = useRef(null)
 
   // 獲取寵物資料和可用時段
   useEffect(() => {
@@ -173,6 +179,44 @@ export default function PetAppointmentPage() {
     }
   }
 
+  // 處理閱讀進度
+  const handleScroll = () => {
+    if (termsRef.current) {
+      const element = termsRef.current
+      const totalHeight = element.scrollHeight - element.clientHeight
+      const scrollPosition = element.scrollTop
+
+      if (totalHeight > 0) {
+        // 計算閱讀進度百分比
+        const progress = Math.min(
+          Math.floor((scrollPosition / totalHeight) * 100),
+          100
+        )
+        setReadingProgress(progress)
+      } else {
+        setReadingProgress(100) // 內容少於容器高度時直接設為100%
+      }
+    }
+  }
+
+  // 同意規章狀態變更
+  const handleTermsToggle = (checked) => {
+    // 如果閱讀進度未達100%，不允許設為同意
+    if (readingProgress < 100 && checked) {
+      return
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      agreed_terms: checked,
+    }))
+
+    setFormErrors({
+      ...formErrors,
+      agreed_terms: '',
+    })
+  }
+
   // 表單驗證
   const validateForm = () => {
     const errors = {}
@@ -213,6 +257,10 @@ export default function PetAppointmentPage() {
       errors.child_number = '兒童人數不能為負數'
     }
 
+    if (!formData.agreed_terms) {
+      errors.agreed_terms = '請閱讀並同意領養規章'
+    }
+
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -223,6 +271,21 @@ export default function PetAppointmentPage() {
     if (!isAuthenticated) {
       setError('請先登入')
       router.push('/member/MemberLogin/login')
+      return
+    }
+
+    // 確保已同意領養規章
+    if (!formData.agreed_terms) {
+      setFormErrors({
+        ...formErrors,
+        agreed_terms: '請閱讀並同意領養規章',
+      })
+
+      // 滾動到規章區域
+      if (termsRef.current) {
+        termsRef.current.scrollIntoView({ behavior: 'smooth' })
+      }
+
       return
     }
 
@@ -248,21 +311,20 @@ export default function PetAppointmentPage() {
           child_number: parseInt(formData.child_number),
           adopted_experience: Boolean(formData.adopted_experience),
           other_pets: formData.other_pets || '',
-          note: formData.note || '',
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || '提交預約申請失敗')
+        throw new Error(data.error || '預約失敗')
       }
 
-      // 成功處理
-      alert('預約申請已成功提交，請等待審核')
-      router.push('/member/appointments')
+      // 預約成功
+      setSuccess(true)
     } catch (err) {
-      setError(err.message)
+      console.error('Error submitting appointment:', err)
+      setError(err.message || '預約過程中發生錯誤，請稍後再試')
     } finally {
       setSubmitting(false)
     }
@@ -545,6 +607,84 @@ export default function PetAppointmentPage() {
                   </div>
                 </Alert>
               )}
+
+              {/* 領養規章 */}
+              <div className={styles.formSection}>
+                <h5 className={styles.sectionTitle}>
+                  <FaInfoCircle className="me-2 text-primary" />
+                  領養規章與須知
+                </h5>
+
+                <div className={styles.termsContainer}>
+                  <div
+                    ref={termsRef}
+                    className={styles.termsScroll}
+                    onScroll={handleScroll}
+                  >
+                    <h6>保障動物權益與健康的領養守則</h6>
+                    <p>
+                      感謝您考慮透過領養來為浪浪提供一個永久的家。為確保動物福利及雙方權益，請您詳細閱讀以下規章：
+                    </p>
+
+                    <h6>1. 領養前評估</h6>
+                    <p>
+                      • 確認您的生活環境、時間和經濟狀況是否適合長期飼養寵物。
+                    </p>
+                    <p>• 考慮寵物的品種特性、大小、活動需求及預期壽命。</p>
+                    <p>• 所有同住成員應對領養決定達成共識。</p>
+
+                    <h6>2. 基本責任</h6>
+                    <p>• 提供適當的食物、清潔水源、舒適住所及定期運動。</p>
+                    <p>• 按時接種疫苗、驅蟲及進行健康檢查。</p>
+                    <p>• 保持寵物清潔並維持生活環境衛生。</p>
+                    <p>• 為寵物辦理寵物登記、晶片植入等法定程序。</p>
+
+                    <h6>3. 領養承諾</h6>
+                    <p>• 視寵物為家庭成員，提供終生照顧。</p>
+                    <p>• 不得隨意棄養、轉讓或售賣領養的寵物。</p>
+                    <p>• 如遇特殊情況無法繼續飼養，需先聯繫本平台尋求協助。</p>
+
+                    <h6>4. 追蹤服務</h6>
+                    <p>
+                      •
+                      領養後3個月內，我們將進行家訪或視訊訪問，確認寵物適應情況。
+                    </p>
+                    <p>• 領養人需配合提供寵物近況照片或視訊。</p>
+
+                    <h6>5. 退養規定</h6>
+                    <p>• 領養2週內發現重大健康問題，可申請退養評估。</p>
+                    <p>• 退養需經本平台確認，不得自行處置。</p>
+
+                    <h6>6. 寵物死亡報告</h6>
+                    <p>• 若寵物不幸死亡，需通知本平台並提供相關證明。</p>
+
+                    <h6>7. 法律責任</h6>
+                    <p>• 領養人需承擔寵物可能造成的一切損害賠償責任。</p>
+                    <p>
+                      • 嚴禁將領養寵物用於繁殖、實驗、鬥獸等商業或不當用途。
+                    </p>
+                  </div>
+
+                  <div className={styles.termsAgree}>
+                    <CatPawToggle
+                      isEnabled={formData.agreed_terms}
+                      onToggle={handleTermsToggle}
+                      furColor="#444"
+                      padColor="#FFA5A5"
+                      size="4rem"
+                      disabled={readingProgress < 100}
+                    />
+                    <div className={styles.agreeText}>
+                      我已閱讀並同意遵守上述領養規章
+                      {formErrors.agreed_terms && (
+                        <div className={styles.agreeError}>
+                          {formErrors.agreed_terms}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <Form onSubmit={handleSubmit}>
                 <div className={styles.formSection}>
