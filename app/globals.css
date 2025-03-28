@@ -62,6 +62,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-animation: fadein 0.2s;
   animation: fadein 0.2s;
+  margin-top: 56px;
 }
 
 * {
