@@ -409,51 +409,7 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <div className={styles.donate_info_checkbox}>
-        <input
-          type="checkbox"
-          id="userInfo"
-          checked={userInfoChecked}
-          onChange={(e) => {
-            const checked = e.target.checked
-            setUserInfoChecked(checked)
-            const fullAddress = userAddress || ''
-            const convertToTraditionalCity = (cityName) => {
-              return cityName.replace(/^台/, '臺');
-            };
-            const city = convertToTraditionalCity(fullAddress.slice(0, 3));
-            const town = fullAddress.slice(3, 6)
-            const detail = fullAddress.slice(6)
 
-            if (checked) {
-              setCheckoutData((prev) => ({
-                ...prev,
-                recipient_name: userName,
-                recipient_phone: userNumber,
-                recipient_email: userEmail,
-                address: {
-                  city,
-                  town,
-                  else: detail,
-                },
-              }))
-            } else {
-              setCheckoutData((prev) => ({
-                ...prev,
-                recipient_name: '',
-                recipient_phone: '',
-                recipient_email: '',
-                address: {
-                  city: '',
-                  town: '',
-                  else: '',
-                },
-              }))
-            }
-          }}
-        />
-        <label htmlFor="userInfo">帶入會員資料</label>
-      </div>
       <Breadcrumbs
         title="配送/付款方式"
         items={[
@@ -501,6 +457,51 @@ export default function CheckoutPage() {
             </div>
             {checkoutData.delivery ? (
               <div className={styles.containBody}>
+                <div className={styles.donate_info_checkbox}>
+                  <input
+                    type="checkbox"
+                    id="userInfo"
+                    checked={userInfoChecked}
+                    onChange={(e) => {
+                      const checked = e.target.checked
+                      setUserInfoChecked(checked)
+                      const fullAddress = userAddress || ''
+                      const convertToTraditionalCity = (cityName) => {
+                        return cityName.replace(/^台/, '臺');
+                      };
+                      const city = convertToTraditionalCity(fullAddress.slice(0, 3));
+                      const town = fullAddress.slice(3, 6)
+                      const detail = fullAddress.slice(6)
+
+                      if (checked) {
+                        setCheckoutData((prev) => ({
+                          ...prev,
+                          recipient_name: userName,
+                          recipient_phone: userNumber,
+                          recipient_email: userEmail,
+                          address: {
+                            city,
+                            town,
+                            else: detail,
+                          },
+                        }))
+                      } else {
+                        setCheckoutData((prev) => ({
+                          ...prev,
+                          recipient_name: '',
+                          recipient_phone: '',
+                          recipient_email: '',
+                          address: {
+                            city: '',
+                            town: '',
+                            else: '',
+                          },
+                        }))
+                      }
+                    }}
+                  />
+                  <label htmlFor="userInfo">帶入會員資料</label>
+                </div>
                 {checkoutData.delivery === '宅配' ? (
                   <>
                     {/* <label className={styles.user}>

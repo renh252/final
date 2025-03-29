@@ -39,6 +39,7 @@
     margin: 0;
     padding: 0;
     margin: 0;
+    color: #6b4f37;
   }
 }
 .line_lg{
@@ -58,12 +59,12 @@
       width: 30px;
       height: 30px;
       transform: rotate(22deg);
-      color: rgba(199, 150, 80, 1);
+      
+      color: #6b4f37;
     }
   }
   p{
     font-size: 36px;
-    text-shadow: #000 1px 0px 1px;
     text-wrap: nowrap;
   }
 }
@@ -88,6 +89,15 @@
   
 /* mobile */
 @media screen and (max-width: 768px) {
+  .line_lg
+  { 
+    .imgs >:not(:first-child){
+      display: none;
+    }
+    p{
+      font-size: 2rem;
+    }
+  }
   .icon {
     display: none;
   }
