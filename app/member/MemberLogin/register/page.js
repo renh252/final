@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import styles from './Register.module.css';
 import { useRouter } from 'next/navigation';
+import { auth, googleProvider, signInWithPopup, onAuthStateChanged } from '@/lib/firebase'; // 引入 Firebase 相關函式
+
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export default function RegisterPage() {
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [tempToken, setTempToken] = useState('');
+  const [signInError, setSignInError] = useState('');
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -94,6 +97,60 @@ export default function RegisterPage() {
       setEmailCheckLoading(false);
     }
   };
+  const handleGoogleSignIn = async () => {
+    setSignInError('');
+    const provider = new GoogleAuthProvider();
+
+    try {
+      const auth = getAuth();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      if (user) {
+        // Google 登入成功，獲取使用者資訊
+        const googleEmail = user.email;
+        const googleName = user.displayName;
+        const idToken = await user.getIdToken(); // 獲取 Firebase ID Token
+
+        // 將 ID Token 發送到後端進行驗證和後續處理
+        await checkGoogleSignInStatus(googleEmail, googleName, idToken);
+      }
+    } catch (error) {
+      console.error('Google 登入錯誤:', error);
+      setSignInError(error.message);
+    }
+  };
+//google註冊
+  const checkGoogleSignInStatus = async (googleEmail, googleName, idToken) => {
+    try {
+      const response = await fetch('/api/member/googleCallback', { // 後端驗證 API
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`, // 將 ID Token 放在 Authorization Header 中
+        },
+        body: JSON.stringify({ googleEmail, googleName }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.userExists && data.hasDetails) {
+          console.log('Google 登入成功，已存在使用者且有詳細資料');
+          window.location.href = '/member/dashboard'; // 導向使用者儀表板
+        } else {
+          console.log('Google 登入成功，需要填寫詳細資料');
+          router.push(`/member/MemberLogin/register2?googleEmail=${encodeURIComponent(googleEmail)}&googleName=${encodeURIComponent(googleName)}&isGoogleSignIn=true`);
+        }
+      } else {
+        console.error('Google 登入回調失敗:', data);
+        alert('Google 登入失敗，請稍後重試');
+      }
+    } catch (error) {
+      console.error('檢查 Google 登入狀態錯誤:', error);
+      alert('Google 登入失敗，請稍後重試');
+    }
+  };
 
   return (
     <>
@@ -104,6 +161,7 @@ export default function RegisterPage() {
             <button
               className="button"
               style={{ width: '350px', height: '60px', fontSize: '20px' }}
+              onClick={handleGoogleSignIn}
             >
               <img
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/153b2dcd7ca2627a463800e38ebc91cf43bcd541ad79fa3fea9919eec17199df?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
@@ -112,6 +170,7 @@ export default function RegisterPage() {
               />
               以Google帳號註冊
             </button>
+            {signInError && <p className={styles.error}>{signInError}</p>}
           </div>
 
           <h2 className={styles.sectionTitle}>加入會員 - 步驟 1</h2>
