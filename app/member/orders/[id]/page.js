@@ -349,7 +349,7 @@ const submitReview = async (orderItemId, productId, variantId) => {
                                       color: (hoverRating[`${product.product_id}-${product.variant_id}`] >= star || 
                                               reviews[`${product.product_id}-${product.variant_id}`]?.rating >= star) 
                                               ? '#ffcc00' 
-                                              : '#cda274' 
+                                              : '#bebbb8' 
                                     }}
                                     onClick={() => handleRating(product.product_id, product.variant_id, star)}
                                     onMouseEnter={() => handleHover(product.product_id, product.variant_id, star)}
