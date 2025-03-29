@@ -22,8 +22,10 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
-
+# 環境變數檔案 (更新)
+.env
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo
