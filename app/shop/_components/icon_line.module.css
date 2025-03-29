@@ -67,8 +67,7 @@
     text-wrap: nowrap;
   }
 }
-/* computer */
-@media screen and (min-width: 1081px) {
+
 
   /* icon_line.js */
   .line{
@@ -84,15 +83,18 @@
     }
   }
   
-  }
+
 
   
 /* mobile */
-@media screen and (max-width: 1080px) {
+@media screen and (max-width: 768px) {
+  .icon {
+    display: none;
+  }
   /* icon_line.js */ 
   .line{
     display: flex; 
-    justify-content: space-between;
+    justify-content: center;
     p{
       color: #f0f8ff;
       text-shadow: #f0f8ff 1px 0px;
