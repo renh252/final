@@ -57,8 +57,8 @@ export default function ExamplesPage() {
         <div className={styles.demo}>
           <div className={styles.demoItem}>
             <CatPawToggle
-              checked={basicValue}
-              onChange={setBasicValue}
+              isEnabled={basicValue}
+              onToggle={setBasicValue}
               disabled={isDisabled}
               size="4rem"
             />
@@ -91,7 +91,7 @@ export default function ExamplesPage() {
         <div className={styles.customDemo}>
           {customStyles.map((style, index) => (
             <div key={index} className={styles.demoItem}>
-              <CatPawToggle checked={false} onChange={() => {}} {...style} />
+              <CatPawToggle isEnabled={false} onToggle={() => {}} {...style} />
               <div className={styles.styleInfo}>
                 <p>大小: {style.size}</p>
                 <p>
@@ -147,8 +147,8 @@ export default function ExamplesPage() {
             <label className={styles.termsToggleLabel}>
               <span>我已詳閱並同意以上內容</span>
               <CatPawToggle
-                checked={hasRead}
-                onChange={setHasRead}
+                isEnabled={hasRead}
+                onToggle={setHasRead}
                 disabled={readRate < 100}
                 size="2.5rem"
                 furColor="#4CAF50"
