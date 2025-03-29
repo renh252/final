@@ -1,48 +1,79 @@
 .container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.headerSection {
+  margin-bottom: 3rem;
+  text-align: center;
+  background-color: #f8f9fa;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.pageDescription {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #555;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .section {
-  margin-bottom: 3rem;
+  margin-bottom: 4rem;
+  background-color: white;
+  border-radius: 12px;
   padding: 2rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 1rem;
-  background: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .section h2 {
-  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
   color: #333;
-  font-size: 1.5rem;
-  font-weight: 600;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 0.5rem;
 }
 
 .sectionDescription {
-  margin-bottom: 1.5rem;
-  color: #666;
-  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  color: #555;
+  line-height: 1.6;
 }
 
 /* 基本用法示例 */
 .demo {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .demoItem {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 1rem;
   padding: 1.5rem;
-  background: #f8f8f8;
-  border-radius: 0.5rem;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background-color: #fafafa;
+  width: 100%;
+  max-width: 400px;
 }
 
 .demoDescription {
-  color: #666;
+  text-align: center;
+  width: 100%;
 }
 
 .demoDescription p {
@@ -50,48 +81,36 @@
 }
 
 .hint {
+  color: #666;
   font-size: 0.9rem;
-  color: #888;
   font-style: italic;
+  margin-top: 0.5rem;
 }
 
 .checkboxLabel {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   cursor: pointer;
-  color: #666;
-  padding: 1rem;
-  background: #f0f0f0;
-  border-radius: 0.5rem;
-  transition: background-color 0.2s;
-}
-
-.checkboxLabel:hover {
-  background: #e8e8e8;
+  font-size: 1rem;
+  user-select: none;
 }
 
 /* 自定義樣式示例 */
 .customDemo {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
-  padding: 2rem;
-  background: #f5f5f5;
-  border-radius: 0.5rem;
 }
 
 .styleInfo {
   margin-top: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 0.5rem;
   font-size: 0.9rem;
+  color: #666;
 }
 
 .styleInfo p {
   margin: 0.5rem 0;
-  color: #666;
 }
 
 .styleInfo span {
@@ -100,20 +119,20 @@
 
 /* 領養同意書示例 */
 .termsDemo {
-  background: #fff;
-  border-radius: 0.5rem;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #eee;
 }
 
 .termsContent {
-  height: 250px;
+  background-color: #f9f9f9;
+  padding: 2rem;
+  max-height: 300px;
   overflow-y: auto;
-  padding: 1.5rem;
-  background: #fafafa;
 }
 
 .termsContent h3 {
+  margin-top: 0;
   margin-bottom: 1rem;
   color: #333;
 }
@@ -125,23 +144,20 @@
 
 .termsContent ol {
   padding-left: 1.5rem;
-  color: #666;
 }
 
 .termsContent li {
-  margin: 0.75rem 0;
-  line-height: 1.5;
+  margin-bottom: 0.75rem;
 }
 
 .termsFooter {
   padding: 1.5rem;
-  background: white;
-  border-top: 1px solid #eee;
+  background-color: white;
+  border-top: 1px solid #eaeaea;
 }
 
 .readProgress {
   margin-bottom: 1.5rem;
-  color: #666;
 }
 
 .readProgress span {
@@ -150,59 +166,123 @@
 }
 
 .progressBar {
-  margin: 0.75rem 0;
-  height: 4px;
-  background: #eee;
-  border-radius: 2px;
+  height: 10px;
+  background-color: #eaeaea;
+  border-radius: 5px;
+  margin-top: 0.5rem;
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background: #4caf50;
-  transition: width 0.3s ease;
+  background-color: #4caf50;
+  transition: width 0.3s;
 }
 
 .termsToggleLabel {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem;
-  margin: 1rem 0;
-  background: #f9f9f9;
-  border-radius: 0.5rem;
-  color: #333;
-  font-weight: 500;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background-color: #f0f7ff;
+  border-radius: 6px;
+  margin-top: 1rem;
 }
 
 .thankYou {
-  text-align: center;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   padding: 1rem;
-  background: #e8f5e9;
-  border-radius: 0.5rem;
-  color: #4caf50;
-  animation: fadeIn 0.3s ease;
+  background-color: #e8f5e9;
+  border-radius: 6px;
+  text-align: center;
+  color: #2e7d32;
+  font-weight: 500;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
-/* 不可能三角示例 */
-.impossibleDemo {
+/* 工作原理部分 */
+.principles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.principleItem {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.principleItem h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.principleDemo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 8px;
+}
+
+.principleAnimated {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 8px;
+}
+
+.animationStep {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  max-width: 400px;
-  margin: 0 auto;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.impossibleLabel {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  background: #f5f5f5;
-  border-radius: 0.5rem;
-  cursor: pointer;
+.animationStep p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.arrow {
+  font-size: 1.5rem;
+  color: #aaa;
+}
+
+.pawAnimation {
+  position: relative;
+}
+
+.pawIcon {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  font-size: 1.5rem;
+  animation: pawWiggle 2s infinite;
+}
+
+.link {
+  color: #2563eb;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.link:hover {
+  color: #1e40af;
 }
 
 @keyframes fadeIn {
@@ -213,5 +293,45 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes pawWiggle {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .section {
+    padding: 1.5rem;
+  }
+
+  .principles {
+    grid-template-columns: 1fr;
+  }
+
+  .customDemo {
+    grid-template-columns: 1fr;
+  }
+
+  .principleAnimated {
+    flex-direction: column;
   }
 }
