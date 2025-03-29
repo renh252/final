@@ -11,66 +11,32 @@ import { auth, googleProvider, signInWithPopup, onAuthStateChanged } from '@/lib
 export default function MemberPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth(); // 使用 Context 的 login 函式
+  const { login } = useAuth();
   const [rememberMe, setRememberMe] = useState(false);
-  const [loading, setLoading] = useState(true); // 添加 loading 狀態
+  const [loading, setLoading] = useState(true);
+  const [signInError, setSignInError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(false);
-});
+    });
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
       setEmail(rememberedEmail);
       setRememberMe(true);
     }
-
     return () => unsubscribe();
-  }, [login]); // 依賴 login 確保在 auth 狀態改變後重新檢查
+  }, [login]);
 
   const handleGoogleSignIn = async () => {
+    setSignInError('');
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       if (user && user.email) {
-        try {
-          const response = await fetch('/api/member', { // 呼叫您的登入 API
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: user.email,
-              firebaseUid: user.uid,
-            }),
-          });
-  
-          const data = await response.json();
-  
-          if (response.ok && data.success) {
-            localStorage.setItem('authToken', data.data.token); // 儲存 JWT
-            router.push('/member'); // 導航到會員中心頁面
-            // 如果您的 login 函式還有其他必要操作，可以在這裡調用
-            // 例如：login(data.data.user); // 如果後端返回了完整的 user 資料
-          } else {
-            await Swal.fire({
-              title: '登入失敗',
-              text: data.message || '使用 Google 帳號登入失敗，請稍後再試。',
-              icon: 'error',
-              confirmButtonText: '確定',
-            });
-            console.error('Google 登入失敗:', data.message);
-          }
-        } catch (error) {
-          console.error('呼叫後端登入 API 失敗:', error);
-          await Swal.fire({
-            title: '登入失敗',
-            text: '呼叫後端登入 API 失敗，請稍後再試。',
-            icon: 'error',
-            confirmButtonText: '確定',
-          });
-        }
+        const idToken = await user.getIdToken();
+        await checkGoogleSignInStatus(user.email, user.displayName, idToken);
       } else {
         console.log('未獲取到 Google 登入的使用者資訊。');
         await Swal.fire({
@@ -82,9 +48,53 @@ export default function MemberPage() {
       }
     } catch (error) {
       console.error('Google 登入失敗：', error);
+      setSignInError(error.message || '使用 Google 帳號登入失敗，請稍後再試。');
       await Swal.fire({
         title: '登入失敗',
         text: error.message || '使用 Google 帳號登入失敗，請稍後再試。',
+        icon: 'error',
+        confirmButtonText: '確定',
+      });
+    }
+  };
+
+  const checkGoogleSignInStatus = async (googleEmail, googleName, idToken) => {
+    try {
+      const response = await fetch('/api/member/googleCallback', { // 使用你的 Google 登入 API 路由
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ googleEmail, googleName }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.userExists && data.hasDetails) {
+          console.log('Google 登入成功，已存在使用者且有詳細資料');
+          localStorage.setItem('authToken', data.authToken);
+          login(data.user);
+          router.push('/member');
+        } else {
+          console.log('Google 登入成功，需要填寫詳細資料');
+          router.push(`/member/MemberLogin/register2?googleEmail=${encodeURIComponent(googleEmail)}&googleName=${encodeURIComponent(googleName)}&isGoogleSignIn=true`);
+        }
+      } else {
+        console.error('Google 登入回調失敗:', data);
+        await Swal.fire({
+          title: '登入失敗',
+          text: data.message || 'Google 登入驗證失敗，請稍後重試。',
+          icon: 'error',
+          confirmButtonText: '確定',
+        });
+      }
+    } catch (error) {
+      console.error('檢查 Google 登入狀態錯誤:', error);
+      await Swal.fire({
+        title: '登入失敗',
+        text: '檢查 Google 登入狀態失敗，請稍後重試。',
         icon: 'error',
         confirmButtonText: '確定',
       });
@@ -104,6 +114,7 @@ export default function MemberPage() {
       return;
     }
 
+    setLoading(true);
     try {
       const response = await fetch('/api/member', {
         method: 'POST',
@@ -116,14 +127,12 @@ export default function MemberPage() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // 處理記住我功能
         if (rememberMe) {
           localStorage.setItem('rememberedEmail', email);
         } else {
           localStorage.removeItem('rememberedEmail');
         }
 
-        // 顯示成功訊息
         await Swal.fire({
           title: '登入成功！',
           icon: 'success',
@@ -131,19 +140,9 @@ export default function MemberPage() {
           showConfirmButton: false,
         });
 
-        // 在這裡獲取使用者資訊並檢查 has_additional_info
-        const userResponse = await fetch(`/api/user/${data.data.firebase_uid}`);
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          if (userData.has_additional_info) {
-            login(data.data); // 使用後端回傳的使用者資料更新 Context 並導航
-          } else {
-            router.push(`/member/MemberLogin/register2?email=${encodeURIComponent(email)}`);
-          }
-        } else {
-          console.error('登入成功但獲取使用者詳細資料失敗');
-          login(data.data); // 即使獲取詳細資料失敗，也先登入
-        }
+        localStorage.setItem('authToken', data.data.token);
+        login(data.data);
+        router.push('/member');
       } else {
         await Swal.fire({
           title: '登入失敗',
@@ -189,6 +188,7 @@ export default function MemberPage() {
               />
               以Google帳號登入
             </button>
+            {signInError && <p className={styles.error}>{signInError}</p>}
           </div>
         </div>
 

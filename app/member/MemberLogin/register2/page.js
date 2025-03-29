@@ -10,6 +10,8 @@ export default function Register2Page() {
   const searchParams = useSearchParams();
   const tempToken = searchParams.get('token');
   const password = searchParams.get('password');
+  const googleEmail = searchParams.get('googleEmail'); // 接收 googleEmail
+  const isGoogleSignIn = searchParams.get('isGoogleSignIn') === 'true'; // 接收 isGoogleSignIn
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -28,7 +30,7 @@ export default function Register2Page() {
     if (!tempToken || !password) {
       router.push('/member/MemberLogin/register');
     }
-  }, [tempToken, password, router]);
+  }, [isGoogleSignIn, tempToken, password, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,9 +48,19 @@ export default function Register2Page() {
       return;
     }
 
-    if (!tempToken || !password) {
-      alert('註冊流程錯誤，請返回第一步重新操作。');
-      return;
+    const requestBody = {
+      name,
+      phone,
+      birthday,
+      address,
+      isGoogleSignIn: isGoogleSignIn,
+    };
+
+    if (isGoogleSignIn) {
+      requestBody.googleEmail = googleEmail;
+    } else {
+      requestBody.tempToken = tempToken;
+      requestBody.password = password;
     }
 
     try {
@@ -57,7 +69,7 @@ export default function Register2Page() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ tempToken, password, name, phone, birthday, address }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
