@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false)
   }, [])
 
-  // 登入方法
+  // 一般會員登入方法
   const login = (userData) => {
     localStorage.setItem('token', userData.token)
     localStorage.setItem('user', JSON.stringify(userData.user))
@@ -42,8 +42,46 @@ export const AuthProvider = ({ children }) => {
       router.push(redirectPath)
     } else {
       router.push('/member')
+      }
     }
+
+      // Google 登入方法
+  const googleLogin = async (googleEmail, idToken) => {
+    try {
+      const response = await fetch('/api/member/googleCallback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ googleEmail })
+      });
+
+      if (!response.ok) {
+        throw new Error('Google 登入失敗');
+      }
+
+      const userData = await response.json();
+      
+      // 使用與普通登入相同的邏輯處理登入成功
+      localStorage.setItem('token', userData.token);
+      localStorage.setItem('user', JSON.stringify(userData.user));
+      setUser(userData.user);
+      setToken(userData.token);
+
+      // 檢查是否存在登入前的頁面路徑
+    const redirectPath = sessionStorage.getItem('redirectAfterLogin')
+    if (redirectPath) {
+      sessionStorage.removeItem('redirectAfterLogin')
+      router.push(redirectPath)
+    } else {
+      router.push('/member')
+      }
+  }catch (error) {
+    console.error('Google 登入錯誤:', error);
+    // 處理錯誤，例如顯示錯誤消息給用戶
   }
+}
 
   // 登出方法
   const logout = () => {
@@ -67,6 +105,7 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     login,
+    googleLogin, // 新增 Google 登入方法
     logout,
     loading,
     updateUser,
