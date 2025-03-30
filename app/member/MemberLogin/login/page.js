@@ -68,8 +68,10 @@ export default function MemberPage() {
         },
         body: JSON.stringify({ googleEmail, googleName }),
       });
-
-      const data = await response.json();
+      console.log('API 響應:', response);
+      const text = await response.text(); // 先獲取文本
+      console.log('響應文本:', text);
+      const data = JSON.parse(text); // 手動解析 JSON
 
       if (response.ok) {
         if (data.userExists && data.hasDetails) {

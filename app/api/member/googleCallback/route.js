@@ -2,35 +2,35 @@
 import { NextResponse } from 'next/server';
 import { database } from '@/app/api/_lib/db';
 import { getAuth } from 'firebase-admin/auth';
-import { cert, initializeApp, getApps } from 'firebase-admin/app';
+import jwt from 'jsonwebtoken';
+import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
+
+// 初始化 Firebase Admin SDK (確保只初始化一次)
+initializeFirebaseAdmin();
+
+if (!getApps().length) {
+  try {
+    const serviceAccountString = process.env.FIREBASE_ADMIN_SDK_KEY;
+
+    if (!serviceAccountString) {
+      console.error('錯誤：FIREBASE_ADMIN_SDK_KEY 環境變數未設定。');
+      return; // 或拋出錯誤
+    }
+
+    const serviceAccount = JSON.parse(serviceAccountString);
+    initializeApp({
+      credential: cert(serviceAccount),
+    });
+    console.log('Firebase Admin SDK 初始化成功');
+  } catch (error) {
+    console.error('Firebase Admin SDK 初始化失敗:', error);
+    // 在這裡你可以選擇返回錯誤響應，如你之前的做法
+  }
+} else {
+  console.log('Firebase Admin SDK 已被初始化');
+}
 
 export async function POST(req) {
-  console.log('POST /api/member/googleCallback 請求');
-
-  if (!getApps().length) {
-    console.log('Firebase Admin SDK 尚未初始化，嘗試初始化...');
-    try {
-      const serviceAccountString = process.env.FIREBASE_ADMIN_SDK_KEY;
-      console.log('FIREBASE_ADMIN_SDK_KEY:', serviceAccountString ? '已設定' : '未設定');
-
-      if (!serviceAccountString) {
-        console.error('錯誤：FIREBASE_ADMIN_SDK_KEY 環境變數未設定。');
-        return NextResponse.json({ message: 'Firebase Admin SDK 初始化失敗：環境變數未設定。' }, { status: 500 });
-      }
-
-      const serviceAccount = JSON.parse(serviceAccountString);
-      initializeApp({
-        credential: cert(serviceAccount),
-      });
-      console.log('Firebase Admin SDK 初始化成功');
-    } catch (error) {
-      console.error('Firebase Admin SDK 初始化失敗:', error);
-      return NextResponse.json({ message: 'Firebase Admin SDK 初始化失敗', error: error.message }, { status: 500 });
-    }
-  } else {
-    console.log('Firebase Admin SDK 已被初始化');
-  }
-
   try {
     const { googleEmail, googleName } = await req.json();
     const authHeader = req.headers.get('Authorization');
@@ -69,7 +69,7 @@ export async function POST(req) {
       const existingUserId = existingUserRows[0]?.user_id;
 
       // 如果使用者存在但沒有 firebase_uid，更新它 (只有當查詢到的是 google_email 匹配的記錄時才更新)
-      if (userExists && !existingFirebaseUid && existingUserId && !existingUserRows[0]?.google_email !== googleEmail) {
+      if (userExists && !existingFirebaseUid && existingUserId && !existingUserRows[0]?.google_email === googleEmail) {
         const [updateResult, errorUpdate] = await database.executeSecureQuery(
           'UPDATE users SET firebase_uid = ? WHERE user_id = ?',
           [uid, existingUserId]
@@ -94,7 +94,7 @@ export async function POST(req) {
 
       // 在成功驗證和處理使用者後，你需要生成並返回 authToken (例如 JWT)
       // 這部分需要你根據你的應用程式的驗證機制來實現
-      const authToken = 'YOUR_GENERATED_AUTH_TOKEN'; // <---- 替換為你的 JWT 生成邏輯
+      const authToken = generateAuthToken(uid); // <---- 替換為你的 JWT 生成邏輯
       const user = existingUserRows[0] || { firebase_uid: uid, google_email: googleEmail }; // 組合使用者資訊
 
       return NextResponse.json({ userExists, hasDetails, authToken, user });
@@ -108,4 +108,10 @@ export async function POST(req) {
     console.error('Google 登入回調處理錯誤:', error);
     return NextResponse.json({ message: 'Google 登入回調處理失敗', error: error.message }, { status: 500 });
   }
+
+  function generateAuthToken(uid) {
+    const secretKey = process.env.FIREBASE_ADMIN_SDK_KEY; // 從環境變量中獲取密鑰
+  const token = jwt.sign({ uid: uid }, secretKey, { expiresIn: '1h' });
+  return token;
+}
 }
