@@ -35,7 +35,6 @@ import Link from 'next/link'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import styles from './appointment.module.css'
 import { usePageTitle } from '@/app/context/TitleContext'
-import CatPawToggle from '@/app/pets/_components/CatPawToggle'
 
 export default function PetAppointmentPage() {
   usePageTitle('寵物領養')
@@ -200,7 +199,9 @@ export default function PetAppointmentPage() {
   }
 
   // 同意規章狀態變更
-  const handleTermsToggle = (checked) => {
+  const handleTermsToggle = (e) => {
+    const { checked } = e.target
+
     // 如果閱讀進度未達100%，不允許設為同意
     if (readingProgress < 100 && checked) {
       return
@@ -666,22 +667,22 @@ export default function PetAppointmentPage() {
                   </div>
 
                   <div className={styles.termsAgree}>
-                    <CatPawToggle
-                      isEnabled={formData.agreed_terms}
-                      onToggle={handleTermsToggle}
-                      furColor="#444"
-                      padColor="#FFA5A5"
-                      size="4rem"
+                    <Form.Check
+                      type="checkbox"
+                      id="agreed_terms"
+                      name="agreed_terms"
+                      checked={formData.agreed_terms}
+                      onChange={handleTermsToggle}
                       disabled={readingProgress < 100}
+                      label="我已閱讀並同意遵守上述領養規章"
+                      className={styles.termsCheckbox}
+                      isInvalid={!!formErrors.agreed_terms}
                     />
-                    <div className={styles.agreeText}>
-                      我已閱讀並同意遵守上述領養規章
-                      {formErrors.agreed_terms && (
-                        <div className={styles.agreeError}>
-                          {formErrors.agreed_terms}
-                        </div>
-                      )}
-                    </div>
+                    {formErrors.agreed_terms && (
+                      <div className="text-danger small mt-1">
+                        {formErrors.agreed_terms}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
