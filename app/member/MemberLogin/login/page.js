@@ -11,182 +11,129 @@ import { auth, googleProvider, signInWithPopup, onAuthStateChanged } from '@/lib
 export default function MemberPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth(); // 獲取 login 和 googleLogin
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(true);
   const [signInError, setSignInError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(false);
-    });
-    const rememberedEmail = localStorage.getItem('rememberedEmail');
-    if (rememberedEmail) {
-      setEmail(rememberedEmail);
-      setRememberMe(true);
-    }
-    return () => unsubscribe();
+      const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+          setLoading(false);
+      });
+      const rememberedEmail = localStorage.getItem('rememberedEmail');
+      if (rememberedEmail) {
+          setEmail(rememberedEmail);
+          setRememberMe(true);
+      }
+      return () => unsubscribe();
   }, [login]);
 
   const handleGoogleSignIn = async () => {
-    setSignInError('');
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      if (user && user.email) {
-        const idToken = await user.getIdToken();
-        await checkGoogleSignInStatus(user.email, user.displayName, idToken);
-      } else {
-        console.log('未獲取到 Google 登入的使用者資訊。');
-        await Swal.fire({
-          title: '登入失敗',
-          text: '無法獲取 Google 登入的使用者資訊，請稍後再試。',
-          icon: 'error',
-          confirmButtonText: '確定',
-        });
+      setSignInError('');
+      try {
+          const result = await signInWithPopup(auth, googleProvider);
+          const user = result.user;
+          if (user && user.email) {
+              const idToken = await user.getIdToken();
+              await checkGoogleSignInStatus(user.email, user.displayName, idToken);
+          } else {
+              console.log('未獲取到 Google 登入的使用者資訊。');
+              await Swal.fire({
+                  title: '登入失敗',
+                  text: '無法獲取 Google 登入的使用者資訊，請稍後再試。',
+                  icon: 'error',
+                  confirmButtonText: '確定',
+              });
+          }
+      } catch (error) {
+          console.error('Google 登入失敗：', error);
+          setSignInError(error.message || '使用 Google 帳號登入失敗，請稍後再試。');
+          await Swal.fire({
+              title: '登入失敗',
+              text: error.message || '使用 Google 帳號登入失敗，請稍後再試。',
+              icon: 'error',
+              confirmButtonText: '確定',
+          });
       }
-    } catch (error) {
-      console.error('Google 登入失敗：', error);
-      setSignInError(error.message || '使用 Google 帳號登入失敗，請稍後再試。');
-      await Swal.fire({
-        title: '登入失敗',
-        text: error.message || '使用 Google 帳號登入失敗，請稍後再試。',
-        icon: 'error',
-        confirmButtonText: '確定',
-      });
-    }
   };
 
   const checkGoogleSignInStatus = async (googleEmail, googleName, idToken) => {
-        try {
-          const response = await fetch('/api/member/googleCallback', { // 使用你的 Google 登入 API 路由
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${idToken}`,
-            },
-            body: JSON.stringify({ googleEmail, googleName }),
-          });
-    
-          if (response.ok) {
-            try {
-              const data = await response.json();
-              console.log('API 響應資料:', data); // 檢查 data 物件
-              if (data && data.needsAdditionalInfo) {
-                console.log('Google 登入成功，需要填寫詳細資料');
-                router.push(`/member/MemberLogin/register2?googleEmail=${encodeURIComponent(googleEmail)}&googleName=${encodeURIComponent(googleName)}&isGoogleSignIn=true`);
-              } else {
-                console.log('Google 登入成功，已存在使用者且有詳細資料');
-                localStorage.setItem('authToken', data.authToken);
-                login(data.user);
-                router.push('/member');
-              }
-            } catch (jsonError) {
-              console.error('解析 JSON 失敗:', jsonError);
-              const text = await response.text();
-              console.log('原始響應文本:', text);
-              await Swal.fire({
-                title: '登入失敗',
-                text: 'Google 登入驗證失敗，後端響應格式錯誤。',
-                icon: 'error',
-                confirmButtonText: '確定',
-              });
-            }
-          } else {
-            try {
-              const data = await response.json();
-              console.error('Google 登入回調失敗:', data);
-              await Swal.fire({
-                title: '登入失敗',
-                text: data.message || 'Google 登入驗證失敗，請稍後重試。',
-                icon: 'error',
-                confirmButtonText: '確定',
-              });
-            } catch (jsonError) {
-              console.error('解析錯誤響應 JSON 失敗:', jsonError);
-              const text = await response.text();
-              console.log('錯誤的原始響應文本:', text);
-              await Swal.fire({
-                title: '登入失敗',
-                text: 'Google 登入驗證失敗，且無法解析錯誤訊息。',
-                icon: 'error',
-                confirmButtonText: '確定',
-              });
-            }
-          }
-        } catch (error) {
-          console.error('檢查 Google 登入狀態錯誤:', error);
-          await Swal.fire({
-            title: '登入失敗',
-            text: '檢查 Google 登入狀態失敗，請稍後重試。',
-            icon: 'error',
-            confirmButtonText: '確定',
-          });
-        }
-      };
+      try {
+          await googleLogin(googleEmail, idToken);
+          // googleLogin 內部會處理後續流程 (儲存 token, user 到 Context 和 localStorage, 導航)
+      } catch (error) {
+          console.error('Google 登入回調錯誤:', error);
+          await Swal.fire({
+              title: 'Google 登入失敗',
+              text: error.message || 'Google 登入驗證失敗，請稍後重試。',
+              icon: 'error',
+              confirmButtonText: '確定',
+          });
+      }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+      e.preventDefault();
 
-    if (!email || !password) {
-      await Swal.fire({
-        title: '錯誤',
-        text: '請填寫所有欄位',
-        icon: 'error',
-        confirmButtonText: '確定',
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch('/api/member', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        if (rememberMe) {
-          localStorage.setItem('rememberedEmail', email);
-        } else {
-          localStorage.removeItem('rememberedEmail');
-        }
-
-        await Swal.fire({
-          title: '登入成功！',
-          icon: 'success',
-          timer: 1500,
-          showConfirmButton: false,
-        });
-
-        localStorage.setItem('authToken', data.data.token);
-        login(data.data);
-        router.push('/member');
-      } else {
-        await Swal.fire({
-          title: '登入失敗',
-          text: data.message || '請檢查您的電子郵件和密碼。',
-          icon: 'error',
-          confirmButtonText: '確定',
-        });
+      if (!email || !password) {
+          await Swal.fire({
+              title: '錯誤',
+              text: '請填寫所有欄位',
+              icon: 'error',
+              confirmButtonText: '確定',
+          });
+          return;
       }
-    } catch (error) {
-      console.error('登入請求失敗:', error);
-      await Swal.fire({
-        title: '錯誤',
-        text: '登入時發生錯誤，請稍後再試。',
-        icon: 'error',
-        confirmButtonText: '確定',
-      });
-    } finally {
-      setLoading(false);
-    }
+
+      setLoading(true);
+      try {
+          const response = await fetch('/api/member', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email, password }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+              if (rememberMe) {
+                  localStorage.setItem('rememberedEmail', email);
+              } else {
+                  localStorage.removeItem('rememberedEmail');
+              }
+
+              await Swal.fire({
+                  title: '登入成功！',
+                  icon: 'success',
+                  timer: 1500,
+                  showConfirmButton: false,
+              });
+
+              localStorage.setItem('token', data.data.token);
+              login(data.data);
+              router.push('/member');
+          } else {
+              await Swal.fire({
+                  title: '登入失敗',
+                  text: data.message || '請檢查您的電子郵件和密碼。',
+                  icon: 'error',
+                  confirmButtonText: '確定',
+              });
+          }
+      } catch (error) {
+          console.error('登入請求失敗:', error);
+          await Swal.fire({
+              title: '錯誤',
+              text: '登入時發生錯誤，請稍後再試。',
+              icon: 'error',
+              confirmButtonText: '確定',
+          });
+      } finally {
+          setLoading(false);
+      }
   };
 
   if (loading) {
