@@ -82,10 +82,48 @@ export default function RecordPage({
     return true
   })
 
+  // 工具函式：計算下次扣款日（加一個月）
+  const getNextDate = (dateString) => {
+    const date = new Date(dateString)
+    date.setMonth(date.getMonth() + 1)
+    return date.toLocaleDateString('zh-TW')
+  }
+
   return (
     <div className={styles.container}>
       <div>
         <h2 className={styles.header}>我的{titleText}</h2>
+        {data.recurringDonations?.length > 0 && (
+          <div className={styles.recurringReminder}>
+            <h3 className={styles.sectionTitle}>定期定額捐款提醒</h3>
+            <p className={styles.sectionSub}>
+              你目前有 <strong>{data.recurringDonations.length}</strong>{' '}
+              筆定期定額正在進行中
+            </p>
+            <div className={styles.recurringList}>
+              {data.recurringDonations.map((donation) => (
+                <div className={styles.recurringCard} key={donation.id}>
+                  <div className={styles.cardTitle}>
+                    {donation.donation_type}
+                  </div>
+                  <div className={styles.cardRow}>
+                    <span className={styles.label}>上次付款日：</span>
+                    <span>
+                      {new Date(donation.create_datetime).toLocaleDateString(
+                        'zh-TW'
+                      )}
+                    </span>
+                  </div>
+                  <div className={styles.cardRow}>
+                    <span className={styles.label}>下次扣款日：</span>
+                    <span>{getNextDate(donation.create_datetime)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <FilterBar
           filters={filters}
           startDate={startDate}
