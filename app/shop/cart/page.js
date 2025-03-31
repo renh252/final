@@ -15,6 +15,7 @@ import { MdOutlinePets } from 'react-icons/md'
 import Alert from '@/app/_components/alert'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import { usePageTitle } from '@/app/context/TitleContext'
+import CartRWD from '@/app/shop/_components/CartRWD'
 
 // 連接資料庫
 import useSWR, { mutate } from 'swr'
@@ -54,11 +55,12 @@ export default function CartPage() {
   // 用戶驗證
   if (loading) return <div>載入中...</div>
   if (!user) return (
-  <div>
+  <div className={styles.noProduct}>
     <p>請先登入</p>
     <Link href="/member/MemberLogin/login">前往登入會員
     </Link>
   </div>)
+
 
 
 
@@ -205,6 +207,36 @@ export default function CartPage() {
 
   return (
     <>
+     <CartRWD className={styles.detailRWD}>
+        <div className={styles.detailContent}>
+          <div className={styles.item}>
+            <p>商品總數</p>
+            <p>{totalQuantity}</p>
+          </div>
+          <div className={styles.item}>
+            <p>商品金額</p>
+            <p>{totalOriginalPrice}</p>
+          </div>
+          <div className={styles.item}>
+            <p>折扣</p>
+            <p>- {totalDiscount}</p>
+          </div>
+          <div className={styles.item}>
+            <p>合計</p>
+            <p>{totalAmount}</p>
+          </div>
+        </div>
+        <div className={styles.detailBtn}>
+          <Link
+            href={'/shop/checkout'}
+            onClick={handleCheckout}
+          >
+            前往結帳
+          </Link>
+          <Link href={'/shop'}>繼續逛逛</Link>
+        </div>
+        
+     </CartRWD>
       <Breadcrumbs
         title="購物車"
         items={[{ label: '購物車', href: '/shop/cart' }]}
@@ -253,7 +285,7 @@ export default function CartPage() {
                   <div className={styles.info}>
                     <div className={styles.infoTop}>
                       <Link href={`/shop/${product.product_id}`}>
-                        <p className={styles.h2}>{product.product_name}</p>
+                        <p className={`${styles.product_name}`}>{product.product_name}</p>
                       </Link>
                       <p className={styles.p1}>{product?.variant_name}</p>
                     </div>
