@@ -59,49 +59,72 @@ export default function MemberPage() {
   };
 
   const checkGoogleSignInStatus = async (googleEmail, googleName, idToken) => {
-    try {
-      const response = await fetch('/api/member/googleCallback', { // 使用你的 Google 登入 API 路由
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({ googleEmail, googleName }),
-      });
-      console.log('API 響應:', response);
-      const text = await response.text(); // 先獲取文本
-      console.log('響應文本:', text);
-      const data = JSON.parse(text); // 手動解析 JSON
-
-      if (response.ok) {
-        if (data.userExists && data.hasDetails) {
-          console.log('Google 登入成功，已存在使用者且有詳細資料');
-          localStorage.setItem('authToken', data.authToken);
-          login(data.user);
-          router.push('/member');
-        } else {
-          console.log('Google 登入成功，需要填寫詳細資料');
-          router.push(`/member/MemberLogin/register2?googleEmail=${encodeURIComponent(googleEmail)}&googleName=${encodeURIComponent(googleName)}&isGoogleSignIn=true`);
-        }
-      } else {
-        console.error('Google 登入回調失敗:', data);
-        await Swal.fire({
-          title: '登入失敗',
-          text: data.message || 'Google 登入驗證失敗，請稍後重試。',
-          icon: 'error',
-          confirmButtonText: '確定',
-        });
-      }
-    } catch (error) {
-      console.error('檢查 Google 登入狀態錯誤:', error);
-      await Swal.fire({
-        title: '登入失敗',
-        text: '檢查 Google 登入狀態失敗，請稍後重試。',
-        icon: 'error',
-        confirmButtonText: '確定',
-      });
-    }
-  };
+        try {
+          const response = await fetch('/api/member/googleCallback', { // 使用你的 Google 登入 API 路由
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({ googleEmail, googleName }),
+          });
+    
+          if (response.ok) {
+            try {
+              const data = await response.json();
+              console.log('API 響應資料:', data); // 檢查 data 物件
+              if (data && data.needsAdditionalInfo) {
+                console.log('Google 登入成功，需要填寫詳細資料');
+                router.push(`/member/MemberLogin/register2?googleEmail=${encodeURIComponent(googleEmail)}&googleName=${encodeURIComponent(googleName)}&isGoogleSignIn=true`);
+              } else {
+                console.log('Google 登入成功，已存在使用者且有詳細資料');
+                localStorage.setItem('authToken', data.authToken);
+                login(data.user);
+                router.push('/member');
+              }
+            } catch (jsonError) {
+              console.error('解析 JSON 失敗:', jsonError);
+              const text = await response.text();
+              console.log('原始響應文本:', text);
+              await Swal.fire({
+                title: '登入失敗',
+                text: 'Google 登入驗證失敗，後端響應格式錯誤。',
+                icon: 'error',
+                confirmButtonText: '確定',
+              });
+            }
+          } else {
+            try {
+              const data = await response.json();
+              console.error('Google 登入回調失敗:', data);
+              await Swal.fire({
+                title: '登入失敗',
+                text: data.message || 'Google 登入驗證失敗，請稍後重試。',
+                icon: 'error',
+                confirmButtonText: '確定',
+              });
+            } catch (jsonError) {
+              console.error('解析錯誤響應 JSON 失敗:', jsonError);
+              const text = await response.text();
+              console.log('錯誤的原始響應文本:', text);
+              await Swal.fire({
+                title: '登入失敗',
+                text: 'Google 登入驗證失敗，且無法解析錯誤訊息。',
+                icon: 'error',
+                confirmButtonText: '確定',
+              });
+            }
+          }
+        } catch (error) {
+          console.error('檢查 Google 登入狀態錯誤:', error);
+          await Swal.fire({
+            title: '登入失敗',
+            text: '檢查 Google 登入狀態失敗，請稍後重試。',
+            icon: 'error',
+            confirmButtonText: '確定',
+          });
+        }
+      };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
