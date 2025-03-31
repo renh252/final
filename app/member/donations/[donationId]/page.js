@@ -86,10 +86,17 @@ export default function DonationDetailPage() {
       <h2 className={styles.header}>捐款詳情</h2>
 
       <div className={styles.detailBox}>
+        <h3 className={styles.sectionTitle}>基本資訊</h3>
         <p>
           <strong>捐款編號：</strong>
-          {donation.retry_trade_no || donation.trade_no}
+          {donation.trade_no}
         </p>
+        {donation.retry_trade_no && (
+          <p>
+            <strong>原始編號：</strong>
+            {donation.retry_trade_no}
+          </p>
+        )}
         <p>
           <strong>金額：</strong>NT$ {donation.amount}
         </p>
@@ -102,14 +109,43 @@ export default function DonationDetailPage() {
           {donation.payment_method}
         </p>
         <p>
-          <strong>捐款時間：</strong>
-          {new Date(donation.create_datetime).toLocaleString()}
+          <strong>捐款方式：</strong>
+          {donation.donation_mode}
+        </p>
+        <p>
+          <strong>捐款類型：</strong>
+          {donation.donation_type}
+        </p>
+
+        <hr className={styles.separator} />
+
+        <h3 className={styles.sectionTitle}>捐款人資訊</h3>
+        <p>
+          <strong>姓名：</strong>
+          {donation.donor_name}
+        </p>
+        <p>
+          <strong>電話：</strong>
+          {donation.donor_phone}
+        </p>
+        <p>
+          <strong>Email：</strong>
+          {donation.donor_email}
         </p>
         <p>
           <strong>是否需要收據：</strong>
           {donation.is_receipt_needed === '是' ? '✔ 需要' : '✖ 不需要'}
         </p>
+
+        <hr className={styles.separator} />
+
+        <h3 className={styles.sectionTitle}>時間資訊</h3>
+        <p>
+          <strong>捐款時間：</strong>
+          {new Date(donation.create_datetime).toLocaleString()}
+        </p>
       </div>
+
       {donation.transaction_status === '付款失敗' && (
         <div className={styles.chooseButton}>
           <button type="button" onClick={handleCancelOrder}>
