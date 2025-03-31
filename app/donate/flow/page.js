@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import styles from './flow.module.css'
 import Image from 'next/image'
 import { useAuth } from '@/app/context/AuthContext'
+import Alert from '@/app/_components/alert'
 
 export default function FlowPage() {
   const searchParams = useSearchParams()
@@ -37,13 +38,21 @@ export default function FlowPage() {
   const validateFields = () => {
     // 驗證姓名
     if (!/^[\u4e00-\u9fa5]{2,}$/.test(donorName)) {
-      alert('請輸入至少兩個中文字的姓名')
+      Alert({
+        title: '請輸入至少兩個中文字的姓名',
+        icon: 'warning',
+        timer: 1000,
+      })
       return false
     }
 
     // 驗證手機號碼
     if (!/^09\d{2}[- ]?\d{3}[- ]?\d{3}$/.test(donorPhone)) {
-      alert('請輸入有效的手機號碼 (例: 0912345678)')
+      Alert({
+        title: '請輸入有效的手機號碼',
+        icon: 'warning',
+        timer: 1000,
+      })
       return false
     }
 
@@ -51,7 +60,11 @@ export default function FlowPage() {
     if (
       !/^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z]+\.[a-zA-Z]+$/.test(donorEmail)
     ) {
-      alert('請輸入有效的電子郵件地址 (格式錯誤)')
+      Alert({
+        title: '請輸入有效的電子郵件地址',
+        icon: 'warning',
+        timer: 1000,
+      })
       return false
     }
 
