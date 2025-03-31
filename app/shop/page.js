@@ -220,6 +220,7 @@ export default function PetsPage() {
                                 href={`/shop/${product.product_id}`}
                               >
                                 <Card
+                                  className={styles.card}
                                   image={
                                     product.image_url ||
                                     '/images/default_no_pet.jpg'
@@ -326,6 +327,7 @@ export default function PetsPage() {
                                 href={`/shop/${product.product_id}`}
                               >
                                 <Card
+                                  className={styles.card}
                                   key={product.product_id}
                                   image={
                                     product.image_url ||

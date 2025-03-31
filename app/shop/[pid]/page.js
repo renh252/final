@@ -533,7 +533,9 @@ const calculateDisplayPrice = () => {
         </div>
         <div className={styles.contain}>
           <div className={styles.containTitle}>
-            <p>{reviewCount?.total_reviews}則評論</p>
+            <p>{reviewCount?.total_reviews
+            ?reviewCount?.total_reviews
+            :0}則評論</p>
           </div>
           <div className={styles.containBody}>
             {reviews.length > 0 ? (
@@ -577,7 +579,7 @@ const calculateDisplayPrice = () => {
                 )
               })
             ) : (
-              <p>目前無評論</p>
+              <p className={styles.noreview}>目前無評論</p>
             )}
           </div>
         </div>

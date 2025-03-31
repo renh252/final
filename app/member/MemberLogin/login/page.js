@@ -148,17 +148,17 @@ export default function MemberPage() {
           <div className={styles.GFbutton}>
             <button
               className="button"
-              style={{ width: '350px', height: '60px', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+              style={{ width: '350px', height: '60px', fontSize: '20px' }}
               onClick={handleGoogleSignIn}
             >
               <Image
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/153b2dcd7ca2627a463800e38ebc91cf43bcd541ad79fa3fea9919eec17199df?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
                 alt="Google icon"
-                style={{ width: '30px', height: '30px' }}
-                width={30}
-                height={30}
+                style={{ width: '100px', height: '50px' }}
+                width={100}
+                height={50}
               />
-              以 Google 帳號登入
+              以Google帳號登入
             </button>
             {signInError && <p className={styles.error}>{signInError}</p>}
           </div>

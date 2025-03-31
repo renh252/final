@@ -1,48 +1,88 @@
 import { NextResponse } from 'next/server'
 import { pool } from '@/app/lib/db'
 
+// 計算寵物顯示年齡的函數
+function calculateAgeDisplay(birthday) {
+  if (!birthday) return '未知'
+
+  const birthDate = new Date(birthday)
+  const today = new Date()
+
+  let years = today.getFullYear() - birthDate.getFullYear()
+  let months = today.getMonth() - birthDate.getMonth()
+
+  // 如果當月日期小於出生日期，減去一個月
+  if (today.getDate() < birthDate.getDate()) {
+    months--
+  }
+
+  // 調整年份和月份
+  if (months < 0) {
+    years--
+    months += 12
+  }
+
+  // 根據年齡決定顯示方式
+  return years > 0 ? `${years}歲` : `${months}個月`
+}
+
 export async function GET(request, { params }) {
   try {
     const id = params.id
 
     const connection = await pool.getConnection()
 
-    // 獲取特定寵物資料
-    const [pets] = await connection.execute(
+    // 獲取寵物詳情
+    const [petDetails] = await connection.execute(
       `
       SELECT 
-        p.*,
-        p.species as species_name,
-        p.variety as breed_name
+        p.*, 
+        ps.name as store_name, 
+        ps.address as store_address,
+        ps.phone as store_phone,
+        ps.lat as store_lat,
+        ps.lng as store_lng
       FROM pets p
-      WHERE p.id = ? AND p.is_adopted = 0
+      LEFT JOIN pet_store ps ON p.store_id = ps.id
+      WHERE p.id = ?
     `,
       [id]
     )
 
-    if (pets.length === 0) {
+    if (!petDetails || petDetails.length === 0) {
       connection.release()
-      return NextResponse.json({ error: '找不到此寵物' }, { status: 404 })
+      return NextResponse.json({ error: '找不到寵物' }, { status: 404 })
     }
 
     // 獲取寵物照片
-    const [photos] = await connection.execute(
+    const [petPhotos] = await connection.execute(
       `
       SELECT 
-        id,
-        pet_id,
-        photo_url,
-        is_main,
+        id, 
+        photo_url, 
+        is_main, 
         sort_order,
         title,
-        description,
-        created_at
+        description
       FROM pet_photos
       WHERE pet_id = ?
       ORDER BY is_main DESC, sort_order ASC
-      `,
+    `,
       [id]
     )
+
+    // 設置主要照片
+    let mainPhoto = '/images/default_no_pet.jpg'
+    if (petPhotos && petPhotos.length > 0) {
+      const mainPhotoObj =
+        petPhotos.find((photo) => photo.is_main === 1) || petPhotos[0]
+      mainPhoto = mainPhotoObj.photo_url
+    }
+
+    const pet = petDetails[0]
+
+    // 計算年齡
+    const ageDisplay = calculateAgeDisplay(pet.birthday)
 
     // 獲取店家資訊，用於地點顯示
     const [stores] = await connection.execute(`
@@ -90,38 +130,6 @@ export async function GET(request, { params }) {
     )
 
     // 處理年齡和位置顯示
-    const pet = pets[0]
-
-    // 處理年齡顯示
-    const birthDate = pet.birthday ? new Date(pet.birthday) : null
-    let ageDisplay = pet.age ? `${pet.age}歲` : '未知'
-    let ageYear = 0
-    let ageMonth = 0
-
-    if (birthDate) {
-      const today = new Date()
-      let years = today.getFullYear() - birthDate.getFullYear()
-      let months = today.getMonth() - birthDate.getMonth()
-
-      // 如果當月日期小於出生日期，減去一個月
-      if (today.getDate() < birthDate.getDate()) {
-        months--
-      }
-
-      // 調整年份和月份
-      if (months < 0) {
-        years--
-        months += 12
-      }
-
-      ageYear = years
-      ageMonth = months
-
-      // 根據年齡決定顯示方式
-      ageDisplay = years > 0 ? `${years}歲` : `${months}個月`
-    }
-
-    // 處理位置顯示 - 根據 store_id 獲取地點
     let locationDisplay = '未知位置'
     let storeName = null
     if (pet.store_id && storeMap[pet.store_id]) {
@@ -140,13 +148,12 @@ export async function GET(request, { params }) {
     const processedPet = {
       ...pet,
       age: ageDisplay,
-      age_year: ageYear,
-      age_month: ageMonth,
       location: locationDisplay,
       store_name: storeName,
       gender: pet.gender,
       gender_display: genderDisplay,
-      photos: photos,
+      photos: petPhotos || [],
+      main_photo: mainPhoto,
       traits: petTraits,
       recent_activities: recentActivities,
     }

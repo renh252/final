@@ -1297,13 +1297,21 @@ export default function PetsPage() {
   // 滾動功能
   const scroll = useCallback((direction, ref) => {
     const container = ref.current
-    const cardWidth = 280 // 卡片寬度
-    const gap = 30 // gap 值轉換為像素
-    const scrollAmount = (cardWidth + gap) * 4 // 每次滾動四個卡片的寬度加上間距
+    const isMobile = window.innerWidth <= 768
+
+    // 手機版每次滾動一個卡片的寬度
+    const cardWidth = isMobile ? container.offsetWidth * 0.7 : 280 // 卡片寬度，在手機上使用螢幕寬度的70%
+    const gap = isMobile ? 15 : 30 // 間距在手機上減少
+    const scrollAmount = isMobile ? cardWidth + gap : (cardWidth + gap) * 3 // 手機版每次滾動一張卡片，電腦版每次滾動三張
+
+    // 計算寵物卡片的中心位置
+    const cardCenter = cardWidth / 2
+    const containerCenter = container.offsetWidth / 2
 
     const currentScroll = container.scrollLeft
     const targetScroll = currentScroll + direction * scrollAmount
 
+    // 在移動後調整位置確保卡片在容器中居中
     container.scrollTo({
       left: targetScroll,
       behavior: 'smooth',
@@ -2065,6 +2073,10 @@ export default function PetsPage() {
                         <Card
                           image={
                             pet.main_photo ||
+                            pet.photo_url ||
+                            (pet.photos && pet.photos.length > 0
+                              ? pet.photos[0].photo_url
+                              : null) ||
                             pet.image_url ||
                             '/images/default_no_pet.jpg'
                           }
@@ -2123,18 +2135,26 @@ export default function PetsPage() {
                     direction="left"
                     onClick={() => scroll(-1, latestRef)}
                     aria-label="向左滑動"
+                    className={styles.latestScrollButton}
                   />
-                  <div className={`${styles.latestCardGroup}`} ref={latestRef}>
+                  <div
+                    className={`${styles.cardGroup} ${styles.latestCardGroup}`}
+                    ref={latestRef}
+                  >
                     {latestPets && latestPets.length > 0 ? (
                       latestPets.map((pet) => (
                         <Link
                           href={`/pets/${pet.id}`}
                           key={pet.id}
-                          className={`${styles.cardLink} ${styles.flexItem}`}
+                          className={`${styles.cardLink} ${styles.flexItem} ${styles.latestCardLink}`}
                         >
                           <Card
                             image={
                               pet.main_photo ||
+                              pet.photo_url ||
+                              (pet.photos && pet.photos.length > 0
+                                ? pet.photos[0].photo_url
+                                : null) ||
                               pet.image_url ||
                               '/images/default_no_pet.jpg'
                             }
@@ -2144,7 +2164,7 @@ export default function PetsPage() {
                             breed={pet.variety}
                             age={pet.age}
                             gender={pet.gender}
-                            className={styles.petCard}
+                            className={`${styles.petCard} ${styles.latestPetCard}`}
                             variant="pet"
                           >
                             <button
@@ -2169,6 +2189,7 @@ export default function PetsPage() {
                     direction="right"
                     onClick={() => scroll(1, latestRef)}
                     aria-label="向右滑動"
+                    className={styles.latestScrollButton}
                   />
                 </div>
               </div>

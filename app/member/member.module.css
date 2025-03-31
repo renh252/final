@@ -56,9 +56,22 @@
   font-size: 36; /* 使用 rem 單位 */
   text-align: center;
 }
+
+.gridContainer{
+  width: 100%;
+  overflow: hidden;
+
+  button a,button{
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 768px) {
   html {
     font-size: 80%; /* 縮小根元素字體大小 */
+  }
+  .gridContainer{
+    display: none;
   }
 }
 
@@ -212,6 +225,8 @@
     left: 80%; /* 調整在中等螢幕上的位置 */
   }
 }
+
+
 
 /* 更小的手機螢幕 (最大寬度 480px) - 可選 */
 @media (max-width: 480px) {

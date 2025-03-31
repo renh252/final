@@ -27,7 +27,7 @@ export default function Register2Page() {
 
   useEffect(() => {
     // 在組件掛載時檢查 token 和 password 是否存在
-    if (!isGoogleSignIn && (!tempToken || !password)) {
+    if (!tempToken || !password) {
       router.push('/member/MemberLogin/register');
     }
   }, [isGoogleSignIn, tempToken, password, router]);
@@ -181,12 +181,10 @@ export default function Register2Page() {
           <button className="button" onClick={handleGoBack}>
             回上一步
           </button>
-          <button className="button" 
-          onClick={handleSubmit} 
-          disabled={!isGoogleSignIn && (!tempToken || !password)}>
+          <button className="button" onClick={handleSubmit} disabled={!tempToken || !password}>
             完成
           </button>
-          {!isGoogleSignIn && (!tempToken || !password) && (
+          {(!tempToken || !password) && (
             <p style={{ color: 'orange' }}>請先完成第一步驗證電子郵件和輸入密碼。</p>
           )}
           {registrationError && <p style={{ color: 'red' }}>{registrationError}</p>}
