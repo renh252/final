@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
 import styles from './donationDetail.module.css'
 import StatusBadge from '../../_components/StatusBadge'
-
+import Alert from '@/app/_components/alert'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function DonationDetailPage() {
@@ -21,64 +21,112 @@ export default function DonationDetailPage() {
 
   // 取消訂單
   const handleCancelOrder = async () => {
-    const confirmCancel = window.confirm('確定要取消這筆訂單嗎？')
-    if (!confirmCancel) return
+    Alert({
+      title: '確定要取消這筆訂單嗎？',
+      icon: 'warning',
 
-    const res = await fetch(`/api/donate/donations/cancel/${donation.id}`)
-    if (res.ok) {
-      alert('訂單已取消！')
-      await mutate(`/api/donate/donations/${donationId}`) // 🔁 重新抓資料
-    } else {
-      alert('取消失敗，請稍後再試。')
-    }
+      // 右上關閉按鈕CloseButton:預設為false
+      showCloseButton: true,
+      // 確認按鈕ConfirmButton:預設為false
+      showconfirmBtn: true,
+      confirmBtnText: '確定',
+
+      // 取消按鈕CancelButton:預設為false
+      showCancelBtn: true,
+      cancelBtnText: '取消',
+
+      // 自動關閉時間:預設為false
+      timer: 3000,
+
+      // 確認按鈕事件(預設為false)
+      function: async () => {
+        const res = await fetch(`/api/donate/donations/cancel/${donation.id}`)
+        if (res.ok) {
+          Alert({
+            title: '訂單已取消！',
+            icon: 'success',
+            timer: 1000,
+          })
+          await mutate(`/api/donate/donations/${donationId}`) // 🔁 重新抓資料
+        } else {
+          Alert({
+            title: '取消失敗，請稍後嘗試',
+            icon: 'error',
+            timer: 1000,
+          })
+        }
+      },
+    })
   }
 
   //重新付款
   const handleRecharge = async () => {
-    const confirmRecharge = window.confirm('確定要重新付款嗎？')
-    if (!confirmRecharge) return
+    Alert({
+      title: '確定要重新付款嗎？',
+      icon: 'warning',
 
-    const payload = {
-      orderType: 'donation',
-      userId: donation.user_id,
-      amount: donation.amount,
-      items: donation.donation_type,
-      ChoosePayment: donation.payment_method,
-      selectedPaymentMode: donation.donation_mode,
-      petId: donation.pet_id,
-      donorName: donation.donor_name,
-      donorPhone: donation.donor_phone,
-      donorEmail: donation.donor_email,
-      retry_trade_no: donation.trade_no,
-    }
+      // 右上關閉按鈕CloseButton:預設為false
+      showCloseButton: true,
+      // 確認按鈕ConfirmButton:預設為false
+      showconfirmBtn: true,
+      confirmBtnText: '確定',
 
-    const res = await fetch('/api/ecpay', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      // 取消按鈕CancelButton:預設為false
+      showCancelBtn: true,
+      cancelBtnText: '取消',
+
+      // 自動關閉時間:預設為false
+      timer: 3000,
+
+      // 確認按鈕事件(預設為false)
+      function: async () => {
+        const payload = {
+          orderType: 'donation',
+          userId: donation.user_id,
+          amount: donation.amount,
+          items: donation.donation_type,
+          ChoosePayment: donation.payment_method,
+          selectedPaymentMode: donation.donation_mode,
+          petId: donation.pet_id,
+          donorName: donation.donor_name,
+          donorPhone: donation.donor_phone,
+          donorEmail: donation.donor_email,
+          retry_trade_no: donation.trade_no,
+        }
+
+        const res = await fetch('/api/ecpay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+
+        const result = await res.json()
+        if (!res.ok) {
+          Alert({
+            title: '付款連線失敗，請稍後嘗試',
+            icon: 'error',
+            timer: 1000,
+          })
+          return
+        }
+
+        // ✅ 建立表單並導向至 ECPay
+        const form = document.createElement('form')
+        form.method = 'POST'
+        form.action = result.action
+
+        for (const [key, value] of Object.entries(result.params)) {
+          const input = document.createElement('input')
+          input.type = 'hidden'
+          input.name = key
+          input.value = value
+          form.appendChild(input)
+        }
+
+        document.body.appendChild(form)
+        form.submit()
+      },
     })
-
-    const result = await res.json()
-    if (!res.ok) {
-      alert('付款連線失敗，請稍後再試')
-      return
-    }
-
-    // ✅ 建立表單並導向至 ECPay
-    const form = document.createElement('form')
-    form.method = 'POST'
-    form.action = result.action
-
-    for (const [key, value] of Object.entries(result.params)) {
-      const input = document.createElement('input')
-      input.type = 'hidden'
-      input.name = key
-      input.value = value
-      form.appendChild(input)
-    }
-
-    document.body.appendChild(form)
-    form.submit()
   }
 
   return (
