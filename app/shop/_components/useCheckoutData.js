@@ -19,7 +19,7 @@ export function useCheckoutData() {
         recipient_phone: '',
         recipient_email: '',
         remark: '',
-        payment_method: '',
+        payment_method: '信用卡',
         invoice_method: '',
         mobile_barcode: '/',
         taxID_number: '',

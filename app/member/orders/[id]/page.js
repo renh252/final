@@ -166,7 +166,7 @@ export default function OrderIdPage(props) {
         訂單 {oid}
       </div>
       {/* 電腦 */}
-      <div className={styles.container}>
+      <div  className={styles.container}>
         <div className={styles.reviewContainer}>
           <div className={styles.containTitle}>
             <h1>資訊欄</h1>
@@ -437,6 +437,7 @@ export default function OrderIdPage(props) {
           </div>
         </div>
       </div>
+      
 
       {/* 手機 */}
       <div className={styles.checkoutMobileContainer}>
@@ -561,7 +562,7 @@ export default function OrderIdPage(props) {
           <div className={styles.productList}>
             {products?.map((product, index) => (
               <div key={index} className={styles.productItem}>
-              <div>
+              <div className={styles.product}>
                 <Link href={`/shop/${product.product_id}`}>
                 <Image
                   src={product.image_url || '/images/default_no_pet.jpg'}
