@@ -1,0 +1,2 @@
+ALTER TABLE users
+ADD COLUMN google_email VARCHAR(255) NULL UNIQUE;
