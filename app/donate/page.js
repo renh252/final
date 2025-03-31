@@ -180,46 +180,49 @@ export default function DonatePage() {
                 value={donationType}
                 onChange={setDonationType}
               />
+            </li>{' '}
+            <li style={{ display: 'flex', alignItems: 'center' }}>
+              <h5 style={{ marginRight: '5px' }}>選擇認養寵物</h5>
+              <div className={styles.searchableDropdown}>
+                {/* 點擊顯示輸入框 */}
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleKeyDown} // 確保 `keydown` 事件作用於輸入框
+                  onFocus={() => setIsDropdownOpen(true)}
+                  placeholder={selectedPet || '請選擇'}
+                  disabled={donationType !== '線上認養'}
+                  style={{
+                    backgroundColor: donationType !== '線上認養' ? '#ccc' : '', // 灰色背景
+                    cursor: donationType !== '線上認養' ? 'not-allowed' : '', // 禁用時滑鼠樣式
+                  }}
+                />
+
+                {/* 選單內容 */}
+                {isDropdownOpen && (
+                  <ul className={styles.list}>
+                    {filteredPets.length > 0 ? (
+                      filteredPets.map((pet, index) => (
+                        <li key={pet.id} className={styles.listItem}>
+                          <button
+                            type="button"
+                            onClick={() => handleSelectPet(pet)}
+                            className={styles.selectPetButton}
+                          >
+                            {pet.name}
+                          </button>
+                        </li>
+                      ))
+                    ) : (
+                      <li className={styles.noResults}>找不到匹配的寵物</li>
+                    )}
+                  </ul>
+                )}
+              </div>
             </li>
-            {donationType === '線上認養' && (
-              <li style={{ display: 'flex', alignItems: 'center' }}>
-                <h5 style={{ marginRight: '5px' }}>選擇認養寵物</h5>
-                <div className={styles.searchableDropdown}>
-                  {/* 點擊顯示輸入框 */}
-                  <input
-                    type="text"
-                    className={styles.input}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={handleKeyDown} // 確保 `keydown` 事件作用於輸入框
-                    onFocus={() => setIsDropdownOpen(true)}
-                    placeholder={selectedPet || '請選擇'}
-                  />
-
-                  {/* 選單內容 */}
-                  {isDropdownOpen && (
-                    <ul className={styles.list}>
-                      {filteredPets.length > 0 ? (
-                        filteredPets.map((pet, index) => (
-                          <li key={pet.id} className={styles.listItem}>
-                            <button
-                              type="button"
-                              onClick={() => handleSelectPet(pet)}
-                              className={styles.selectPetButton}
-                            >
-                              {pet.name}
-                            </button>
-                          </li>
-                        ))
-                      ) : (
-                        <li className={styles.noResults}>找不到匹配的寵物</li>
-                      )}
-                    </ul>
-                  )}
-                </div>
-              </li>
-            )}
-
+            {donationType === '線上認養' && ''}
             <li style={{ display: 'flex', justifyContent: 'end' }}>
               <button
                 className="button"
@@ -239,7 +242,7 @@ export default function DonatePage() {
           {['method', 'instructions'].map((section) => (
             <li key={section}>
               <button
-                className="button"
+                className={`button`}
                 onClick={() => {
                   // 改變選擇的按鈕
                   setActiveSection(section)
@@ -298,7 +301,7 @@ export default function DonatePage() {
               {sections2.map(({ id, label }) => (
                 <li key={id}>
                   <button
-                    className="button"
+                    className={`button ${styles.ul2_btn}`}
                     onClick={() => setSelectedCategory(id)}
                     style={{
                       backgroundColor: selectedCategory === id ? '#cda274' : '',
