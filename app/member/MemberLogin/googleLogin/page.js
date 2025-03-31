@@ -21,7 +21,7 @@ export default function RegisterPage() {
       setLoading(false);
       if (currentUser) {
         try {
-          const response = await fetch(`/api/user/${currentUser.uid}`); // 假設後端 API 端點
+          const response = await fetch(`/api/member/googleCallback/${currentUser.uid}`); // 假設後端 API 端點
           if (response.ok) {
             const userData = await response.json();
             if (userData.has_additional_info) {
@@ -49,7 +49,7 @@ export default function RegisterPage() {
       const user = result.user;
       if (user && user.email) {
         try {
-          const response = await fetch(`/api/user/${user.uid}`);
+          const response = await fetch(`/api/member/googleCallback/${user.uid}`);
           if (response.ok) {
             const userData = await response.json();
             if (userData.has_additional_info) {
