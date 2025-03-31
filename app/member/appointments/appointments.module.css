@@ -348,6 +348,8 @@
   font-weight: bold;
   margin-bottom: 0.5rem;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
 }
 
 .stepLabel {
@@ -355,6 +357,8 @@
   color: #6c757d;
   text-align: center;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
 }
 
 .stepLine {
@@ -415,6 +419,10 @@
     width: 25px;
     height: 25px;
     font-size: 0.9rem;
+  }
+
+  .stepLine {
+    top: 35px;
   }
 
   .appointmentCard {
