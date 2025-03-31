@@ -232,7 +232,7 @@
         text-align: center;
         padding: 10px;
         background-color: #c9a27e;
-        color: white;
+        /* color: white; */
         border-radius: 8px;
       }
       
@@ -296,6 +296,8 @@
       }
       
       .summaryContainer {
+        width: 100%;
+        color: #5c4b3b !important;
         background: #f8f2e7;
         padding: 15px;
         border-radius: 8px;
@@ -308,6 +310,10 @@
         justify-content: space-between;
         padding: 8px 0;
         font-size: 16px;
+        color: #5c4b3b;
+      }
+      .summaryRow span{
+        color: #5c4b3b;
       }
       
       .summaryTotal {
