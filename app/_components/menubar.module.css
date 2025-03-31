@@ -33,6 +33,12 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, opacity 0.3s ease;
   opacity: 0.7;
+  z-index: 1030;
+}
+
+/* 使用更具體的選擇器 */
+.menubar[data-theme='light'] {
+  background-color: #fff;
 }
 
 .menubar.hidden {
@@ -43,15 +49,15 @@
   opacity: 1;
 }
 
-/* 讓menubar中的文字和圖片保持不透明 */
-.menubar a,
-.menubar .navbar-brand,
-.menubar .nav-link,
-.menubar .dropdown-toggle,
-.menubar svg {
-  font-weight: 700 !important;
-  opacity: 1 !important;
-  color: #000 !important;
+/* 使用更具體的選擇器替代 !important */
+.menubar[data-theme='light'] a,
+.menubar[data-theme='light'] .navbar-brand,
+.menubar[data-theme='light'] .nav-link,
+.menubar[data-theme='light'] .dropdown-toggle,
+.menubar[data-theme='light'] svg {
+  font-weight: 700;
+  opacity: 1;
+  color: #000;
 }
 
 /* 加強透明時的辨識度 */
@@ -60,11 +66,44 @@
   text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
-/* 防止右側導航欄位移 */
-:global(.navbar-nav.ms-auto) {
-  margin-left: auto !important;
-  display: flex !important;
-  position: static !important;
+/* 使用更具體的選擇器替代 !important */
+.menubar :global(.navbar-nav.ms-auto) {
+  margin-left: auto;
+  display: flex;
+  position: static;
+}
+
+/* 使用更具體的選擇器替代 container 相關的 !important */
+.menubar :global(.container),
+.menubar :global(.container-lg),
+.menubar :global(.container-fluid) {
+  transition: none;
+  transform: translateZ(0);
+  will-change: transform;
+  padding-left: var(--container-padding, 15px);
+  padding-right: var(--container-padding, 15px);
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: var(--bs-container-max-width, 100%);
+}
+
+@media (min-width: 992px) {
+  .menubar :global(.container-lg) {
+    max-width: var(--bs-container-lg, 960px);
+  }
+}
+
+@media (min-width: 1200px) {
+  .menubar :global(.container-lg) {
+    max-width: var(--bs-container-xl, 1140px);
+  }
+}
+
+@media (min-width: 1400px) {
+  .menubar :global(.container-lg) {
+    max-width: var(--bs-container-xxl, 1320px);
+  }
 }
 
 .notificationWrapper {
@@ -161,38 +200,5 @@
   .cartCount {
     top: 0;
     right: calc(50% - 25px); /* 根據實際按鈕寬度調整 */
-  }
-}
-
-/* 調整Bootstrap Container的初始行為，減少內容偏移 */
-:global(.container),
-:global(.container-lg),
-:global(.container-fluid) {
-  transition: none !important;
-  transform: translateZ(0);
-  will-change: transform;
-  padding-left: 15px !important;
-  padding-right: 15px !important;
-  width: 100% !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  max-width: var(--bs-container-max-width, 100%) !important;
-}
-
-@media (min-width: 992px) {
-  :global(.container-lg) {
-    max-width: var(--bs-container-lg, 960px) !important;
-  }
-}
-
-@media (min-width: 1200px) {
-  :global(.container-lg) {
-    max-width: var(--bs-container-xl, 1140px) !important;
-  }
-}
-
-@media (min-width: 1400px) {
-  :global(.container-lg) {
-    max-width: var(--bs-container-xxl, 1320px) !important;
   }
 }

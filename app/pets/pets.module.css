@@ -150,6 +150,7 @@
   height: 1.5rem;
   width: 3rem;
   cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .viewModeSwitch :global(.form-check-input):checked {
@@ -160,18 +161,22 @@
 .viewModeSwitch :global(.form-check-label) {
   margin-left: 0.5rem;
   cursor: pointer;
+  transition: color 0.3s ease;
 }
 
+/* 主容器切換動畫 */
 .petsContainer {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  transition: all 0.5s ease;
 }
 
 /* 地圖檢視模式下的容器樣式 */
 .petsContainer.mapView {
   max-width: 1200px;
   padding: 2rem 1rem;
+  transition: all 0.5s ease;
 }
 
 .breadcrumbContainer {
@@ -974,471 +979,77 @@
   padding: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
-  transition: all 0.3s ease;
-  animation: mapFadeIn 0.4s ease-out;
+  opacity: 0;
+  visibility: hidden;
+  max-height: 0;
+  transition: opacity 0.5s ease, visibility 0.5s ease, max-height 0.5s ease,
+    transform 0.5s ease;
   z-index: 1;
+  transform: translateY(30px);
+}
+
+/* 地圖檢視模式下顯示地圖 */
+.mapView .fullMapContainer {
+  opacity: 1;
+  visibility: visible;
+  max-height: 100vh;
+  transform: translateY(0);
+  transition: opacity 0.5s ease 0.2s, visibility 0.5s ease, max-height 0.5s ease,
+    transform 0.5s ease 0.1s;
 }
 
 /* 移除地圖位移樣式 */
 .fullMapContainer.shifted {
   margin-left: 0;
   width: 100%;
-  transition: none;
+  transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
-/* 地圖圖例和操作提示的樣式 - 讓它們在全頁地圖視圖下更清晰 */
-.fullMapContainer :global(.leaflet-control-zoom),
-.fullMapContainer :global(.leaflet-control-attribution) {
-  z-index: 800;
-}
-
-/* 確保地圖相關元素在全頁視圖下可見性更好 */
-.fullMapContainer :global(.leaflet-marker-icon) {
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
-}
-
-.fullMapContainer :global(.leaflet-popup) {
-  z-index: 900;
-}
-
-/* 位置按鈕樣式 */
-.locationButton {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.locationButton:before {
-  content: '📍';
-  font-size: 1.2rem;
-}
-
-/* 範圍選擇器樣式 */
-.radiusSelector {
-  margin: 1rem 0;
-  padding: 0.75rem;
-  background-color: #f0f7ff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.radiusSelector label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #0d6efd;
-}
-
-.radiusSelector input[type='range'] {
-  width: 100%;
-  height: 8px;
-}
-
-.radiusSelector input[type='range']::-webkit-slider-thumb {
-  cursor: pointer;
-}
-
-.locationError {
-  color: var(--danger-color);
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background-color: var(--danger-light);
-  border-radius: 4px;
-  border-left: 3px solid var(--danger-dark);
-}
-
-/* 附近商店列表樣式 */
-.nearbyStores {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background-color: #f0f8ff;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  animation: fadeIn 0.5s ease-out;
-}
-
-.nearbyStores h5 {
-  margin-bottom: 1rem;
-  font-weight: 600;
-  color: #2c3e50;
-  display: flex;
-  align-items: center;
-}
-
-.nearbyStores h5:before {
-  content: '🏪';
-  margin-right: 8px;
-}
-
-.nearbyStores ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.nearbyStores li {
-  padding: 0;
-  border-bottom: 1px solid #e7eef8;
-}
-
-.nearbyStores li:last-child {
-  border-bottom: none;
-}
-
-.storeButton {
-  width: 100%;
-  background: none;
-  border: none;
-  text-align: left;
-  padding: 0.75rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  display: flex;
-  flex-direction: column;
-}
-
-.storeButton:hover {
-  background-color: #e7f1ff;
-}
-
-.storeButton:focus {
-  outline: 2px solid #4a90e2;
-  background-color: #e7f1ff;
-}
-
-.storeName {
-  font-weight: bold;
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-}
-
-.storeDistance {
-  font-size: 0.85rem;
-  color: #2d8a30;
-  font-weight: normal;
-  background-color: rgba(45, 138, 48, 0.1);
-  padding: 2px 8px;
-  border-radius: 12px;
-}
-
-.storeAddress {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.85rem;
-  color: #7f8c8d;
-}
-
-/* 未找到商店提示樣式 */
-.noStores {
-  padding: 1rem;
-  text-align: center;
-  background-color: rgba(0, 0, 0, 0.03);
-  border-radius: 8px;
-  margin-top: 0.5rem;
-}
-
-.noStores p {
-  margin: 0.5rem 0;
-  color: #666;
-}
-
-.noStores p:first-child {
-  font-weight: bold;
-  color: #333;
-}
-
-/* 地圖圓圈和直線樣式 */
-.searchRadius {
-  stroke: #2d8a30;
-  stroke-width: 3px;
-  stroke-dasharray: 5, 5;
-  fill: #2d8a30;
-  fill-opacity: 0.15;
-}
-
-.distanceLine {
-  stroke: #dc3545;
-  stroke-width: 4px;
-  stroke-opacity: 0.9;
-  stroke-dasharray: 10, 10;
-}
-
-/* 商店彈出窗口樣式 - 已移至 .petsContainer :global() 區域 */
-
-/* 搜尋半徑文字標籤 */
-.radiusLabel {
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 4px;
-  padding: 3px 6px;
-  font-size: 12px;
-  font-weight: bold;
-  color: #2d8a30;
-  border: 1px solid #2d8a30;
-}
-
-/* 距離線上的距離標籤 */
-.distanceLabel {
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 4px;
-  padding: 3px 6px;
-  font-size: 12px;
-  font-weight: bold;
-  color: #dc3545;
-  border: 1px solid #dc3545;
-  white-space: nowrap;
-}
-
-/* 表單組佈局控制 */
-.formGroupRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.viewModeSwitchWrapper {
-  text-align: right;
-}
-
-.likeButton {
-  width: 35px;
-  aspect-ratio: 1/1;
-  padding: 8px;
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  font-size: 18px;
-  line-height: 18px;
-  color: #d75951;
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(215, 89, 81, 0.2);
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.likeButton:hover {
-  transform: scale(1.1);
-  background-color: rgba(255, 255, 255, 1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.resultsHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.resultsHeader h2 {
-  font-size: 30px;
-  color: #fff;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-  margin: 0;
-}
-
-.activeFilters {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.filterTag {
-  padding: 4px 12px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
-  font-size: 14px;
-  color: #fff;
-  backdrop-filter: blur(4px);
-}
-
-/* 搜尋結果網格容器 */
-.flexContainer {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(280px, 1fr));
-  gap: 20px;
-  padding: 20px;
-  background-color: #fdfbf9;
-  border-radius: 0 0 12px 12px;
-  margin: 0 auto;
-  max-width: 1160px;
-  justify-items: center;
-}
-
-/* 卡片樣式 */
-.flexItem {
-  width: 100%;
-  max-width: 280px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  margin: 0;
-}
-
-/* 最新上架容器 */
-.latestContainer {
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 0;
-  background-color: #fdfbf9;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-/* 最新上架卡片群組 */
-.latestCardGroup {
-  display: flex;
-  gap: 20px;
-  padding: 20px;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  position: relative;
-  background-color: #fdfbf9;
-  align-items: center;
-  flex: 1;
-}
-
-/* 最新上架區塊的左右切換按鈕容器 */
-.groupBody {
-  display: flex;
-  align-items: center;
-  position: relative;
-  padding: 0;
-  background-color: #fdfbf9;
-  width: 100%;
-}
-
-/* 左右切換按鈕樣式 */
-.scrollButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
-  border-radius: 50%;
-  background-color: #fff;
-  border: 1px solid rgba(89, 62, 47, 0.2);
-  color: rgba(89, 62, 47, 0.8);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  z-index: 2;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  padding: 0;
-  flex-shrink: 0;
-  aspect-ratio: 1/1;
-  margin: 0 10px;
-}
-
-.scrollButton:hover {
-  background-color: rgba(89, 62, 47, 0.05);
-  border-color: rgba(89, 62, 47, 0.3);
-  transform: scale(1.05);
-}
-
-.scrollButton:active {
-  transform: scale(0.95);
-}
-
-/* 載入更多按鈕容器 */
-.loadMoreButtonContainer {
-  display: flex;
-  justify-content: center;
-  padding: 30px 0;
-  background-color: #fdfbf9;
-  border-radius: 0 0 12px 12px;
-}
-
-.loadMoreButton {
-  background-color: rgba(89, 62, 47, 1);
-  color: #fff;
-  border: none;
-  padding: 15px 40px;
-  border-radius: 30px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 200px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(89, 62, 47, 0.2);
-}
-
-.loadMoreButton:hover {
-  background-color: rgba(89, 62, 47, 0.9);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(89, 62, 47, 0.3);
-}
-
-.loadMoreButton:disabled {
-  background-color: rgba(89, 62, 47, 0.5);
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* 響應式設計 */
-@media (max-width: 1200px) {
-  .flexContainer {
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
-    padding: 20px;
-    gap: 20px;
-    max-width: 960px;
-  }
-}
-
-@media (max-width: 768px) {
-  .flexContainer {
-    grid-template-columns: 1fr;
-    padding: 15px;
-    max-width: 100%;
-  }
-
-  .flexItem {
-    max-width: 100%;
-  }
-}
-
-/* 左側抽屜樣式 */
+/* 左側抽屜樣式 - Portal實現 */
 .leftSideDrawer {
-  position: fixed;
-  left: 0;
-  top: 56px;
-  bottom: 0;
+  position: fixed !important;
+  left: -320px; /* 預設隱藏 */
+  top: 0 !important; /* 從頁面頂部開始 */
   width: 320px;
-  background-color: white;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
-  transform: translateX(-320px);
-  transition: transform 0.3s ease-in-out;
-  z-index: 1000;
+  height: 100vh !important; /* 全高側邊欄 */
+  background-color: #fff9f2; /* 更暖色調的白色 */
+  box-shadow: 2px 0 8px rgba(89, 62, 47, 0.1);
+  transition: left 0.3s ease-in-out, opacity 0.3s ease;
+  z-index: 1020; /* 確保低於menubar的z-index 1030 */
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  height: calc(100vh - 56px);
+  overflow: hidden;
+  opacity: 0; /* 預設不可見 */
+  pointer-events: none; /* 預設不可交互 */
 }
 
-.leftSideDrawer.open {
-  transform: translateX(0);
+/* 直接針對 leftSideDrawer 樣式設定，不依賴 mapView 容器 */
+body:has(.petsContainer.mapView) .leftSideDrawer {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  left: 0 !important;
+  transition: opacity 0.3s ease 0.3s, left 0.3s ease-in-out;
+}
+
+/* 保留開關狀態邏輯 */
+body:has(.petsContainer.mapView) .leftSideDrawer.open {
+  left: 0 !important;
+}
+
+body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
+  left: -320px !important;
 }
 
 .drawerHeader {
+  width: 100%;
+  min-height: 72px;
   padding: 1.5rem;
-  border-bottom: 1px solid #eee;
-  background-color: #f8f9fa;
+  padding-top: 56px; /* 為menubar預留空間 */
+  border-bottom: 1px solid rgba(199, 150, 80, 0.2);
+  background-color: #fff5ea; /* 更暖色調的白色背景 */
   position: sticky;
   top: 0;
-  z-index: 1000;
-  height: 72px;
-  min-height: 72px;
+  z-index: 1025; /* 低於menubar但高於抽屜本身 */
   box-sizing: border-box;
 }
 
@@ -1446,128 +1057,229 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 }
 
 .drawerHeaderContent h4 {
   margin: 0;
   font-size: 1.25rem;
-  color: #333;
+  font-weight: 600;
+  color: rgba(89, 62, 47, 0.9);
 }
 
-.drawerHeaderContent :global(.form-check) {
+.viewModeSwitch {
   margin: 0;
-}
-
-.drawerHeaderContent :global(.form-check-input) {
-  height: 1.5rem;
-  width: 3rem;
-  cursor: pointer;
-}
-
-.drawerHeaderContent :global(.form-check-input):checked {
-  background-color: rgba(199, 150, 80, 1);
-  border-color: rgba(179, 130, 60, 1);
-}
-
-.drawerHeaderContent :global(.form-check-label) {
-  margin-left: 0.5rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #666;
 }
 
 .drawerContent {
-  padding: 1.5rem;
+  padding: 1.25rem;
   flex: 1;
   overflow-y: auto;
-  margin-top: 0;
-  height: calc(100vh - 144px);
-  box-sizing: border-box;
+  background-color: #fffaf3; /* 更暖色調的白色背景 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(89, 62, 47, 0.2) transparent;
+  height: calc(100vh - 128px); /* 減去導航欄和抽屜頭部高度 (56px + 72px) */
 }
 
+.drawerContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.drawerContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.drawerContent::-webkit-scrollbar-thumb {
+  background-color: rgba(89, 62, 47, 0.2);
+  border-radius: 6px;
+}
+
+/* 抽屜部分內容樣式 */
 .drawerSection {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(89, 62, 47, 0.1);
 }
 
 .drawerSection:last-child {
+  border-bottom: none;
   margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .sectionTitle {
+  display: flex;
+  align-items: center;
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
   margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  color: rgba(89, 62, 47, 0.8);
+  font-weight: 600;
 }
 
-.drawerToggle {
-  position: fixed;
-  left: 320px;
-  top: calc(50vh + 36px);
-  transform: translateY(-50%);
-  width: 32px;
-  height: 48px;
-  border-radius: 0 8px 8px 0;
-  background-color: white;
-  border: 1px solid #eee;
-  border-left: none;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1001;
-  transition: left 0.3s ease-in-out;
+.sectionTitle svg {
+  margin-right: 0.5rem;
+  color: rgba(199, 150, 80, 0.9);
 }
 
-.leftSideDrawer:not(.open) + .drawerToggle {
-  left: 0;
-}
-
-/* 全頁地圖容器樣式 */
-.fullMapContainer {
-  height: 80vh;
-  width: 100%;
+/* 表單元素樣式優化 */
+.drawerSection :global(.form-control),
+.drawerSection :global(.form-select) {
+  border-color: rgba(89, 62, 47, 0.2);
   border-radius: 8px;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  position: relative;
-  transition: all 0.3s ease;
-  animation: mapFadeIn 0.4s ease-out;
-  z-index: 1;
+  transition: all 0.2s ease;
 }
 
-/* 移除地圖位移樣式 */
-.fullMapContainer.shifted {
-  margin-left: 0;
+.drawerSection :global(.form-control:focus),
+.drawerSection :global(.form-select:focus) {
+  border-color: rgba(199, 150, 80, 0.8);
+  box-shadow: 0 0 0 0.2rem rgba(199, 150, 80, 0.25);
+}
+
+.drawerSection :global(.form-label) {
+  color: rgba(89, 62, 47, 0.8);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.drawerSection :global(.btn) {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.drawerSection :global(.btn-outline-primary) {
+  border-color: rgba(89, 62, 47, 0.3);
+  color: rgba(89, 62, 47, 0.8);
+}
+
+.drawerSection :global(.btn-outline-primary:hover) {
+  background-color: rgba(89, 62, 47, 0.05);
+  border-color: rgba(89, 62, 47, 0.5);
+  color: rgba(89, 62, 47, 1);
+}
+
+/* 位置按鈕樣式 */
+.locationButton {
   width: 100%;
-  transition: none;
+  padding: 0.75rem 1rem;
+  background-color: rgba(199, 150, 80, 0.1);
+  border: 1px solid rgba(199, 150, 80, 0.3);
+  border-radius: 8px;
+  color: rgba(89, 62, 47, 0.9);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 0.75rem;
 }
 
-/* 響應式調整 */
-@media (max-width: 768px) {
-  .leftSideDrawer {
-    width: 280px;
-    transform: translateX(-280px);
-  }
+.locationButton:hover {
+  background-color: rgba(199, 150, 80, 0.2);
+  border-color: rgba(199, 150, 80, 0.5);
+}
 
-  .drawerToggle {
-    left: 280px;
-  }
+.locationButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
-  .leftSideDrawer:not(.open) + .drawerToggle {
-    left: 0;
-  }
+.locationError {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(220, 53, 69, 0.1);
+  border-radius: 6px;
+}
 
-  .petsContainer,
-  .petsContainer.mapView {
-    padding: 1rem;
-  }
+/* 選擇的位置樣式 */
+.selectedLocation {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: rgba(199, 150, 80, 0.1);
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+/* 半徑選擇器樣式 */
+.radiusSelector {
+  margin-top: 1rem;
+}
+
+/* 附近商店樣式 */
+.nearbyStores {
+  margin-top: 0.5rem;
+}
+
+.nearbyStores h5 {
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  color: rgba(89, 62, 47, 0.7);
+}
+
+/* 優化附近商店列表樣式 - 移除內部scrollbar */
+.storeList {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: none; /* 移除最大高度限制 */
+  overflow-y: visible; /* 移除捲動 */
+}
+
+.storeItem {
+  margin-bottom: 0;
+}
+
+.storeButton {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  text-align: left;
+  background-color: white;
+  border: 1px solid rgba(89, 62, 47, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.storeButton:hover {
+  background-color: rgba(199, 150, 80, 0.05);
+  border-color: rgba(199, 150, 80, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.storeName {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: rgba(89, 62, 47, 0.9);
+}
+
+.storeDistance {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: #28a745;
+  padding: 0.2rem 0.5rem;
+  background-color: rgba(40, 167, 69, 0.1);
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+}
+
+.storeAddress {
+  font-size: 0.85rem;
+  color: rgba(89, 62, 47, 0.7);
+  margin: 0;
+}
+
+/* 未找到商店提示樣式 */
+.noStores {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  color: #6c757d;
 }
 
 /* 最新上架區塊的特定樣式 */
@@ -1613,56 +1325,235 @@
   z-index: 10;
 }
 
-/* 擴展現有的響應式設計，加入最新上架區塊的RWD設定 */
-@media (max-width: 768px) {
-  .latestContainer {
-    margin-top: 1rem;
+/* 動畫定義 */
+@keyframes mapFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-
-  .latestCardGroup {
-    padding: 0.5rem 15px;
-    justify-content: flex-start;
-  }
-
-  .cardLink.latestCardLink {
-    width: 220px;
-    margin: 0 7px;
-  }
-
-  .latestScrollButton {
-    width: 30px;
-    height: 30px;
-    min-width: 30px;
-    min-height: 30px;
-    margin: 0 5px;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (max-width: 480px) {
-  .latestContainer .contain_title h2 {
-    font-size: 24px;
-    padding-left: 20px;
-  }
+/* 卡片區塊與篩選區的動畫 */
+.cardSections,
+.filterContainer,
+.searchResultsContainer,
+.latestContainer {
+  opacity: 1;
+  visibility: visible;
+  max-height: 3000px;
+  transition: opacity 0.5s ease, visibility 0.5s ease, max-height 0.5s ease;
+  overflow: hidden;
+}
 
-  .cardLink.latestCardLink {
-    width: 70vw;
-    margin: 0 auto;
-  }
+/* 隱藏卡片區塊的樣式 - 用於地圖模式 */
+.mapView .cardSections,
+.mapView .filterContainer {
+  opacity: 0;
+  visibility: hidden;
+  max-height: 0;
+  transition: opacity 0.3s ease, visibility 0.3s ease 0.1s, max-height 0.4s ease;
+  overflow: hidden;
+}
 
-  .latestScrollButton {
-    width: 25px;
-    height: 25px;
-    min-width: 25px;
-    min-height: 25px;
-  }
+/* 全頁地圖容器樣式 */
+.fullMapContainer {
+  height: 80vh;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+  opacity: 0;
+  visibility: hidden;
+  max-height: 0;
+  transition: opacity 0.5s ease, visibility 0.5s ease, max-height 0.5s ease,
+    transform 0.5s ease;
+  z-index: 1;
+  transform: translateY(30px);
+}
 
-  .cardGroup.latestCardGroup {
-    gap: 15px;
-    padding: 0.5rem 10px;
-  }
+/* 地圖檢視模式下顯示地圖 */
+.mapView .fullMapContainer {
+  opacity: 1;
+  visibility: visible;
+  max-height: 100vh;
+  transform: translateY(0);
+  transition: opacity 0.5s ease 0.2s, visibility 0.5s ease, max-height 0.5s ease,
+    transform 0.5s ease 0.1s;
+}
 
-  .groupBody {
-    justify-content: center;
-    padding: 0 5px;
-  }
+/* 移除地圖位移樣式 */
+.fullMapContainer.shifted {
+  margin-left: 0;
+  width: 100%;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+/* 左側抽屜樣式 - Portal實現 */
+.leftSideDrawer {
+  position: fixed !important;
+  left: -320px; /* 預設隱藏 */
+  top: 0 !important; /* 從頁面頂部開始 */
+  width: 320px;
+  height: 100vh !important; /* 全高側邊欄 */
+  background-color: #fff9f2; /* 更暖色調的白色 */
+  box-shadow: 2px 0 8px rgba(89, 62, 47, 0.1);
+  transition: left 0.3s ease-in-out, opacity 0.3s ease;
+  z-index: 1020; /* 確保低於menubar的z-index 1030 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0; /* 預設不可見 */
+  pointer-events: none; /* 預設不可交互 */
+}
+
+/* 直接針對 leftSideDrawer 樣式設定，不依賴 mapView 容器 */
+body:has(.petsContainer.mapView) .leftSideDrawer {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  left: 0 !important;
+  transition: opacity 0.3s ease 0.3s, left 0.3s ease-in-out;
+}
+
+/* 保留開關狀態邏輯 */
+body:has(.petsContainer.mapView) .leftSideDrawer.open {
+  left: 0 !important;
+}
+
+body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
+  left: -320px !important;
+}
+
+/* 固定位置的收合按鈕容器 */
+.drawerToggleContainer {
+  position: fixed;
+  top: 50%;
+  left: 320px; /* 與抽屜寬度相同 */
+  transform: translateY(-50%);
+  z-index: 1025;
+  transition: left 0.3s ease-in-out, opacity 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* 地圖模式下顯示抽屜按鈕 */
+body:has(.petsContainer.mapView) .drawerToggleContainer {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: left 0.3s ease-in-out, opacity 0.3s ease 0.3s, visibility 0s ease;
+}
+
+/* 當抽屜關閉時，按鈕移動到左側 */
+body:has(.leftSideDrawer:not(.open)) .drawerToggleContainer {
+  left: 0 !important;
+}
+
+/* 確保地圖相關元素在全頁視圖下可見性更好 */
+.fullMapContainer :global(.leaflet-marker-icon) {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+}
+
+.fullMapContainer :global(.leaflet-popup) {
+  z-index: 900;
+}
+
+/* 愛心按鈕樣式 */
+.likeButton {
+  width: 35px;
+  aspect-ratio: 1/1;
+  padding: 8px;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 18px;
+  line-height: 18px;
+  color: #d75951;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(215, 89, 81, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.likeButton:hover {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 載入更多按鈕容器 */
+.loadMoreButtonContainer {
+  display: flex;
+  justify-content: center;
+  padding: 30px 0;
+  background-color: #fdfbf9;
+  border-radius: 0 0 12px 12px;
+}
+
+.loadMoreButton {
+  background-color: rgba(89, 62, 47, 1);
+  color: #fff;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(89, 62, 47, 0.2);
+}
+
+.loadMoreButton:hover {
+  background-color: rgba(89, 62, 47, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(89, 62, 47, 0.3);
+}
+
+.loadMoreButton:disabled {
+  background-color: rgba(89, 62, 47, 0.5);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 當抽屜關閉時，按鈕移動到左側 */
+body:has(.leftSideDrawer:not(.open)) .drawerToggleContainer {
+  left: 0 !important;
+}
+
+/* 固定位置的收合按鈕 */
+.drawerToggleFixed {
+  position: relative; /* 改為相對定位，因為已有父容器定位 */
+  width: 40px; /* 稍微增加寬度 */
+  height: 90px; /* 增加高度使按鈕更明顯 */
+  border-radius: 0 8px 8px 0; /* 僅右側使用圓角 */
+  background-color: rgba(199, 150, 80, 0.85); /* 使用更明顯的顏色 */
+  border: 1px solid rgba(199, 150, 80, 0.5);
+  box-shadow: 3px 0 10px rgba(89, 62, 47, 0.2); /* 增強陰影效果 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff; /* 白色圖標更醒目 */
+  transition: all 0.2s ease;
+  font-size: 1.2rem; /* 增大圖標尺寸 */
+}
+
+.drawerToggleFixed:hover {
+  background-color: rgba(199, 150, 80, 0.95);
+  color: #fff;
+  width: 45px; /* 懸停時略微擴大 */
+  box-shadow: 4px 0 12px rgba(89, 62, 47, 0.3);
 }
