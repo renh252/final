@@ -139,12 +139,12 @@ export default function DonationDetailPage() {
           <strong>捐款編號：</strong>
           {donation.trade_no}
         </p>
-        {donation.retry_trade_no && (
+        {/* {donation.retry_trade_no && (
           <p>
             <strong>原始編號：</strong>
             {donation.retry_trade_no}
           </p>
-        )}
+        )} */}
         <p>
           <strong>金額：</strong>NT$ {donation.amount}
         </p>
