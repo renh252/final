@@ -61,13 +61,14 @@ export async function GET(request: NextRequest) {
         SELECT 
           pa.*, 
           p.name as pet_name, 
-          p.main_photo as pet_image,
+          COALESCE(pp.photo_url, '') as pet_image,
           p.species as pet_type,
           p.variety as pet_breed,
           ps.name as store_name
         FROM pet_appointment pa
         LEFT JOIN pets p ON pa.pet_id = p.id
         LEFT JOIN pet_store ps ON pa.store_id = ps.id
+        LEFT JOIN pet_photos pp ON p.id = pp.pet_id AND pp.is_main = 1
         WHERE pa.user_id = ?
         ORDER BY pa.created_at DESC
         `,

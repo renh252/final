@@ -19,6 +19,7 @@ const routes = [
   { path: '/forum', type: RouteType.PUBLIC }, // 論壇首頁
   { path: '/donate', type: RouteType.PUBLIC }, // 捐贈頁面
   { path: '/admin', type: RouteType.PUBLIC }, // 後台頁面，後台頁面使用獨立的認證
+  { path: '/contact', type: RouteType.PUBLIC }, // 聯絡頁面
 
   // 受保護頁面
   { path: '/member', type: RouteType.PROTECTED }, // 會員中心

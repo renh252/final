@@ -453,9 +453,12 @@ export default function PetAppointmentPage() {
           {/* 寵物資訊卡 */}
           <Card className={`border-0 shadow-sm mb-4 ${styles.petCard}`}>
             <div className={styles.petImageWrapper}>
-              {pet?.main_image ? (
+              {pet?.photos?.length > 0 ? (
                 <Image
-                  src={pet.main_image}
+                  src={
+                    pet.photos.find((photo) => photo.is_main)?.photo_url ||
+                    pet.photos[0].photo_url
+                  }
                   alt={pet.name}
                   className={styles.petImage}
                   width={400}
@@ -483,9 +486,9 @@ export default function PetAppointmentPage() {
 
               <div className={styles.petBasicInfo}>
                 <Badge bg="light" text="dark" className="me-2 mb-2">
-                  {pet?.type === 'dog'
+                  {pet?.species === 'dog'
                     ? '狗'
-                    : pet?.type === 'cat'
+                    : pet?.species === 'cat'
                     ? '貓'
                     : '其他'}
                 </Badge>
