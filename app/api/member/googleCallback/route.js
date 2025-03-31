@@ -99,9 +99,11 @@ export async function POST(req) {
 
             // 在成功驗證和處理使用者後，生成並返回 authToken (JWT) 和是否需要額外資訊的標誌
             const authToken = generateAuthToken(uid);
-            const user = existingUser || { firebase_uid: uid, google_email: googleEmail };
+            const user = existingUser || { firebase_uid: uid, google_email: googleEmail };
+            console.log('生成的 authToken:', authToken);
+            console.log('使用者資訊:', user);
 
-            return NextResponse.json({ userExists, hasAdditionalInfo, needsAdditionalInfo, authToken, user });
+            return NextResponse.json({ userExists, hasAdditionalInfo, needsAdditionalInfo, authToken, user });
 
         } catch (error) {
             console.error('驗證 Firebase ID Token 失敗:', error);
