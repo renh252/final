@@ -185,6 +185,7 @@ export default function CartPage() {
   const cart = data.data
   const totalQuantity = data.totalQuantity
   console.log(cart)
+  
 
   if (data?.error || !cart || cart.length === 0) {
     console.log(data?.error)

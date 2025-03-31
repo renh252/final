@@ -1,0 +1,13 @@
+file_list.txt
+wetFoodDog (1).jpg
+wetFoodDog (10).jpg
+wetFoodDog (11).jpg
+wetFoodDog (12).jpg
+wetFoodDog (2).jpg
+wetFoodDog (3).jpg
+wetFoodDog (4).jpg
+wetFoodDog (5).jpg
+wetFoodDog (6).jpg
+wetFoodDog (7).jpg
+wetFoodDog (8).jpg
+wetFoodDog (9).jpg

@@ -24,7 +24,10 @@ export async function GET(request, { params }) {
         SELECT 
           oi.*,
           p.product_name,
-          COALESCE(pv.image_url, p.image_url) AS image,
+          CASE
+            WHEN pv.image_url IS NOT NULL AND pv.image_url != '' THEN pv.image_url
+            ELSE p.image_url
+          END AS image_url,
           pv.variant_name,
           pr.rating,
           pr.review_text,

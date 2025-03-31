@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useParams,useRouter } from 'next/navigation'
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown';
 
 // 驗證登入狀態
 import { useAuth } from '@/app/context/AuthContext'
@@ -377,7 +378,6 @@ const calculateDisplayPrice = () => {
           </div>
           <div className={styles.info}>
             <div>
-              <p className={styles.h3}>{product.product_name}</p>
               <div className={styles.iconGroup}>
                 <div className={styles.comment}>
                   庫存:{selectedVariant?.stock_quantity}
@@ -402,6 +402,7 @@ const calculateDisplayPrice = () => {
                   <FaShareNodes />
                 </div> */}
               </div>
+              <p className={styles.h3}>{product.product_name}</p>
             </div>
             <hr />
             <div>
@@ -524,8 +525,8 @@ const calculateDisplayPrice = () => {
           </div>
         </div>
         <IconLine_lg title="商品介紹" />
-        <div className={styles.row}>
-          <p>{product.product_description}</p>
+        <div className={styles.discription}>
+          <ReactMarkdown>{product.product_description}</ReactMarkdown>
         </div>
         <div ref={reviewRef} className={styles.iconLine}>
           <IconLine_lg title="評價" />

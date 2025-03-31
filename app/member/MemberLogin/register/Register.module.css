@@ -168,6 +168,10 @@
   bottom: 548px;
 }
 
+.error {
+  color: red; 
+}
+
 @media (width <= 991px) {
   .container {
     padding-left: 20px;
@@ -204,8 +208,7 @@
     white-space: initial;
   }
 
-  .googleButton,
-  {
+  .googleButton,{
     padding: 15px 20px;
   }
 
