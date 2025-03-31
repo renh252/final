@@ -39,6 +39,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 1 !important;
+  z-index: 5;
 }
 
 .menu {
@@ -155,4 +157,17 @@
   background-color: #f8f9fa;
   color: #0052a3;
   text-decoration: none;
+}
+
+/* RWD 樣式調整 */
+@media (max-width: 991px) {
+  .bellButton {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .badge {
+    right: calc(50% - 15px);
+  }
 }

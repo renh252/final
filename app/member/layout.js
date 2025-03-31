@@ -48,7 +48,7 @@ export default function MemberLayout({ children }) {
           className="button"
           style={{ width: '200px', height: '50px', fontSize: '28px' }}
         >
-          <Link href="/pets">我的寵物</Link>
+          <Link href="/member/appointments">寵物預約</Link>
         </button>
         <select
           className="button"
