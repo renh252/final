@@ -8,6 +8,7 @@ import styles from './recordPage.module.css'
 import useSWR from 'swr'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { IoMdArrowDropdown, IoMdArrowDropright } from 'react-icons/io'
 
 export default function RecordPage({
   titleText = '紀錄',
@@ -33,6 +34,7 @@ export default function RecordPage({
 
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [showRecurring, setShowRecurring] = useState(false)
   const { data, error } = useSWR(fetchUrl ? fetchUrl : null, (url) =>
     fetch(url).then((res) => res.json())
   )
@@ -82,10 +84,17 @@ export default function RecordPage({
     return true
   })
 
+  // 工具函式：計算下次扣款日（加一個月）
+  const getNextDate = (dateString) => {
+    const date = new Date(dateString)
+    date.setMonth(date.getMonth() + 1)
+    return date.toLocaleDateString('zh-TW')
+  }
+
   return (
     <div className={styles.container}>
       <div>
-        <h2 className={styles.header}>我的{titleText}</h2>
+        <h2 className={styles.header}>我的{titleText}</h2>{' '}
         <FilterBar
           filters={filters}
           startDate={startDate}
@@ -99,6 +108,56 @@ export default function RecordPage({
             <strong>{total}</strong> 筆
           </p>
         </div>
+        {data.recurringDonations?.length > 0 && (
+          <div className={styles.recurringReminder}>
+            <button
+              className={styles.sectionTitle}
+              onClick={() => setShowRecurring(!showRecurring)}
+            >
+              {showRecurring ? <IoMdArrowDropdown /> : <IoMdArrowDropright />}{' '}
+              定期定額提醒（
+              {data.recurringDonations.length} 筆）
+            </button>
+            <p className={styles.sectionSub}>
+              您目前有<strong>{data.recurringDonations.length}</strong>
+              筆定期定額正在進行中
+            </p>
+            {showRecurring && (
+              <div className={styles.recurringList}>
+                {data.recurringDonations.map((donation) => (
+                  <div className={styles.recurringCard} key={donation.id}>
+                    <div className={styles.cardTitle}>
+                      {donation.donation_type}
+                    </div>
+                    <p>
+                      訂單編號：
+                      <button
+                        className={styles.tradeNo}
+                        onClick={() => {
+                          router.push(`/member/donations/${donation.trade_no}`)
+                        }}
+                      >
+                        {donation.trade_no}
+                      </button>
+                    </p>
+                    <div className={styles.cardRow}>
+                      <span className={styles.label}>上次付款日：</span>
+                      <span>
+                        {new Date(donation.create_datetime).toLocaleDateString(
+                          'zh-TW'
+                        )}
+                      </span>
+                    </div>
+                    <div className={styles.cardRow}>
+                      <span className={styles.label}>下次扣款日：</span>
+                      <span>{getNextDate(donation.create_datetime)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className={styles.list}>

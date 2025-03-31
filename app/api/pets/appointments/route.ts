@@ -1,55 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/app/api/_lib/db'
 import { auth } from '@/app/api/_lib/auth'
+import { verifyToken } from '@/app/api/_lib/jwt'
 import { ResultSetHeader } from 'mysql2'
 
 // 獲取用戶的預約列表
 export async function GET(request: NextRequest) {
   try {
-    // 驗證用戶是否登入
-    console.log('開始驗證用戶登入狀態...')
-    const authResult = await auth.fromRequest(request)
-    console.log('auth.fromRequest 結果:', authResult)
+    // 直接從請求頭獲取token
+    console.log('開始檢查請求頭...')
+    const authHeader = request.headers.get('Authorization')
+    console.log('Authorization頭部:', authHeader ? '存在' : '不存在')
 
-    if (!authResult) {
-      console.log('用戶未登入，返回 401')
+    const token =
+      authHeader && authHeader.startsWith('Bearer ')
+        ? authHeader.slice(7)
+        : null
+
+    console.log('提取的token:', token ? '存在' : '不存在')
+
+    if (!token) {
+      console.log('無法獲取token，返回401')
       return NextResponse.json(
         { success: false, message: '請先登入' },
         { status: 401 }
       )
     }
 
-    const userId = authResult.id
-    console.log('用戶ID:', userId)
+    try {
+      // 直接驗證token
+      const payload = await verifyToken(token)
 
-    // 查詢用戶的預約資料
-    console.log('開始查詢預約資料...')
-    const [appointments, error] = await db.query(
-      `
-      SELECT 
-        pa.*, 
-        p.name as pet_name, 
-        p.main_image as pet_image,
-        p.type as pet_type,
-        p.breed as pet_breed
-      FROM pet_appointment pa
-      LEFT JOIN pets p ON pa.pet_id = p.id
-      WHERE pa.user_id = ?
-      ORDER BY pa.created_at DESC
-    `,
-      [userId]
-    )
+      if (!payload) {
+        console.log('token驗證失敗，無效的payload')
+        return NextResponse.json(
+          { success: false, message: '無效的授權信息' },
+          { status: 401 }
+        )
+      }
 
-    if (error) {
-      console.error('查詢預約資料失敗:', error)
+      console.log('驗證token成功，payload:', payload)
+
+      // 使用正確的userId屬性名稱
+      const userId = payload.userId || payload.user_id || payload.id
+
+      if (!userId) {
+        console.log('無法從token獲取用戶ID，payload:', JSON.stringify(payload))
+        return NextResponse.json(
+          { success: false, message: '無效的用戶信息' },
+          { status: 401 }
+        )
+      }
+
+      console.log('從token中獲取的用戶ID:', userId)
+
+      // 查詢用戶的預約資料
+      console.log('開始查詢預約資料...')
+      const [appointments, error] = await db.query(
+        `
+        SELECT 
+          pa.*, 
+          p.name as pet_name, 
+          COALESCE(pp.photo_url, '') as pet_image,
+          p.species as pet_type,
+          p.variety as pet_breed,
+          ps.name as store_name
+        FROM pet_appointment pa
+        LEFT JOIN pets p ON pa.pet_id = p.id
+        LEFT JOIN pet_store ps ON pa.store_id = ps.id
+        LEFT JOIN pet_photos pp ON p.id = pp.pet_id AND pp.is_main = 1
+        WHERE pa.user_id = ?
+        ORDER BY pa.created_at DESC
+        `,
+        [userId]
+      )
+
+      if (error) {
+        console.error('查詢預約資料失敗:', error)
+        return NextResponse.json(
+          { success: false, message: '查詢預約資料失敗' },
+          { status: 500 }
+        )
+      }
+
+      console.log('成功獲取預約資料，數量:', (appointments as any[]).length)
+      return NextResponse.json({ success: true, data: appointments })
+    } catch (tokenError) {
+      console.error('token驗證時發生錯誤:', tokenError)
       return NextResponse.json(
-        { success: false, message: '查詢預約資料失敗' },
-        { status: 500 }
+        { success: false, message: '登入信息已過期，請重新登入' },
+        { status: 401 }
       )
     }
-
-    console.log('成功獲取預約資料，數量:', (appointments as any[]).length)
-    return NextResponse.json({ success: true, data: appointments })
   } catch (err) {
     console.error('獲取預約列表時發生錯誤:', err)
     return NextResponse.json(

@@ -56,9 +56,22 @@
   font-size: 36; /* 使用 rem 單位 */
   text-align: center;
 }
+
+.gridContainer{
+  width: 100%;
+  overflow: scroll;
+
+  button a,button{
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 768px) {
   html {
     font-size: 80%; /* 縮小根元素字體大小 */
+  }
+  .gridContainer{
+    display: none;
   }
 }
 

@@ -35,10 +35,14 @@ const processPetData = (pet) => {
     locationDisplay = pet.store_address.substring(0, 3)
   }
 
+  // 使用預設圖片路徑，前端會優先查詢 pet_photos 表中的圖片
+  const defaultImage = '/images/default_no_pet.jpg'
+
   return {
     ...pet,
     age: ageDisplay,
     location: locationDisplay,
+    image_url: defaultImage, // 提供預設圖片路徑，讓前端可以使用
   }
 }
 
@@ -127,7 +131,7 @@ export async function GET(request) {
       // 獲取最新寵物（限制數量）
       const [latestPets] = await connection.execute(`
         SELECT 
-          p.id, p.name, p.species, p.variety, p.main_photo, p.gender, 
+          p.id, p.name, p.species, p.variety, p.gender, 
           p.store_id, p.birthday, ps.address as store_address
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
@@ -138,7 +142,7 @@ export async function GET(request) {
 
       // 獲取熱門寵物 (收藏數量最多的)
       const [popularPets] = await connection.execute(`
-        SELECT p.id, p.name, p.species, p.variety, p.main_photo, p.gender,
+        SELECT p.id, p.name, p.species, p.variety, p.gender,
               p.store_id, p.birthday, ps.address as store_address,
               COUNT(pl.pet_id) as like_count
         FROM pets p
@@ -361,7 +365,7 @@ export async function GET(request) {
       const [pets] = await connection.execute(
         `
         SELECT 
-          p.id, p.name, p.species, p.variety, p.main_photo, p.gender, 
+          p.id, p.name, p.species, p.variety, p.gender, 
           p.birthday, p.is_adopted,
           p.store_id, ps.name as store_name, ps.address as store_address,
           ps.lat as store_lat, ps.lng as store_lng, ps.phone as store_phone,
@@ -423,7 +427,7 @@ export async function GET(request) {
       const [latestPets] = await connection.execute(
         `
         SELECT 
-          p.id, p.name, p.species, p.variety, p.main_photo, p.gender, 
+          p.id, p.name, p.species, p.variety, p.gender, 
           p.birthday, p.store_id, p.is_adopted,
           ps.name as store_name,
           ps.address as store_address,

@@ -28,6 +28,19 @@ export async function GET(request) {
     )
     responseData.donations = donations
 
+    // 獲取定期定額資料
+    const [recurringDonations] = await connection.execute(
+      `
+      SELECT * FROM donations
+      WHERE user_id = ? 
+        AND donation_mode = '定期定額' 
+        AND transaction_status IN ('已付款', '未付款')
+      ORDER BY create_datetime DESC
+`,
+      [user_id]
+    )
+    responseData.recurringDonations = recurringDonations
+
     // 計算訂單總數
     const [totalResult] = await connection.execute(
       `
