@@ -20,7 +20,7 @@ export async function POST(req) {
             try {
                 // 查詢具有此 googleEmail 但尚未填寫詳細資料的使用者 (假設在 /api/member/googleCallback 中創建)
                 const [existingUserRows, errorCheck] = await database.executeSecureQuery(
-                    'SELECT user_id FROM users WHERE google_email = ? AND user_name IS NULL',
+                    'SELECT user_id FROM users WHERE google_email = ? AND has_additional_info = 0',
                     [googleEmail]
                 );
 

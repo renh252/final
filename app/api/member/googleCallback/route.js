@@ -78,14 +78,14 @@ export async function POST(req) {
 
             if (!userExists) {
                 // 第一次使用 Google 登入，需要填寫額外資訊
-                const defaultName = googleName || ''; // 使用 Google Name 或空字串
+                const defaultName = ''; // 使用 Google Name 或空字串
                 const defaultNumber = '';
                 const defaultBirthday = null; // 或您希望的預設日期
                 const defaultAddress = '';
 
                 const [insertResult, errorInsert] = await database.executeSecureQuery(
                     'INSERT INTO users (firebase_uid, google_email, user_email, user_password, user_name, user_number, user_birthday, user_address, has_additional_info) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [uid, googleEmail, googleEmail, 'google_login', defaultName, defaultNumber, defaultBirthday, defaultAddress, 0]
+                    [uid, googleEmail, googleEmail, 'google_login', defaultName, '', null, '', 0]
                 );
                 if (errorInsert) {
                     console.error('創建新使用者失敗:', errorInsert);
