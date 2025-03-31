@@ -36,7 +36,7 @@ export default function MemberLayout({ children }) {
 
   return (
     <div className={styles.layout}>
-      <MenuRWD />
+      <MenuRWD className={styles.menuRWD} />
     <div className={styles.gridContainer}>
       <div className={styles.logos_grid}>
         <button

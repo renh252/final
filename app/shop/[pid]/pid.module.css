@@ -401,6 +401,9 @@
   
 }
 
+.noreview{
+  margin: auto;
+}
 .thisLike{
   color: #d75951;
   background-color: transparent;
