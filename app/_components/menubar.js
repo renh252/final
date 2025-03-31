@@ -78,6 +78,7 @@ export default function Menubar() {
         className={`bg-body-tertiary fixed-top ${styles.menubar} ${
           visible ? '' : styles.hidden
         } ${solid ? styles.solid : ''}`}
+        data-theme="light"
       >
         <Container>
           <Link href="/" passHref legacyBehavior>

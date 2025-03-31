@@ -37,6 +37,7 @@ import {
 import { useAuth } from '@/app/context/AuthContext'
 
 import { usePageTitle } from '@/app/context/TitleContext'
+import MapDrawer from './_components/MapDrawer'
 
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
@@ -303,48 +304,9 @@ const SearchableSelect = ({
   )
 }
 
-// 左側滑動抽屜組件
-const LeftSideDrawer = ({
-  isOpen,
-  toggleOpen,
-  children,
-  viewMode,
-  onViewModeChange,
-}) => {
-  return (
-    <>
-      <div className={`${styles.leftSideDrawer} ${isOpen ? styles.open : ''}`}>
-        <div className={styles.drawerHeader}>
-          <div className={styles.drawerHeaderContent}>
-            <h4>搜尋與篩選</h4>
-            <Form.Check
-              type="switch"
-              id="drawer-view-mode-switch"
-              label={viewMode === 'map' ? '地圖檢視' : '列表檢視'}
-              checked={viewMode === 'map'}
-              onChange={onViewModeChange}
-              className={styles.viewModeSwitch}
-            />
-          </div>
-        </div>
-        <div className={styles.drawerContent}>{children}</div>
-      </div>
-      <Button
-        className={styles.drawerToggle}
-        onClick={toggleOpen}
-        aria-label={isOpen ? '收起面板' : '展開面板'}
-        variant="light"
-      >
-        {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
-      </Button>
-    </>
-  )
-}
-
 export default function PetsPage() {
   usePageTitle('寵物領養')
   const latestRef = useRef(null)
-  const fullMapRef = useRef(null)
 
   // 使用 useAuth 獲取用戶信息
   const { user, isAuthenticated } = useAuth()
@@ -355,7 +317,7 @@ export default function PetsPage() {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [selectedRegion, setSelectedRegion] = useState('')
   const [selectedStore, setSelectedStore] = useState('')
-  const [displayCount, setDisplayCount] = useState(12) // 初始顯示 12 隻寵物 (3x4)
+  const [displayCount, setDisplayCount] = useState(12)
   const [isLoading, setIsLoading] = useState(false)
   const [mapMarkers, setMapMarkers] = useState([])
   const [mapCenter, setMapCenter] = useState([22.9997, 120.227])
@@ -368,11 +330,7 @@ export default function PetsPage() {
   const [selectedStoreLocation, setSelectedStoreLocation] = useState(null)
   const [favorites, setFavorites] = useState({})
   const [showFavorites, setShowFavorites] = useState(false)
-  // 新增分頁控制狀態
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10 // 每頁顯示的寵物數量改為10筆
-
-  // 使用 useTransition 處理非緊急更新
   const [isPending, startTransition] = useTransition()
 
   // 保存滾動位置
@@ -1037,42 +995,6 @@ export default function PetsPage() {
     [favorites, debouncedMutatePets, user, isAuthenticated]
   )
 
-  // 新增抽屜狀態控制
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true)
-
-  // 記住抽屜狀態
-  useEffect(() => {
-    const savedState = localStorage.getItem('mapDrawerState')
-    if (savedState) {
-      setIsDrawerOpen(savedState === 'open')
-    }
-  }, [])
-
-  const toggleDrawer = useCallback(() => {
-    const newState = !isDrawerOpen
-    setIsDrawerOpen(newState)
-    localStorage.setItem('mapDrawerState', newState ? 'open' : 'closed')
-  }, [isDrawerOpen])
-
-  // 抽屜打開時，調整地圖大小和位置
-  useEffect(() => {
-    if (viewMode === 'map') {
-      const mapContainer = document.querySelector(`.${styles.fullMapContainer}`)
-      if (mapContainer) {
-        if (isDrawerOpen) {
-          mapContainer.classList.add(styles.shifted)
-        } else {
-          mapContainer.classList.remove(styles.shifted)
-        }
-
-        // 通知地圖組件大小已變更，需要重新調整
-        setTimeout(() => {
-          window.dispatchEvent(new Event('resize'))
-        }, 300)
-      }
-    }
-  }, [isDrawerOpen, viewMode])
-
   // 處理附近商店點擊事件
   const handleNearbyStoreClick = useCallback(
     (store) => {
@@ -1158,108 +1080,53 @@ export default function PetsPage() {
   const handleViewModeChange = useCallback(() => {
     const newViewMode = viewMode === 'map' ? 'list' : 'map'
 
-    // 如果切換到地圖視圖，重新載入店家資料
+    // 轉換到地圖模式時，確保地圖數據已就緒
     if (newViewMode === 'map') {
-      reloadStoresData()
-    }
-
-    // 保存當前滾動位置
-    const currentScrollPosition = window.scrollY
-
-    // 確保切換回列表視圖時重置地圖狀態
-    if (newViewMode === 'list') {
-      // 保存當前位置信息但重置地圖狀態
-      const currentLocation = selectedLocation
-      const currentStore = selectedStoreLocation
-
-      setMapMarkers([])
-      setMapCenter([22.997, 120.205]) // 預設台南市
-      setMapZoom(13)
-
-      // 延遲後恢復標記，確保地圖元件已經重新渲染
-      setTimeout(() => {
-        if (currentLocation) {
-          const markers = [
-            {
-              lat: currentLocation.lat,
-              lng: currentLocation.lng,
-              name: '您的位置',
-              isSelected: true,
-              id: 'user-location',
-              isUserLocation: true,
-            },
-          ]
-
-          if (currentStore) {
-            markers.push({
-              lat: currentStore.lat,
-              lng: currentStore.lng,
-              name: currentStore.name,
-              isStore: true,
-              id: `store-${Date.now()}`,
-            })
-          }
-
-          // 如果有附近商店，也將它們添加到標記中
-          if (nearbyStores && nearbyStores.length > 0) {
-            nearbyStores.forEach((store) => {
-              // 避免添加已經作為selectedStoreLocation的商店
-              if (!currentStore || store.id !== currentStore.id) {
-                markers.push({
-                  lat: parseFloat(store.lat),
-                  lng: parseFloat(store.lng),
-                  name: store.name,
-                  description: `${store.address} (${
-                    store.phone
-                  }) - 距離: ${store.distance.toFixed(2)} 公里`,
-                  isStore: true,
-                  id: `store-${store.id}`,
-                  distance: store.distance,
-                })
-              }
-            })
-          }
-
-          setMapMarkers(markers)
-        } else if (selectedRegion && locationData[selectedRegion]) {
-          const { lat, lng } = locationData[selectedRegion]
-          setMapMarkers([
-            {
-              lat,
-              lng,
-              name: selectedRegion,
-              isRegion: true,
-              id: Date.now(),
-            },
-          ])
+      // 重置地圖中心和縮放
+      if (selectedLocation) {
+        setMapCenter([selectedLocation.lat, selectedLocation.lng])
+        setMapZoom(13)
+      } else if (selectedStoreLocation) {
+        setMapCenter(selectedStoreLocation)
+        setMapZoom(13)
+      } else if (selectedRegion) {
+        // 如果選擇了地區但沒有具體位置，預設到該地區中心
+        const regionData = {
+          台北市: [25.033, 121.565],
+          新北市: [25.0169, 121.4627],
+          桃園市: [24.9936, 121.301],
+          台南市: [22.9908, 120.2133],
+          高雄市: [22.6273, 120.3014],
+          基隆市: [25.1276, 121.7395],
+          新竹市: [24.8138, 120.9675],
         }
 
-        // 恢復滾動位置
-        requestAnimationFrame(() => {
-          window.scrollTo({
-            top: currentScrollPosition,
-            behavior: 'auto',
-          })
-        })
-      }, 100)
-    } else {
-      // 從列表視圖切換到地圖視圖
-      // 如果有選定位置和附近商店，確保顯示所有商店標記
-      if (selectedLocation && nearbyStores.length > 0) {
-        const newMarkers = [
+        if (regionData[selectedRegion]) {
+          setMapCenter(regionData[selectedRegion])
+          setMapZoom(13)
+        }
+      }
+
+      // 如果有選擇地區，確保商店數據已載入
+      if (selectedRegion) {
+        reloadStoresData()
+      }
+
+      // 如果附近有商店，確保它們被顯示在標記上
+      if (nearbyStores && nearbyStores.length > 0 && selectedLocation) {
+        const markers = [
           {
             lat: selectedLocation.lat,
             lng: selectedLocation.lng,
-            name: selectedLocation.isUserLocation ? '您的位置' : '已選擇的位置',
+            name: '已選擇的位置',
             isSelected: true,
-            id: selectedLocation.isUserLocation ? 'user-location' : Date.now(),
+            id: Date.now(),
             isUserLocation: selectedLocation.isUserLocation || false,
           },
         ]
 
-        // 添加附近商店
         nearbyStores.forEach((store) => {
-          newMarkers.push({
+          markers.push({
             lat: parseFloat(store.lat),
             lng: parseFloat(store.lng),
             name: store.name,
@@ -1272,11 +1139,8 @@ export default function PetsPage() {
           })
         })
 
-        setMapMarkers(newMarkers)
+        setMapMarkers(markers)
       }
-
-      // 確保抽屜按預設開啟
-      setIsDrawerOpen(true)
     }
 
     setViewMode(newViewMode)
@@ -1290,7 +1154,6 @@ export default function PetsPage() {
     setMapMarkers,
     setMapCenter,
     setMapZoom,
-    setIsDrawerOpen,
     reloadStoresData,
   ])
 
@@ -1771,142 +1634,71 @@ export default function PetsPage() {
       {/* 根據視圖模式顯示不同內容 */}
       {viewMode === 'map' ? (
         <>
-          {/* 左側抽屜 */}
-          <LeftSideDrawer
-            isOpen={isDrawerOpen}
-            toggleOpen={toggleDrawer}
+          <MapDrawer
             viewMode={viewMode}
             onViewModeChange={handleViewModeChange}
-          >
-            {/* 搜尋範圍區塊 */}
-            <div className={styles.drawerSection}>
-              <h5 className={styles.sectionTitle}>
-                <FaMapMarkerAlt /> 位置與搜尋範圍
-              </h5>
+            searchRadius={searchRadius}
+            onRadiusChange={(newRadius) => {
+              handleFilterUpdate(() => {
+                setSearchRadius(newRadius)
+                if (selectedLocation) {
+                  // 查找附近商店
+                  const nearby = findNearbyStores(
+                    selectedLocation.lat,
+                    selectedLocation.lng
+                  )
+                  setNearbyStores(nearby)
 
-              <Form.Group className="mb-3">
-                <Button
-                  variant="outline-primary"
-                  className={styles.locationButton}
-                  onClick={getUserLocation}
-                  disabled={isGettingLocation}
-                >
-                  {isGettingLocation ? '獲取位置中...' : '使用我的位置'}
-                </Button>
-                {locationError && (
-                  <div className={styles.locationError}>{locationError}</div>
-                )}
+                  // 更新地圖標記，保留用戶位置標記，添加商店標記
+                  const newMarkers = [
+                    // 用戶選擇的位置
+                    {
+                      lat: selectedLocation.lat,
+                      lng: selectedLocation.lng,
+                      name: '已選擇的位置',
+                      isSelected: true,
+                      id: Date.now(),
+                      isUserLocation: selectedLocation.isUserLocation || false,
+                    },
+                  ]
 
-                {/* 搜尋範圍設定 */}
-                {selectedLocation && (
-                  <div className={styles.radiusSelector}>
-                    <Form.Label>搜尋範圍：{searchRadius} 公里</Form.Label>
-                    <Form.Range
-                      min={1}
-                      max={100}
-                      step={1}
-                      value={searchRadius}
-                      onChange={(e) => {
-                        const newRadius = parseInt(e.target.value)
-                        handleFilterUpdate(() => {
-                          setSearchRadius(newRadius)
-                          if (selectedLocation) {
-                            // 查找附近商店
-                            const nearby = findNearbyStores(
-                              selectedLocation.lat,
-                              selectedLocation.lng
-                            )
-                            setNearbyStores(nearby)
-
-                            // 更新地圖標記，保留用戶位置標記，添加商店標記
-                            const newMarkers = [
-                              // 用戶選擇的位置
-                              {
-                                lat: selectedLocation.lat,
-                                lng: selectedLocation.lng,
-                                name: '已選擇的位置',
-                                isSelected: true,
-                                id: Date.now(),
-                                isUserLocation:
-                                  selectedLocation.isUserLocation || false,
-                              },
-                            ]
-
-                            // 將附近商店添加到標記中
-                            if (nearby && nearby.length > 0) {
-                              nearby.forEach((store) => {
-                                newMarkers.push({
-                                  lat: parseFloat(store.lat),
-                                  lng: parseFloat(store.lng),
-                                  name: store.name,
-                                  description: `${store.address} (${
-                                    store.phone
-                                  }) - 距離: ${store.distance.toFixed(2)} 公里`,
-                                  isStore: true,
-                                  id: `store-${store.id}`,
-                                  distance: store.distance,
-                                })
-                              })
-                            }
-
-                            // 更新標記
-                            setMapMarkers(newMarkers)
-                          }
-                        })
-                      }}
-                    />
-                  </div>
-                )}
-              </Form.Group>
-
-              {selectedLocation && (
-                <div className={styles.selectedLocation}>
-                  <span>已選擇位置：</span>
-                  <span className="mx-2">
-                    緯度 {selectedLocation.lat.toFixed(4)}
-                  </span>
-                  <span className="mx-2">
-                    經度 {selectedLocation.lng.toFixed(4)}
-                  </span>
-                  <Button
-                    className="mx-2"
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={() => {
-                      handleFilterUpdate(() => {
-                        setSelectedLocation(null)
-                        setSelectedStoreLocation(null)
-                        setMapMarkers([])
-                        setNearbyStores([])
+                  // 將附近商店添加到標記中
+                  if (nearby && nearby.length > 0) {
+                    nearby.forEach((store) => {
+                      newMarkers.push({
+                        lat: parseFloat(store.lat),
+                        lng: parseFloat(store.lng),
+                        name: store.name,
+                        description: `${store.address} (${
+                          store.phone
+                        }) - 距離: ${store.distance.toFixed(2)} 公里`,
+                        isStore: true,
+                        id: `store-${store.id}`,
+                        distance: store.distance,
                       })
-                    }}
-                  >
-                    清除位置
-                  </Button>
-                </div>
-              )}
-            </div>
+                    })
+                  }
 
-            {/* 附近商店列表區塊 */}
-            <div className={styles.drawerSection}>
-              <h5 className={styles.sectionTitle}>
-                <FaSearch /> 附近寵物商店
-              </h5>
-
-              {selectedLocation ? (
-                <NearbyStoresList
-                  stores={nearbyStores}
-                  searchRadius={searchRadius}
-                  handleNearbyStoreClick={handleNearbyStoreClick}
-                />
-              ) : (
-                <div className={styles.mapInfoPlaceholder}>
-                  <p>點擊「使用我的位置」按鈕獲取附近商店</p>
-                  <p>或在大地圖上點擊選擇位置</p>
-                </div>
-              )}
-            </div>
-
+                  // 更新標記
+                  setMapMarkers(newMarkers)
+                }
+              })
+            }}
+            selectedLocation={selectedLocation}
+            onClearLocation={() => {
+              handleFilterUpdate(() => {
+                setSelectedLocation(null)
+                setSelectedStoreLocation(null)
+                setMapMarkers([])
+                setNearbyStores([])
+              })
+            }}
+            nearbyStores={nearbyStores}
+            onNearbyStoreClick={handleNearbyStoreClick}
+            getUserLocation={getUserLocation}
+            isGettingLocation={isGettingLocation}
+            locationError={locationError}
+          >
             {/* 進階篩選區塊 */}
             <div className={styles.drawerSection}>
               <h5 className={styles.sectionTitle}>
@@ -2007,15 +1799,10 @@ export default function PetsPage() {
                 </div>
               </Form>
             </div>
-          </LeftSideDrawer>
+          </MapDrawer>
 
           {/* 地圖容器 */}
-          <div
-            className={`${styles.fullMapContainer} ${
-              isDrawerOpen ? styles.shifted : ''
-            }`}
-            ref={fullMapRef}
-          >
+          <div className={styles.fullMapContainer}>
             <MapComponent
               center={mapCenter}
               zoom={mapZoom}
