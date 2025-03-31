@@ -15,6 +15,8 @@ export default function LayoutWrapper({ children }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const router = useRouter()
+  // 需要隱藏footer的路徑
+  const hideFooterPaths = ['/shop/cart']
 
   const isAdminRoute = pathname?.startsWith('/admin')
   const { user, loading } = useAuth()
@@ -147,7 +149,7 @@ export default function LayoutWrapper({ children }) {
         </Container>
       )}
 
-      <Footer />
+      {!hideFooterPaths.includes(pathname) && <Footer />}
       <FloatingAction />
     </TitleProvider>
   )
