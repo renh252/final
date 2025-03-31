@@ -7,7 +7,15 @@
   justify-content: center;
   align-items: center;
 }
-
+.successIcon {
+  font-size: 160px;
+  color: green;
+  margin-bottom: 10px;
+  margin: auto;
+}
+.title {
+  color: rgb(0, 135, 63);
+}
 .order_container {
   width: 90%;
   height: 100%;
@@ -222,12 +230,32 @@
   align-items: center;
   gap: 50px;
 }
-.result div h1 {
-  font-size: 60px;
-}
+
 .result div p {
   font-size: 20px;
   margin: 0;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: center;
+  margin: 25px 0;
+  gap: 30px;
+}
+
+.button {
+  background-color: #d2a679;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 28px;
+  cursor: pointer;
+  font-size: 22px;
+  width: 200px;
+}
+
+.button:hover {
+  background-color: #b38560;
 }
 
 /* 原始樣式保持不變，針對手機板進行調整 */
@@ -349,9 +377,25 @@
     font-size: 18px;
   }
 
-  .button {
+
+  .buttonGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .buttonGroup button {
     width: 100%;
-    font-size: 22px;
     padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .buttonGroup button:hover {
+    background: #8b5e3b;
   }
 }

@@ -1,4 +1,7 @@
-.success{
+.title {
+  color: rgb(0, 135, 63);
+}
+.success {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -15,13 +18,17 @@
   color: #00873f;
   font-size: 28px;
   margin: auto;
-
 }
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  border: 1px solid #ccc;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding-bottom: 40px;
 
   .infoContainer {
     display: flex;
@@ -30,12 +37,11 @@
     gap: 20px;
   }
 
-  
   .buttonGroup {
     display: flex;
     gap: 30px;
   }
-  
+
   .button {
     background-color: #d2a679;
     color: white;
@@ -46,16 +52,18 @@
     font-size: 22px;
     width: 200px;
   }
-  
+
   .button:hover {
     background-color: #b38560;
   }
-  
+
   .tableContainer {
     width: 80%;
     margin: 20px 0 0 0;
+    background: #f8f2e7;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
   }
-  
+
   .table {
     width: 100%;
     border-collapse: collapse;
@@ -63,7 +71,7 @@
     border-collapse: collapse; /* 合併邊框 */
     font-size: 20px;
   }
-  
+
   .table th,
   .table td {
     padding: 12px;
@@ -71,9 +79,9 @@
     text-align: center;
     border: none; /* 移除所有邊框 */
   }
-  
+
   .table th {
-    background-color: #543c2e;
+    background-color: #a67b5b;
     -webkit-text-stroke-width: 0.3px;
     -webkit-text-stroke-color: #ffffff;
   }
@@ -89,11 +97,11 @@
   }
   .summaryContainer {
     width: 80%;
-    background-color: #6b4f37;
+    background-color: #a67b5b;
     color: white;
-    border-radius:  0 0 20px 20px;
+    border-radius: 0 0 20px 20px;
   }
-  
+
   .summaryRow {
     display: flex;
     justify-content: space-between;
@@ -104,37 +112,41 @@
     font-size: 20px;
     border: none;
   }
-  
+
   .summaryRow:last-child {
     font-weight: bold;
     border-top: 1px solid white;
   }
 }
-.checkoutMobileContainer{
+.checkoutMobileContainer {
   display: none;
 }
 
 @media screen and (max-width: 768px) {
-  .container{
+  .container {
     display: none;
   }
-  .checkoutMobileContainer{
+  .checkoutMobileContainer {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    /* padding: 15px; */
+    padding: 15px;
     /* background-color: #f4ede1; */
+    border: 1px solid #ccc;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
     .title {
       font-size: 20px;
       font-weight: bold;
       text-align: center;
       padding: 10px;
-      background-color: #c9a27e;
+      background-color: rgb(166, 123, 91);
       color: white;
       border-radius: 8px;
     }
-    
+
     .reviewContainer,
     .productContainer {
       background: #f8f2e7;
@@ -142,14 +154,14 @@
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
-    
+
     .infoGroup {
       margin-bottom: 15px;
       padding: 10px;
       border-radius: 8px;
       background: #eaddcf;
     }
-    
+
     .infoHeader {
       display: flex;
       align-items: center;
@@ -158,26 +170,26 @@
       font-weight: bold;
       color: #8b5e3b;
     }
-    
+
     .infoBody p {
       font-size: 14px;
       margin: 5px 0;
       color: #5c4b3b;
     }
-    
+
     .remark {
       padding: 10px;
       background: #e6d5c3;
       border-radius: 5px;
       font-size: 14px;
     }
-    
+
     .productList {
       display: flex;
       flex-direction: column;
       gap: 15px;
     }
-    
+
     .productItem {
       display: flex;
       align-items: center;
@@ -188,12 +200,12 @@
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
-    
+
     .productInfo p {
       font-size: 14px;
       margin: 3px 0;
     }
-    
+
     .summaryContainer {
       background: #f8f2e7;
       color: #543c2e;
@@ -201,7 +213,7 @@
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
-    
+
     .summaryRow,
     .summaryTotal {
       display: flex;
@@ -209,36 +221,33 @@
       padding: 8px 0;
       font-size: 16px;
     }
-    
+
     .summaryTotal {
       font-weight: bold;
       font-size: 18px;
       color: #8b5e3b;
     }
-    
+
     .buttonGroup {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-    
+
     .buttonGroup button {
       width: 100%;
       padding: 12px;
       font-size: 16px;
       font-weight: bold;
       color: white;
-      background: #a67b5b;
+      background: #d5a77d;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
-    
+
     .buttonGroup button:hover {
       background: #8b5e3b;
     }
-    
-
-
-}
+  }
 }
