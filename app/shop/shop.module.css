@@ -255,12 +255,11 @@
 
 /* mobile */
 @media screen and (max-width: 768px) {
-  @media screen and (max-width: 1080px) {
-    .contain_title {
-      background-color: rgba(89, 62, 47, 0.8); /* 透明度調整 */
-    }
+
+    
+  .contain_title {
+    background-color: rgba(89, 62, 47, 0.8);
   }
-  
   .cardGroup{
     flex-wrap: nowrap;
   }
@@ -268,17 +267,45 @@
     display: none;
   }
   
-}
-
-@media screen and (max-width: 768px) {
   .cardGroup {
     display: flex;
     grid-template-columns: repeat(2, 1fr); /* 兩列 */
     gap: 15px;
     flex-wrap: nowrap;
+  
   }
+  .card{
+    width: 160px !important; 
+    border-radius: 8px;
+    overflow: visible !important;
+    padding-bottom: 0 !important;
 
+    >:last-child{
+      padding: 0 !important;
+    }
+
+    .cardText{
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+
+      p{
+        padding: 0;
+        margin: 0;
+      }
+    }
+
+    .likeButton{
+      position: relative;
+      bottom: 0;
+      right: 0;
+      margin: auto;
+    }
+  }
+  
   .productMenu{
     display: none;
   }
 }
+
+
