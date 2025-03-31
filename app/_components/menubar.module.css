@@ -73,6 +73,38 @@
   margin: 0 8px;
 }
 
+/* 新增購物車圖標樣式 */
+.cartIconLink {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px !important;
+}
+
+.cartIcon {
+  font-size: 20px;
+}
+
+.cartCount {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #d75951;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  opacity: 1 !important;
+  z-index: 5;
+}
+
 .cart {
   position: relative;
   font-size: 18px;
@@ -109,8 +141,26 @@
   .notificationWrapper {
     margin: 8px 0;
   }
-  .menubar{
+
+  .menubar {
     opacity: 1;
+  }
+
+  /* RWD環境下的導航項目置中 */
+  :global(.nav-link),
+  .cartIconLink,
+  .notificationWrapper {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  /* 在RWD模式下調整購物車通知數量位置 */
+  .cartCount {
+    top: 0;
+    right: calc(50% - 25px); /* 根據實際按鈕寬度調整 */
   }
 }
 
