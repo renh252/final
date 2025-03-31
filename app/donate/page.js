@@ -15,6 +15,7 @@ import PetFilterBar from './_components/petFilterBar'
 import Contents from './_data/Contents'
 
 import Card from '@/app/_components/ui/Card'
+import Alert from '../_components/alert'
 
 //swr專用的獲取函式
 const fetcher = (...args) => fetch(...args).then((res) => res.json())
@@ -75,11 +76,19 @@ export default function DonatePage() {
     e.preventDefault()
 
     if (!donationType) {
-      alert('請選擇捐款類型！')
+      Alert({
+        title: '請選擇捐款類型！',
+        icon: 'warning',
+        timer: 1000,
+      })
       return
     }
     if (donationType === '線上認養' && !selectedPet) {
-      alert('請選擇認養的寵物！')
+      Alert({
+        title: '請選擇認養的寵物！',
+        icon: 'warning',
+        timer: 1000,
+      })
       return
     }
 
