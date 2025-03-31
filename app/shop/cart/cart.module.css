@@ -4,13 +4,7 @@
     margin: 0;
   }
 }
-.product_name{
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+
 .h2{font-size: 30px;}
 .p1{font-size: 18px;}
 .row{
@@ -231,120 +225,10 @@
     font-weight: bold;
     text-decoration: none;
     border-radius: 8px;
+    transition: background 0.3s ease-in-out;
   }
   
   .noProduct a:hover {
     background-color: #e65c3c; /* 深一點的橘紅色 */
   }
-
-  .detailRWD{
-    display: none;
-  }
   
-  @media screen and (max-width: 768px)  {
-    .detail{
-      display: none !important;
-    }
-    .detailRWD{
-        width: 100%; 
-        height: 150px;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        border-radius: 0;
-        font-size: 20px;
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        gap: 50px;
-        align-items: center;
-        background-color: rgba(89, 62, 47, 1);
-        color: #fff;
-
-        p{
-          padding: 0;
-          margin: 0;
-        }
-
-        >div >div {
-          display: flex;
-          flex-direction: row;
-        }
-        .detailTitle {
-          display: none;
-        }
-    
-        .detailContent {
-          flex-direction: column;
-          gap: 5px;
-
-        }
-    
-        .item {
-          width: 100%;
-          justify-content: space-between;
-        }
-        .detailBtn{
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-  
-        button,a{
-            padding:5px ;
-            border-radius: 57px;
-            border: none;
-            background-color: rgba(205, 162, 116, 1);
-            color: #fff;
-            display: flex;
-            justify-content: center;
-          }
-  
-        }
-    }
-    .row{
-      /* 商品 */
-      .productGroup{
-        margin-bottom: 170px;
-        font-size: 20px;
-        width: 100%;
-        .h2{
-          font-size: 20px;
-        }
-        .item{
-          width: 100%;
-        }
-        .image{
-          width: 100px !important;
-          height: 100px !important;
-          overflow: hidden;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          img{
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-          }
-        }
-        .itemBottom{
-          width: 100% ;
-          align-items: center;
-        }
-        .info{
-          width: 100%;
-          gap: 10px;
-        }
-        .infoTop{
-          gap: 5px;
-        }
-        .infoBottom{
-          flex-wrap: wrap;
-        }
-        .count{
-          flex-wrap: nowrap;
-          white-space: nowrap;
-        }
-      }
-
-    }
-  }

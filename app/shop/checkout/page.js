@@ -10,7 +10,6 @@ import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import areaData from '@/app/shop/_data/areaData.js'
 import { useAuth } from '@/app/context/AuthContext'
 import { usePageTitle } from '@/app/context/TitleContext'
-import Alert from '@/app/_components/alert'
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -375,15 +374,6 @@ export default function CheckoutPage() {
     }
 
     setErrors(newErrors)
-
-    if(Object.keys(newErrors).length !== 0){
-      // alert('請填寫正確的資料');
-      Alert({ 
-        title:'請填寫正確的資料',
-        showconfirmBtn: true,
-        confirmBtnText: '確認'
-      })
-    }
     return Object.keys(newErrors).length === 0 // 如果没有错误返回 true
   }
 
@@ -653,7 +643,7 @@ export default function CheckoutPage() {
                       />
                       信用卡
                     </label>
-                    {/* <label>
+                    <label>
                       <input
                         name="payment_method"
                         type="radio"
@@ -662,7 +652,7 @@ export default function CheckoutPage() {
                         onChange={handleInputChange}
                       />
                       line pay
-                    </label> */}
+                    </label>
                   </div>
                   <span className={styles.warn}>{errors.payment_method}</span>
                 </div>
@@ -788,10 +778,10 @@ export default function CheckoutPage() {
 
         {checkoutData.delivery ? (
           <div className={styles.btns}>
-            <button type="submit">下一步</button>
             <button type="button" onClick={handleCancelPurchase}>
               返回購物車
             </button>
+            <button type="submit">下一步</button>
           </div>
         ) : (
           <button type="button" onClick={handleCancelPurchase}>

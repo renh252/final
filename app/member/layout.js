@@ -6,7 +6,6 @@ import styles from '@/app/member/member.module.css'
 import Image from 'next/image'
 import { useAuth } from '@/app/context/AuthContext' // 引入 useAuth
 import { useRouter } from 'next/navigation' // 導向到登入頁面
-import MenuRWD from '@/app/member/_components/menuRWD.js'
 
 export default function MemberLayout({ children }) {
   const { user, logout } = useAuth() // 從 useAuth 中獲取 logout
@@ -35,9 +34,7 @@ export default function MemberLayout({ children }) {
   }
 
   return (
-    <div className={styles.layout}>
-      <MenuRWD />
-    <div className={styles.gridContainer}>
+    <div className="member-layout">
       <div className={styles.logos_grid}>
         <button
           className="button"
@@ -51,7 +48,7 @@ export default function MemberLayout({ children }) {
           className="button"
           style={{ width: '200px', height: '50px', fontSize: '28px' }}
         >
-          <Link href="/member/appointments">寵物預約</Link>
+          <Link href="/pets">我的寵物</Link>
         </button>
         <select
           className="button"
@@ -96,7 +93,6 @@ export default function MemberLayout({ children }) {
           登出
         </button>
       </div>
-    </div>
       <main style={{ margin: '30px auto' }}>{children}</main>
     </div>
   )

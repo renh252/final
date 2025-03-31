@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/app/api/_lib/db'
 import { auth } from '@/app/api/_lib/auth'
-import { verifyToken } from '@/app/api/_lib/jwt'
 import { ResultSetHeader } from 'mysql2'
 
 // 獲取單個預約詳情
@@ -28,9 +27,9 @@ export async function GET(
       SELECT 
         pa.*, 
         p.name as pet_name, 
-        p.main_photo as pet_image,
-        p.species as pet_type,
-        p.variety as pet_breed,
+        p.main_image as pet_image,
+        p.type as pet_type,
+        p.breed as pet_breed,
         p.gender as pet_gender,
         p.age_year as pet_age_year,
         p.age_month as pet_age_month,
@@ -79,42 +78,16 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // 直接從請求頭獲取token
-    const authHeader = request.headers.get('Authorization')
-    const token =
-      authHeader && authHeader.startsWith('Bearer ')
-        ? authHeader.slice(7)
-        : null
-
-    if (!token) {
+    // 驗證用戶是否登入
+    const authResult = await auth.fromRequest(request)
+    if (!authResult.success) {
       return NextResponse.json(
         { success: false, message: '請先登入' },
         { status: 401 }
       )
     }
 
-    // 驗證token
-    const payload = await verifyToken(token)
-    if (!payload) {
-      return NextResponse.json(
-        { success: false, message: '無效的授權信息' },
-        { status: 401 }
-      )
-    }
-
-    console.log('驗證token成功，payload:', JSON.stringify(payload))
-
-    // 使用正確的userId屬性名稱
-    const userId = payload.userId || payload.user_id || payload.id
-
-    if (!userId) {
-      console.log('無法從token獲取用戶ID，payload:', JSON.stringify(payload))
-      return NextResponse.json(
-        { success: false, message: '無效的用戶信息' },
-        { status: 401 }
-      )
-    }
-
+    const userId = authResult.user.user_id
     const id = params.id
 
     // 先查詢預約資料，確認是否為待審核狀態

@@ -1,253 +1,103 @@
-.title {
-  color: rgb(0, 135, 63);
-}
-.success {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-.successIcon {
-  font-size: 160px;
-  color: green;
-  margin-bottom: 10px;
-  margin: auto;
-}
-
-.successTitle {
-  color: #00873f;
-  font-size: 28px;
-  margin: auto;
-}
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border: 1px solid #ccc;
-  background-color: rgba(255, 255, 255, 0.5);
-  border-radius: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding-bottom: 40px;
-
-  .infoContainer {
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    gap: 20px;
-  }
-
-  .buttonGroup {
-    display: flex;
-    gap: 30px;
-  }
-
-  .button {
-    background-color: #d2a679;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 28px;
-    cursor: pointer;
-    font-size: 22px;
-    width: 200px;
-  }
-
-  .button:hover {
-    background-color: #b38560;
-  }
-
-  .tableContainer {
-    width: 80%;
-    margin: 20px 0 0 0;
-    background: #f8f2e7;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-  }
-
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    color: white;
-    border-collapse: collapse; /* 合併邊框 */
-    font-size: 20px;
-  }
-
-  .table th,
-  .table td {
-    padding: 12px;
-    border: 1px solid #fff;
-    text-align: center;
-    border: none; /* 移除所有邊框 */
-  }
-
-  .table th {
-    background-color: #a67b5b;
-    -webkit-text-stroke-width: 0.3px;
-    -webkit-text-stroke-color: #ffffff;
-  }
-  .table th:first-child {
-    border-radius: 20px 0 0 0;
-  }
-  .table th:nth-child(4) {
-    border-radius: 0 20px 0 0;
-  }
-  .table td {
-    color: rgb(0, 0, 0);
-    background-color: white;
-  }
-  .summaryContainer {
-    width: 80%;
-    background-color: #a67b5b;
-    color: white;
-    border-radius: 0 0 20px 20px;
-  }
-
-  .summaryRow {
-    display: flex;
-    justify-content: space-between;
-    padding: 1% 5% 1% 77%;
-    border-bottom: 1px solid white;
-    -webkit-text-stroke-width: 0.3px;
-    -webkit-text-stroke-color: #ffffff;
-    font-size: 20px;
-    border: none;
-  }
-
-  .summaryRow:last-child {
-    font-weight: bold;
-    border-top: 1px solid white;
-  }
 }
-.checkoutMobileContainer {
-  display: none;
+.infoContainer {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 20px;
+}
+.successIcon {
+  font-size: 160px;
+  color: green;
+  margin-bottom: 10px;
 }
 
-@media screen and (max-width: 768px) {
-  .container {
-    display: none;
-  }
-  .checkoutMobileContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 15px;
-    /* background-color: #f4ede1; */
-    border: 1px solid #ccc;
-    background-color: rgba(255, 255, 255, 0.5);
-    border-radius: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.title {
+  color: #00873f;
+  -webkit-text-stroke-width: 0.6px;
+  -webkit-text-stroke-color: #00873f;
+  font-size: 28px;
+}
 
-    .title {
-      font-size: 20px;
-      font-weight: bold;
-      text-align: center;
-      padding: 10px;
-      background-color: rgb(166, 123, 91);
-      color: white;
-      border-radius: 8px;
-    }
+.buttonGroup {
+  display: flex;
+  gap: 30px;
+}
 
-    .reviewContainer,
-    .productContainer {
-      background: #f8f2e7;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+.button {
+  background-color: #d2a679;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 28px;
+  cursor: pointer;
+  font-size: 22px;
+  width: 200px;
+}
 
-    .infoGroup {
-      margin-bottom: 15px;
-      padding: 10px;
-      border-radius: 8px;
-      background: #eaddcf;
-    }
+.button:hover {
+  background-color: #b38560;
+}
 
-    .infoHeader {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #8b5e3b;
-    }
+.tableContainer {
+  width: 80%;
+  margin: 20px 0 0 0;
+}
 
-    .infoBody p {
-      font-size: 14px;
-      margin: 5px 0;
-      color: #5c4b3b;
-    }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
+  border-collapse: collapse; /* 合併邊框 */
+  font-size: 20px;
+}
 
-    .remark {
-      padding: 10px;
-      background: #e6d5c3;
-      border-radius: 5px;
-      font-size: 14px;
-    }
+.table th,
+.table td {
+  padding: 12px;
+  border: 1px solid #fff;
+  text-align: center;
+  border: none; /* 移除所有邊框 */
+}
 
-    .productList {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
+.table th {
+  background-color: #543c2e;
+  -webkit-text-stroke-width: 0.3px;
+  -webkit-text-stroke-color: #ffffff;
+}
+.table th:first-child {
+  border-radius: 20px 0 0 0;
+}
+.table th:nth-child(4) {
+  border-radius: 0 20px 0 0;
+}
+.table td {
+  color: rgb(0, 0, 0);
+  background-color: white;
+}
+.summaryContainer {
+  width: 80%;
+  background-color: #6b4f37;
+  color: white;
+  border-radius:  0 0 20px 20px;
+}
 
-    .productItem {
-      display: flex;
-      align-items: center;
-      color: #5c4b3b;
-      gap: 10px;
-      padding: 10px;
-      background: #f8f2e7;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    }
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 1% 5% 1% 77%;
+  border-bottom: 1px solid white;
+  -webkit-text-stroke-width: 0.3px;
+  -webkit-text-stroke-color: #ffffff;
+  font-size: 20px;
+  border: none;
+}
 
-    .productInfo p {
-      font-size: 14px;
-      margin: 3px 0;
-    }
-
-    .summaryContainer {
-      background: #f8f2e7;
-      color: #543c2e;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .summaryRow,
-    .summaryTotal {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      font-size: 16px;
-    }
-
-    .summaryTotal {
-      font-weight: bold;
-      font-size: 18px;
-      color: #8b5e3b;
-    }
-
-    .buttonGroup {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .buttonGroup button {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      color: white;
-      background: #d5a77d;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .buttonGroup button:hover {
-      background: #8b5e3b;
-    }
-  }
+.summaryRow:last-child {
+  font-weight: bold;
+  border-top: 1px solid white;
 }

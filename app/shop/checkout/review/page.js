@@ -416,8 +416,8 @@ export default function ReviewPage() {
 
             {/* 按鈕 */}
             <div className={styles.buttonGroup}>
-              <button onClick={handleSubmitOrder}>前往付款</button>
               <button onClick={handleModifyOrder}>修改訂單</button>
+              <button onClick={handleSubmitOrder}>前往付款</button>
             </div>
           </div>
 

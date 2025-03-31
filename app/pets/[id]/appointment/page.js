@@ -35,6 +35,7 @@ import Link from 'next/link'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import styles from './appointment.module.css'
 import { usePageTitle } from '@/app/context/TitleContext'
+import CatPawToggle from '@/app/pets/_components/CatPawToggle'
 
 export default function PetAppointmentPage() {
   usePageTitle('寵物領養')
@@ -199,9 +200,7 @@ export default function PetAppointmentPage() {
   }
 
   // 同意規章狀態變更
-  const handleTermsToggle = (e) => {
-    const { checked } = e.target
-
+  const handleTermsToggle = (checked) => {
     // 如果閱讀進度未達100%，不允許設為同意
     if (readingProgress < 100 && checked) {
       return
@@ -453,12 +452,9 @@ export default function PetAppointmentPage() {
           {/* 寵物資訊卡 */}
           <Card className={`border-0 shadow-sm mb-4 ${styles.petCard}`}>
             <div className={styles.petImageWrapper}>
-              {pet?.photos?.length > 0 ? (
+              {pet?.main_image ? (
                 <Image
-                  src={
-                    pet.photos.find((photo) => photo.is_main)?.photo_url ||
-                    pet.photos[0].photo_url
-                  }
+                  src={pet.main_image}
                   alt={pet.name}
                   className={styles.petImage}
                   width={400}
@@ -486,9 +482,9 @@ export default function PetAppointmentPage() {
 
               <div className={styles.petBasicInfo}>
                 <Badge bg="light" text="dark" className="me-2 mb-2">
-                  {pet?.species === 'dog'
+                  {pet?.type === 'dog'
                     ? '狗'
-                    : pet?.species === 'cat'
+                    : pet?.type === 'cat'
                     ? '貓'
                     : '其他'}
                 </Badge>
@@ -670,22 +666,22 @@ export default function PetAppointmentPage() {
                   </div>
 
                   <div className={styles.termsAgree}>
-                    <Form.Check
-                      type="checkbox"
-                      id="agreed_terms"
-                      name="agreed_terms"
-                      checked={formData.agreed_terms}
-                      onChange={handleTermsToggle}
+                    <CatPawToggle
+                      isEnabled={formData.agreed_terms}
+                      onToggle={handleTermsToggle}
+                      furColor="#444"
+                      padColor="#FFA5A5"
+                      size="4rem"
                       disabled={readingProgress < 100}
-                      label="我已閱讀並同意遵守上述領養規章"
-                      className={styles.termsCheckbox}
-                      isInvalid={!!formErrors.agreed_terms}
                     />
-                    {formErrors.agreed_terms && (
-                      <div className="text-danger small mt-1">
-                        {formErrors.agreed_terms}
-                      </div>
-                    )}
+                    <div className={styles.agreeText}>
+                      我已閱讀並同意遵守上述領養規章
+                      {formErrors.agreed_terms && (
+                        <div className={styles.agreeError}>
+                          {formErrors.agreed_terms}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

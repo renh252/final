@@ -25,3 +25,19 @@ export async function verifyToken(token: string): Promise<any> {
     return null
   }
 }
+
+// 用於刷新 JWT token
+export function refreshToken(token: string): Promise<string | null> {
+  return verifyToken(token)
+    .then((payload) => {
+      if (!payload) return null
+      // 刪除過期時間相關資訊，重新簽發
+      delete payload.exp
+      delete payload.iat
+      return generateToken(payload)
+    })
+    .catch((error) => {
+      console.error('Token刷新失敗:', error)
+      return null
+    })
+}

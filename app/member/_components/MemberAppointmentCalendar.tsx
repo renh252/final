@@ -55,26 +55,9 @@ const MemberAppointmentCalendar: React.FC<MemberAppointmentCalendarProps> = ({
     'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'
   >('dayGridMonth')
 
-  // 格式化日期函數
-  const formatDate = (dateString: string): string => {
-    // 處理ISO日期格式 (已含有T和時區)
-    if (dateString.includes('T')) {
-      // 只取日期部分
-      return dateString.split('T')[0]
-    }
-    return dateString
-  }
-
   // 將預約資料轉換為日曆事件
   const events: CalendarEvent[] = appointments.map((appointment) => {
-    // 正確處理日期時間格式
-    const dateTime = `${formatDate(appointment.appointment_date)}T${
-      appointment.appointment_time
-    }`
-
-    console.log('處理預約 ID:', appointment.id)
-    console.log('處理前日期:', appointment.appointment_date)
-    console.log('處理後日期時間:', dateTime)
+    const dateTime = `${appointment.appointment_date}T${appointment.appointment_time}`
 
     // 根據狀態設定不同的事件樣式類名
     let statusClassName = ''

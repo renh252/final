@@ -151,17 +151,11 @@ const AppointmentDetailModal = ({
         <div className={styles.modalPetInfo}>
           <div className={styles.modalPetImageContainer}>
             <Image
-              src={appointment.pet_image || '/images/default_no_pet.jpg'}
+              src={appointment.pet_image}
               alt={appointment.pet_name}
               width={180}
               height={180}
               className={styles.modalPetImage}
-              style={{
-                objectFit: 'cover',
-                maxWidth: '100%',
-                maxHeight: '100%',
-                margin: '0 auto',
-              }}
             />
           </div>
           <div className={styles.modalPetDetails}>
@@ -252,81 +246,56 @@ export default function AppointmentsPage() {
       return
     }
 
-    // 直接獲取預約資料，不嘗試刷新token
-    fetchAppointments()
-  }, [isAuthenticated, router])
+    const fetchAppointments = async () => {
+      try {
+        console.log('開始獲取預約資料...')
+        console.log('使用 token:', token)
+        const response = await fetch('/api/pets/appointments', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        console.log('API 回應狀態:', response.status)
 
-  const fetchAppointments = async () => {
-    try {
-      setLoading(true)
-      setError('')
-
-      // 嘗試從AuthContext獲取token，如果為null則從localStorage獲取
-      const storedToken = token || localStorage.getItem('token')
-      console.log('開始獲取預約記錄...')
-      console.log('使用的token (存在?):', !!storedToken)
-
-      if (!storedToken) {
-        setError('未找到登入信息，請重新登入')
-        router.push('/member/MemberLogin/login')
-        return
-      }
-
-      const response = await fetch('/api/pets/appointments', {
-        headers: {
-          Authorization: `Bearer ${storedToken}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          console.error('驗證失敗，請重新登入')
-          // 清除本地存儲的登入信息
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          // 強制重定向到登入頁面
-          router.push('/member/MemberLogin/login?redirect=/member/appointments')
-          return
+        if (!response.ok) {
+          throw new Error('獲取預約資料失敗')
         }
-        throw new Error('獲取預約記錄失敗')
-      }
 
-      const data = await response.json()
-      console.log('獲取到的預約記錄:', data)
+        const data = await response.json()
+        console.log('API 回應資料:', data)
 
-      if (data.success) {
-        console.log('預約數量:', data.data ? data.data.length : 0)
-        setAppointments(data.data || [])
-      } else {
-        setAppointments([])
-        setError(data.message || '沒有找到預約記錄')
+        if (data.success) {
+          console.log('成功獲取預約資料，數量:', data.data.length)
+          setAppointments(data.data)
+        } else {
+          throw new Error(data.message || '獲取預約資料失敗')
+        }
+      } catch (err) {
+        console.error('Error fetching appointments:', err)
+        setError('獲取預約資料時發生錯誤')
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      console.error('獲取預約記錄錯誤:', err)
-      setError('獲取預約記錄時發生錯誤，請重新登入或稍後再試')
-    } finally {
-      setLoading(false)
     }
-  }
+
+    if (token) {
+      fetchAppointments()
+    }
+  }, [isAuthenticated, router, token])
 
   const handleCancelAppointment = async (appointmentId: number) => {
     try {
-      // 嘗試從AuthContext獲取token，如果為null則從localStorage獲取
-      const storedToken = token || localStorage.getItem('token')
-
-      if (!storedToken) {
-        setError('未找到登入信息，請重新登入')
-        return
-      }
-
       console.log('開始取消預約，ID:', appointmentId)
-      console.log('使用token (存在?):', !!storedToken)
+      console.log('使用 token:', token)
       const response = await fetch(`/api/pets/appointments/${appointmentId}`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${storedToken}`,
+          Authorization: `Bearer ${token}`,
         },
       })
       console.log('取消預約回應狀態:', response.status)
@@ -434,17 +403,11 @@ export default function AppointmentsPage() {
               <Col md={3}>
                 <div className={styles.petImageContainer}>
                   <Image
-                    src={appointment.pet_image || '/images/default_no_pet.jpg'}
+                    src={appointment.pet_image}
                     alt={appointment.pet_name}
                     width={200}
                     height={200}
                     className={styles.petImage}
-                    style={{
-                      objectFit: 'cover',
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      margin: '0 auto',
-                    }}
                   />
                 </div>
               </Col>

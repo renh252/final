@@ -15,7 +15,6 @@ import { MdOutlinePets } from 'react-icons/md'
 import Alert from '@/app/_components/alert'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import { usePageTitle } from '@/app/context/TitleContext'
-import CartRWD from '@/app/shop/_components/CartRWD'
 
 // 連接資料庫
 import useSWR, { mutate } from 'swr'
@@ -24,19 +23,15 @@ const fetcher = (url) => fetch(url).then((res) => res.json())
 export default function CartPage() {
   const router = useRouter()
   // 獲取用戶信息
-  const { user, loading } = useAuth()
+  const { user, loading} = useAuth()
   const userId = user?.id
   usePageTitle('購物車')
   // 獲取購物車數據
-  const { data, error } = useSWR(
-    userId ? `/api/shop/cart?userId=${userId}` : null,
-    fetcher
-  )
+  const { data, error } = useSWR(userId ? `/api/shop/cart?userId=${userId}` : null, fetcher)
 
   // 計算總金額和總折扣
   const { totalAmount, totalDiscount, totalOriginalPrice } = useMemo(() => {
-    if (!data?.data)
-      return { totalAmount: 0, totalDiscount: 0, totalOriginalPrice: 0 }
+    if (!data?.data) return { totalAmount: 0, totalDiscount: 0, totalOriginalPrice: 0 }
     return data.data.reduce(
       (acc, item) => {
         const originalPrice = item.price * item.quantity
@@ -54,13 +49,12 @@ export default function CartPage() {
       },
       { totalAmount: 0, totalDiscount: 0, totalOriginalPrice: 0 }
     )
-  }, [data])
+  }, [data])  
 
   // 用戶驗證
   if (loading) return <div>載入中...</div>
-
   if (!user) return (
-  <div className={styles.noProduct}>
+  <div>
     <p>請先登入</p>
     <Link href="/member/MemberLogin/login">前往登入會員
     </Link>
@@ -118,7 +112,7 @@ export default function CartPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ quantity: newQuantity, userId }),
+        body: JSON.stringify({ quantity: newQuantity, userId  }),
       })
 
       if (response.ok) {
@@ -142,12 +136,9 @@ export default function CartPage() {
       cancelBtnText: '取消',
       function: async () => {
         try {
-          const response = await fetch(
-            `/api/shop/cart/${cartId}?userId=${userId}`,
-            {
-              method: 'DELETE',
-            }
-          )
+          const response = await fetch(`/api/shop/cart/${cartId}?userId=${userId}`, {
+            method: 'DELETE',
+          })
           if (response.ok) {
             mutate(`/api/shop/cart?userId=${userId}`)
             Alert({
@@ -165,22 +156,25 @@ export default function CartPage() {
     })
   }
 
-  // 前往結帳"按钮的点击事件
+
+
+  // 前往结帳"按钮的点击事件
   const handleCheckout = () => {
-    const shippingFee = 0 // 假设運費為 0
+    const shippingFee = 0; // 假设运费为 0
     // 将价格信息存入 localStorage
     const productPrice = {
       totalQuantity,
       totalDiscount,
       totalOriginalPrice,
       shippingFee,
-      totalAmount: totalOriginalPrice - totalDiscount - shippingFee,
+      totalAmount:totalOriginalPrice-totalDiscount-shippingFee,
     }
     localStorage.setItem('productPrice', JSON.stringify(productPrice))
 
-    // 跳转到結帳页面
+    // 跳转到结账页面
     router.push('/shop/checkout')
   }
+
 
   if (error) return <div>獲取購物車時發生錯誤</div>
   if (!data) return <div>載入中...</div>
@@ -193,51 +187,24 @@ export default function CartPage() {
   if (data?.error || !cart || cart.length === 0) {
     console.log(data?.error)
     return (
-      <>
-        <Breadcrumbs
-          title="購物車"
-          items={[{ label: '購物車', href: '/shop/cart' }]}
-        />
-        <div className={styles.noProduct}>
-          <p>購物車目前沒有商品</p>
-          <Link href={'/shop'}>前往逛逛</Link>
-        </div>
-      </>
-    )
+    <>
+    <Breadcrumbs
+      title="購物車"
+      items={[{ label: '購物車', href: '/shop/cart' }]}
+    />
+    <div className={styles.noProduct}>
+      <p>購物車目前沒有商品</p>
+      <Link href={'/shop'}>前往逛逛</Link>
+    </div>
+
+    </>
+  )
   }
+
+  
 
   return (
     <>
-     <CartRWD className={styles.detailRWD}>
-        <div className={styles.detailContent}>
-          <div className={styles.item}>
-            <p>商品總數</p>
-            <p>{totalQuantity}</p>
-          </div>
-          <div className={styles.item}>
-            <p>商品金額</p>
-            <p>{totalOriginalPrice}</p>
-          </div>
-          <div className={styles.item}>
-            <p>折扣</p>
-            <p>- {totalDiscount}</p>
-          </div>
-          <div className={styles.item}>
-            <p>合計</p>
-            <p>{totalAmount}</p>
-          </div>
-        </div>
-        <div className={styles.detailBtn}>
-          <Link
-            href={'/shop/checkout'}
-            onClick={handleCheckout}
-          >
-            前往結帳
-          </Link>
-          <Link href={'/shop'}>繼續逛逛</Link>
-        </div>
-        
-     </CartRWD>
       <Breadcrumbs
         title="購物車"
         items={[{ label: '購物車', href: '/shop/cart' }]}
@@ -274,32 +241,19 @@ export default function CartPage() {
                 </div>
                 <div className={styles.itemBottom}>
                   <Link href={`/shop/${product.product_id}`}>
-                    <div
-                      className={styles.image}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
+                    <div className={styles.image}>
                       <Image
                         src={product.image_url || '/images/default_no_pet.jpg'}
                         alt={product.product_name}
                         width={200}
                         height={200}
-                        style={{
-                          objectFit: 'cover',
-                          maxHeight: '100%',
-                          maxWidth: '100%',
-                          margin: '0 auto',
-                        }}
                       />
                     </div>
                   </Link>
                   <div className={styles.info}>
                     <div className={styles.infoTop}>
                       <Link href={`/shop/${product.product_id}`}>
-                        <p className={`${styles.product_name}`}>{product.product_name}</p>
+                        <p className={styles.h2}>{product.product_name}</p>
                       </Link>
                       <p className={styles.p1}>{product?.variant_name}</p>
                     </div>
@@ -390,7 +344,10 @@ export default function CartPage() {
               </div>
             </div>
             <div className={styles.detailBtn}>
-              <Link href={'/shop/checkout'} onClick={handleCheckout}>
+              <Link
+                href={'/shop/checkout'}
+                onClick={handleCheckout}
+              >
                 前往結帳
               </Link>
               <Link href={'/shop'}>繼續逛逛</Link>

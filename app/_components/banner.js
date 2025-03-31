@@ -1,3 +1,5 @@
+// FILEPATH: c:/iSpan/final/app/_components/banner.js
+
 'use client'
 
 import Image from 'next/image'
@@ -6,8 +8,15 @@ import { usePathname } from 'next/navigation'
 import styles from './banner.module.css'
 
 // Banner 配置
-const bannerConfig = {
+const bannerHome = {
   '/': {
+    show: true,
+    image: '/images/Banner.jpg',
+    title: '毛孩之家',
+  },
+}
+const bannerConfig = {
+  '/home': {
     show: true,
     image: '/images/Banner.jpg',
     title: '毛孩之家',
@@ -40,7 +49,8 @@ export default function Banner() {
   // 修改这里的逻辑以处理 /member 开头的路径
   const config = pathname.startsWith('/member')
     ? bannerConfig['/member/layout']
-    : bannerConfig[pathname] || {
+    : bannerConfig[pathname] ||
+      bannerHome[pathname] || {
         show: false,
         image: '/images/Banner.jpg',
         title: '毛孩之家',
@@ -60,7 +70,7 @@ export default function Banner() {
         priority
         style={{
           width: '100%',
-          height: '50vh',
+          height: pathname === '/' ? '100vh' : '50vh',
         }}
       />
       <div className={styles.banner_title}>{config.title}</div>

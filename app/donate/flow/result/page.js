@@ -1,16 +1,27 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import styles from '../flow.module.css'
 import Image from 'next/image'
 import Link from 'next/link'
-import { BsPatchCheckFill, BsPatchExclamationFill } from 'react-icons/bs'
 
 export default function ResultPage(props) {
-  const searchParams = useSearchParams()
-  const isSuccess = searchParams.get('status') === 'success'
+  const [countdown, setCountdown] = useState(5) // 初始倒數時間 5 秒
+  const router = useRouter()
 
+  useEffect(() => {
+    if (countdown === 0) {
+      router.push('/member/donations') // 倒數結束後跳轉捐款紀錄頁
+      return
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown(countdown - 1)
+    }, 1000) // 每秒更新一次
+
+    return () => clearTimeout(timer) // 清除計時器
+  }, [countdown, router])
   return (
     <>
       <div className={styles.flow_container}>
@@ -19,39 +30,21 @@ export default function ResultPage(props) {
       </div>
       <div className={styles.order_container}>
         <div className={styles.result}>
-          {isSuccess ? (
-            <BsPatchCheckFill className={styles.successIcon} />
-          ) : (
-            <BsPatchExclamationFill
-              className={styles.successIcon}
-              style={{ color: '#d25445' }}
-            />
-          )}
-
+          <Image
+            src="/images/donate/icon/result.png"
+            alt="success"
+            width={150}
+            height={150}
+          />
           <div>
-            {isSuccess ? (
-              <h1 className={styles.title}>捐款成功</h1>
-            ) : (
-              <h1 className={styles.title} style={{ color: '#d25445' }}>
-                捐款失敗
-              </h1>
-            )}
+            <h1>捐款成功</h1>
+            <p>
+              將於<span style={{ color: 'red' }}>{countdown}</span>秒後跳至
+              <Link href="/member/donations" style={{ color: 'blue' }}>
+                捐款紀錄頁面
+              </Link>
+            </p>
           </div>
-        </div>{' '}
-        {/* 按鈕區塊 */}
-        <div className={styles.buttonGroup}>
-          <button
-            className={styles.button}
-            onClick={() => (window.location.href = '/member/donations')}
-          >
-            查看捐款紀錄
-          </button>
-          <button
-            className={styles.button}
-            onClick={() => (window.location.href = '/donate')}
-          >
-            回到捐款頁
-          </button>
         </div>
       </div>
     </>
