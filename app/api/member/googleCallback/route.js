@@ -78,18 +78,22 @@ export async function POST(req) {
 
             if (!userExists) {
                 // 第一次使用 Google 登入，需要填寫額外資訊
+                const defaultName = googleName || ''; // 使用 Google Name 或空字串
+                const defaultNumber = '';
+                const defaultBirthday = null; // 或您希望的預設日期
+                const defaultAddress = '';
+
                 const [insertResult, errorInsert] = await database.executeSecureQuery(
-                    'INSERT INTO users (firebase_uid, google_email, user_email, user_password, user_name, has_additional_info) VALUES (?, ?, ?, ?, ?, ?)',
-                    [uid, googleEmail, googleEmail, 'google_login', googleName, 0] // 預設 has_additional_info 為 0
+                    'INSERT INTO users (firebase_uid, google_email, user_email, user_password, user_name, user_number, user_birthday, user_address, has_additional_info) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [uid, googleEmail, googleEmail, 'google_login', defaultName, defaultNumber, defaultBirthday, defaultAddress, 0]
                 );
                 if (errorInsert) {
                     console.error('創建新使用者失敗:', errorInsert);
                     return NextResponse.json({ message: '創建新使用者失敗', error: errorInsert.message }, { status: 500 });
                 }
-                console.log(`新使用者已創建，firebase_uid: ${uid}, google_email: ${googleEmail}, user_email: ${googleEmail}, user_password: 'google_login', user_name: ${googleName}, has_additional_info: 0`);
+                console.log(`新使用者已創建，firebase_uid: ${uid}, google_email: ${googleEmail}, user_email: ${googleEmail}, user_password: 'google_login', user_name: ${defaultName}, user_number: ${defaultNumber}, user_birthday: ${defaultBirthday}, user_address: ${defaultAddress}, has_additional_info: 0`);
                 needsAdditionalInfo = true;
             } else if (!hasAdditionalInfo) {
-                // 使用者已存在，但尚未填寫額外資訊
                 needsAdditionalInfo = true;
             }
 
