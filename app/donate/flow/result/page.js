@@ -1,14 +1,15 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import styles from '../flow.module.css'
 import Image from 'next/image'
 import Link from 'next/link'
-import { BsPatchCheckFill } from 'react-icons/bs'
+import { BsPatchCheckFill, BsPatchExclamationFill } from 'react-icons/bs'
 
 export default function ResultPage(props) {
-  const router = useRouter()
+  const searchParams = useSearchParams()
+  const isSuccess = searchParams.get('status') === 'success'
 
   return (
     <>
@@ -18,9 +19,23 @@ export default function ResultPage(props) {
       </div>
       <div className={styles.order_container}>
         <div className={styles.result}>
-          <BsPatchCheckFill className={styles.successIcon} />
+          {isSuccess ? (
+            <BsPatchCheckFill className={styles.successIcon} />
+          ) : (
+            <BsPatchExclamationFill
+              className={styles.successIcon}
+              style={{ color: '#d25445' }}
+            />
+          )}
+
           <div>
-            <h1 className={styles.title}>捐款成功</h1>
+            {isSuccess ? (
+              <h1 className={styles.title}>捐款成功</h1>
+            ) : (
+              <h1 className={styles.title} style={{ color: '#d25445' }}>
+                捐款失敗
+              </h1>
+            )}
           </div>
         </div>{' '}
         {/* 按鈕區塊 */}
