@@ -226,6 +226,8 @@
   }
 }
 
+
+
 /* 更小的手機螢幕 (最大寬度 480px) - 可選 */
 @media (max-width: 480px) {
   .profile_photo img {
