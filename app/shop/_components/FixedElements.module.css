@@ -37,7 +37,7 @@
   /* 新增標題區塊 */
   .menuTitle {
     width: 100%;
-    min-height: 56px; /* 預設高度與原來 padding 相同 */
+    min-height: 44.8px; /* 預設高度與原來 padding 相同 */
     padding-left: 15px;
     font-size: 20px;
     display: flex;
