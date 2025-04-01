@@ -21,6 +21,7 @@ export default function SimplePetCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(true)
   const [leftSpacer, setLeftSpacer] = useState(0)
+  const [isInitialRender, setIsInitialRender] = useState(true)
 
   const updateLayout = () => {
     const width = window.innerWidth
@@ -55,8 +56,13 @@ export default function SimplePetCarousel() {
   const centerOffset = pets.length
 
   useEffect(() => {
-    setCurrentIndex(centerOffset)
-  }, [centerOffset])
+    if (pets.length > 0) {
+      setCurrentIndex(centerOffset)
+      setTimeout(() => {
+        setIsInitialRender(false)
+      }, 100)
+    }
+  }, [pets.length, centerOffset])
 
   useEffect(() => {
     const start = () => {
@@ -71,7 +77,11 @@ export default function SimplePetCarousel() {
       node.addEventListener('mouseenter', stop)
       node.addEventListener('mouseleave', start)
     }
-    start()
+
+    if (!isInitialRender && pets.length > 0) {
+      start()
+    }
+
     return () => {
       stop()
       if (node) {
@@ -79,21 +89,31 @@ export default function SimplePetCarousel() {
         node.removeEventListener('mouseleave', start)
       }
     }
-  }, [])
+  }, [isInitialRender, pets.length])
 
   useEffect(() => {
-    if (currentIndex >= loopedPets.length - visibleCount || currentIndex <= 0) {
-      const timeout = setTimeout(() => {
-        setIsTransitioning(false)
-        requestAnimationFrame(() => {
-          setCurrentIndex(centerOffset)
-        })
-      }, 600)
-      return () => clearTimeout(timeout)
-    } else {
-      setIsTransitioning(true)
+    if (!isInitialRender && pets.length > 0) {
+      if (currentIndex >= centerOffset * 2 + visibleCount) {
+        const timeout = setTimeout(() => {
+          setIsTransitioning(false)
+          requestAnimationFrame(() => {
+            setCurrentIndex(currentIndex - centerOffset)
+          })
+        }, 600)
+        return () => clearTimeout(timeout)
+      } else if (currentIndex < centerOffset && currentIndex !== 0) {
+        const timeout = setTimeout(() => {
+          setIsTransitioning(false)
+          requestAnimationFrame(() => {
+            setCurrentIndex(currentIndex + centerOffset)
+          })
+        }, 600)
+        return () => clearTimeout(timeout)
+      } else {
+        setIsTransitioning(true)
+      }
     }
-  }, [currentIndex, loopedPets.length, centerOffset, visibleCount])
+  }, [currentIndex, centerOffset, visibleCount, isInitialRender, pets.length])
 
   const handleNext = () => setCurrentIndex((prev) => prev + 1)
   const handlePrev = () => setCurrentIndex((prev) => prev - 1)
@@ -113,8 +133,13 @@ export default function SimplePetCarousel() {
             className={styles.track}
             ref={trackRef}
             style={{
-              transform: `translateX(calc(${leftSpacer}px - ${currentIndex * itemWidth}px))`,
-              transition: isTransitioning ? 'transform 0.6s ease' : 'none',
+              transform: `translateX(calc(${leftSpacer}px - ${
+                currentIndex * itemWidth
+              }px))`,
+              transition:
+                isTransitioning && !isInitialRender
+                  ? 'transform 0.6s ease'
+                  : 'none',
             }}
           >
             {loopedPets.map((pet, index) => (
