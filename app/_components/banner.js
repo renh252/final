@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import styles from './banner.module.css'
 
@@ -36,11 +36,19 @@ const bannerConfig = {
 
 export default function Banner() {
   const pathname = usePathname()
+  const [currentPath, setCurrentPath] = useState('/')
 
-  // 修改这里的逻辑以处理 /member 开头的路径
-  const config = pathname.startsWith('/member')
+  // 使用 useEffect 確保在客戶端渲染時獲取路徑
+  useEffect(() => {
+    if (pathname) {
+      setCurrentPath(pathname)
+    }
+  }, [pathname])
+
+  // 使用 currentPath 代替直接使用 pathname
+  const config = currentPath.startsWith('/member')
     ? bannerConfig['/member/layout']
-    : bannerConfig[pathname] || {
+    : bannerConfig[currentPath] || {
         show: false,
         image: '/images/Banner.jpg',
         title: '毛孩之家',

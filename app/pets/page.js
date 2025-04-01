@@ -466,9 +466,6 @@ export default function PetsPage() {
   // 處理篩選更新的統一函數
   const handleFilterUpdate = useCallback(
     (updateFn) => {
-      // 保存當前滾動位置
-      const currentScrollPosition = window.scrollY
-
       // 保存當前數據以避免閃爍
       if (petsData) {
         setPreviousPetsData(petsData)
@@ -479,13 +476,7 @@ export default function PetsPage() {
         // 執行實際的狀態更新
         updateFn()
 
-        // 延遲恢復滾動位置
-        requestAnimationFrame(() => {
-          window.scrollTo({
-            top: currentScrollPosition,
-            behavior: 'auto',
-          })
-        })
+        // 不再恢復滾動位置，避免影響menubar顯示
       })
     },
     [petsData]
@@ -828,9 +819,6 @@ export default function PetsPage() {
 
   // 獲取用戶位置
   const getUserLocation = useCallback(() => {
-    // 保存當前滾動位置
-    const currentScrollPosition = window.scrollY
-
     // 重置錯誤狀態
     setLocationError(null)
     setNearbyStores([]) // 重置附近商店
@@ -900,13 +888,7 @@ export default function PetsPage() {
           setMapMarkers(markersArray)
           setIsGettingLocation(false)
 
-          // 恢復滾動位置
-          requestAnimationFrame(() => {
-            window.scrollTo({
-              top: currentScrollPosition,
-              behavior: 'auto',
-            })
-          })
+          // 不再恢復滾動位置，避免影響menubar顯示
         }, 200)
       },
       (error) => {
@@ -1215,11 +1197,10 @@ export default function PetsPage() {
     </div>
   )
 
-  // 處理地圖位置選擇的統一函數
+  // 處理地圖位置選擇
   const handleMapLocationSelect = useCallback(
     (location) => {
-      // 保存當前滾動位置
-      const currentScrollPosition = window.scrollY
+      // 不再保存滾動位置
 
       // 使用 handleFilterUpdate 來管理狀態更新和防抖
       handleFilterUpdate(() => {
@@ -1270,13 +1251,7 @@ export default function PetsPage() {
         setMapCenter([location.lat, location.lng])
         setMapZoom(15)
 
-        // 恢復滾動位置
-        requestAnimationFrame(() => {
-          window.scrollTo({
-            top: currentScrollPosition,
-            behavior: 'auto',
-          })
-        })
+        // 不再恢復滾動位置，避免影響menubar顯示
       })
     },
     [
@@ -1493,9 +1468,13 @@ export default function PetsPage() {
                           step={1}
                           value={searchRadius}
                           onChange={(e) => {
+                            // 只更新顯示值，不觸發API或資料更新
+                            setSearchRadius(parseInt(e.target.value))
+                          }}
+                          onMouseUp={(e) => {
+                            // 滑鼠放開後才處理資料更新
                             const newRadius = parseInt(e.target.value)
                             handleFilterUpdate(() => {
-                              setSearchRadius(newRadius)
                               if (selectedLocation) {
                                 // 查找附近商店
                                 const nearby = findNearbyStores(
@@ -1504,9 +1483,8 @@ export default function PetsPage() {
                                 )
                                 setNearbyStores(nearby)
 
-                                // 更新地圖標記，保留用戶位置標記，添加商店標記
+                                // 更新地圖標記
                                 const newMarkers = [
-                                  // 用戶選擇的位置
                                   {
                                     lat: selectedLocation.lat,
                                     lng: selectedLocation.lng,
@@ -1518,7 +1496,6 @@ export default function PetsPage() {
                                   },
                                 ]
 
-                                // 將附近商店添加到標記中
                                 if (nearby && nearby.length > 0) {
                                   nearby.forEach((store) => {
                                     newMarkers.push({
@@ -1537,7 +1514,54 @@ export default function PetsPage() {
                                   })
                                 }
 
-                                // 更新標記
+                                setMapMarkers(newMarkers)
+                              }
+                            })
+                          }}
+                          // 支援觸控設備
+                          onTouchEnd={(e) => {
+                            // 觸控結束後才處理資料更新
+                            const newRadius = parseInt(e.target.value)
+                            handleFilterUpdate(() => {
+                              if (selectedLocation) {
+                                // 查找附近商店
+                                const nearby = findNearbyStores(
+                                  selectedLocation.lat,
+                                  selectedLocation.lng
+                                )
+                                setNearbyStores(nearby)
+
+                                // 更新地圖標記
+                                const newMarkers = [
+                                  {
+                                    lat: selectedLocation.lat,
+                                    lng: selectedLocation.lng,
+                                    name: '已選擇的位置',
+                                    isSelected: true,
+                                    id: Date.now(),
+                                    isUserLocation:
+                                      selectedLocation.isUserLocation || false,
+                                  },
+                                ]
+
+                                if (nearby && nearby.length > 0) {
+                                  nearby.forEach((store) => {
+                                    newMarkers.push({
+                                      lat: parseFloat(store.lat),
+                                      lng: parseFloat(store.lng),
+                                      name: store.name,
+                                      description: `${store.address} (${
+                                        store.phone
+                                      }) - 距離: ${store.distance.toFixed(
+                                        2
+                                      )} 公里`,
+                                      isStore: true,
+                                      id: `store-${store.id}`,
+                                      distance: store.distance,
+                                    })
+                                  })
+                                }
+
                                 setMapMarkers(newMarkers)
                               }
                             })
@@ -1639,6 +1663,7 @@ export default function PetsPage() {
             onViewModeChange={handleViewModeChange}
             searchRadius={searchRadius}
             onRadiusChange={(newRadius) => {
+              // 不再修改高度，完全避免高度變化
               handleFilterUpdate(() => {
                 setSearchRadius(newRadius)
                 if (selectedLocation) {
