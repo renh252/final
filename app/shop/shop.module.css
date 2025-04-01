@@ -255,7 +255,6 @@
 
 /* mobile */
 @media screen and (max-width: 768px) {
-
     
   .contain_title {
     background-color: rgba(89, 62, 47, 0.8);
@@ -275,7 +274,7 @@
   
   }
   .card{
-    width: 160px !important; 
+    width: 150px !important; 
     border-radius: 8px;
     overflow: visible !important;
     padding-bottom: 0 !important;
