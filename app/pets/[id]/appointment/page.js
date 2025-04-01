@@ -702,15 +702,33 @@ export default function PetAppointmentPage() {
                       <Form.Label>
                         預約日期 <span className="text-danger">*</span>
                       </Form.Label>
-                      <Form.Control
-                        type="date"
-                        name="appointment_date"
-                        value={formData.appointment_date}
-                        onChange={handleChange}
-                        min={new Date().toISOString().split('T')[0]}
-                        isInvalid={!!formErrors.appointment_date}
-                        required
-                      />
+                      <div className="position-relative">
+                        <Form.Control
+                          type="date"
+                          name="appointment_date"
+                          value={formData.appointment_date}
+                          onChange={handleChange}
+                          min={new Date().toISOString().split('T')[0]}
+                          isInvalid={!!formErrors.appointment_date}
+                          required
+                          className="pe-5"
+                          id="appointment_date_input"
+                        />
+                        <FaCalendarAlt
+                          className="position-absolute text-muted"
+                          style={{
+                            right: '10px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => {
+                            document
+                              .getElementById('appointment_date_input')
+                              .showPicker()
+                          }}
+                        />
+                      </div>
                       <Form.Control.Feedback type="invalid">
                         {formErrors.appointment_date}
                       </Form.Control.Feedback>
