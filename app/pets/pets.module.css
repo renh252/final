@@ -1018,7 +1018,7 @@
   position: fixed !important;
   left: -320px; /* 預設隱藏 */
   top: 0 !important; /* 從頁面頂部開始 */
-  width: 320px;
+  width: 320px !important; /* 固定寬度，添加 !important 避免被其他樣式覆蓋 */
   height: 100vh !important; /* 全高側邊欄 */
   background-color: #fff9f2; /* 更暖色調的白色 */
   box-shadow: 2px 0 8px rgba(89, 62, 47, 0.1);
@@ -1029,6 +1029,9 @@
   overflow: hidden;
   opacity: 0; /* 預設不可見 */
   pointer-events: none; /* 預設不可交互 */
+  box-sizing: border-box !important; /* 確保padding和border不會增加實際寬度 */
+  max-width: 320px !important; /* 設置最大寬度，避免寬度變化 */
+  min-width: 320px !important; /* 設置最小寬度，避免寬度變化 */
 }
 
 /* 直接針對 leftSideDrawer 樣式設定，不依賴 mapView 容器 */
@@ -1052,7 +1055,7 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   width: 100%;
   min-height: 72px;
   padding: 1.5rem;
-  padding-top: 56px; /* 為menubar預留空間 */
+  padding-top: 70px; /* 為menubar預留空間 */
   border-bottom: 1px solid rgba(199, 150, 80, 0.2);
   background-color: #fff5ea; /* 更暖色調的白色背景 */
   position: sticky;
@@ -1087,6 +1090,14 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   scrollbar-width: thin;
   scrollbar-color: rgba(89, 62, 47, 0.2) transparent;
   height: calc(100vh - 128px); /* 減去導航欄和抽屜頭部高度 (56px + 72px) */
+  position: relative;
+  max-height: 100vh;
+  will-change: auto;
+  width: 100% !important; /* 固定寬度 */
+  box-sizing: border-box !important; /* 確保padding不影響寬度計算 */
+  /* 添加固定高度限制 */
+  min-height: auto !important; /* 防止設置過大的min-height */
+  max-height: calc(100vh - 128px) !important; /* 確保最大高度不超過視窗高度 */
 }
 
 .drawerContent::-webkit-scrollbar {
@@ -1107,6 +1118,9 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(89, 62, 47, 0.1);
+  width: 100% !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
 }
 
 .drawerSection:last-child {
@@ -1212,11 +1226,45 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
 /* 半徑選擇器樣式 */
 .radiusSelector {
   margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  /* 為搜尋範圍區域添加最小高度，避免內容變化導致的抖動 */
+  min-height: 70px;
+  max-height: 70px;
+  height: 70px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: visible;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-/* 附近商店樣式 */
+.radiusSelector :global(.form-label) {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.rangeWrapper {
+  position: relative;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 防止Form.Range樣式被其他樣式覆蓋 */
+.radiusSelector :global(input[type='range']) {
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* 防止範圍滑塊內容高度變化導致的畫面抖動 */
 .nearbyStores {
-  margin-top: 0.5rem;
+  min-height: 200px;
+  position: relative;
+  transition: all 0.3s ease;
 }
 
 .nearbyStores h5 {
@@ -1483,7 +1531,7 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   position: fixed !important;
   left: -320px; /* 預設隱藏 */
   top: 0 !important; /* 從頁面頂部開始 */
-  width: 320px;
+  width: 320px !important; /* 固定寬度，添加 !important 避免被其他樣式覆蓋 */
   height: 100vh !important; /* 全高側邊欄 */
   background-color: #fff9f2; /* 更暖色調的白色 */
   box-shadow: 2px 0 8px rgba(89, 62, 47, 0.1);
@@ -1494,6 +1542,9 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   overflow: hidden;
   opacity: 0; /* 預設不可見 */
   pointer-events: none; /* 預設不可交互 */
+  box-sizing: border-box !important; /* 確保padding和border不會增加實際寬度 */
+  max-width: 320px !important; /* 設置最大寬度，避免寬度變化 */
+  min-width: 320px !important; /* 設置最小寬度，避免寬度變化 */
 }
 
 /* 直接針對 leftSideDrawer 樣式設定，不依賴 mapView 容器 */
@@ -1619,24 +1670,24 @@ body:has(.leftSideDrawer:not(.open)) .drawerToggleContainer {
 /* 固定位置的收合按鈕 */
 .drawerToggleFixed {
   position: relative; /* 改為相對定位，因為已有父容器定位 */
-  width: 40px; /* 稍微增加寬度 */
-  height: 90px; /* 增加高度使按鈕更明顯 */
-  border-radius: 0 8px 8px 0; /* 僅右側使用圓角 */
-  background-color: rgba(199, 150, 80, 0.85); /* 使用更明顯的顏色 */
-  border: 1px solid rgba(199, 150, 80, 0.5);
-  box-shadow: 3px 0 10px rgba(89, 62, 47, 0.2); /* 增強陰影效果 */
+  width: 40px; /* 保持寬度 */
+  height: 120px; /* 與 menuRWD 一致的高度 */
+  border-radius: 0 15px 15px 0; /* 與 menuRWD 一致的圓角 */
+  background-color: #cda274; /* 與 menuRWD 一致的背景色 */
+  border: none;
+  box-shadow: 3px 4px 10px rgba(0, 0, 0, 0.2); /* 與 menuRWD 一致的陰影 */
   display: flex;
+  flex-direction: column; /* 垂直排列 */
   align-items: center;
   justify-content: center;
+  gap: 5px;
   cursor: pointer;
-  color: #fff; /* 白色圖標更醒目 */
-  transition: all 0.2s ease;
-  font-size: 1.2rem; /* 增大圖標尺寸 */
+  color: white; /* 白色文字 */
+  transition: all 0.3s ease-in-out;
+  font-size: 22px; /* 與 menuRWD 一致的字體大小 */
 }
 
 .drawerToggleFixed:hover {
-  background-color: rgba(199, 150, 80, 0.95);
+  background-color: #b8926a; /* 與 menuRWD 一致的懸停背景色 */
   color: #fff;
-  width: 45px; /* 懸停時略微擴大 */
-  box-shadow: 4px 0 12px rgba(89, 62, 47, 0.3);
 }
