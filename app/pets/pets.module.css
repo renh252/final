@@ -290,6 +290,7 @@
   position: relative;
   width: 100%;
   background-color: #fdfbf9;
+  overflow: hidden; /* 防止子元素溢出 */
 }
 
 .groupBody {
@@ -300,13 +301,15 @@
   background-color: #fdfbf9;
   width: 100%;
   overflow: hidden; /* 確保不會溢出 */
+  margin: 0 auto; /* 水平居中 */
+  max-width: 100%; /* 確保不超過父容器寬度 */
 }
 
 /* 最新上架區塊的專用樣式 */
 .latestContainer .groupBody {
   padding: 0;
   overflow: visible; /* 允許滾動顯示 */
-  margin: 0 -15px; /* 負邊距補償padding */
+  margin: 0 auto; /* 修正：從負邊距改為自動邊距，確保居中而不位移 */
 }
 
 .cardGroup {
@@ -319,6 +322,7 @@
   -ms-overflow-style: none;
   flex: 1;
   min-height: 320px;
+  margin: 0 auto; /* 確保居中 */
 }
 
 .cardGroup::-webkit-scrollbar {
@@ -443,10 +447,17 @@
 
   .groupBody {
     padding: 0;
+    margin: 0 auto; /* 確保在小螢幕上也是居中的 */
+    width: 100%; /* 確保寬度適合容器 */
+  }
+
+  .latestContainer .groupBody {
+    margin: 0 auto; /* 在小螢幕上確保居中 */
   }
 
   .cardGroup {
     min-height: auto;
+    padding: 0.5rem 0; /* 減少上下padding */
   }
 
   .filters {
@@ -1554,6 +1565,8 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
+  padding-bottom: 2rem; /* 增加底部間距，確保內容完全可見 */
+  overflow: visible; /* 確保元素不被裁剪 */
 }
 
 /* 搜尋結果容器樣式 */
@@ -1562,6 +1575,12 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
+  overflow: visible; /* 確保元素不被裁剪 */
+  padding-bottom: 3rem; /* 增加底部間距，確保不會遮擋footer */
+  margin-bottom: 2rem; /* 增加與footer的間距 */
+  height: auto; /* 確保高度自動適應內容 */
+  min-height: auto; /* 確保沒有最小高度限制 */
+  display: block; /* 確保正確的顯示模式 */
 }
 
 /* 修復寵物搜尋結果的排版 - 新增 flexContainer 和 flexItem 樣式 */
@@ -1576,6 +1595,8 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   max-width: 1140px;
   margin: 0 auto;
   justify-content: center;
+  height: auto; /* 確保高度自動適應內容 */
+  min-height: auto; /* 移除最小高度限制 */
 }
 
 .flexItem {
@@ -1614,6 +1635,19 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
 
   .flexItem {
     margin-bottom: 20px;
+  }
+
+  .latestContainer {
+    padding: 0 1rem 2rem; /* 增加側邊padding */
+  }
+
+  .latestCardGroup {
+    padding-left: 15px; /* 減小左側間距，更適合小螢幕 */
+  }
+
+  .loadMoreButtonContainer {
+    margin-bottom: 2rem; /* 確保底部按鈕有足夠空間 */
+    padding: 0 1rem; /* 增加側邊padding */
   }
 }
 
@@ -1684,9 +1718,9 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
 .latestContainer {
   opacity: 1;
   visibility: visible;
-  max-height: 3000px;
-  transition: opacity 0.5s ease, visibility 0.5s ease, max-height 0.5s ease;
-  overflow: hidden;
+  max-height: none; /* 移除固定高度限制，允許容器自動擴展 */
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  overflow: visible; /* 確保元素不被裁剪 */
 }
 
 /* 隱藏卡片區塊的樣式 - 用於地圖模式 */
@@ -1842,6 +1876,9 @@ body:has(.leftSideDrawer:not(.open)) .drawerToggleContainer {
   padding: 30px 0;
   background-color: #fdfbf9;
   border-radius: 0 0 12px 12px;
+  margin-bottom: 1rem; /* 增加底部間距 */
+  position: relative; /* 確保正確的定位上下文 */
+  z-index: 1; /* 確保在正確的層級 */
 }
 
 .loadMoreButton {
