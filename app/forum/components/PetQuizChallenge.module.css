@@ -1,0 +1,40 @@
+.quizCard {
+  margin-bottom: 1rem;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.quizHeader {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #495057;
+}
+
+.quizHeader i {
+  margin-right: 0.5rem;
+  color: #ffc107;
+}
+
+.question {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #343a40;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.optionButton {
+  width: 100%;
+  text-align: center;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.optionButton:hover {
+  transform: translateY(-2px);
+}

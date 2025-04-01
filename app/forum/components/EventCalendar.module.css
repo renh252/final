@@ -1,0 +1,111 @@
+.calendarCard {
+  margin-bottom: 1rem;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.calendarHeader {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #495057;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calendarHeader i {
+  margin-right: 0.5rem;
+  color: #0d6efd;
+}
+
+.expandButton {
+  padding: 0;
+  color: #6c757d;
+}
+
+.expandButton:hover {
+  color: #0d6efd;
+}
+
+.miniCalendar {
+  font-size: 0.9em;
+}
+
+.miniCalendar :global(.react-calendar) {
+  width: 100%;
+  border: none;
+  background: transparent;
+}
+
+.fullCalendar :global(.react-calendar) {
+  width: 100%;
+  border: 1px solid #e9ecef;
+}
+
+.eventDot {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot.meetup {
+  background-color: #0d6efd;
+}
+
+.dot.adoption {
+  background-color: #198754;
+}
+
+.dot.training {
+  background-color: #ffc107;
+}
+
+.dot.other {
+  background-color: #0dcaf0;
+}
+
+.eventList {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.eventItem {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.eventDetails {
+  margin-top: 0.25rem;
+  font-size: 0.9em;
+}
+
+/* Calendar overrides */
+.miniCalendar :global(.react-calendar__tile--active) {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.miniCalendar :global(.react-calendar__tile--now) {
+  background-color: #e9ecef;
+}
+
+.miniCalendar :global(.react-calendar__navigation button:enabled:hover),
+.miniCalendar :global(.react-calendar__navigation button:enabled:focus) {
+  background-color: #e9ecef;
+}
+
+.miniCalendar :global(.react-calendar__tile:enabled:hover),
+.miniCalendar :global(.react-calendar__tile:enabled:focus) {
+  background-color: #e9ecef;
+}

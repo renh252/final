@@ -1,6 +1,14 @@
 .forumInfo {
-  background-color: #c79650;
-  color: white;
+  background-color: #fff;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.forumInfoHeader {
+  background-color: #fff;
+  border-bottom: 1px solid #e9ecef;
+  padding: 0.75rem;
 }
 
 .forumHeader {
@@ -14,4 +22,9 @@
 
 .forumRules ul {
   color: white;
+}
+
+.loadingSpinner {
+  text-align: center;
+  padding: 1rem;
 }
