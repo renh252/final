@@ -14,19 +14,17 @@ import { useAuth } from '@/app/context/AuthContext'
 import styles from './pid.module.css'
 import shopStyles from '@/app/shop/shop.module.css'
 // import { FaShareNodes } from 'react-icons/fa6'
-import { FaRegStar } from 'react-icons/fa6'
-import { IoChatboxEllipsesOutline } from 'react-icons/io5'
-import { FaCartShopping } from 'react-icons/fa6'
-import { FaPlus, FaMinus } from 'react-icons/fa6'
-import { IoCheckmarkDoneSharp } from 'react-icons/io5'
+import { FaRegStar,FaCartShopping,FaPlus, FaMinus,FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
+import { IoChatboxEllipsesOutline,IoCheckmarkDoneSharp } from 'react-icons/io5'
 import { FaUser } from 'react-icons/fa' 
-import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
+import { MdOutlinePets } from "react-icons/md";
 
 // components
 import { IconLine_lg } from '@/app/shop/_components/icon_line'
 import Alert from '@/app/_components/alert'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import { usePageTitle } from '@/app/context/TitleContext'
+import FixedElements from '@/app/shop/_components/FixedElements'
 
 // card
 import Card from '@/app/_components/ui/Card'
@@ -291,6 +289,7 @@ const calculateDisplayPrice = () => {
 
   return (
     <>
+      <FixedElements/>
       <Breadcrumbs
         title=''
         items={[
@@ -526,6 +525,9 @@ const calculateDisplayPrice = () => {
         </div>
         <IconLine_lg title="商品介紹" />
         <div className={styles.discription}>
+          <MdOutlinePets className={styles.description_bg}/>
+          <MdOutlinePets className={styles.description_bg}/>
+          <MdOutlinePets className={styles.description_bg}/>
           <ReactMarkdown>{product.product_description}</ReactMarkdown>
         </div>
         <div ref={reviewRef} className={styles.iconLine}>

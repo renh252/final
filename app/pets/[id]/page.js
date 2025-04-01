@@ -97,22 +97,22 @@ export default function PetDetailPage() {
 
   // 取得寵物類型圖標
   const getTypeIcon = () => {
-    switch (pet?.species_name) {
+    switch (pet?.species) {
       case '狗':
-        return <FaDog size={20} color="#e67e22" />
+        return <FaDog size={20} color="white" />
       case '貓':
-        return <FaCat size={20} color="#8e44ad" />
+        return <FaCat size={20} color="white" />
       default:
-        return <FaPaw size={20} color="#3498db" />
+        return <FaPaw size={20} color="white" />
     }
   }
 
   // 根據寵物類型獲取標籤顏色
   const getTypeColor = () => {
-    switch (pet?.type?.toLowerCase()) {
-      case 'dog':
+    switch (pet?.species) {
+      case '狗':
         return '#e67e22'
-      case 'cat':
+      case '貓':
         return '#8e44ad'
       default:
         return '#3498db'
@@ -269,14 +269,14 @@ export default function PetDetailPage() {
               className={styles.typeBadge}
               style={{ backgroundColor: getTypeColor() }}
             >
-              {getTypeIcon()}
-              <span>{pet?.species_name || '其他'}</span>
+              <span className={styles.typeIcon}>{getTypeIcon()}</span>
+              <span>{pet?.species || '其他'}</span>
             </div>
           </div>
 
           <div className={styles.breedLocation}>
             <p className={styles.breed}>
-              {getTypeIcon()} 品種：{pet?.breed || pet?.variety || '未知'}
+              {getTypeIcon()} 品種：{pet?.variety || '未知'}
             </p>
             {pet?.store_name && (
               <p className={styles.location}>
@@ -380,11 +380,11 @@ export default function PetDetailPage() {
                         {pet?.neutered ? '已絕育' : '未絕育'}
                       </div>
                     </div>
-                    {pet?.chip_id && (
+                    {pet?.chip_number && (
                       <div className={styles.statusItem}>
                         <span>晶片編號</span>
                         <div className={styles.statusIndicator}>
-                          {pet.chip_id}
+                          {pet.chip_number}
                         </div>
                       </div>
                     )}

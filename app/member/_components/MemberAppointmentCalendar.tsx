@@ -57,24 +57,76 @@ const MemberAppointmentCalendar: React.FC<MemberAppointmentCalendarProps> = ({
 
   // 格式化日期函數
   const formatDate = (dateString: string): string => {
-    // 處理ISO日期格式 (已含有T和時區)
-    if (dateString.includes('T')) {
-      // 只取日期部分
-      return dateString.split('T')[0]
+    if (!dateString) return ''
+
+    try {
+      // 處理ISO日期格式 (已含有T和時區)
+      if (dateString.includes('T')) {
+        // 只取日期部分
+        return dateString.split('T')[0]
+      }
+
+      // 處理普通日期格式 (YYYY-MM-DD)
+      if (dateString.includes('-') && dateString.split('-').length === 3) {
+        return dateString
+      }
+
+      // 如果是其他格式，嘗試使用 Date 對象解析
+      const date = new Date(dateString)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    } catch (e) {
+      console.error('日期格式化錯誤:', e)
+      return dateString
     }
-    return dateString
+  }
+
+  // 格式化時間函數
+  const formatTime = (timeString: string): string => {
+    if (!timeString) return ''
+
+    try {
+      // 如果是完整的 ISO 時間
+      if (timeString.includes('T')) {
+        const date = new Date(timeString)
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        return `${hours}:${minutes}`
+      }
+
+      // 如果是時間字串 (HH:MM:SS)
+      if (timeString.includes(':')) {
+        const parts = timeString.split(':')
+        return `${parts[0]}:${parts[1]}`
+      }
+
+      return timeString
+    } catch (e) {
+      console.error('時間格式化錯誤:', e)
+      return timeString
+    }
   }
 
   // 將預約資料轉換為日曆事件
   const events: CalendarEvent[] = appointments.map((appointment) => {
-    // 正確處理日期時間格式
-    const dateTime = `${formatDate(appointment.appointment_date)}T${
-      appointment.appointment_time
-    }`
+    // 獲取格式化的日期和時間
+    const formattedDate = formatDate(appointment.appointment_date)
+    let formattedTime = formatTime(appointment.appointment_time)
+
+    // 確保時間格式為 HH:MM:SS
+    if (formattedTime && formattedTime.split(':').length === 2) {
+      formattedTime = `${formattedTime}:00`
+    }
+
+    // 組合成完整的日期時間格式 (YYYY-MM-DDTHH:MM:SS)
+    const dateTime = `${formattedDate}T${formattedTime}`
 
     console.log('處理預約 ID:', appointment.id)
-    console.log('處理前日期:', appointment.appointment_date)
-    console.log('處理後日期時間:', dateTime)
+    console.log('原始日期:', appointment.appointment_date)
+    console.log('原始時間:', appointment.appointment_time)
+    console.log('格式化後日期時間:', dateTime)
 
     // 根據狀態設定不同的事件樣式類名
     let statusClassName = ''

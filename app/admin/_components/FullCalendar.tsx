@@ -1,65 +1,25 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
-import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import { Button, ButtonGroup } from 'react-bootstrap'
 
 interface FullCalendarProps {
   events: any[]
   onEventClick?: (info: any) => void
 }
 
-// 視圖類型定義
-type ViewType = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'
-
 export default function FullCalendarComponent({
   events,
   onEventClick,
 }: FullCalendarProps) {
-  const [viewType, setViewType] = useState<ViewType>('dayGridMonth')
-
-  // 處理視圖變更
-  const handleViewChange = (newView: ViewType) => {
-    setViewType(newView)
-  }
-
   return (
     <div className="full-calendar-wrapper">
-      {/* 視圖選擇按鈕 */}
-      <div className="d-flex justify-content-end mb-3">
-        <ButtonGroup size="sm">
-          <Button
-            variant={
-              viewType === 'dayGridMonth' ? 'primary' : 'outline-primary'
-            }
-            onClick={() => handleViewChange('dayGridMonth')}
-          >
-            月視圖
-          </Button>
-          <Button
-            variant={
-              viewType === 'timeGridWeek' ? 'primary' : 'outline-primary'
-            }
-            onClick={() => handleViewChange('timeGridWeek')}
-          >
-            週視圖
-          </Button>
-          <Button
-            variant={viewType === 'timeGridDay' ? 'primary' : 'outline-primary'}
-            onClick={() => handleViewChange('timeGridDay')}
-          >
-            日視圖
-          </Button>
-        </ButtonGroup>
-      </div>
-
       {/* FullCalendar 元件 */}
       <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView={viewType}
+        plugins={[dayGridPlugin, interactionPlugin]}
+        initialView="dayGridMonth"
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
@@ -70,53 +30,28 @@ export default function FullCalendarComponent({
         height="auto"
         aspectRatio={1.8}
         locale="zh-tw"
-        buttonText={{
-          today: '今天',
-          month: '月',
-          week: '週',
-          day: '日',
-          list: '列表',
-        }}
-        dayHeaderFormat={{ weekday: 'short' }}
-        allDaySlot={false}
-        slotDuration="00:30:00"
-        slotLabelInterval="01:00"
-        slotLabelFormat={{
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        }}
         eventTimeFormat={{
           hour: '2-digit',
           minute: '2-digit',
           hour12: false,
         }}
-        nowIndicator={true}
+        buttonText={{
+          today: '今天',
+          month: '月',
+        }}
+        dayHeaderFormat={{ weekday: 'short' }}
         eventDisplay="block"
         eventBorderColor="transparent"
         eventContent={(arg) => {
-          const status = arg.event.extendedProps.status
           const petName = arg.event.extendedProps.pet_name
           const userName = arg.event.extendedProps.user_name
+          const status = arg.event.extendedProps.status
+          const title = arg.event.title
 
           return (
             <div className="event-content">
-              <div>
-                {viewType !== 'dayGridMonth' ? (
-                  <>
-                    <div>
-                      <strong>{petName}</strong>
-                    </div>
-                    <div>{userName}</div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      {arg.timeText} - {petName}
-                    </div>
-                  </>
-                )}
-              </div>
+              <div className="event-title">{title}</div>
+              <div className="event-user">{userName}</div>
             </div>
           )
         }}
@@ -161,10 +96,24 @@ export default function FullCalendarComponent({
           cursor: pointer;
           padding: 3px 5px;
           border-radius: 4px;
+          margin-bottom: 1px;
         }
 
-        .fc .fc-timegrid-slot {
-          height: 35px;
+        .fc-event .event-content {
+          font-size: 0.85rem;
+          line-height: 1.3;
+        }
+
+        .fc-event .event-title {
+          font-weight: bold;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .fc-event .event-user {
+          font-size: 0.8rem;
+          opacity: 0.85;
         }
 
         @media (max-width: 768px) {
