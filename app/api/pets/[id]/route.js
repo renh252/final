@@ -3,7 +3,7 @@ import { pool } from '@/app/lib/db'
 
 // 計算寵物顯示年齡的函數
 function calculateAgeDisplay(birthday) {
-  if (!birthday) return '未知'
+  if (!birthday) return { years: 0, months: 0 }
 
   const birthDate = new Date(birthday)
   const today = new Date()
@@ -22,8 +22,8 @@ function calculateAgeDisplay(birthday) {
     months += 12
   }
 
-  // 根據年齡決定顯示方式
-  return years > 0 ? `${years}歲` : `${months}個月`
+  // 返回年齡的年和月
+  return { years, months }
 }
 
 export async function GET(request, { params }) {
@@ -82,7 +82,7 @@ export async function GET(request, { params }) {
     const pet = petDetails[0]
 
     // 計算年齡
-    const ageDisplay = calculateAgeDisplay(pet.birthday)
+    const ageObj = calculateAgeDisplay(pet.birthday)
 
     // 獲取店家資訊，用於地點顯示
     const [stores] = await connection.execute(`
@@ -147,7 +147,9 @@ export async function GET(request, { params }) {
 
     const processedPet = {
       ...pet,
-      age: ageDisplay,
+      age: `${ageObj.years}歲${ageObj.months}個月`,
+      age_year: ageObj.years,
+      age_month: ageObj.months,
       location: locationDisplay,
       store_name: storeName,
       gender: pet.gender,
@@ -156,6 +158,8 @@ export async function GET(request, { params }) {
       main_photo: mainPhoto,
       traits: petTraits,
       recent_activities: recentActivities,
+      description: pet.story || '目前沒有描述資訊',
+      neutered: pet.fixed === 1 || pet.fixed === true,
     }
 
     connection.release()

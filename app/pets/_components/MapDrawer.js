@@ -27,6 +27,7 @@ export default function MapDrawer({
 }) {
   const [isOpen, setIsOpen] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [localRadius, setLocalRadius] = useState(searchRadius)
 
   // 確保只在客戶端渲染
   useEffect(() => {
@@ -38,6 +39,11 @@ export default function MapDrawer({
       setIsOpen(savedState === 'open')
     }
   }, [])
+
+  // 當searchRadius變化時同步更新localRadius
+  useEffect(() => {
+    setLocalRadius(searchRadius)
+  }, [searchRadius])
 
   // 保存抽屜開關狀態
   const toggleDrawer = () => {
@@ -69,7 +75,15 @@ export default function MapDrawer({
   return ReactDOM.createPortal(
     <>
       {/* 左側抽屜 */}
-      <div className={`${styles.leftSideDrawer} ${isOpen ? styles.open : ''}`}>
+      <div
+        className={`${styles.leftSideDrawer} ${isOpen ? styles.open : ''}`}
+        style={{
+          width: '320px',
+          minWidth: '320px',
+          maxWidth: '320px',
+          boxSizing: 'border-box',
+        }}
+      >
         <div className={styles.drawerHeader}>
           <div className={styles.drawerHeaderContent}>
             <h4>搜尋與篩選</h4>
@@ -83,9 +97,15 @@ export default function MapDrawer({
             />
           </div>
         </div>
-        <div className={styles.drawerContent}>
+        <div
+          className={styles.drawerContent}
+          style={{ width: '100%', boxSizing: 'border-box' }}
+        >
           {/* 位置與搜尋範圍 */}
-          <div className={styles.drawerSection}>
+          <div
+            className={styles.drawerSection}
+            style={{ width: '100%', boxSizing: 'border-box', maxWidth: '100%' }}
+          >
             <h5 className={styles.sectionTitle}>
               <FaMapMarkerAlt /> 位置與搜尋範圍
             </h5>
@@ -104,15 +124,35 @@ export default function MapDrawer({
 
               {/* 搜尋範圍設定 */}
               {selectedLocation && (
-                <div className={styles.radiusSelector}>
-                  <Form.Label>搜尋範圍：{searchRadius} 公里</Form.Label>
-                  <Form.Range
-                    min={1}
-                    max={100}
-                    step={1}
-                    value={searchRadius}
-                    onChange={(e) => onRadiusChange(parseInt(e.target.value))}
-                  />
+                <div
+                  className={styles.radiusSelector}
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                >
+                  <Form.Label>搜尋範圍：{localRadius} 公里</Form.Label>
+                  <div
+                    className={styles.rangeWrapper}
+                    style={{ width: '100%', boxSizing: 'border-box' }}
+                  >
+                    <Form.Range
+                      min={1}
+                      max={100}
+                      step={1}
+                      value={localRadius}
+                      style={{ width: '100%' }}
+                      onChange={(e) => {
+                        // 只更新本地顯示值，不觸發更新
+                        setLocalRadius(parseInt(e.target.value))
+                      }}
+                      onMouseUp={(e) => {
+                        // 滑鼠放開時才調用父組件的回調函數
+                        onRadiusChange(parseInt(e.target.value))
+                      }}
+                      onTouchEnd={(e) => {
+                        // 觸控結束時才調用父組件的回調函數
+                        onRadiusChange(parseInt(e.target.value))
+                      }}
+                    />
+                  </div>
                 </div>
               )}
             </Form.Group>
@@ -137,15 +177,18 @@ export default function MapDrawer({
           </div>
 
           {/* 附近商店列表區塊 */}
-          <div className={styles.drawerSection}>
+          <div
+            className={styles.drawerSection}
+            style={{ width: '100%', boxSizing: 'border-box', maxWidth: '100%' }}
+          >
             <h5 className={styles.sectionTitle}>
               <FaSearch /> 附近寵物商店
             </h5>
 
             {selectedLocation ? (
               <div className={styles.nearbyStores}>
-                <h5>附近寵物商店 (搜尋範圍：{searchRadius}公里)</h5>
-                {searchRadius < 1 ? (
+                <h5>附近寵物商店 (搜尋範圍：{localRadius}公里)</h5>
+                {localRadius < 1 ? (
                   <div className={styles.noStores}>
                     <p>搜尋範圍太小</p>
                     <p>請設定較大的搜尋範圍以查看附近商店</p>
@@ -172,7 +215,7 @@ export default function MapDrawer({
                   </div>
                 ) : (
                   <div className={styles.noStores}>
-                    <p>在{searchRadius}公里範圍內未找到寵物商店</p>
+                    <p>在{localRadius}公里範圍內未找到寵物商店</p>
                     <p>我們的資料庫中可能沒有此區域的商店資訊</p>
                   </div>
                 )}
@@ -186,7 +229,12 @@ export default function MapDrawer({
           </div>
 
           {/* 進階篩選內容 */}
-          {children}
+          <div
+            className={styles.drawerSection}
+            style={{ width: '100%', boxSizing: 'border-box', maxWidth: '100%' }}
+          >
+            {children}
+          </div>
         </div>
       </div>
 
@@ -198,6 +246,7 @@ export default function MapDrawer({
           aria-label={isOpen ? '收起面板' : '展開面板'}
         >
           {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
+          <p className={styles.verticalText}>{isOpen ? '關閉' : '選單'}</p>
         </button>
       </div>
     </>,

@@ -18,7 +18,8 @@ export default function LayoutWrapper({ children }) {
   // 需要隱藏footer的路徑
   const hideFooterPaths = ['/shop/cart']
 
-  const isAdminRoute = pathname?.startsWith('/admin')
+  // 修改這裡增加安全檢查
+  const isAdminRoute = pathname ? pathname.startsWith('/admin') : false
   const { user, loading } = useAuth()
   const [authorized, setAuthorized] = useState(false)
   const [isChecking, setIsChecking] = useState(true)
@@ -139,7 +140,7 @@ export default function LayoutWrapper({ children }) {
     <TitleProvider>
       <Menubar />
       <Banner />
-      {pathname === '/' || pathname === '/home' ? (
+      {pathname && (pathname === '/' || pathname === '/home') ? (
         // 根路由不要套用 container，直接顯示內容
         <>{renderContent()}</>
       ) : (
@@ -149,7 +150,7 @@ export default function LayoutWrapper({ children }) {
         </Container>
       )}
 
-      {!hideFooterPaths.includes(pathname) && <Footer />}
+      {!pathname || (!hideFooterPaths.includes(pathname) && <Footer />)}
       <FloatingAction />
     </TitleProvider>
   )

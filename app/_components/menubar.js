@@ -15,7 +15,15 @@ const fetcher = (url) => fetch(url).then((res) => res.json())
 export default function Menubar() {
   const { user, loading } = useAuth()
   const pathname = usePathname()
+  const [currentPath, setCurrentPath] = useState('/')
   const userId = user?.id
+
+  // 確保路徑在客戶端可用
+  useEffect(() => {
+    if (pathname) {
+      setCurrentPath(pathname)
+    }
+  }, [pathname])
 
   // 獲取購物車數據
   const { data: cartData } = useSWR(
