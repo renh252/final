@@ -14,10 +14,12 @@ import { useParams } from 'next/navigation'
 import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-import { BsArrowUpCircle, BsArrowUpCircleFill, BsChat } from 'react-icons/bs'
+import { BsArrowUpCircle, BsArrowUpCircleFill, BsArrowDownCircle, BsArrowDownCircleFill, BsChat, BsShare, BsFlag } from 'react-icons/bs'
 import { FaTwitter, FaFacebook, FaInstagram } from 'react-icons/fa'
 import Link from 'next/link'
+import styles from './PostDetail.module.css'
 import '../../styles/custom-theme.css'
+import ReportModal from '../../components/ReportModal'
 
 interface Post {
   id: number
@@ -27,6 +29,7 @@ interface Post {
   updated_at: string
   view_count: number
   like_count: number
+  dislike_count: number
   comment_count: number
   user_id: number
   category: {
@@ -97,7 +100,9 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isLiked, setIsLiked] = useState(false)
-  const [likesCount, setLikesCount] = useState(0)
+  const [isDisliked, setIsDisliked] = useState(false)
+  const [voteCount, setVoteCount] = useState(0)
+  const [showReportModal, setShowReportModal] = useState(false)
 
   useEffect(() => {
     const fetchPostDetail = async () => {
@@ -106,7 +111,8 @@ export default function PostDetailPage() {
         if (response.data.status === 'success') {
           setPost(response.data.data.post)
           setComments(response.data.data.post.forum_comments || [])
-          setLikesCount(response.data.data.post.like_count)
+          // 計算總和：讚同數減去不讚同數
+          setVoteCount(response.data.data.post.like_count - (response.data.data.post.dislike_count || 0))
           setLoading(false)
         } else {
           setError(response.data.message || '無法載入文章')
@@ -124,17 +130,59 @@ export default function PostDetailPage() {
   }, [params.id])
 
   const handleLike = async () => {
+    if (isDisliked) {
+      setIsDisliked(false)
+      setVoteCount(prev => prev + 1) // 移除不讚同
+    }
     try {
       const response = await axios.post(`/api/forum/posts/${params.id}`, {
         action: 'like'
       })
       
       if (response.data.status === 'success') {
+        const wasLiked = isLiked
         setIsLiked(response.data.data.isLiked)
-        setLikesCount(response.data.data.likesCount)
+        // 根據之前的狀態調整計數
+        setVoteCount(prev => prev + (wasLiked ? -1 : 1))
       }
     } catch (err) {
       console.error('Error liking post:', err)
+    }
+  }
+
+  const handleDislike = async () => {
+    if (isLiked) {
+      setIsLiked(false)
+      setVoteCount(prev => prev - 1) // 移除讚同
+    }
+    try {
+      const response = await axios.post(`/api/forum/posts/${params.id}`, {
+        action: 'dislike'
+      })
+      
+      if (response.data.status === 'success') {
+        const wasDisliked = isDisliked
+        setIsDisliked(response.data.data.isDisliked)
+        // 根據之前的狀態調整計數
+        setVoteCount(prev => prev - (wasDisliked ? -1 : 1))
+      }
+    } catch (err) {
+      console.error('Error disliking post:', err)
+    }
+  }
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: post?.title,
+        text: `查看這篇寵物論壇文章：${post?.title}`,
+        url: window.location.href
+      }).catch(err => console.error('Error sharing:', err))
+    } else {
+      // 如果瀏覽器不支援原生分享，複製連結到剪貼簿
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => alert('連結已複製到剪貼簿'))
+        .catch(err => console.error('Error copying to clipboard:', err))
     }
   }
 
@@ -172,21 +220,34 @@ export default function PostDetailPage() {
                 {/* Vote and Content Section */}
                 <div className="d-flex">
                   {/* Vote Section */}
-                  <div className="bg-light p-2 text-center" style={{ width: '40px' }}>
+                  <div className={styles.voteSection}>
                     <button 
                       onClick={handleLike}
-                      className="btn btn-link p-0 d-block mx-auto"
-                      style={{ color: isLiked ? 'var(--primary-color)' : '#878A8C' }}
+                      className={`btn btn-link ${styles.voteButton} ${isLiked ? styles.liked : styles.default}`}
+                      title="讚同"
+                      aria-label="讚同這篇文章"
                     >
                       {isLiked ? <BsArrowUpCircleFill size={24} /> : <BsArrowUpCircle size={24} />}
                     </button>
-                    <div className="my-1 fw-bold" style={{ color: isLiked ? 'var(--primary-color)' : '#1A1A1B' }}>
-                      {likesCount}
+                    <div className={`${styles.voteCount} ${
+                      isLiked ? styles.liked : 
+                      isDisliked ? styles.disliked : 
+                      styles.default
+                    }`}>
+                      {voteCount}
                     </div>
+                    <button 
+                      onClick={handleDislike}
+                      className={`btn btn-link ${styles.voteButton} ${isDisliked ? styles.disliked : styles.default}`}
+                      title="不讚同"
+                      aria-label="不讚同這篇文章"
+                    >
+                      {isDisliked ? <BsArrowDownCircleFill size={24} /> : <BsArrowDownCircle size={24} />}
+                    </button>
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex-grow-1 p-3">
+                  <div className={styles.contentSection}>
                     {/* Post Header */}
                     <div className="mb-2">
                       <div className="d-flex align-items-center text-muted small mb-2">
@@ -202,8 +263,38 @@ export default function PostDetailPage() {
                     </div>
 
                     {/* Post Content */}
-                    <div className="post-content mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+                    <div className="mb-4">
                       {post?.content}
+                    </div>
+
+                    {/* Post Actions */}
+                    <div className="d-flex align-items-center justify-content-between mt-4 pt-3 border-top">
+                      <div className="d-flex align-items-center gap-3">
+                        <button
+                          onClick={() => setShowReportModal(true)}
+                          className={`btn btn-link ${styles.reportButton}`}
+                          title="檢舉文章"
+                          aria-label="檢舉這篇文章"
+                        >
+                          <BsFlag size={18} /> <span className="ms-1">檢舉</span>
+                        </button>
+                        <button
+                          onClick={handleShare}
+                          className={`btn btn-link ${styles.shareButton}`}
+                          title="分享文章"
+                          aria-label="分享這篇文章"
+                        >
+                          <BsShare size={18} /> <span className="ms-1">分享</span>
+                        </button>
+                      </div>
+                      <div className="d-flex align-items-center gap-2">
+                        <Link
+                          href={`/forum/posts/${post?.id}#comments`}
+                          className="text-decoration-none text-muted"
+                        >
+                          <BsChat size={18} /> <span className="ms-1">{comments.length} 則留言</span>
+                        </Link>
+                      </div>
                     </div>
 
                     {/* Tags */}
@@ -223,10 +314,6 @@ export default function PostDetailPage() {
                     {/* Post Footer */}
                     <div className="d-flex align-items-center text-muted small">
                       <div className="me-3">
-                        <BsChat className="me-1" />
-                        {comments.length} 則評論
-                      </div>
-                      <div>
                         {post?.view_count} 次瀏覽
                       </div>
                     </div>
@@ -354,6 +441,13 @@ export default function PostDetailPage() {
           </Col>
         </Row>
       </Container>
+      {/* Report Modal */}
+      <ReportModal
+        show={showReportModal}
+        onHide={() => setShowReportModal(false)}
+        contentType="post"
+        contentId={Number(params.id)}
+      />
     </div>
   )
 }

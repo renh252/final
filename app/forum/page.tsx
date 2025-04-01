@@ -16,7 +16,10 @@ import CreatePostModal from './components/CreatePostModal'
 import ForumHeader from './components/ForumHeader'
 import TagCloud from './components/TagCloud'
 import Carousel from './components/Carousel'
+import PetQuizChallenge from './components/PetQuizChallenge'
+import EventCalendar from './components/EventCalendar'
 import { useForumData } from './hooks/useForumData'
+import styles from './styles/ForumPage.module.css'
 import './styles/custom-theme.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
@@ -157,40 +160,41 @@ export default function ForumPage() {
             />
 
             {loading ? (
-              <div className="text-center py-5">
-                <Spinner animation="border" variant="primary" />
-                <p className="mt-2 text-muted">載入中...</p>
+              <div className={styles.loadingSpinner}>
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </Spinner>
               </div>
             ) : error ? (
               <Alert variant="danger">{error}</Alert>
             ) : (
-              <>
-                <PostList posts={posts} />
+              <PostList posts={posts} onPostDeleted={refetch} />
+            )}
 
-                {pagination.totalPages > 1 && (
-                  <div className="d-flex justify-content-center mt-4">
-                    <Pagination>
-                      <Pagination.Prev
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                      />
-                      {paginationItems}
-                      <Pagination.Next
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === pagination.totalPages}
-                      />
-                    </Pagination>
-                  </div>
-                )}
-              </>
+            {pagination.totalPages > 1 && (
+              <div className="d-flex justify-content-center mt-4">
+                <Pagination>
+                  <Pagination.Prev
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  />
+                  {paginationItems}
+                  <Pagination.Next
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === pagination.totalPages}
+                  />
+                </Pagination>
+              </div>
             )}
           </Col>
 
           <Col md={4}>
+            <PetQuizChallenge />
             <TagCloud tags={tags} />
+            <EventCalendar />
 
-            <div className="forum-info card shadow-sm mb-4">
-              <div className="card-header bg-white border-bottom py-3">
+            <div className={`${styles.forumInfo} card shadow-sm mb-4`}>
+              <div className={`${styles.forumInfoHeader} py-3`}>
                 <h5 className="mb-0" style={{ color: '#FFFFFF' }}>
                   <i className="bi bi-info-circle me-2"></i>
                   論壇資訊
