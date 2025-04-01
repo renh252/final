@@ -48,7 +48,12 @@ export default function DonatePage() {
   const [searchTerm2, setSearchTerm2] = useState('')
   const [selectedSpecies, setSelectedSpecies] = useState('')
   const [selectedGender, setSelectedGender] = useState('')
-  // 過濾符合搜尋條件的寵物
+
+  // 過濾符合搜尋條件的寵物1
+  const filteredDropdownPets = pets.filter((pet) =>
+    pet.name?.includes(searchTerm)
+  )
+  // 過濾符合搜尋條件的寵物2
   const filteredPets = pets
     .filter((pet) =>
       pet.name?.toLowerCase().includes(searchTerm2.toLowerCase())
@@ -212,8 +217,8 @@ export default function DonatePage() {
                 {/* 選單內容 */}
                 {isDropdownOpen && (
                   <ul className={styles.list}>
-                    {filteredPets.length > 0 ? (
-                      filteredPets.map((pet, index) => (
+                    {filteredDropdownPets.length > 0 ? (
+                      filteredDropdownPets.map((pet, index) => (
                         <li key={pet.id} className={styles.listItem}>
                           <button
                             type="button"

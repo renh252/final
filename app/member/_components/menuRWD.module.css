@@ -42,6 +42,7 @@
 .collapsible.active > button,
 .collapsibleContent button.active {
   background-color: #cda274;
+  background-color: #cda274;
   color: #fff;
   border-radius: 16px;
 }
@@ -177,7 +178,7 @@
     color: #333;
     background: transparent;
     text-align: left;
-    transition: all 0.3s ease;
+    transition: all 0.3s ease-in-out;
   }
 
   .menu > button.active,
@@ -190,16 +191,19 @@
   .menu > button.active,
   .menu select.active {
     background-color: #cda274;
+    background-color: #cda274;
     color: white;
     font-weight: 500;
   }
 
   .collapsible.active > button {
     background-color: #cda274;
+    background-color: #cda274;
     color: white;
   }
 
   .collapsibleContent button.active {
+    background-color: #cda274;
     background-color: #cda274;
     color: white;
     font-weight: normal;
@@ -264,9 +268,10 @@
     border: none;
     box-shadow: 3px 4px 10px rgba(0, 0, 0, 0.2);
     cursor: pointer;
-    transition: left 0.3s ease-in-out, background-color 0.3s ease; /* 與側邊欄使用相同的過渡動畫 */
+    transition: all 0.3s ease-in-out;
     user-select: none; /* 防止文本被選中 */
     z-index: 89;
+    background-color: #cda274;
     background-color: #cda274;
     color: white;
     height: 120px;
@@ -275,15 +280,7 @@
 
   .menuToggle:hover {
     background-color: #b8926a;
-  }
-
-  .menuToggle.open {
-    left: 250px;
-    background-color: #003153;
-  }
-
-  .menuToggle.open:hover {
-    background-color: #00213a;
+    /* transform: translateX(3px); */
   }
 
   .verticalText {

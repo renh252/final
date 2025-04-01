@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,77 +11,79 @@ datasource db {
 }
 
 model forum_posts {
-  id            Int       @id @default(autoincrement())
-  title         String    @db.VarChar(255)
-  content       String    @db.Text
+  id            Int               @id @default(autoincrement())
+  title         String
+  content       String           @db.Text
   user_id       Int
   category_id   Int
-  view_count    Int       @default(0)
-  like_count    Int       @default(0)
-  comment_count Int       @default(0)
-  images        Json?     @db.Json
-  created_at    DateTime  @default(now()) @db.Timestamp(0)
-  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamp(0)
-  author        users     @relation(fields: [user_id], references: [id])
+  view_count    Int              @default(0)
+  like_count    Int              @default(0)
+  comment_count Int              @default(0)
+  created_at    DateTime         @default(now())
+  updated_at    DateTime         @updatedAt
+  user          users            @relation(fields: [user_id], references: [id])
   category      forum_categories @relation(fields: [category_id], references: [id])
-  comments      forum_comments[]
-  likes         forum_likes[]
-  tags          forum_post_tags[]
+  forum_comments forum_comments[]
+  forum_likes   forum_likes[]
+  forum_post_tags forum_post_tags[]
 }
 
 model forum_categories {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(100)
-  slug        String   @db.VarChar(100)
-  description String?  @db.Text
+  id          Int          @id @default(autoincrement())
+  name        String
+  slug        String
+  description String?      @db.Text
   parent_id   Int?
-  order       Int      @default(0)
-  created_at  DateTime @default(now()) @db.Timestamp(0)
+  order       Int         @default(0)
+  created_at  DateTime    @default(now())
   posts       forum_posts[]
 }
 
 model forum_comments {
-  id         Int       @id @default(autoincrement())
+  id         Int        @id @default(autoincrement())
   post_id    Int
   user_id    Int
-  content    String    @db.Text
-  created_at DateTime  @default(now()) @db.Timestamp(0)
-  updated_at DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+  content    String     @db.Text
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
   post       forum_posts @relation(fields: [post_id], references: [id])
-  author     users      @relation(fields: [user_id], references: [id])
+  user       users      @relation(fields: [user_id], references: [id])
 }
 
 model forum_likes {
-  id         Int       @id @default(autoincrement())
+  id         Int        @id @default(autoincrement())
   post_id    Int
   user_id    Int
-  created_at DateTime  @default(now()) @db.Timestamp(0)
+  created_at DateTime   @default(now())
   post       forum_posts @relation(fields: [post_id], references: [id])
   user       users      @relation(fields: [user_id], references: [id])
 }
 
 model forum_tags {
-  id         Int       @id @default(autoincrement())
-  name       String    @db.VarChar(50)
-  slug       String    @db.VarChar(50)
-  created_at DateTime  @default(now()) @db.Timestamp(0)
+  id         Int              @id @default(autoincrement())
+  name       String
+  slug       String
+  created_at DateTime         @default(now())
   posts      forum_post_tags[]
 }
 
 model forum_post_tags {
   post_id Int
   tag_id  Int
-  post    forum_posts @relation(fields: [post_id], references: [id])
-  tag     forum_tags  @relation(fields: [tag_id], references: [id])
+  post    forum_posts  @relation(fields: [post_id], references: [id])
+  tag     forum_tags   @relation(fields: [tag_id], references: [id])
 
   @@id([post_id, tag_id])
 }
 
 model users {
   id            Int       @id @default(autoincrement())
-  name          String    @db.VarChar(255)
-  email         String    @unique @db.VarChar(255)
-  avatar        String?   @db.VarChar(255)
+  name          String
+  email         String    @unique
+  password      String
+  avatar        String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
   posts         forum_posts[]
   comments      forum_comments[]
   likes         forum_likes[]

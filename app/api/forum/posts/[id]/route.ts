@@ -1,185 +1,160 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import { writeFile } from 'fs/promises'
-import { join } from 'path'
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-// GET /api/forum/posts/[id]
+// GET /api/forum/posts/:id
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const postId = parseInt(params.id)
+    const postId = parseInt(params.id);
     if (isNaN(postId)) {
-      return NextResponse.json({ error: '無效的文章ID' }, { status: 400 })
+      return NextResponse.json(
+        { error: '無效的文章ID' },
+        { status: 400 }
+      );
     }
 
+    // 獲取文章數據，包含分類、標籤和評論
     const post = await prisma.forum_posts.findUnique({
       where: { id: postId },
       include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-          },
-        },
-        comments: {
+        forum_comments: {
           include: {
-            author: {
+            user: {
               select: {
                 id: true,
                 name: true,
-                avatar: true,
-              },
-            },
+                avatar: true
+              }
+            }
           },
           orderBy: {
-            created_at: 'desc',
-          },
+            created_at: 'desc'
+          }
         },
-        tags: {
+        forum_post_tags: {
           include: {
-            tag: {
-              select: {
-                name: true,
-              },
-            },
-          },
+            tag: true
+          }
         },
-        category: true,
-      },
-    })
+        category: true
+      }
+    });
 
     if (!post) {
-      return NextResponse.json({ error: '找不到該文章' }, { status: 404 })
+      return NextResponse.json(
+        { error: '找不到該文章' },
+        { status: 404 }
+      );
     }
 
-    // Format the response
-    const formattedPost = {
-      id: post.id,
-      title: post.title,
-      content: post.content,
-      images: post.images,
-      created_at: post.created_at,
-      updated_at: post.updated_at,
-      author: {
-        id: post.author.id,
-        name: post.author.name,
-        avatar: post.author.avatar,
-      },
-      category: post.category,
-      like_count: post.like_count,
-      comment_count: post.comment_count,
-      comments: post.comments.map((comment) => ({
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        author: {
-          id: comment.author.id,
-          name: comment.author.name,
-          avatar: comment.author.avatar,
-        },
-      })),
-      tags: post.tags.map((tag) => tag.tag.name),
-    }
+    // 增加瀏覽次數
+    await prisma.forum_posts.update({
+      where: { id: postId },
+      data: {
+        view_count: {
+          increment: 1
+        }
+      }
+    });
 
-    return NextResponse.json(formattedPost)
+    // 獲取點讚數量
+    const likesCount = await prisma.forum_likes.count({
+      where: { post_id: postId }
+    });
+
+    // 組合回應數據
+    const response = {
+      status: 'success',
+      data: {
+        post: {
+          ...post,
+          like_count: likesCount,
+          user: {
+            id: post.user_id,
+            name: `User_${post.user_id}`,
+            avatar: '/images/default-avatar.png'
+          },
+          tags: post.forum_post_tags.map(pt => pt.tag)
+        }
+      }
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching post:', error)
-    return NextResponse.json({ error: '無法獲取文章內容' }, { status: 500 })
+    console.error('Error fetching post:', error);
+    return NextResponse.json(
+      { error: '無法獲取文章內容' },
+      { status: 500 }
+    );
   }
 }
 
-// PUT /api/forum/posts/[id]
-export async function PUT(
+// 處理點讚/取消點讚
+export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: '請先登入' }, { status: 401 })
-    }
-
-    const postId = parseInt(params.id)
+    const postId = parseInt(params.id);
     if (isNaN(postId)) {
-      return NextResponse.json({ error: '無效的文章ID' }, { status: 400 })
-    }
-
-    const formData = await request.formData()
-    const title = formData.get('title') as string
-    const content = formData.get('content') as string
-    const categoryId = parseInt(formData.get('categoryId') as string)
-    const imageFiles = formData.getAll('images') as File[]
-
-    // Validate required fields
-    if (!title || !content || isNaN(categoryId)) {
       return NextResponse.json(
-        { error: '標題、內容和分類為必填項目' },
+        { error: '無效的文章ID' },
         { status: 400 }
-      )
+      );
     }
 
-    // Get existing post
-    const existingPost = await prisma.forum_posts.findUnique({
-      where: { id: postId },
-      select: { user_id: true, images: true },
-    })
+    const { action } = await request.json();
+    const userId = 1; // 暫時使用固定用戶ID
 
-    if (!existingPost) {
-      return NextResponse.json({ error: '找不到該文章' }, { status: 404 })
+    if (action === 'like') {
+      // 檢查是否已經點讚
+      const existingLike = await prisma.forum_likes.findFirst({
+        where: {
+          post_id: postId,
+          user_id: userId
+        }
+      });
+
+      if (existingLike) {
+        // 如果已經點讚，則取消點讚
+        await prisma.forum_likes.delete({
+          where: { id: existingLike.id }
+        });
+      } else {
+        // 如果還沒點讚，則新增點讚
+        await prisma.forum_likes.create({
+          data: {
+            post_id: postId,
+            user_id: userId
+          }
+        });
+      }
+
+      // 獲取最新點讚數
+      const likesCount = await prisma.forum_likes.count({
+        where: { post_id: postId }
+      });
+
+      return NextResponse.json({
+        status: 'success',
+        data: {
+          likesCount,
+          isLiked: !existingLike
+        }
+      });
     }
 
-    // Check if user is the author
-    if (existingPost.user_id !== session.user.id) {
-      return NextResponse.json(
-        { error: '您沒有權限編輯此文章' },
-        { status: 403 }
-      )
-    }
-
-    // Handle image uploads
-    let images = (existingPost.images as string[]) || []
-    if (imageFiles.length > 0) {
-      const uploadPromises = imageFiles.map(async (file) => {
-        const buffer = Buffer.from(await file.arrayBuffer())
-        const filename = `${Date.now()}-${file.name}`
-        const filePath = `/uploads/forum/${filename}`
-        const fullPath = join(process.cwd(), 'public', filePath)
-        await writeFile(fullPath, buffer)
-        return filePath
-      })
-      const newImages = await Promise.all(uploadPromises)
-      images = [...images, ...newImages]
-    }
-
-    // Update post
-    const updatedPost = await prisma.forum_posts.update({
-      where: { id: postId },
-      data: {
-        title,
-        content,
-        category_id: categoryId,
-        images: images,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-          },
-        },
-        category: true,
-      },
-    })
-
-    return NextResponse.json(updatedPost)
+    return NextResponse.json(
+      { error: '無效的操作' },
+      { status: 400 }
+    );
   } catch (error) {
-    console.error('Error updating post:', error)
-    return NextResponse.json({ error: '更新文章失敗' }, { status: 500 })
+    console.error('Error handling post action:', error);
+    return NextResponse.json(
+      { error: '操作失敗' },
+      { status: 500 }
+    );
   }
 }

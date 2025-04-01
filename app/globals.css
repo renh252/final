@@ -64,6 +64,11 @@ body {
   animation: fadein 0.2s;
   margin-top: 56px;
 }
+@media screen and (max-width: 768px) {
+  body{
+    margin-top: 45.16px;
+  }
+}
 
 * {
   box-sizing: border-box;
