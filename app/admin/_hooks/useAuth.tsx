@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import LoadingSpinner from '../_components/LoadingSpinner'
-import Cookies from 'js-cookie'
 import { useAdmin } from '../AdminContext'
 
 // 授權介面

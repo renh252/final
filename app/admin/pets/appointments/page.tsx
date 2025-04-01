@@ -27,6 +27,8 @@ import styles from './appointments.module.css'
 import dynamic from 'next/dynamic'
 import DataTable from '@/app/admin/_components/DataTable'
 import type { Column } from '@/app/admin/_components/DataTable'
+import { fetchApi } from '@/app/admin/_lib/api'
+import { useToast } from '@/app/admin/_components/Toast'
 
 // 使用動態導入以避免 SSR 錯誤
 const FullCalendarComponent = dynamic(
@@ -168,20 +170,31 @@ export default function PetAppointmentsPage() {
   } | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
+  const { showToast } = useToast()
 
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await fetch('/api/admin/appointments')
-        if (!response.ok) {
-          throw new Error('獲取預約資料失敗')
+        setLoading(true)
+        setError('')
+
+        const response = await fetchApi('/api/admin/pets/appointments')
+
+        // 檢查回應格式
+        if (response.success && response.data && Array.isArray(response.data)) {
+          setAppointments(response.data)
+        } else if (Array.isArray(response.data)) {
+          setAppointments(response.data)
+        } else if (Array.isArray(response)) {
+          setAppointments(response)
+        } else {
+          console.error('返回的數據格式不正確:', response)
+          throw new Error('獲取預約資料失敗：數據格式錯誤')
         }
-        const data = await response.json()
-        setAppointments(data)
-        setLoading(false)
       } catch (err) {
         console.error('Error fetching appointments:', err)
-        setError('獲取預約資料時發生錯誤')
+        setError(err instanceof Error ? err.message : '獲取預約資料時發生錯誤')
+      } finally {
         setLoading(false)
       }
     }
@@ -195,26 +208,40 @@ export default function PetAppointmentsPage() {
     newStatus: AppointmentStatus
   ) => {
     try {
-      const response = await fetch(`/api/admin/appointments/${appointmentId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      })
-
-      if (!response.ok) {
-        throw new Error('更新狀態失敗')
-      }
-
-      setAppointments((prev) =>
-        prev.map((app) =>
-          app.id === appointmentId ? { ...app, status: newStatus } : app
-        )
+      console.log(
+        `Updating appointment ${appointmentId} to status: ${newStatus}`
       )
+
+      const response = await fetchApi(
+        `/api/admin/pets/appointments/${appointmentId}`,
+        {
+          method: 'PUT',
+          body: { status: newStatus },
+        }
+      )
+
+      console.log('Status update response:', response)
+
+      if (response.success) {
+        // 更新本地狀態
+        setAppointments((prev) =>
+          prev.map((app) =>
+            app.id === appointmentId ? { ...app, status: newStatus } : app
+          )
+        )
+        setError('')
+        showToast('success', '成功', '預約狀態更新成功！')
+      } else {
+        throw new Error(response.message || '更新狀態失敗')
+      }
     } catch (err) {
       console.error('Error updating status:', err)
-      setError('更新狀態時發生錯誤')
+      setError(err instanceof Error ? err.message : '更新狀態時發生錯誤')
+      showToast(
+        'error',
+        '錯誤',
+        err instanceof Error ? err.message : '更新狀態時發生錯誤'
+      )
     }
   }
 
@@ -309,18 +336,15 @@ export default function PetAppointmentsPage() {
     }
 
     // 排序
-    if (sortConfig) {
+    if (sortConfig && sortConfig.key) {
       result.sort((a, b) => {
-        if (
-          a[sortConfig.key as keyof Appointment] <
-          b[sortConfig.key as keyof Appointment]
-        ) {
+        const aValue = a[sortConfig.key as keyof Appointment] ?? ''
+        const bValue = b[sortConfig.key as keyof Appointment] ?? ''
+
+        if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1
         }
-        if (
-          a[sortConfig.key as keyof Appointment] >
-          b[sortConfig.key as keyof Appointment]
-        ) {
+        if (aValue > bValue) {
           return sortConfig.direction === 'asc' ? 1 : -1
         }
         return 0
@@ -393,6 +417,7 @@ export default function PetAppointmentsPage() {
   ) => {
     if (!selectedRows.length) {
       setError('請先選擇要操作的預約')
+      showToast('warning', '注意', '請先選擇要操作的預約')
       return
     }
 
@@ -401,9 +426,15 @@ export default function PetAppointmentsPage() {
         handleStatusUpdate(row.id, action as AppointmentStatus)
       )
       await Promise.all(promises)
+      showToast(
+        'success',
+        '成功',
+        `已成功批量處理 ${selectedRows.length} 筆預約`
+      )
     } catch (err) {
       console.error('批量操作失敗:', err)
       setError('批量操作失敗，請稍後再試')
+      showToast('error', '錯誤', '批量操作失敗，請稍後再試')
     }
   }
 
