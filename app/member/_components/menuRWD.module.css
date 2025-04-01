@@ -41,7 +41,7 @@
 .menu select.active,
 .collapsible.active > button,
 .collapsibleContent button.active {
-  background-color: #cd2a74;
+  background-color: #cda274;
   color: #fff;
   border-radius: 16px;
 }
@@ -82,11 +82,13 @@
   z-index: 100;
   width: 200px;
   opacity: 0;
+  visibility: hidden; /* 完全隱藏未展開的選單 */
 }
 
 .collapsibleContent.open {
   max-height: 500px; /* 根據實際內容調整 */
   opacity: 1;
+  visibility: visible; /* 顯示展開的選單 */
 }
 
 .collapsibleContent button {
@@ -187,18 +189,18 @@
 
   .menu > button.active,
   .menu select.active {
-    background-color: #cd2a74;
+    background-color: #cda274;
     color: white;
     font-weight: 500;
   }
 
   .collapsible.active > button {
-    background-color: #cd2a74;
+    background-color: #cda274;
     color: white;
   }
 
   .collapsibleContent button.active {
-    background-color: #cd2a74;
+    background-color: #cda274;
     color: white;
     font-weight: normal;
   }
@@ -214,15 +216,19 @@
     border-radius: 0;
     background-color: rgba(248, 248, 248, 0.5);
     margin: 0 0 5px 0;
-    padding: 5px 0;
-    opacity: 1;
+    padding: 0; /* 未展開時不需要padding */
+    opacity: 0; /* 未展開時完全透明 */
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease;
+    transition: all 0.3s ease;
+    visibility: hidden; /* 完全隱藏未展開的選單 */
   }
 
   .collapsibleContent.open {
     max-height: 300px;
+    opacity: 1;
+    padding: 5px 0; /* 展開時添加padding */
+    visibility: visible; /* 顯示展開的選單 */
   }
 
   .collapsibleContent button {
@@ -258,10 +264,10 @@
     border: none;
     box-shadow: 3px 4px 10px rgba(0, 0, 0, 0.2);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: left 0.3s ease-in-out, background-color 0.3s ease; /* 與側邊欄使用相同的過渡動畫 */
     user-select: none; /* 防止文本被選中 */
     z-index: 89;
-    background-color: #cd2a74;
+    background-color: #cda274;
     color: white;
     height: 120px;
     width: 40px;
@@ -269,7 +275,15 @@
 
   .menuToggle:hover {
     background-color: #b8926a;
-    transform: translateX(3px);
+  }
+
+  .menuToggle.open {
+    left: 250px;
+    background-color: #003153;
+  }
+
+  .menuToggle.open:hover {
+    background-color: #00213a;
   }
 
   .verticalText {
@@ -281,15 +295,6 @@
     margin: 0;
     font-size: 16px;
     letter-spacing: 1px;
-  }
-
-  .menuToggle.open {
-    left: 250px;
-    background-color: #003153;
-  }
-
-  .menuToggle.open:hover {
-    background-color: #00213a;
   }
 
   .menuTitle {
