@@ -6,18 +6,17 @@ import {
   Card,
   Button,
   Form,
+  Badge,
   Row,
   Col,
-  Badge,
-  OverlayTrigger,
-  Tooltip,
 } from 'react-bootstrap'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { BsArrowUpCircle, BsArrowUpCircleFill, BsChat } from 'react-icons/bs'
 import Link from 'next/link'
-import Image from 'next/image'
+import '../../styles/custom-theme.css'
 
 interface Post {
   id: number
@@ -28,11 +27,7 @@ interface Post {
   view_count: number
   like_count: number
   comment_count: number
-  user: {
-    id: number
-    name: string
-    avatar: string
-  }
+  user_id: number
   category: {
     id: number
     name: string
@@ -49,16 +44,42 @@ interface Comment {
   id: number
   content: string
   created_at: string
-  user: {
-    id: number
-    name: string
-    avatar: string
-  }
+  user_id: number
 }
+
+const forumRules = [
+  {
+    id: 1,
+    title: '互相尊重，每個人都是毛孩的好家人',
+    description: '所有貼文必須與寵物相關。'
+  },
+  {
+    id: 2,
+    title: '避免張貼廣告或無關內容',
+    description: '禁止未經授權的商業宣傳。'
+  },
+  {
+    id: 3,
+    title: '歡迎分享你家寶貝的大小事，越實用越好',
+    description: '請確保您的貼文有實質的討論價值。'
+  },
+  {
+    id: 4,
+    title: '發文時別忘了善用分類標籤，讓大家更容易找到',
+    description: '保持友善的討論氛圍。'
+  }
+]
+
+const sidebarLinks = [
+  { title: '寵物照護', url: '/care' },
+  { title: '寵物健康', url: '/health' },
+  { title: '寵物行為', url: '/behavior' },
+  { title: '寵物美容', url: '/grooming' },
+  { title: '寵物訓練', url: '/training' }
+]
 
 export default function PostDetailPage() {
   const params = useParams()
-  const router = useRouter()
   const [post, setPost] = useState<Post | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
@@ -101,8 +122,8 @@ export default function PostDetailPage() {
         setIsLiked(response.data.data.isLiked)
         setLikesCount(response.data.data.likesCount)
       }
-    } catch (error) {
-      console.error('點讚失敗:', error)
+    } catch (err) {
+      console.error('Error liking post:', err)
     }
   }
 
@@ -111,160 +132,214 @@ export default function PostDetailPage() {
     if (!newComment.trim()) return
 
     try {
-      // 直接在前端添加評論
       const newCommentData: Comment = {
         id: Date.now(),
         content: newComment,
         created_at: new Date().toISOString(),
-        user: {
-          id: 1,
-          name: 'Anonymous User',
-          avatar: '/images/default-avatar.png'
-        }
+        user_id: 1
       }
 
       setComments(prev => [newCommentData, ...prev])
       setNewComment('')
     } catch (error) {
-      console.error('發表評論失敗:', error)
+      console.error('Error posting comment:', error)
     }
   }
 
-  if (loading) {
-    return (
-      <Container className="py-4">
-        <div className="text-center">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      </Container>
-    )
-  }
-
-  if (error || !post) {
-    return (
-      <Container className="py-4">
-        <div className="alert alert-danger" role="alert">
-          {error || '找不到此文章'}
-        </div>
-        <Button variant="link" onClick={() => router.back()}>
-          返回上一頁
-        </Button>
-      </Container>
-    )
-  }
+  if (loading) return <div className="forum-layout">載入中...</div>
+  if (error) return <div className="forum-layout">錯誤: {error}</div>
+  if (!post) return <div className="forum-layout">找不到文章</div>
 
   return (
-    <Container className="py-4">
-      <Card className="mb-4">
-        <Card.Body>
-          <div className="d-flex align-items-center mb-3">
-            <Image
-              src={post.user.avatar}
-              alt={post.user.name}
-              width={40}
-              height={40}
-              className="rounded-circle me-2"
-            />
-            <div>
-              <div className="fw-bold">{post.user.name}</div>
-              <small className="text-muted">
-                {formatDistanceToNow(new Date(post.created_at), {
-                  addSuffix: true,
-                  locale: zhTW
-                })}
-              </small>
+    <div className="forum-layout">
+      <Container className="py-4">
+        <Row>
+          {/* 主要內容區 */}
+          <Col lg={8}>
+            <Card className="border-0 shadow-sm">
+              <Card.Body className="p-0">
+                {/* Vote and Content Section */}
+                <div className="d-flex">
+                  {/* Vote Section */}
+                  <div className="bg-light p-2 text-center" style={{ width: '40px' }}>
+                    <button 
+                      onClick={handleLike}
+                      className="btn btn-link p-0 d-block mx-auto"
+                      style={{ color: isLiked ? 'var(--primary-color)' : '#878A8C' }}
+                    >
+                      {isLiked ? <BsArrowUpCircleFill size={24} /> : <BsArrowUpCircle size={24} />}
+                    </button>
+                    <div className="my-1 fw-bold" style={{ color: isLiked ? 'var(--primary-color)' : '#1A1A1B' }}>
+                      {likesCount}
+                    </div>
+                  </div>
+
+                  {/* Content Section */}
+                  <div className="flex-grow-1 p-3">
+                    {/* Post Header */}
+                    <div className="mb-2">
+                      <div className="d-flex align-items-center text-muted small mb-2">
+                        <Badge bg="primary" className="me-2">
+                          {post?.category.name}
+                        </Badge>
+                        <span>由 u/{post?.user_id} 發布於 </span>
+                        <span className="ms-1">
+                          {formatDistanceToNow(new Date(post?.created_at || ''), { locale: zhTW, addSuffix: true })}
+                        </span>
+                      </div>
+                      <h2 className="h4 mb-3">{post?.title}</h2>
+                    </div>
+
+                    {/* Post Content */}
+                    <div className="post-content mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+                      {post?.content}
+                    </div>
+
+                    {/* Tags */}
+                    <div className="mb-3">
+                      {post?.tags.map(tag => (
+                        <Badge 
+                          key={tag.id} 
+                          bg="secondary" 
+                          className="me-1" 
+                          style={{ backgroundColor: 'var(--primary-light)', color: 'var(--secondary-color)' }}
+                        >
+                          {tag.name}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    {/* Post Footer */}
+                    <div className="d-flex align-items-center text-muted small">
+                      <div className="me-3">
+                        <BsChat className="me-1" />
+                        {comments.length} 則評論
+                      </div>
+                      <div>
+                        {post?.view_count} 次瀏覽
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card.Body>
+            </Card>
+
+            {/* Comment Form */}
+            <Card className="mt-3 border-0 shadow-sm">
+              <Card.Body>
+                <Form onSubmit={handleSubmitComment}>
+                  <Form.Group>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      placeholder="寫下你的評論..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="mb-2"
+                    />
+                  </Form.Group>
+                  <div className="text-end">
+                    <Button type="submit" variant="primary" disabled={!newComment.trim()}>
+                      發表評論
+                    </Button>
+                  </div>
+                </Form>
+              </Card.Body>
+            </Card>
+
+            {/* Comments Section */}
+            <div className="mt-3">
+              {comments.map(comment => (
+                <Card key={comment.id} className="mb-2 border-0 shadow-sm">
+                  <Card.Body>
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <div className="small">
+                        <span className="fw-bold">u/{comment.user_id}</span>
+                        <span className="text-muted ms-2">
+                          {formatDistanceToNow(new Date(comment.created_at), { locale: zhTW, addSuffix: true })}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ whiteSpace: 'pre-wrap' }}>
+                      {comment.content}
+                    </div>
+                  </Card.Body>
+                </Card>
+              ))}
             </div>
-          </div>
+          </Col>
 
-          <h1 className="h3 mb-3">{post.title}</h1>
-          
-          <div className="mb-3">
-            <Badge bg="primary" className="me-2">
-              {post.category.name}
-            </Badge>
-            {post.tags.map(tag => (
-              <Badge key={tag.id} bg="secondary" className="me-2">
-                {tag.name}
-              </Badge>
-            ))}
-          </div>
-
-          <div className="mb-4" style={{ whiteSpace: 'pre-wrap' }}>
-            {post.content}
-          </div>
-
-          <div className="d-flex align-items-center text-muted">
-            <Button
-              variant={isLiked ? 'primary' : 'outline-primary'}
-              size="sm"
-              onClick={handleLike}
-              className="me-3"
-            >
-              <i className="bi bi-hand-thumbs-up me-1"></i>
-              {likesCount}
-            </Button>
-            <span className="me-3">
-              <i className="bi bi-eye me-1"></i>
-              {post.view_count}
-            </span>
-            <span>
-              <i className="bi bi-chat-dots me-1"></i>
-              {comments.length}
-            </span>
-          </div>
-        </Card.Body>
-      </Card>
-
-      <Card className="mb-4">
-        <Card.Body>
-          <h5 className="mb-3">發表評論</h5>
-          <Form onSubmit={handleSubmitComment}>
-            <Form.Group className="mb-3">
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="寫下你的評論..."
-              />
-            </Form.Group>
-            <Button type="submit" variant="primary">
-              發表評論
-            </Button>
-          </Form>
-        </Card.Body>
-      </Card>
-
-      <div>
-        <h5 className="mb-3">評論 ({comments.length})</h5>
-        {comments.map((comment) => (
-          <Card key={comment.id} className="mb-3">
-            <Card.Body>
-              <div className="d-flex align-items-center mb-2">
-                <Image
-                  src={comment.user.avatar}
-                  alt={comment.user.name}
-                  width={32}
-                  height={32}
-                  className="rounded-circle me-2"
-                />
-                <div>
-                  <div className="fw-bold">{comment.user.name}</div>
+          {/* 側邊欄 */}
+          <Col lg={4}>
+            {/* 社群資訊卡片 */}
+            <Card className="border-0 shadow-sm mb-3">
+              <Card.Header>
+                <h5 className="mb-0">關於寵物社群</h5>
+              </Card.Header>
+              <Card.Body>
+                <div className="mb-3">
+                  <div className="fw-bold mb-2">社群資訊</div>
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>成員數</span>
+                    <span className="fw-bold">15</span>
+                  </div>
+                  <div className="d-flex justify-content-between">
+                    <span>在線人數</span>
+                    <span className="text-success">1</span>
+                  </div>
+                </div>
+                <div className="mb-3">
                   <small className="text-muted">
-                    {formatDistanceToNow(new Date(comment.created_at), {
-                      addSuffix: true,
-                      locale: zhTW
-                    })}
+                    創建於 2025年3月15日
                   </small>
                 </div>
-              </div>
-              <div style={{ whiteSpace: 'pre-wrap' }}>{comment.content}</div>
-            </Card.Body>
-          </Card>
-        ))}
-      </div>
-    </Container>
+              </Card.Body>
+            </Card>
+
+            {/* 社群規則卡片 */}
+            <Card className="border-0 shadow-sm mb-3">
+              <Card.Header>
+                <h5 className="mb-0">論壇守則：</h5>
+              </Card.Header>
+              <Card.Body className="p-0">
+                {forumRules.map((rule, index) => (
+                  <div 
+                    key={rule.id}
+                    className="p-3 border-bottom"
+                    style={{ backgroundColor: index % 2 === 0 ? '#f8f9fa' : 'white' }}
+                  >
+                    <div className="fw-bold mb-1">
+                      {index + 1}. {rule.title}
+                    </div>
+                    <small className="text-muted">
+                      {rule.description}
+                    </small>
+                  </div>
+                ))}
+              </Card.Body>
+            </Card>
+
+            {/* 相關連結卡片 */}
+            <Card className="border-0 shadow-sm">
+              <Card.Header>
+                <h5 className="mb-0">相關連結</h5>
+              </Card.Header>
+              <Card.Body className="p-0">
+                {sidebarLinks.map((link, index) => (
+                  <Link 
+                    key={link.url}
+                    href={link.url}
+                    className="d-block p-3 text-decoration-none text-dark border-bottom"
+                    style={{ backgroundColor: index % 2 === 0 ? '#f8f9fa' : 'white' }}
+                  >
+                    {link.title}
+                  </Link>
+                ))}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   )
 }
