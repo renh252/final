@@ -15,6 +15,7 @@ import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { BsArrowUpCircle, BsArrowUpCircleFill, BsChat } from 'react-icons/bs'
+import { FaTwitter, FaFacebook, FaInstagram } from 'react-icons/fa'
 import Link from 'next/link'
 import '../../styles/custom-theme.css'
 
@@ -71,11 +72,21 @@ const forumRules = [
 ]
 
 const sidebarLinks = [
-  { title: '寵物照護', url: '/care' },
-  { title: '寵物健康', url: '/health' },
-  { title: '寵物行為', url: '/behavior' },
-  { title: '寵物美容', url: '/grooming' },
-  { title: '寵物訓練', url: '/training' }
+  {
+    url: 'https://twitter.com',
+    title: 'Twitter',
+    icon: FaTwitter
+  },
+  {
+    url: 'https://facebook.com',
+    title: 'Facebook',
+    icon: FaFacebook
+  },
+  {
+    url: 'https://instagram.com',
+    title: 'Instagram',
+    icon: FaInstagram
+  }
 ]
 
 export default function PostDetailPage() {
@@ -322,16 +333,19 @@ export default function PostDetailPage() {
             {/* 相關連結卡片 */}
             <Card className="border-0 shadow-sm">
               <Card.Header>
-                <h5 className="mb-0">相關連結</h5>
+                <h5 className="mb-0">「毛孩之家」粉絲團</h5>
               </Card.Header>
               <Card.Body className="p-0">
                 {sidebarLinks.map((link, index) => (
                   <Link 
                     key={link.url}
                     href={link.url}
-                    className="d-block p-3 text-decoration-none text-dark border-bottom"
+                    className="d-flex align-items-center p-3 text-decoration-none text-dark border-bottom"
                     style={{ backgroundColor: index % 2 === 0 ? '#f8f9fa' : 'white' }}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
+                    <link.icon className="me-3" size={24} />
                     {link.title}
                   </Link>
                 ))}

@@ -57,8 +57,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin: 30px 100px;
-  padding: 50px;
+  margin: 30px 100px !important;
+  padding: 50px !important;
   background-color: rgba(255, 255, 255, 0.5);
   border-radius: 20px;
   color: #5a4b3c;
@@ -87,10 +87,10 @@
     width: 64px;
     height: 64px;
   }
-}
-.intro_container {
-  margin: 30px;
-  padding: 50 20px;
+  .intro_container {
+    margin: 30px !important;
+    padding: 50 20px !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -108,5 +108,9 @@
     p {
       font-size: 1rem;
     }
+  }
+  .intro_container {
+    margin: 30px !important;
+    padding: 50 20px !important;
   }
 }
