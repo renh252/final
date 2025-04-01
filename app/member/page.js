@@ -14,7 +14,7 @@ export default function MemberPage() {
   const [userData, setUserData] = useState(null); // 保存使用者資料
   const [editingField, setEditingField] = useState(null); // 目前正在編輯的欄位名稱
   const [draftValues, setDraftValues] = useState({}); // 儲存每個欄位編輯中的值
-  const [profilePhoto, setProfilePhoto] = useState('/path/to/default/image.jpg'); // 儲存使用者上傳的圖片
+  const [profilePhoto, setProfilePhoto] = useState('/public/images/member/memberphoto.png'); // 儲存使用者上傳的圖片
 
   const formatDate = (date) => {
     const formattedDate = new Date(date);
