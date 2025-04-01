@@ -16,7 +16,7 @@ export default function Page() {
             icon={<FaStore />}
             title="浪浪商城"
             description="挑選你喜歡的浪浪周邊商品，購買也能幫助毛孩們渡過難關"
-            link="/store"
+            link="/shop"
           />
           <FeatureBlock
             icon={<FaComments />}
