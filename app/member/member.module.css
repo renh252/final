@@ -47,7 +47,7 @@
   text-align: center; /* 文字置中 */
 }
 
-.text_overlay{
+.text_overlay {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -57,13 +57,19 @@
   text-align: center;
 }
 
-.gridContainer{
+.gridContainer {
   width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 5px 0; /* 減少上下間距 */
+  margin: 0 auto; /* 居中且無額外空間 */
 
-  overflow-x: auto;
-
-  button a,button{
+  button a,
+  button,
+  select {
     white-space: nowrap;
+    margin: 5px; /* 減少按鈕間距 */
   }
 }
 
@@ -71,58 +77,94 @@
   html {
     font-size: 80%; /* 縮小根元素字體大小 */
   }
-  .gridContainer{
+  .gridContainer {
     display: none;
   }
 }
 
-.hero_section{
+.hero_section {
   width: 100%;
   height: 800px;
   object-fit: cover;
 }
 
-  .logos_grid {
-    display: flex;
-    justify-content: space-between;/* 控制按鈕之間的間距 */
-    align-items: center; /* 垂直居中對齊按鈕 */
-    gap: 1px; /* 控制按鈕之間的間隔 */
-    max-width: 1980px;}
-
-  .member_container{
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    justify-content: center;
-    margin: 30px auto;
-    padding: 50px;
-    background-color: rgba(255, 255, 255, 0.5);
-    border-radius: 20px;
-    padding: 20px 50px;
-  }
-
-  .profile_section{
-    display: flex;
-    justify-content: space-between; /* 兩個 div 分別靠左和靠右 */
-  }
-
-  .profile_photos{
-    width: 50%; 
-    padding: 50px;
-  }
-
-  .profile_photo{
+.logos_grid {
   display: flex;
-  justify-content: center;}
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center; /* 垂直居中對齊按鈕 */
+  gap: 10px; /* 減少按鈕之間的間隔 */
+  max-width: 850px; /* 控制寬度，讓每行最多顯示3-4個按鈕 */
+  padding: 5px; /* 減少內部間距 */
+}
 
-  .profile_content{
-    width: 50%;
-    padding: 20px;
-  }
+/* 修改按鈕和選單樣式，限制為兩行顯示 */
+.logos_grid button,
+.logos_grid select {
+  width: 175px !important; /* 固定寬度確保每行4個元素 */
+  height: 45px !important; /* 減少高度 */
+  font-size: 22px !important; /* 縮小字體 */
+  margin: 5px !important; /* 確保間距一致 */
+  border-radius: 25px;
+  background-color: #003153;
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+}
 
-.edit_button{
+.logos_grid button:hover,
+.logos_grid select:hover {
+  background-color: #004b80;
+  transform: scale(1.03);
+}
+
+.logos_grid button a,
+.logos_grid select {
+  color: white;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.member_container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: center;
+  margin: 30px auto;
+  padding: 50px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  padding: 20px 50px;
+}
+
+.profile_section {
+  display: flex;
+  justify-content: space-between; /* 兩個 div 分別靠左和靠右 */
+}
+
+.profile_photos {
+  width: 50%;
+  padding: 50px;
+}
+
+.profile_photo {
+  display: flex;
+  justify-content: center;
+}
+
+.profile_content {
+  width: 50%;
+  padding: 20px;
+}
+
+.edit_button {
   background-color: #c48d61; /* 設定背景顏色 (藍色範例) */
   color: white; /* 設定文字顏色 */
   padding: 10px 10px; /* 設定內邊距 */
@@ -132,26 +174,26 @@
   font-size: 16px; /* 可以根據需要調整字體大小 */
   transition: background-color 0.3s ease;
   margin-left: 10px;
- }
- .edit_button:hover {
+}
+.edit_button:hover {
   background-color: #303969; /* 設定滑鼠懸停時的背景顏色 (更深的藍色範例) */
 }
 
-  .label_input{
+.label_input {
   padding: 5px 10px; /* 增加一些內邊距，讓文字不會緊貼邊框 */
   border: 1px solid #8b6565; /* 設定淺灰色框線 */
   border-radius: 20px; /* 設定圓角，數值越大越圓 */
   box-sizing: border-box; /* 確保內邊距和邊框不會增加元素的總寬度 */
   font-size: 16px; /* 可以根據需要調整字體大小 */
-  }
+}
 
-  .password_button {
-    position: absolute;
-    bottom: 40px; /* 調整底部邊距 */
-    left: 1000px; /* 調整左邊邊距 */
-  }
+.password_button {
+  position: absolute;
+  bottom: 40px; /* 調整底部邊距 */
+  left: 1000px; /* 調整左邊邊距 */
+}
 
-  /* 手機等小螢幕 (最大寬度 768px) */
+/* 手機等小螢幕 (最大寬度 768px) */
 @media (max-width: 768px) {
   .member_container {
     width: 95%; /* 增加在小螢幕上的寬度 */
@@ -226,8 +268,6 @@
     left: 80%; /* 調整在中等螢幕上的位置 */
   }
 }
-
-
 
 /* 更小的手機螢幕 (最大寬度 480px) - 可選 */
 @media (max-width: 480px) {
