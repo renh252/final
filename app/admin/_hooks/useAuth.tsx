@@ -33,7 +33,7 @@ export function useAuth(requiredPerm?: string) {
         }
 
         // 確保 privileges 有值
-        const privileges = admin.privileges || ''
+        const privileges = admin.manager_privileges || ''
         const isSuperAdmin = privileges === '111'
 
         // 設置授權資訊
