@@ -170,4 +170,8 @@
   .cardGroup::-webkit-scrollbar {
     display: none;
   }
+  .searchBar{
+    flex-direction: column;
+    gap: 10px;
+  }
 }
