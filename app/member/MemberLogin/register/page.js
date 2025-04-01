@@ -155,25 +155,8 @@ export default function RegisterPage() {
   return (
     <>
       <div className={styles.formContainer}>
-        <h2 className={styles.sectionTitle}>快速註冊</h2>
         <div className={styles.form}>
-          <div className={styles.GFbutton}>
-            <button
-              className="button"
-              style={{ width: '350px', height: '60px', fontSize: '20px' }}
-              onClick={handleGoogleSignIn}
-            >
-              <img
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/153b2dcd7ca2627a463800e38ebc91cf43bcd541ad79fa3fea9919eec17199df?placeholderIfAbsent=true&apiKey=2d1f7455128543bfa30579a9cce96321"
-                alt="Google icon"
-                style={{ width: '100px', height: '50px' }}
-              />
-              以Google帳號註冊
-            </button>
-            {signInError && <p className={styles.error}>{signInError}</p>}
-          </div>
-
-          <h2 className={styles.sectionTitle}>加入會員 - 步驟 1</h2>
+          <h2 className={styles.sectionTitle}>加入會員</h2>
           <div className={styles.formGroup}>
             <label htmlFor="email" className={styles.formLabel}>
               電子信箱 :
