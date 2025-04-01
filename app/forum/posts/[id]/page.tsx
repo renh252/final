@@ -50,22 +50,22 @@ interface Comment {
 const forumRules = [
   {
     id: 1,
-    title: '禁止離題內容',
+    title: '互相尊重，每個人都是毛孩的好家人',
     description: '所有貼文必須與寵物相關。'
   },
   {
     id: 2,
-    title: '禁止廣告與自我推銷',
+    title: '避免張貼廣告或無關內容',
     description: '禁止未經授權的商業宣傳。'
   },
   {
     id: 3,
-    title: '禁止低質量/惡意投機的貼文',
+    title: '歡迎分享你家寶貝的大小事，越實用越好',
     description: '請確保您的貼文有實質的討論價值。'
   },
   {
     id: 4,
-    title: '禁止煽動仇恨',
+    title: '發文時別忘了善用分類標籤，讓大家更容易找到',
     description: '保持友善的討論氛圍。'
   }
 ]
@@ -281,16 +281,16 @@ export default function PostDetailPage() {
                   <div className="fw-bold mb-2">社群資訊</div>
                   <div className="d-flex justify-content-between mb-2">
                     <span>成員數</span>
-                    <span className="fw-bold">3.7M</span>
+                    <span className="fw-bold">15</span>
                   </div>
                   <div className="d-flex justify-content-between">
                     <span>在線人數</span>
-                    <span className="text-success">559</span>
+                    <span className="text-success">1</span>
                   </div>
                 </div>
                 <div className="mb-3">
                   <small className="text-muted">
-                    創建於 2025年1月1日
+                    創建於 2025年3月15日
                   </small>
                 </div>
               </Card.Body>
@@ -299,7 +299,7 @@ export default function PostDetailPage() {
             {/* 社群規則卡片 */}
             <Card className="border-0 shadow-sm mb-3">
               <Card.Header>
-                <h5 className="mb-0">社群規則</h5>
+                <h5 className="mb-0">論壇守則：</h5>
               </Card.Header>
               <Card.Body className="p-0">
                 {forumRules.map((rule, index) => (
