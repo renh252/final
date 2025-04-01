@@ -49,18 +49,35 @@
   color: #1A1A1B;
 }
 
-.shareButton {
-  padding: 0;
-  margin-left: auto;
+.shareButton,
+.reportButton {
+  padding: 0.25rem 0.5rem;
   color: #878A8C;
   transition: color 0.2s ease-in-out;
+  text-decoration: none;
 }
 
 .shareButton:hover {
   color: var(--primary-color);
+  text-decoration: none;
+}
+
+.reportButton:hover {
+  color: var(--danger, #dc3545);
+  text-decoration: none;
 }
 
 .contentSection {
   flex-grow: 1;
   padding: 1rem;
+  white-space: pre-wrap;
+}
+
+.postActions {
+  border-top: 1px solid #e9ecef;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }

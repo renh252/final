@@ -14,11 +14,12 @@ import { useParams } from 'next/navigation'
 import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-import { BsArrowUpCircle, BsArrowUpCircleFill, BsArrowDownCircle, BsArrowDownCircleFill, BsChat, BsShare } from 'react-icons/bs'
+import { BsArrowUpCircle, BsArrowUpCircleFill, BsArrowDownCircle, BsArrowDownCircleFill, BsChat, BsShare, BsFlag } from 'react-icons/bs'
 import { FaTwitter, FaFacebook, FaInstagram } from 'react-icons/fa'
 import Link from 'next/link'
 import styles from './PostDetail.module.css'
 import '../../styles/custom-theme.css'
+import ReportModal from '../../components/ReportModal'
 
 interface Post {
   id: number
@@ -100,8 +101,8 @@ export default function PostDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLiked, setIsLiked] = useState(false)
   const [isDisliked, setIsDisliked] = useState(false)
-  const [likesCount, setLikesCount] = useState(0)
-  const [dislikesCount, setDislikesCount] = useState(0)
+  const [voteCount, setVoteCount] = useState(0)
+  const [showReportModal, setShowReportModal] = useState(false)
 
   useEffect(() => {
     const fetchPostDetail = async () => {
@@ -110,8 +111,8 @@ export default function PostDetailPage() {
         if (response.data.status === 'success') {
           setPost(response.data.data.post)
           setComments(response.data.data.post.forum_comments || [])
-          setLikesCount(response.data.data.post.like_count)
-          setDislikesCount(response.data.data.post.dislike_count || 0)
+          // 計算總和：讚同數減去不讚同數
+          setVoteCount(response.data.data.post.like_count - (response.data.data.post.dislike_count || 0))
           setLoading(false)
         } else {
           setError(response.data.message || '無法載入文章')
@@ -131,7 +132,7 @@ export default function PostDetailPage() {
   const handleLike = async () => {
     if (isDisliked) {
       setIsDisliked(false)
-      setDislikesCount(prev => Math.max(0, prev - 1))
+      setVoteCount(prev => prev + 1) // 移除不讚同
     }
     try {
       const response = await axios.post(`/api/forum/posts/${params.id}`, {
@@ -139,8 +140,10 @@ export default function PostDetailPage() {
       })
       
       if (response.data.status === 'success') {
+        const wasLiked = isLiked
         setIsLiked(response.data.data.isLiked)
-        setLikesCount(response.data.data.likesCount)
+        // 根據之前的狀態調整計數
+        setVoteCount(prev => prev + (wasLiked ? -1 : 1))
       }
     } catch (err) {
       console.error('Error liking post:', err)
@@ -150,7 +153,7 @@ export default function PostDetailPage() {
   const handleDislike = async () => {
     if (isLiked) {
       setIsLiked(false)
-      setLikesCount(prev => Math.max(0, prev - 1))
+      setVoteCount(prev => prev - 1) // 移除讚同
     }
     try {
       const response = await axios.post(`/api/forum/posts/${params.id}`, {
@@ -158,8 +161,10 @@ export default function PostDetailPage() {
       })
       
       if (response.data.status === 'success') {
+        const wasDisliked = isDisliked
         setIsDisliked(response.data.data.isDisliked)
-        setDislikesCount(response.data.data.dislikesCount)
+        // 根據之前的狀態調整計數
+        setVoteCount(prev => prev - (wasDisliked ? -1 : 1))
       }
     } catch (err) {
       console.error('Error disliking post:', err)
@@ -224,8 +229,12 @@ export default function PostDetailPage() {
                     >
                       {isLiked ? <BsArrowUpCircleFill size={24} /> : <BsArrowUpCircle size={24} />}
                     </button>
-                    <div className={`${styles.voteCount} ${isLiked ? styles.liked : styles.default}`}>
-                      {likesCount}
+                    <div className={`${styles.voteCount} ${
+                      isLiked ? styles.liked : 
+                      isDisliked ? styles.disliked : 
+                      styles.default
+                    }`}>
+                      {voteCount}
                     </div>
                     <button 
                       onClick={handleDislike}
@@ -235,9 +244,6 @@ export default function PostDetailPage() {
                     >
                       {isDisliked ? <BsArrowDownCircleFill size={24} /> : <BsArrowDownCircle size={24} />}
                     </button>
-                    <div className={`${styles.voteCount} ${isDisliked ? styles.disliked : styles.default}`}>
-                      {dislikesCount}
-                    </div>
                   </div>
 
                   {/* Content Section */}
@@ -252,21 +258,43 @@ export default function PostDetailPage() {
                         <span className="ms-1">
                           {formatDistanceToNow(new Date(post?.created_at || ''), { locale: zhTW, addSuffix: true })}
                         </span>
-                        <button 
-                          onClick={handleShare}
-                          className={`btn btn-link ${styles.shareButton}`}
-                          title="分享文章"
-                          aria-label="分享這篇文章"
-                        >
-                          <BsShare size={18} />
-                        </button>
                       </div>
                       <h2 className="h4 mb-3">{post?.title}</h2>
                     </div>
 
                     {/* Post Content */}
-                    <div className="post-content mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+                    <div className="mb-4">
                       {post?.content}
+                    </div>
+
+                    {/* Post Actions */}
+                    <div className="d-flex align-items-center justify-content-between mt-4 pt-3 border-top">
+                      <div className="d-flex align-items-center gap-3">
+                        <button
+                          onClick={() => setShowReportModal(true)}
+                          className={`btn btn-link ${styles.reportButton}`}
+                          title="檢舉文章"
+                          aria-label="檢舉這篇文章"
+                        >
+                          <BsFlag size={18} /> <span className="ms-1">檢舉</span>
+                        </button>
+                        <button
+                          onClick={handleShare}
+                          className={`btn btn-link ${styles.shareButton}`}
+                          title="分享文章"
+                          aria-label="分享這篇文章"
+                        >
+                          <BsShare size={18} /> <span className="ms-1">分享</span>
+                        </button>
+                      </div>
+                      <div className="d-flex align-items-center gap-2">
+                        <Link
+                          href={`/forum/posts/${post?.id}#comments`}
+                          className="text-decoration-none text-muted"
+                        >
+                          <BsChat size={18} /> <span className="ms-1">{comments.length} 則留言</span>
+                        </Link>
+                      </div>
                     </div>
 
                     {/* Tags */}
@@ -286,10 +314,6 @@ export default function PostDetailPage() {
                     {/* Post Footer */}
                     <div className="d-flex align-items-center text-muted small">
                       <div className="me-3">
-                        <BsChat className="me-1" />
-                        {comments.length} 則評論
-                      </div>
-                      <div>
                         {post?.view_count} 次瀏覽
                       </div>
                     </div>
@@ -417,6 +441,13 @@ export default function PostDetailPage() {
           </Col>
         </Row>
       </Container>
+      {/* Report Modal */}
+      <ReportModal
+        show={showReportModal}
+        onHide={() => setShowReportModal(false)}
+        contentType="post"
+        contentId={Number(params.id)}
+      />
     </div>
   )
 }
