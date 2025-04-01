@@ -62,9 +62,10 @@ export const AuthProvider = ({ children }) => {
       }
 
       const userData = await response.json();
+      console.log('AuthContext googleLogin 接收到的 userData:', userData);
       
       // 使用與普通登入相同的邏輯處理登入成功
-      localStorage.setItem('token', userData.token);
+      localStorage.setItem('token', userData.authToken);
       localStorage.setItem('user', JSON.stringify(userData.user));
       setUser(userData.user);
       setToken(userData.token);

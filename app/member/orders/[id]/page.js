@@ -294,33 +294,10 @@ export default function OrderIdPage(props) {
                     </div>
                     <div>{product.variant_name}</div>
                     <div>
-                      {product?.promotion ? (
-                        <p>
-                          $
-                          {Math.ceil(
-                            (product.price *
-                              (100 - product.promotion.discount_percentage)) /
-                              100
-                          ) * product.quantity}
-                        </p>
-                      ) : (
-                        <p>${product.price * product.quantity}</p>
-                      )}
+                      ${product.price}
                     </div>
                     <div>{product.quantity}</div>
-                    <div>
-                      {product?.promotion ? (
-                        <p>
-                          $
-                          {Math.ceil(
-                            (product.price *
-                              (100 - product.promotion.discount_percentage)) /
-                              100
-                          ) * product.quantity}
-                        </p>
-                      ) : (
-                        <p>${product.price * product.quantity}</p>
-                      )}
+                    <div>${product.price * product.quantity}
                     </div>
                   </div>
                   {/* 評價區塊 */}
@@ -580,18 +557,8 @@ export default function OrderIdPage(props) {
                   </p>
                   <p>
                     <strong>單價：</strong>
-                    {product?.promotion ? (
-                      <>
-                        $
-                        {Math.ceil(
-                          (product.price *
-                            (100 - product.promotion.discount_percentage)) /
-                            100
-                        ) * product.quantity}
-                      </>
-                    ) : (
-                      `$${product.price * product.quantity}`
-                    )}
+                    ${product.price}
+                    
                   </p>
                   <p>
                     <strong>數量：</strong>
@@ -599,18 +566,7 @@ export default function OrderIdPage(props) {
                   </p>
                   <p>
                     <strong>價格：</strong>
-                    {product?.promotion ? (
-                      <>
-                        $
-                        {Math.ceil(
-                          (product.price *
-                            (100 - product.promotion.discount_percentage)) /
-                            100
-                        ) * product.quantity}
-                      </>
-                    ) : (
-                      `$${product.price * product.quantity}`
-                    )}
+                    ${product.price*product.quantity}
                   </p>
                 </div>
               </div>
