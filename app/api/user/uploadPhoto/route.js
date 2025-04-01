@@ -61,7 +61,23 @@ export async function POST(request) {
 async function getUserIdFromToken(token) {
   try {
     const decodedToken = jwt.verify(token, JWT_SECRET);
-    return decodedToken.userId;
+    // 優先檢查 userId (一般登入)
+    if (decodedToken.userId) {
+      return decodedToken.userId;
+    }
+    // 如果沒有 userId，則檢查 uid (Google 登入)
+    if (decodedToken.uid) {
+      // 根據 firebase_uid 從資料庫中查詢對應的 user_id
+      const [rows] = await database.execute(
+        'SELECT user_id FROM users WHERE firebase_uid = ?',
+        [decodedToken.uid]
+      );
+      if (rows.length > 0) {
+        return rows[0].user_id;
+      }
+    }
+    console.error('JWT Payload 中沒有找到 userId 或 uid');
+    return null;
   } catch (error) {
     console.error('驗證 JWT 失敗:', error);
     return null;
