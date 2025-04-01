@@ -144,7 +144,7 @@ export default function MemberPage() {
   return (
     <>
       <div className={styles.formContainer}>
-        <h2 className={styles.sectionTitle}>快速登入</h2>
+        <h2 className={styles.sectionTitle}>快速註冊及登入</h2>
         <div className={styles.form}>
           <div className={styles.GFbutton}>
             <button
@@ -159,7 +159,7 @@ export default function MemberPage() {
                 width={30}
                 height={30}
               />
-              以 Google 帳號登入
+              以 Google 帳號註冊及登入
             </button>
             {signInError && <p className={styles.error}>{signInError}</p>}
           </div>
