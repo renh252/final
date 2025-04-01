@@ -123,6 +123,18 @@
   font-weight: 600;
 }
 
+.typeBadge svg {
+  display: block;
+  min-width: 20px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.typeIcon {
+  display: flex;
+  align-items: center;
+  margin-right: 5px;
+}
+
 .breedLocation {
   margin-bottom: 1.5rem;
 }

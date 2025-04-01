@@ -121,6 +121,44 @@ const StatusBadge = ({ status }: { status: AppointmentStatus }) => {
   return <Badge bg={config.variant}>{config.label}</Badge>
 }
 
+// 格式化日期函數 (ISO 格式轉換為 YYYY-MM-DD)
+const formatDate = (dateString: string) => {
+  if (!dateString) return '未知日期'
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// 格式化時間函數 (ISO 格式或時間字串轉換為 HH:MM)
+const formatTime = (timeString: string) => {
+  if (!timeString) return '未知時間'
+
+  // 檢查是否為完整的 ISO 時間字串
+  if (timeString.includes('T') || timeString.includes('-')) {
+    const date = new Date(timeString)
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${hours}:${minutes}`
+  }
+
+  // 如果只是時間字串，如 "14:30:00"
+  if (timeString.includes(':')) {
+    const timeParts = timeString.split(':')
+    return `${timeParts[0]}:${timeParts[1]}`
+  }
+
+  return timeString
+}
+
+// 用於在預約詳情彈窗中顯示的格式化日期時間
+const formatDateTime = (dateString: string, timeString: string) => {
+  const formattedDate = formatDate(dateString)
+  const formattedTime = formatTime(timeString)
+  return `${formattedDate} ${formattedTime}`
+}
+
 // 預約詳情彈出視窗組件
 const AppointmentDetailModal = ({
   appointment,
@@ -176,7 +214,7 @@ const AppointmentDetailModal = ({
               </div>
               <div>
                 <strong>預約日期：</strong>
-                {appointment.appointment_date}
+                {formatDate(appointment.appointment_date)}
               </div>
             </div>
 
@@ -186,7 +224,7 @@ const AppointmentDetailModal = ({
               </div>
               <div>
                 <strong>預約時間：</strong>
-                {appointment.appointment_time}
+                {formatTime(appointment.appointment_time)}
               </div>
             </div>
 
@@ -457,11 +495,11 @@ export default function AppointmentsPage() {
                   <div className={styles.appointmentDetails}>
                     <p>
                       <FaCalendarAlt className="me-2" />
-                      預約日期：{appointment.appointment_date}
+                      預約日期：{formatDate(appointment.appointment_date)}
                     </p>
                     <p>
                       <FaClock className="me-2" />
-                      預約時間：{appointment.appointment_time}
+                      預約時間：{formatTime(appointment.appointment_time)}
                     </p>
                     <p>
                       <FaMapMarkerAlt className="me-2" />
