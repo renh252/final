@@ -41,7 +41,7 @@
   align-items: flex-start;
   width: 100%;
   min-width: 240px;
-  min-height: 1681px;
+  min-height: 900px;
   padding-bottom: 50px;
   position: relative;
   overflow: hidden;
@@ -170,6 +170,96 @@
 
 .error {
   color: red; 
+}
+
+/* 彈窗視窗樣式 */
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup {
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  text-align: left;
+  max-height: 90vh; /* 調整最大高度為視窗高度的 90% */
+  overflow-y: auto;
+  width: 90%; /* 在較小螢幕上佔據更多寬度 */
+  max-width: 600px; /* 設定最大寬度 */
+}
+
+.popup h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.popup pre {
+  white-space: pre-wrap;
+  margin-bottom: 15px;
+}
+
+.popup button {
+  margin-top: 10px;
+  padding: 8px 15px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background-color: #eee;
+}
+
+.popup button:hover {
+  background-color: #ddd;
+}
+
+/* 針對較小螢幕的樣式調整 (例如平板電腦) */
+@media (max-width: 768px) {
+  .popup {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .popup h3 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+  }
+
+  .popup button {
+    font-size: 0.9em;
+    padding: 6px 12px;
+  }
+}
+
+/* 針對更小螢幕的樣式調整 (例如手機) */
+@media (max-width: 480px) {
+  .popup {
+    width: 98%;
+    padding: 10px;
+  }
+
+  .popup h3 {
+    font-size: 1em;
+    margin-bottom: 8px;
+  }
+
+  .popup pre {
+    font-size: 0.9em;
+  }
+
+  .popup button {
+    font-size: 0.8em;
+    margin-top: 8px;
+  }
 }
 
 @media (width <= 991px) {
