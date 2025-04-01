@@ -25,12 +25,23 @@
   max-width: calc(50% - 30px); /* 確保每一行最多顯示兩個項目 */
   min-width: 120px; /* 設定最小寬度 */
   white-space: nowrap;
+  transition: all 0.3s ease;
+  border-radius: 16px;
+}
+
+.menu > button:hover,
+.menu > .collapsible:hover > button,
+.menu > select:hover {
+  background-color: #003153;
+  color: #fff;
+  transform: scale(1.03);
 }
 
 .menu > button.active,
 .menu select.active,
-.collapsible.active > button {
-  background-color: #c79650;
+.collapsible.active > button,
+.collapsibleContent button.active {
+  background-color: #cd2a74;
   color: #fff;
   border-radius: 16px;
 }
@@ -49,6 +60,11 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  transition: all 0.3s ease;
+  border-radius: 16px;
+  background: transparent;
+  color: #333;
+  margin: 5px 15px;
 }
 
 .collapsibleContent {
@@ -57,7 +73,7 @@
   top: 100%;
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease-out;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease;
   display: flex;
   flex-direction: column;
   background-color: white;
@@ -65,10 +81,12 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   z-index: 100;
   width: 200px;
+  opacity: 0;
 }
 
 .collapsibleContent.open {
   max-height: 500px; /* 根據實際內容調整 */
+  opacity: 1;
 }
 
 .collapsibleContent button {
@@ -77,30 +95,51 @@
   border: none;
   background: none;
   color: #6b4f37;
+  transition: all 0.3s ease;
+  border-radius: 10px;
 }
 
-.collapsibleContent button.active {
-  color: #c79650;
-  font-weight: bold;
+.collapsibleContent button:hover {
+  background-color: #003153;
+  color: white;
 }
 
 .menuTitle {
   width: 100%;
-  min-height: 45px; /* 預設高度與原來 padding 相同 */
+  min-height: 45px;
   padding-left: 15px;
-  font-size: 20px;
+  font-size: 18px;
   display: flex;
   align-items: center;
-  background: #f8f8f8; /* 類似 Navbar 背景 */
+  background: #f8f8f8;
   border-bottom: 1px solid #ddd;
-  transition: height 0.3s ease-in-out, font-size 0.3s ease-in-out;
-  margin-bottom: 20px;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+  color: #333;
+  text-decoration: none;
+}
+
+.menuTitle:hover {
+  background-color: #e8e8e8;
 }
 
 .menu .collapsible {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.menu > button a {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.collapsible > button span {
+  flex: 1;
+  text-align: left;
 }
 
 @media screen and (max-width: 768px) {
@@ -127,12 +166,41 @@
   .menu > button,
   .menu > .collapsible,
   .menu > select {
-    font-size: 20px;
-    padding: 15px 20px;
-    margin-left: 20px;
-    margin-right: 20px;
+    font-size: 18px;
+    padding: 12px 20px;
+    margin: 5px 15px;
     max-width: 100%;
-    width: calc(100% - 40px);
+    width: calc(100% - 30px);
+    border-radius: 8px;
+    color: #333;
+    background: transparent;
+    text-align: left;
+    transition: all 0.3s ease;
+  }
+
+  .menu > button.active,
+  .menu select.active,
+  .collapsible.active > button,
+  .collapsibleContent button.active {
+    border-radius: 8px;
+  }
+
+  .menu > button.active,
+  .menu select.active {
+    background-color: #cd2a74;
+    color: white;
+    font-weight: 500;
+  }
+
+  .collapsible.active > button {
+    background-color: #cd2a74;
+    color: white;
+  }
+
+  .collapsibleContent button.active {
+    background-color: #cd2a74;
+    color: white;
+    font-weight: normal;
   }
 
   .menu.open {
@@ -144,11 +212,35 @@
     width: 100%;
     box-shadow: none;
     border-radius: 0;
+    background-color: rgba(248, 248, 248, 0.5);
+    margin: 0 0 5px 0;
+    padding: 5px 0;
+    opacity: 1;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .collapsibleContent.open {
+    max-height: 300px;
   }
 
   .collapsibleContent button {
-    margin-left: 40px;
-    width: calc(100% - 40px);
+    margin: 2px 15px;
+    padding: 12px 20px;
+    width: calc(100% - 30px);
+    font-size: 16px;
+    border-radius: 8px;
+    color: #333;
+    background: transparent;
+    text-align: left;
+    transition: all 0.3s ease;
+  }
+
+  .collapsibleContent button:hover {
+    background-color: #003153;
+    color: white;
+    opacity: 0.9;
   }
 
   .menuToggle {
@@ -157,19 +249,27 @@
     top: 40%;
     left: 0px;
     flex-direction: column;
-    justify-content: start;
+    justify-content: center;
     align-items: center;
-    gap: 3px;
+    gap: 5px;
     border-radius: 0 15px 15px 0;
-    color: #6b4f37;
-    padding: 5px;
-    font-size: 18px;
+    padding: 10px 5px;
+    font-size: 22px;
     border: none;
-    box-shadow: 3px 4px 10px #7b6e62bb;
+    box-shadow: 3px 4px 10px rgba(0, 0, 0, 0.2);
     cursor: pointer;
-    transition: background 0.3s, transform 0.2s, left 0.3s ease-in-out;
+    transition: all 0.3s ease;
     user-select: none; /* 防止文本被選中 */
     z-index: 89;
+    background-color: #cd2a74;
+    color: white;
+    height: 120px;
+    width: 40px;
+  }
+
+  .menuToggle:hover {
+    background-color: #b8926a;
+    transform: translateX(3px);
   }
 
   .verticalText {
@@ -179,10 +279,65 @@
     display: inline-block;
     padding: 0;
     margin: 0;
+    font-size: 16px;
+    letter-spacing: 1px;
   }
 
   .menuToggle.open {
     left: 250px;
-    background: #e6d6b6;
+    background-color: #003153;
+  }
+
+  .menuToggle.open:hover {
+    background-color: #00213a;
+  }
+
+  .menuTitle {
+    min-height: 50px;
+    font-size: 17px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    padding-left: 20px;
+  }
+
+  .collapsible > button svg {
+    margin-left: 8px;
+    font-size: 22px;
+  }
+
+  .collapsible > button {
+    background: transparent;
+    color: #333;
+    margin: 5px 15px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    width: calc(100% - 30px);
+    font-size: 18px;
+    text-align: left;
+  }
+
+  .menu > button.active,
+  .menu select.active,
+  .collapsible.active > button,
+  .collapsibleContent button.active {
+    border-radius: 8px;
+  }
+
+  .menu > button.active,
+  .menu select.active {
+    background-color: #cda274;
+    color: white;
+    font-weight: 500;
+  }
+
+  .collapsible.active > button {
+    background-color: #cda274;
+    color: white;
+  }
+
+  .collapsibleContent button.active {
+    background-color: #cda274;
+    color: white;
+    font-weight: normal;
   }
 }
