@@ -78,13 +78,17 @@
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+  color: #ffffff;
 }
 
 .questionnaireText p {
   font-size: 1rem;
-  opacity: 0.9;
+  opacity: 0.95;
   margin: 0;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  font-weight: 400;
 }
 
 .questionnaireButton {
@@ -154,8 +158,8 @@
 }
 
 .viewModeSwitch :global(.form-check-input):checked {
-  background-color: rgba(199, 150, 80, 1);
-  border-color: rgba(179, 130, 60, 1);
+  background-color: rgba(89, 62, 47, 0.9);
+  border-color: rgba(89, 62, 47, 0.5);
 }
 
 .viewModeSwitch :global(.form-check-label) {
@@ -240,7 +244,7 @@
 
 .categoryBtn {
   padding: 0.5rem 1.5rem;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(89, 62, 47, 0.3);
   border-radius: 20px;
   background: white;
   cursor: pointer;
@@ -248,12 +252,15 @@
 }
 
 .categoryBtn:hover {
-  background: #f5f5f5;
+  background: rgba(89, 62, 47, 0.1);
+  border-color: rgba(89, 62, 47, 0.5);
 }
 
 .categoryBtn.active {
-  background: #4a90e2;
-  border-color: #4a90e2;
+  background: rgba(89, 62, 47, 0.9);
+  border-color: rgba(89, 62, 47, 0.5);
+  color: white;
+  font-weight: 500;
 }
 
 .contain {
@@ -274,8 +281,9 @@
 .contain_title h2 {
   font-size: 30px;
   color: #fff;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
   margin: 0;
+  font-weight: 600;
 }
 
 .group {
@@ -481,12 +489,69 @@
 }
 
 .filterForm :global(select:focus) {
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+  border-color: rgba(89, 62, 47, 0.5);
+  box-shadow: 0 0 0 0.2rem rgba(89, 62, 47, 0.25);
 }
 
 .filterForm :global(.form-check-label) {
   font-weight: normal;
+}
+
+/* 列表檢視篩選區塊按鈕樣式統一 */
+.filterForm :global(.btn-primary),
+.filterForm :global(.btn-primary:active),
+.filterForm :global(.btn-primary:focus),
+.filterForm :global(.btn-primary.active) {
+  background-color: rgba(89, 62, 47, 0.9) !important;
+  border-color: rgba(89, 62, 47, 0.3) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 0.25rem rgba(89, 62, 47, 0.3) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.filterForm :global(.btn-outline-primary),
+.filterForm :global(.btn-outline-secondary) {
+  border-color: rgba(89, 62, 47, 0.3);
+  color: rgb(202, 202, 202);
+}
+
+.filterForm
+  :global(
+    .btn-outline-primary:not(.locationButton):not(.clearFiltersButton):hover
+  ),
+.filterForm
+  :global(
+    .btn-outline-secondary:not(.locationButton):not(.clearFiltersButton):hover
+  ) {
+  background-color: rgb(89, 62, 47);
+  border-color: rgba(0, 0, 0, 0);
+  color: rgb(202, 202, 202) !important;
+  transform: translateY(-2px);
+  box-shadow: rgba(89, 62, 47, 0.3) 0px 4px 8px;
+}
+
+.filterForm :global(.btn-outline-primary:active),
+.filterForm :global(.btn-outline-primary:focus),
+.filterForm :global(.btn-outline-primary.active),
+.filterForm :global(.btn-outline-secondary:active),
+.filterForm :global(.btn-outline-secondary:focus),
+.filterForm :global(.btn-outline-secondary.active) {
+  background-color: rgba(89, 62, 47, 0.9) !important;
+  border-color: rgba(89, 62, 47, 0.3) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.filterForm :global(.form-check-input:checked) {
+  background-color: rgba(89, 62, 47, 0.9) !important;
+  border-color: rgba(89, 62, 47, 0.5) !important;
+}
+
+.filterForm :global(.form-check-input:focus) {
+  border-color: rgba(89, 62, 47, 0.5) !important;
+  box-shadow: 0 0 0 0.25rem rgba(89, 62, 47, 0.25) !important;
 }
 
 /* 地圖容器樣式 */
@@ -537,17 +602,21 @@
 .detailLink {
   display: inline-block;
   padding: 8px 16px;
-  background-color: #4a90e2;
+  background-color: rgba(89, 62, 47, 0.9);
   color: white;
   text-decoration: none;
   border-radius: 4px;
   margin-top: 8px;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .detailLink:hover {
-  background-color: #357abd;
+  background-color: rgb(89, 62, 47);
   color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(89, 62, 47, 0.3);
 }
 
 /* 確保地圖控制項在正確的位置 */
@@ -1172,37 +1241,98 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
 
 .drawerSection :global(.btn-outline-primary) {
   border-color: rgba(89, 62, 47, 0.3);
-  color: rgba(89, 62, 47, 0.8);
+  color: rgb(202, 202, 202);
 }
 
 .drawerSection :global(.btn-outline-primary:hover) {
-  background-color: rgba(89, 62, 47, 0.05);
-  border-color: rgba(89, 62, 47, 0.5);
-  color: rgba(89, 62, 47, 1);
+  background-color: rgb(89, 62, 47);
+  border-color: rgba(0, 0, 0, 0);
+  transform: translateY(-2px);
+  box-shadow: rgba(89, 62, 47, 0.3) 0px 4px 8px;
+  color: rgb(202, 202, 202) !important;
+}
+
+/* 確保按鈕在active和focus狀態使用深棕色 */
+.drawerSection :global(.btn-primary),
+.drawerSection :global(.btn-primary:active),
+.drawerSection :global(.btn-primary:focus),
+.drawerSection :global(.btn-primary.active) {
+  background-color: rgba(89, 62, 47, 0.9) !important;
+  border-color: rgba(89, 62, 47, 0.3) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 0.25rem rgba(89, 62, 47, 0.3) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.drawerSection :global(.btn-outline-primary:active),
+.drawerSection :global(.btn-outline-primary:focus),
+.drawerSection :global(.btn-outline-primary.active),
+.drawerSection :global(.btn-outline-secondary:active),
+.drawerSection :global(.btn-outline-secondary:focus),
+.drawerSection :global(.btn-outline-secondary.active) {
+  background-color: rgba(89, 62, 47, 0.9) !important;
+  border-color: rgba(89, 62, 47, 0.3) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.drawerSection :global(.btn-outline-secondary:active),
+.drawerSection :global(.btn-outline-secondary:focus),
+.drawerSection :global(.btn-outline-secondary.active) {
+  background-color: rgba(89, 62, 47, 0.9) !important;
+  border-color: rgba(89, 62, 47, 0.3) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* 為表單元素添加深棕色focus狀態 */
+.drawerSection :global(.form-control:focus),
+.drawerSection :global(.form-select:focus),
+.drawerSection :global(.form-check-input:focus) {
+  border-color: rgba(89, 62, 47, 0.5) !important;
+  box-shadow: 0 0 0 0.25rem rgba(89, 62, 47, 0.25) !important;
+}
+
+.drawerSection :global(.form-check-input:checked) {
+  background-color: rgba(89, 62, 47, 0.9) !important;
+  border-color: rgba(89, 62, 47, 0.5) !important;
 }
 
 /* 位置按鈕樣式 */
 .locationButton {
   width: 100%;
   padding: 0.75rem 1rem;
-  background-color: rgba(199, 150, 80, 0.1);
-  border: 1px solid rgba(199, 150, 80, 0.3);
+  background-color: rgba(89, 62, 47, 0.9);
+  border: 1px solid rgba(89, 62, 47, 0.3);
   border-radius: 8px;
-  color: rgba(89, 62, 47, 0.9);
-  font-weight: 500;
+  color: rgb(202, 202, 202);
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-bottom: 0.75rem;
-}
-
-.locationButton:hover {
-  background-color: rgba(199, 150, 80, 0.2);
-  border-color: rgba(199, 150, 80, 0.5);
+  letter-spacing: 0.5px;
 }
 
 .locationButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.filterForm .locationButton,
+.filterForm :global(.btn-outline-primary.locationButton) {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: rgba(89, 62, 47, 0.9);
+  border: 1px solid rgba(89, 62, 47, 0.3);
+  border-radius: 8px;
+  color: rgb(202, 202, 202);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
 }
 
 .locationError {
@@ -1258,6 +1388,84 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   width: 100%;
   margin: 0;
   box-sizing: border-box;
+  appearance: none;
+  background: transparent;
+}
+
+/* 自定義滑塊軌道 - Webkit 瀏覽器 (Chrome, Safari) */
+.radiusSelector :global(input[type='range']::-webkit-slider-runnable-track) {
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(to right, rgb(89, 62, 47), rgb(140, 96, 74));
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+/* 自定義滑塊按鈕 - Webkit 瀏覽器 */
+.radiusSelector :global(input[type='range']::-webkit-slider-thumb) {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: rgb(89, 62, 47);
+  border: 2px solid rgb(255, 255, 255);
+  border-radius: 50%;
+  margin-top: -6px; /* 讓滑塊居中於軌道 */
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Firefox 自定義滑塊軌道 */
+.radiusSelector :global(input[type='range']::-moz-range-track) {
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(to right, rgb(89, 62, 47), rgb(140, 96, 74));
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Firefox 自定義滑塊按鈕 */
+.radiusSelector :global(input[type='range']::-moz-range-thumb) {
+  width: 16px;
+  height: 16px;
+  background: rgb(89, 62, 47);
+  border: 2px solid rgb(255, 255, 255);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* IE/Edge 自定義滑塊軌道 */
+.radiusSelector :global(input[type='range']::-ms-track) {
+  width: 100%;
+  height: 8px;
+  background: transparent;
+  border: none;
+  color: transparent;
+}
+
+/* IE/Edge 自定義填充部分 */
+.radiusSelector :global(input[type='range']::-ms-fill-lower) {
+  background: rgb(89, 62, 47);
+  border-radius: 4px;
+}
+
+.radiusSelector :global(input[type='range']::-ms-fill-upper) {
+  background: rgb(140, 96, 74);
+  border-radius: 4px;
+}
+
+/* IE/Edge 自定義滑塊按鈕 */
+.radiusSelector :global(input[type='range']::-ms-thumb) {
+  width: 16px;
+  height: 16px;
+  background: rgb(89, 62, 47);
+  border: 2px solid rgb(255, 255, 255);
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* 防止範圍滑塊內容高度變化導致的畫面抖動 */
@@ -1300,10 +1508,11 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
 }
 
 .storeButton:hover {
-  background-color: rgba(199, 150, 80, 0.05);
-  border-color: rgba(199, 150, 80, 0.3);
+  background-color: rgb(89, 62, 47);
+  border-color: rgba(0, 0, 0, 0);
   transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: rgba(89, 62, 47, 0.3) 0px 4px 8px;
+  color: rgb(202, 202, 202) !important;
 }
 
 .storeName {
@@ -1642,18 +1851,20 @@ body:has(.leftSideDrawer:not(.open)) .drawerToggleContainer {
   padding: 15px 40px;
   border-radius: 30px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 200px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(89, 62, 47, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5px;
 }
 
 .loadMoreButton:hover {
-  background-color: rgba(89, 62, 47, 0.9);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(89, 62, 47, 0.3);
+  background-color: rgb(89, 62, 47);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(89, 62, 47, 0.4);
 }
 
 .loadMoreButton:disabled {
@@ -1673,7 +1884,7 @@ body:has(.leftSideDrawer:not(.open)) .drawerToggleContainer {
   width: 40px; /* 保持寬度 */
   height: 120px; /* 與 menuRWD 一致的高度 */
   border-radius: 0 15px 15px 0; /* 與 menuRWD 一致的圓角 */
-  background-color: #cda274; /* 與 menuRWD 一致的背景色 */
+  background-color: rgba(89, 62, 47, 0.9); /* 修改為深棕色 */
   border: none;
   box-shadow: 3px 4px 10px rgba(0, 0, 0, 0.2); /* 與 menuRWD 一致的陰影 */
   display: flex;
@@ -1685,9 +1896,50 @@ body:has(.leftSideDrawer:not(.open)) .drawerToggleContainer {
   color: white; /* 白色文字 */
   transition: all 0.3s ease-in-out;
   font-size: 22px; /* 與 menuRWD 一致的字體大小 */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
 .drawerToggleFixed:hover {
-  background-color: #b8926a; /* 與 menuRWD 一致的懸停背景色 */
+  background-color: rgb(89, 62, 47); /* 深棕色 */
   color: #fff;
+  transform: translateX(-2px);
+  box-shadow: 4px 4px 12px rgba(89, 62, 47, 0.4);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.drawerToggleFixed p {
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.clearFiltersButton {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: rgba(89, 62, 47, 0.9);
+  border: 1px solid rgba(89, 62, 47, 0.3);
+  border-radius: 8px;
+  color: rgb(202, 202, 202);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+}
+
+/* 移除個別按鈕的hover樣式，使用統一的hover樣式 */
+.locationButton:hover,
+.clearFiltersButton:hover,
+.filterForm .locationButton:hover,
+.filterForm :global(.btn-outline-primary.locationButton:hover),
+:global(.btn-outline-primary.locationButton:hover),
+:global(.btn-outline-primary.clearFiltersButton:hover) {
+  background-color: rgb(89, 62, 47);
+  border-color: rgba(0, 0, 0, 0);
+  transform: translateY(-2px);
+  box-shadow: rgba(89, 62, 47, 0.3) 0px 4px 8px;
+  color: rgb(202, 202, 202) !important;
 }
