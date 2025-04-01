@@ -12,7 +12,6 @@ import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import { FaRegHeart, FaHeart,FaLongArrowAltRight } from 'react-icons/fa'
 // components
 import Carousel from '@/app/shop/_components/carousel'
-import { IconLine } from '@/app/shop/_components/icon_line'
 // auth
 import { useAuth } from '@/app/context/AuthContext'
 
@@ -178,10 +177,7 @@ export default function PetsPage() {
           ?
           <div className={styles.contain}>
             <div className={styles.contain_title}>
-              <IconLine
-                key={parent.category_id}
-                title={'促銷活動區'}
-              />
+              促銷活動區
             </div>
             <div className={styles.contain_body}>
               {promotions?.map((promotion) => {
@@ -224,6 +220,7 @@ export default function PetsPage() {
                                 href={`/shop/${product.product_id}`}
                               >
                                 <Card
+                                  className={styles.card}
                                   image={
                                     product.image_url ||
                                     '/images/default_no_pet.jpg'
@@ -290,10 +287,7 @@ export default function PetsPage() {
           {parentsWithProducts?.map((parent) => (
             <div key={parent.category_id} className={styles.contain}>
               <div className={styles.contain_title}>
-                <IconLine
-                  key={parent.category_id}
-                  title={parent.category_name}
-                />
+                parent.category_name
               </div>
               <div className={styles.contain_body}>
                 {/* 子分類區 */}
@@ -333,6 +327,7 @@ export default function PetsPage() {
                                 href={`/shop/${product.product_id}`}
                               >
                                 <Card
+                                  className={styles.card}
                                   key={product.product_id}
                                   image={
                                     product.image_url ||

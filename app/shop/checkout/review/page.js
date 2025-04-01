@@ -159,7 +159,8 @@ export default function ReviewPage() {
               { label: '資料確認', href: '/shop/checkout/review' },
             ]}
           />
-          <div className={styles.main}>
+          {/* 電腦 */}
+          <div className={styles._main}>
             {/* review */}
             <div className={styles.reviewContainer}>
               <div className={styles.containTitle}>
@@ -337,6 +338,89 @@ export default function ReviewPage() {
               </button>
             </div>
           </div>
+          {/* 手機 */}
+          <div className={styles.checkoutMobileContainer}>
+            {/* 資訊欄 */}
+            <div className={styles.reviewContainer}>
+              <h1 className={styles.title}>資訊欄</h1>
+              
+              {/* 付款資訊 */}
+              <div className={styles.infoGroup}>
+                <div className={styles.infoHeader}><MdOutlinePets /><h2>付款資訊</h2></div>
+                <div className={styles.infoBody}>
+                  <p><strong>付款方式：</strong>{checkoutData?.payment_method}</p>
+                  <p><strong>金額：</strong>{productPrice.totalAmount}</p>
+                  <p><strong>發票：</strong>{checkoutData?.invoice_method} {checkoutData?.taxID_number} {checkoutData?.mobile_barcode}</p>
+                </div>
+              </div>
+
+              {/* 配送資訊 */}
+              <div className={styles.infoGroup}>
+                <div className={styles.infoHeader}><MdOutlinePets /><h2>配送資訊</h2></div>
+                <div className={styles.infoBody}>
+                  <p><strong>配送編號：</strong>{checkoutData?.payment_method}</p>
+                  <p><strong>配送方式：</strong>{checkoutData?.delivery}</p>
+                  <p><strong>配送地址：</strong>{checkoutData?.storeName || `${checkoutData?.address.city}${checkoutData?.address?.town}${checkoutData?.address?.else}`}</p>
+                </div>
+              </div>
+
+              {/* 收件人資訊 */}
+              <div className={styles.infoGroup}>
+                <div className={styles.infoHeader}><MdOutlinePets /><h2>收件人資訊</h2></div>
+                <div className={styles.infoBody}>
+                  <p><strong>姓名：</strong>{checkoutData?.recipient_name}</p>
+                  <p><strong>電話：</strong>{checkoutData?.recipient_phone}</p>
+                  <p><strong>電子信箱：</strong>{checkoutData?.recipient_email}</p>
+                </div>
+              </div>
+
+              {/* 備註 */}
+              <div className={styles.infoGroup}>
+                <div className={styles.infoHeader}><MdOutlinePets /><h2>備註</h2></div>
+                <p className={styles.remark}>{checkoutData?.remark}</p>
+              </div>
+            </div>
+
+            {/* 商品資訊 */}
+            <div className={styles.productContainer}>
+              <h1 className={styles.title}>購物明細</h1>
+              <div className={styles.productList}>
+                {cart?.map((product, index) => (
+                  <div key={index} className={styles.productItem}>
+                    <Image
+                      src={product.image_url || '/images/default_no_pet.jpg'}
+                      alt={product.product_name}
+                      width={80}
+                      height={80}
+                    />
+                    <div className={styles.productInfo}>
+                      <p className={styles.productName}>{product.product_name}</p>
+                      <p><strong>款式：</strong>{product.variant_name}</p>
+                      <p><strong>單價：</strong>${product.price}</p>
+                      <p><strong>數量：</strong>{product.quantity}</p>
+                      <p><strong>價格：</strong>${product.price * product.quantity}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 總計 */}
+            <div className={styles.summaryContainer}>
+              <div className={styles.summaryRow}><span>小計：</span><span>$ {productPrice.totalOriginalPrice}</span></div>
+              <div className={styles.summaryRow}><span>優惠：</span><span>$ {productPrice.totalDiscount}</span></div>
+              <div className={styles.summaryRow}><span>運費：</span><span>$ {productPrice.shippingFee}</span></div>
+              <hr />
+              <div className={styles.summaryTotal}><span>合計：</span><span>${productPrice.totalAmount}</span></div>
+            </div>
+
+            {/* 按鈕 */}
+            <div className={styles.buttonGroup}>
+              <button onClick={handleSubmitOrder}>前往付款</button>
+              <button onClick={handleModifyOrder}>修改訂單</button>
+            </div>
+          </div>
+
           {/* main end */}
         </>
       ) : (

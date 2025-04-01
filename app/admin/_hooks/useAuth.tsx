@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import LoadingSpinner from '../_components/LoadingSpinner'
-import Cookies from 'js-cookie'
 import { useAdmin } from '../AdminContext'
 
 // 授權介面
@@ -34,7 +33,7 @@ export function useAuth(requiredPerm?: string) {
         }
 
         // 確保 privileges 有值
-        const privileges = admin.privileges || ''
+        const privileges = admin.manager_privileges || ''
         const isSuperAdmin = privileges === '111'
 
         // 設置授權資訊

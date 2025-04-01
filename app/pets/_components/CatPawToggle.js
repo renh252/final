@@ -42,7 +42,9 @@ const CatPawToggle = ({
   useEffect(() => {
     setCurrentValue(isEnabled)
     // 初始化時設定貓掌方向
-    setSvgClass(isEnabled ? [] : [styles.mirror])
+    // 當開關為關閉狀態(0)時，手臂應該從左側伸出
+    // 當開關為開啟狀態(1)時，手臂應該從右側伸出
+    setSvgClass(isEnabled ? [styles.mirror] : [])
   }, [isEnabled])
 
   // 動畫參數設定
@@ -174,55 +176,76 @@ const CatPawToggle = ({
 
     const options = keyframeOptionMap[direction][keyframeId]
 
-    // 設置動畫中的狀態
-    if (keyframeId === 'cat-arm-2') {
-      // 使用更準確的選擇器找到所有相關元素
-      const catElbow = document.querySelector(`.${uid}-cat-elbow`)
-      const catElements = document.querySelectorAll(`.${uid}-cat-arm path`)
+    // 設置動畫中的狀態和適當的z-index
+    const svgArmElement = document.querySelector(`.${uid}-cat-arm-svg`)
+    const svgElbowElement = document.querySelector(`.${uid}-cat-elbow-svg`)
+    const catElbow = document.querySelector(`.${uid}-cat-elbow`)
+    const armElement = document.querySelector(`.${uid}-cat-arm-svg #arm`)
+    const padElements = document.querySelectorAll(`.${uid}-cat-elbow-svg path`)
 
-      if (direction === 'in') {
-        if (catElbow) catElbow.classList.add('animating')
-        catElements.forEach((el) => {
-          if (
-            el.classList.contains('digital-pad-1') ||
-            el.classList.contains('digital-pad-2') ||
-            el.classList.contains('digital-pad-3') ||
-            el.classList.contains('digital-pad-4') ||
-            el.classList.contains('metacarpal-pad')
-          ) {
-            el.classList.add('animating')
-          }
-        })
-      } else if (direction === 'out') {
-        if (catElbow) catElbow.classList.remove('animating')
-        catElements.forEach((el) => {
-          el.classList.remove('animating')
-        })
+    // 根據特定階段處理z-index
+    // 動態設置z-index，這是使貓手動畫效果自然的關鍵
+    if (direction === 'in' && keyframeId === 'cat-arm-2') {
+      // 當手臂伸出時，提高肘部的z-index使其顯示在toggle上方
+      if (svgElbowElement) {
+        svgElbowElement.style.zIndex = '30'
+      }
+      if (catElbow) {
+        catElbow.classList.add(styles.animating)
+      }
+      if (svgArmElement) {
+        svgArmElement.style.zIndex = '1' // 手臂仍然在toggle下方
+      }
+    } else if (direction === 'out' && keyframeId === 'cat-arm-2') {
+      // 當手臂收回時，將z-index恢復
+      if (svgElbowElement) {
+        svgElbowElement.style.zIndex = '0'
+      }
+    } else if (direction === 'out' && keyframeId === 'cat-arm-1') {
+      // 動畫結束，全部恢復原狀
+      if (svgElbowElement) {
+        svgElbowElement.style.zIndex = '0'
+      }
+      if (catElbow) {
+        catElbow.classList.remove(styles.animating)
+      }
+      if (svgArmElement) {
+        svgArmElement.style.zIndex = '1'
       }
     }
 
-    // 為每個物件設定動畫
+    // 設置動畫任務
     const tasks = []
 
-    // 手臂和手肘的動畫
-    ;['arm', 'elbow'].forEach((objectId) => {
-      const d = pathData[keyframeId]?.[objectId]
-      if (d) {
-        tasks.push(
-          anime({
-            targets: `.${uid}-cat-arm .${objectId}`,
-            d,
-            ...options,
-          }).finished
-        )
-      }
-    })
+    // 手臂動畫
+    const armPath = pathData[keyframeId]?.arm
+    if (armPath) {
+      tasks.push(
+        anime({
+          targets: `.${uid}-cat-arm-svg #arm`,
+          d: armPath,
+          ...options,
+        }).finished
+      )
+    }
 
-    // 肉球的動畫
+    // 手肘動畫
+    const elbowPath = pathData[keyframeId]?.elbow
+    if (elbowPath) {
+      tasks.push(
+        anime({
+          targets: `.${uid}-cat-elbow-svg #elbow`,
+          d: elbowPath,
+          ...options,
+        }).finished
+      )
+    }
+
+    // 肉球動畫
     Object.entries(pathData[keyframeId]?.pads || {}).forEach(([padId, d]) => {
       tasks.push(
         anime({
-          targets: `.${uid}-cat-arm .${padId}`,
+          targets: `.${uid}-cat-elbow-svg #${padId}`,
           d,
           ...options,
         }).finished
@@ -244,8 +267,34 @@ const CatPawToggle = ({
     return colors[Math.floor(Math.random() * colors.length)]
   }
 
-  // 開始貓手動畫
-  const start = async () => {
+  // 延遲函數
+  const promiseTimeout = (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  // 處理點擊事件
+  const handleClick = async () => {
+    // 如果正在播放動畫，直接返回
+    if (isPlaying) return
+
+    // 切換開關狀態
+    const newValue = !currentValue
+    setCurrentValue(newValue)
+
+    // 通知外部狀態變更
+    if (typeof onToggle === 'function') {
+      onToggle(newValue)
+    }
+
+    // 等待開關動畫完成 (600ms為.thumb的transition時間)
+    await promiseTimeout(600)
+
+    // 觸發貓手動畫
+    startCatAnimation()
+  }
+
+  // 貓手動畫 - 從伸出到收回的完整序列
+  const startCatAnimation = async () => {
     if (dynamicColor) {
       setFurColorDynamic(randomFurColor())
       setPadColorDynamic(randomPadColor())
@@ -253,115 +302,123 @@ const CatPawToggle = ({
 
     setIsPlaying(true)
 
-    // 保留當前方向播放伸出動畫
+    // 設置貓手的方向
+    // 當toggle值為1時(開啟狀態)，手臂應該從右側伸出
+    // 當toggle值為0時(關閉狀態)，手臂應該從左側伸出
+    setSvgClass(currentValue ? [styles.mirror] : [])
+
+    // 伸展動畫序列
     for (const id of ['cat-arm-2', 'cat-arm-3', 'cat-arm-4']) {
       await toKeyframe('in', id)
     }
 
-    // 完成最後的動畫
+    // 當貓手伸到最遠處，將toggle狀態設為0（關閉狀態）
+    setCurrentValue(false)
     await toKeyframe('in', 'cat-arm-5')
 
-    // 切換狀態
-    const newValue = !currentValue
-    setCurrentValue(newValue)
-    if (typeof onToggle === 'function') {
-      onToggle(newValue)
-    }
-
-    // 播放收回動畫
+    // 收回動畫序列
     for (const id of ['cat-arm-4', 'cat-arm-3', 'cat-arm-2', 'cat-arm-1']) {
       await toKeyframe('out', id)
     }
 
-    // 動畫完全結束後，再變換方向
-    setSvgClass(newValue ? [] : [styles.mirror])
+    // 動畫完成後，設置手臂方向為從左側伸出（因為toggle必定為0）
+    setSvgClass([])
+
+    // 通知外部狀態變更（始終為false，因為貓手總是將開關拉回關閉狀態）
+    if (typeof onToggle === 'function') {
+      onToggle(false)
+    }
 
     setIsPlaying(false)
-  }
-
-  // 處理點擊事件
-  const handleClick = () => {
-    if (isPlaying || disabled) return
-    start()
   }
 
   return (
     <button
       className={styles.toggleContainer}
       onClick={handleClick}
-      disabled={disabled}
+      disabled={isPlaying} // 只在動畫播放時禁用按鈕，不是根據disabled屬性
       aria-pressed={currentValue}
       aria-label="切換開關"
       role="switch"
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          handleClick()
-        }
-      }}
     >
-      <div
-        className={
-          styles.track +
-          ' ' +
-          (currentValue ? styles.trackActive : styles.trackInactive)
-        }
-      >
-        <div
-          className={`${styles.thumb} ${currentValue ? styles.active : ''}`}
-        />
-      </div>
+      <div className={styles.toggleProactive}>
+        {/* 手臂SVG */}
+        <svg
+          viewBox="0 0 640 155"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className={`${styles.svg} ${uid}-cat-arm-svg ${svgClass.join(' ')}`}
+        >
+          <g>
+            <path
+              id="arm"
+              d="M308 75C319 75.0002 361.5 75.0002 373 75.0001"
+              stroke={furColorDynamic}
+              strokeWidth="80"
+              strokeLinecap="round"
+            />
+          </g>
+        </svg>
 
-      <svg
-        width="640"
-        height="155"
-        viewBox="0 0 640 155"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={`${styles.svg} ${uid}-cat-arm ${svgClass.join(' ')}`}
-      >
-        <path
-          className="arm"
-          d="M308 75C319 75.0002 361.5 75.0002 373 75.0001"
-          stroke={furColorDynamic}
-          strokeWidth="80"
-          strokeLinecap="round"
-        />
-        <g className={`${styles['cat-elbow']} ${uid}-cat-elbow`}>
-          <path
-            className="elbow"
-            d="M322 75C345 75 383.5 75 399.5 75"
-            stroke={furColorDynamic}
-            strokeWidth="80"
-            strokeLinecap="round"
+        {/* 肘部和肉掌SVG */}
+        <svg
+          id={`${uid}-cat-elbow`}
+          viewBox="0 0 640 155"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className={`${styles.svg} ${uid}-cat-elbow-svg ${svgClass.join(' ')}`}
+        >
+          <g className={`${styles['cat-elbow']} ${uid}-cat-elbow`}>
+            <path
+              id="elbow"
+              d="M322 75C345 75 383.5 75 399.5 75"
+              stroke={furColorDynamic}
+              strokeWidth="80"
+              strokeLinecap="round"
+            />
+            <g id="pads">
+              <path
+                id="metacarpal-pad"
+                d="M408.941 75.0441C408.941 86.6665 399.875 96.0882 388.691 96.0882C377.507 96.0882 374 87.562 374 75.9396C374 64.3173 377.507 54 388.691 54C399.875 54 408.941 63.4218 408.941 75.0441Z"
+                fill={padColorDynamic}
+              />
+              <path
+                id="digital-pad-1"
+                d="M420.5 53.1618C420.5 56.0125 416.628 58.3235 413.338 58.3235C410.049 58.3235 407.382 56.0125 407.382 53.1618C407.382 50.311 410.049 48 413.338 48C416.628 48 420.5 50.311 420.5 53.1618Z"
+                fill={padColorDynamic}
+              />
+              <path
+                id="digital-pad-2"
+                d="M419 96.8383C419 99.689 415.834 102 412.544 102C409.255 102 406.588 99.689 406.588 96.8383C406.588 93.9875 409.255 91.6765 412.544 91.6765C415.834 91.6765 419 93.9875 419 96.8383Z"
+                fill={padColorDynamic}
+              />
+              <path
+                id="digital-pad-3"
+                d="M432 67.4559C432 70.7452 427.473 73.4118 422.868 73.4118C418.262 73.4118 414.529 70.7452 414.529 67.4559C414.529 64.1665 418.262 61.5 422.868 61.5C427.473 61.5 432 64.1665 432 67.4559Z"
+                fill={padColorDynamic}
+              />
+              <path
+                id="digital-pad-4"
+                d="M432 82.544C432 85.8334 427.473 88.4999 422.868 88.4999C418.262 88.4999 414.529 85.8334 414.529 82.544C414.529 79.2547 418.262 76.5881 422.868 76.5881C427.473 76.5881 432 79.2547 432 82.544Z"
+                fill={padColorDynamic}
+              />
+            </g>
+          </g>
+        </svg>
+
+        {/* Toggle 開關 */}
+        <div
+          className={
+            styles.track +
+            ' ' +
+            (currentValue ? styles.trackActive : styles.trackInactive)
+          }
+        >
+          <div
+            className={`${styles.thumb} ${currentValue ? styles.active : ''}`}
           />
-          <path
-            className="metacarpal-pad"
-            d="M408.941 75.0441C408.941 86.6665 399.875 96.0882 388.691 96.0882C377.507 96.0882 374 87.562 374 75.9396C374 64.3173 377.507 54 388.691 54C399.875 54 408.941 63.4218 408.941 75.0441Z"
-            fill={padColorDynamic}
-          />
-          <path
-            className="digital-pad-1"
-            d="M420.5 53.1618C420.5 56.0125 416.628 58.3235 413.338 58.3235C410.049 58.3235 407.382 56.0125 407.382 53.1618C407.382 50.311 410.049 48 413.338 48C416.628 48 420.5 50.311 420.5 53.1618Z"
-            fill={padColorDynamic}
-          />
-          <path
-            className="digital-pad-2"
-            d="M419 96.8383C419 99.689 415.834 102 412.544 102C409.255 102 406.588 99.689 406.588 96.8383C406.588 93.9875 409.255 91.6765 412.544 91.6765C415.834 91.6765 419 93.9875 419 96.8383Z"
-            fill={padColorDynamic}
-          />
-          <path
-            className="digital-pad-3"
-            d="M432 67.4559C432 70.7452 427.473 73.4118 422.868 73.4118C418.262 73.4118 414.529 70.7452 414.529 67.4559C414.529 64.1665 418.262 61.5 422.868 61.5C427.473 61.5 432 64.1665 432 67.4559Z"
-            fill={padColorDynamic}
-          />
-          <path
-            className="digital-pad-4"
-            d="M432 82.544C432 85.8334 427.473 88.4999 422.868 88.4999C418.262 88.4999 414.529 85.8334 414.529 82.544C414.529 79.2547 418.262 76.5881 422.868 76.5881C427.473 76.5881 432 79.2547 432 82.544Z"
-            fill={padColorDynamic}
-          />
-        </g>
-      </svg>
+        </div>
+      </div>
     </button>
   )
 }

@@ -10,30 +10,38 @@ export default function ExamplesPage() {
   const [isDisabled, setIsDisabled] = useState(true) // 預設為禁用狀態，這樣可以看到貓掌搗亂
 
   // 自定義樣式示例
+  const [customValues, setCustomValues] = useState([false, true, false])
   const customStyles = [
     {
       size: '3rem',
       furColor: '#DFC57B',
       padColor: '#FFA5A5',
-      disabled: false,
+      disabled: true,
     },
     {
       size: '6rem',
       furColor: '#8D6F64',
       padColor: '#000',
-      disabled: false,
+      disabled: true,
     },
     {
       size: '4rem',
       furColor: '#F3F2F2',
       padColor: '#FFA5A5',
-      disabled: false,
+      disabled: true,
     },
   ]
 
   // 領養同意示例
   const [readRate, setReadRate] = useState(0)
   const [hasRead, setHasRead] = useState(false)
+
+  // 更新自定義樣式的開關值
+  const handleCustomToggle = (index, value) => {
+    const newValues = [...customValues]
+    newValues[index] = value
+    setCustomValues(newValues)
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -51,6 +59,17 @@ export default function ExamplesPage() {
 
   return (
     <div className={styles.container}>
+      {/* 頁面標題和說明 */}
+      <div className={styles.headerSection}>
+        <h1 className={styles.pageTitle}>主動的開關 CatPawToggle</h1>
+        <p className={styles.pageDescription}>
+          這個元件是基於「Useless Machine」概念設計的toggle開關。
+          <br />
+          當開關處於<strong>禁用狀態</strong>
+          時，貓掌會搗亂並將開關切回原始位置。
+        </p>
+      </div>
+
       {/* 基本用法 */}
       <section className={styles.section}>
         <h2>基本用法</h2>
@@ -63,11 +82,11 @@ export default function ExamplesPage() {
               size="4rem"
             />
             <div className={styles.demoDescription}>
-              <p>點擊開關，貓掌會搗亂！</p>
+              <p>點擊開關觀察貓掌的反應！</p>
               <p className={styles.hint}>
                 {isDisabled
                   ? '目前處於禁用狀態，貓掌會阻止你切換開關'
-                  : '已啟用，可以正常切換'}
+                  : '已啟用，可以正常切換（沒有貓掌搗亂）'}
               </p>
             </div>
           </div>
@@ -82,16 +101,84 @@ export default function ExamplesPage() {
         </div>
       </section>
 
+      {/* 工作原理 */}
+      <section className={styles.section}>
+        <h2>工作原理</h2>
+        <div className={styles.principles}>
+          <div className={styles.principleItem}>
+            <h3>1. 正常模式（非禁用）</h3>
+            <p>開關表現為普通的toggle，點擊時正常切換狀態。</p>
+            <div className={styles.principleDemo}>
+              <CatPawToggle
+                isEnabled={false}
+                onToggle={() => {}}
+                disabled={false}
+                size="3rem"
+              />
+              <span className={styles.arrow}>→</span>
+              <CatPawToggle
+                isEnabled={true}
+                onToggle={() => {}}
+                disabled={false}
+                size="3rem"
+              />
+            </div>
+          </div>
+          <div className={styles.principleItem}>
+            <h3>2. 禁用模式</h3>
+            <p>點擊時，開關先切換，然後貓掌伸出把開關切回原狀。</p>
+            <div className={styles.principleAnimated}>
+              <div className={styles.animationStep}>
+                <p>步驟 1: 點擊開關</p>
+                <CatPawToggle
+                  isEnabled={false}
+                  onToggle={() => {}}
+                  disabled={true}
+                  size="3rem"
+                />
+              </div>
+              <span className={styles.arrow}>→</span>
+              <div className={styles.animationStep}>
+                <p>步驟 2: 開關先切換</p>
+                <CatPawToggle
+                  isEnabled={true}
+                  onToggle={() => {}}
+                  disabled={true}
+                  size="3rem"
+                />
+              </div>
+              <span className={styles.arrow}>→</span>
+              <div className={styles.animationStep}>
+                <p>步驟 3: 貓掌搗亂</p>
+                <div className={styles.pawAnimation}>
+                  <CatPawToggle
+                    isEnabled={false}
+                    onToggle={() => {}}
+                    disabled={true}
+                    size="3rem"
+                  />
+                  <div className={styles.pawIcon}>🐾</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 自定義樣式 */}
       <section className={styles.section}>
         <h2>自定義樣式</h2>
         <p className={styles.sectionDescription}>
-          點擊以下開關，觀察不同樣式的貓掌動畫效果
+          點擊以下開關，觀察不同樣式的貓掌動畫效果（所有開關都設為禁用狀態）
         </p>
         <div className={styles.customDemo}>
           {customStyles.map((style, index) => (
             <div key={index} className={styles.demoItem}>
-              <CatPawToggle isEnabled={false} onToggle={() => {}} {...style} />
+              <CatPawToggle
+                isEnabled={customValues[index]}
+                onToggle={(value) => handleCustomToggle(index, value)}
+                {...style}
+              />
               <div className={styles.styleInfo}>
                 <p>大小: {style.size}</p>
                 <p>
@@ -114,7 +201,7 @@ export default function ExamplesPage() {
 
       {/* 領養同意書示例 */}
       <section className={styles.section}>
-        <h2>領養同意書</h2>
+        <h2>應用：領養同意書</h2>
         <div className={styles.termsDemo}>
           <div className={styles.termsContent}>
             <h3>📋 寵物領養同意書</h3>
@@ -163,6 +250,18 @@ export default function ExamplesPage() {
             )}
           </div>
         </div>
+      </section>
+
+      {/* 組件結構 */}
+      <section className={styles.section}>
+        <h2>組件結構</h2>
+        <p className={styles.sectionDescription}>
+          想了解更多貓掌開關的內部結構嗎？查看我們的
+          <a href="/pets/examples/cat-paw-parts" className={styles.link}>
+            貓掌組件分解頁面
+          </a>
+          ，探索如何實現這個有趣的效果。
+        </p>
       </section>
     </div>
   )

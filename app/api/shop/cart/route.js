@@ -31,7 +31,10 @@ export const GET = async(request) => {
         products.product_name,
         variants.variant_name,
         COALESCE(variants.price, products.price) AS price,
-        COALESCE(variants.image_url, products.image_url) AS image_url,
+        CASE
+          WHEN variants.image_url IS NOT NULL AND variants.image_url != '' THEN variants.image_url
+          ELSE products.image_url
+        END AS image_url,
         promo.promotion_id,
         promo.promotion_name,
         promo.discount_percentage,

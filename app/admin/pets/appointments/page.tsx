@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
   Container,
   Row,
@@ -27,6 +27,8 @@ import styles from './appointments.module.css'
 import dynamic from 'next/dynamic'
 import DataTable from '@/app/admin/_components/DataTable'
 import type { Column } from '@/app/admin/_components/DataTable'
+import { fetchApi } from '@/app/admin/_lib/api'
+import { useToast } from '@/app/admin/_components/Toast'
 
 // 使用動態導入以避免 SSR 錯誤
 const FullCalendarComponent = dynamic(
@@ -82,13 +84,14 @@ const columns: Column[] = [
     key: 'appointment_date',
     label: '預約時間',
     sortable: true,
-    render: (_, row) => `${row.appointment_date} ${row.appointment_time}`,
+    render: (_, row) =>
+      formatDateTime(row.appointment_date, row.appointment_time),
   },
   {
     key: 'status',
     label: '狀態',
     sortable: true,
-    render: (value: AppointmentStatus) => {
+    render: (value: AppointmentStatus, row) => {
       const variants = {
         pending: 'warning',
         approved: 'success',
@@ -101,7 +104,20 @@ const columns: Column[] = [
         completed: '已完成',
         cancelled: '已取消',
       }
-      return <Badge bg={variants[value]}>{labels[value]}</Badge>
+
+      // 檢查是否過期且狀態為已確認
+      const isOverdue = isAppointmentOverdue(row as Appointment)
+
+      return (
+        <div>
+          <Badge bg={variants[value]}>{labels[value]}</Badge>
+          {isOverdue && (
+            <Badge bg="danger" className="ms-2">
+              已逾期
+            </Badge>
+          )}
+        </div>
+      )
     },
   },
   {
@@ -150,14 +166,132 @@ const columns: Column[] = [
   },
 ]
 
+// 添加日期格式化工具函數
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('zh-TW')
+}
+
+const formatTime = (timeStr: string) => {
+  if (!timeStr) return ''
+  // 如果只有時間 (HH:MM:SS 格式)
+  if (timeStr.includes(':') && !timeStr.includes('T')) {
+    return timeStr.substring(0, 5) // 只取 HH:MM
+  }
+  // 如果是完整的日期時間
+  const date = new Date(timeStr)
+  return date.toLocaleTimeString('zh-TW', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+const formatDateTime = (dateStr: string, timeStr?: string) => {
+  if (!dateStr) return ''
+
+  // 處理完整的ISO日期時間
+  if (dateStr.includes('T')) {
+    const date = new Date(dateStr)
+    return date.toLocaleString('zh-TW', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  // 處理分開的日期和時間
+  return `${formatDate(dateStr)} ${timeStr ? formatTime(timeStr) : ''}`.trim()
+}
+
+// 判斷預約是否已逾期
+const isAppointmentOverdue = (appointment) => {
+  try {
+    if (appointment.status !== 'approved') {
+      return false
+    }
+
+    const now = new Date()
+    let appointmentDate
+
+    // 檢查是否是 ISO 日期時間格式 (2024-12-14T16:00:00.000Z)
+    if (
+      appointment.appointment_date &&
+      appointment.appointment_date.includes('T')
+    ) {
+      // 直接使用 ISO 格式日期
+      appointmentDate = new Date(appointment.appointment_date)
+    } else {
+      // 解析日期
+      const dateParts = appointment.appointment_date.split(/[-/]/).map(Number)
+
+      // 檢查日期部分是否有效
+      if (dateParts.length !== 3 || dateParts.some(isNaN)) {
+        throw new Error(`無效的日期格式: ${appointment.appointment_date}`)
+      }
+
+      const year = dateParts[0]
+      const month = dateParts[1] - 1 // JavaScript 月份從 0 開始
+      const day = dateParts[2]
+
+      // 解析時間
+      let hours = 0
+      let minutes = 0
+
+      if (
+        appointment.appointment_time &&
+        appointment.appointment_time.includes(':')
+      ) {
+        // 處理時間部分
+        const timePart = appointment.appointment_time
+          .replace(/[上下]午/, '')
+          .trim()
+        const timeParts = timePart.split(':').map((part) => part.trim())
+
+        hours = parseInt(timeParts[0], 10) || 0
+        minutes = parseInt(timeParts[1], 10) || 0
+
+        // 處理上午/下午
+        if (appointment.appointment_time.includes('下午') && hours < 12) {
+          hours += 12
+        } else if (
+          appointment.appointment_time.includes('上午') &&
+          hours === 12
+        ) {
+          hours = 0
+        }
+      }
+
+      // 建立日期物件
+      appointmentDate = new Date(year, month, day, hours, minutes)
+    }
+
+    // 檢查日期是否有效
+    if (isNaN(appointmentDate.getTime())) {
+      throw new Error(`建立的日期物件無效: ${appointmentDate}`)
+    }
+
+    return appointmentDate < now && appointment.status === 'approved'
+  } catch (error) {
+    console.error('逾期判斷錯誤:', error, {
+      id: appointment.id,
+      appointment_date: appointment.appointment_date,
+      appointment_time: appointment.appointment_time,
+    })
+    return false // 出錯時預設為非逾期
+  }
+}
+
 export default function PetAppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState<string>('')
-  const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'all'>(
-    'all'
-  )
+  const [statusFilter, setStatusFilter] = useState<
+    AppointmentStatus | 'all' | 'overdue'
+  >('all')
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null)
   const [showModal, setShowModal] = useState<boolean>(false)
@@ -168,20 +302,32 @@ export default function PetAppointmentsPage() {
   } | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
+  const { showToast } = useToast()
+  const [scrollPosition, setScrollPosition] = useState(0)
 
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await fetch('/api/admin/appointments')
-        if (!response.ok) {
-          throw new Error('獲取預約資料失敗')
+        setLoading(true)
+        setError('')
+
+        const response = await fetchApi('/api/admin/pets/appointments')
+
+        // 檢查回應格式
+        if (response.success && response.data && Array.isArray(response.data)) {
+          setAppointments(response.data)
+        } else if (Array.isArray(response.data)) {
+          setAppointments(response.data)
+        } else if (Array.isArray(response)) {
+          setAppointments(response)
+        } else {
+          console.error('返回的數據格式不正確:', response)
+          throw new Error('獲取預約資料失敗：數據格式錯誤')
         }
-        const data = await response.json()
-        setAppointments(data)
-        setLoading(false)
       } catch (err) {
         console.error('Error fetching appointments:', err)
-        setError('獲取預約資料時發生錯誤')
+        setError(err instanceof Error ? err.message : '獲取預約資料時發生錯誤')
+      } finally {
         setLoading(false)
       }
     }
@@ -195,75 +341,230 @@ export default function PetAppointmentsPage() {
     newStatus: AppointmentStatus
   ) => {
     try {
-      const response = await fetch(`/api/admin/appointments/${appointmentId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      })
-
-      if (!response.ok) {
-        throw new Error('更新狀態失敗')
-      }
-
-      setAppointments((prev) =>
-        prev.map((app) =>
-          app.id === appointmentId ? { ...app, status: newStatus } : app
-        )
+      console.log(
+        `Updating appointment ${appointmentId} to status: ${newStatus}`
       )
+
+      const response = await fetchApi(
+        `/api/admin/pets/appointments/${appointmentId}`,
+        {
+          method: 'PUT',
+          body: { status: newStatus },
+        }
+      )
+
+      console.log('Status update response:', response)
+
+      if (response.success) {
+        // 更新本地狀態
+        setAppointments((prev) =>
+          prev.map((app) =>
+            app.id === appointmentId ? { ...app, status: newStatus } : app
+          )
+        )
+        setError('')
+        showToast('success', '成功', '預約狀態更新成功！')
+      } else {
+        throw new Error(response.message || '更新狀態失敗')
+      }
     } catch (err) {
       console.error('Error updating status:', err)
-      setError('更新狀態時發生錯誤')
+      setError(err instanceof Error ? err.message : '更新狀態時發生錯誤')
+      showToast(
+        'error',
+        '錯誤',
+        err instanceof Error ? err.message : '更新狀態時發生錯誤'
+      )
     }
+  }
+
+  // 記住捲動位置
+  const saveScrollPosition = () => {
+    setScrollPosition(window.scrollY)
+  }
+
+  // 恢復捲動位置
+  const restoreScrollPosition = () => {
+    setTimeout(() => {
+      window.scrollTo(0, scrollPosition)
+    }, 10)
+  }
+
+  // 處理Modal的開啟與關閉
+  const handleOpenModal = (appointment: Appointment) => {
+    saveScrollPosition()
+    setSelectedAppointment(appointment)
+    setShowModal(true)
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    restoreScrollPosition()
   }
 
   // 處理點擊行事曆事件
   const handleEventClick = (info: any) => {
-    const appointmentId = parseInt(info.event.id)
-    const appointment = appointments.find((app) => app.id === appointmentId)
+    const appointmentId = parseInt(info.event.id, 10)
+    const appointment = appointments.find((a) => a.id === appointmentId)
     if (appointment) {
-      setSelectedAppointment(appointment)
-      setShowModal(true)
+      handleOpenModal(appointment)
     }
   }
 
   // 將預約轉換為行事曆事件格式
   const getCalendarEvents = () => {
     return appointments.map((appointment) => {
-      const dateTime = `${appointment.appointment_date}T${appointment.appointment_time}:00`
-      let backgroundColor = '#17a2b8' // 默認藍色
+      try {
+        let appointmentDate: Date
 
-      switch (appointment.status) {
-        case 'pending':
-          backgroundColor = '#ffc107' // 黃色
-          break
-        case 'approved':
-          backgroundColor = '#28a745' // 綠色
-          break
-        case 'completed':
-          backgroundColor = '#17a2b8' // 藍色
-          break
-        case 'cancelled':
-          backgroundColor = '#dc3545' // 紅色
-          break
-      }
+        // 檢查是否是 ISO 日期時間格式 (2024-12-14T16:00:00.000Z)
+        if (
+          appointment.appointment_date &&
+          appointment.appointment_date.includes('T')
+        ) {
+          // 直接使用 ISO 格式日期
+          appointmentDate = new Date(appointment.appointment_date)
+        } else {
+          // 解析日期
+          const dateParts = appointment.appointment_date
+            .split(/[-/]/)
+            .map(Number)
 
-      return {
-        id: appointment.id.toString(),
-        title: `${appointment.pet_name} - ${appointment.user_name}`,
-        start: dateTime,
-        end: new Date(
-          new Date(dateTime).getTime() + 60 * 60 * 1000
-        ).toISOString(),
-        backgroundColor,
-        borderColor: backgroundColor,
-        textColor: '#fff',
-        extendedProps: {
-          status: appointment.status,
-          pet_name: appointment.pet_name,
-          user_name: appointment.user_name,
-        },
+          // 檢查日期部分是否有效
+          if (dateParts.length !== 3 || dateParts.some(isNaN)) {
+            throw new Error(`無效的日期格式: ${appointment.appointment_date}`)
+          }
+
+          const year = dateParts[0]
+          const month = dateParts[1] - 1 // JavaScript 月份從 0 開始
+          const day = dateParts[2]
+
+          // 解析時間
+          let hours = 0
+          let minutes = 0
+
+          if (
+            appointment.appointment_time &&
+            appointment.appointment_time.includes(':')
+          ) {
+            // 處理時間部分
+            const timePart = appointment.appointment_time
+              .replace(/[上下]午/, '')
+              .trim()
+            const timeParts = timePart.split(':').map((part) => part.trim())
+
+            if (
+              timeParts.length < 2 ||
+              timeParts.some((p) => isNaN(parseInt(p, 10)))
+            ) {
+              console.warn(
+                `時間格式可能不正確: ${appointment.appointment_time}`
+              )
+            }
+
+            hours = parseInt(timeParts[0], 10) || 0
+            minutes = parseInt(timeParts[1], 10) || 0
+
+            // 時間範圍檢查
+            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+              throw new Error(`時間值超出有效範圍: ${hours}:${minutes}`)
+            }
+
+            // 處理上午/下午
+            if (appointment.appointment_time.includes('下午') && hours < 12) {
+              hours += 12
+            } else if (
+              appointment.appointment_time.includes('上午') &&
+              hours === 12
+            ) {
+              hours = 0
+            }
+          }
+
+          // 建立日期物件
+          appointmentDate = new Date(year, month, day, hours, minutes)
+        }
+
+        // 檢查日期是否有效
+        if (isNaN(appointmentDate.getTime())) {
+          throw new Error(`建立的日期物件無效: ${appointmentDate}`)
+        }
+
+        // 安全地產生 ISO 字串
+        let dateTimeISO
+        try {
+          dateTimeISO = appointmentDate.toISOString()
+        } catch (e) {
+          console.error('無法轉換為 ISO 日期字串:', e)
+          // 使用當前時間作為後備
+          dateTimeISO = new Date().toISOString()
+        }
+
+        const isOverdue = isAppointmentOverdue(appointment)
+        let backgroundColor = '#17a2b8' // 默認藍色
+
+        switch (appointment.status) {
+          case 'pending':
+            backgroundColor = '#ffc107' // 黃色
+            break
+          case 'approved':
+            backgroundColor = isOverdue ? '#ff9800' : '#28a745' // 過期橙色 : 綠色
+            break
+          case 'completed':
+            backgroundColor = '#17a2b8' // 藍色
+            break
+          case 'cancelled':
+            backgroundColor = '#dc3545' // 紅色
+            break
+        }
+
+        return {
+          id: appointment.id.toString(),
+          title: `${appointment.pet_name} - ${appointment.user_name}${
+            isOverdue ? ' (已逾期)' : ''
+          }`,
+          start: dateTimeISO,
+          end: new Date(
+            appointmentDate.getTime() + 60 * 60 * 1000
+          ).toISOString(),
+          backgroundColor,
+          borderColor: backgroundColor,
+          textColor: '#fff',
+          extendedProps: {
+            status: appointment.status,
+            pet_name: appointment.pet_name,
+            user_name: appointment.user_name,
+            isOverdue: isOverdue,
+            originalDate: appointment.appointment_date,
+            originalTime: appointment.appointment_time,
+          },
+        }
+      } catch (error) {
+        console.error('行事曆事件日期解析錯誤:', error, {
+          id: appointment.id,
+          appointment_date: appointment.appointment_date,
+          appointment_time: appointment.appointment_time,
+        })
+
+        // 提供一個備用日期，以防解析失敗
+        const fallbackDate = new Date()
+        return {
+          id: appointment.id.toString(),
+          title: `${appointment.pet_name} - ${appointment.user_name} (日期格式錯誤)`,
+          start: fallbackDate.toISOString(),
+          end: new Date(fallbackDate.getTime() + 60 * 60 * 1000).toISOString(),
+          backgroundColor: '#999',
+          borderColor: '#999',
+          textColor: '#fff',
+          extendedProps: {
+            status: appointment.status,
+            pet_name: appointment.pet_name,
+            user_name: appointment.user_name,
+            isOverdue: false,
+            originalDate: appointment.appointment_date,
+            originalTime: appointment.appointment_time,
+          },
+        }
       }
     })
   }
@@ -302,25 +603,24 @@ export default function PetAppointmentsPage() {
     }
 
     // 狀態過濾
-    if (statusFilter !== 'all') {
+    if (statusFilter === 'overdue') {
+      result = result.filter((appointment) => isAppointmentOverdue(appointment))
+    } else if (statusFilter !== 'all') {
       result = result.filter(
         (appointment) => appointment.status === statusFilter
       )
     }
 
     // 排序
-    if (sortConfig) {
+    if (sortConfig && sortConfig.key) {
       result.sort((a, b) => {
-        if (
-          a[sortConfig.key as keyof Appointment] <
-          b[sortConfig.key as keyof Appointment]
-        ) {
+        const aValue = a[sortConfig.key as keyof Appointment] ?? ''
+        const bValue = b[sortConfig.key as keyof Appointment] ?? ''
+
+        if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1
         }
-        if (
-          a[sortConfig.key as keyof Appointment] >
-          b[sortConfig.key as keyof Appointment]
-        ) {
+        if (aValue > bValue) {
           return sortConfig.direction === 'asc' ? 1 : -1
         }
         return 0
@@ -393,6 +693,7 @@ export default function PetAppointmentsPage() {
   ) => {
     if (!selectedRows.length) {
       setError('請先選擇要操作的預約')
+      showToast('warning', '注意', '請先選擇要操作的預約')
       return
     }
 
@@ -401,9 +702,15 @@ export default function PetAppointmentsPage() {
         handleStatusUpdate(row.id, action as AppointmentStatus)
       )
       await Promise.all(promises)
+      showToast(
+        'success',
+        '成功',
+        `已成功批量處理 ${selectedRows.length} 筆預約`
+      )
     } catch (err) {
       console.error('批量操作失敗:', err)
       setError('批量操作失敗，請稍後再試')
+      showToast('error', '錯誤', '批量操作失敗，請稍後再試')
     }
   }
 
@@ -474,7 +781,9 @@ export default function PetAppointmentsPage() {
                 <Form.Select
                   value={statusFilter}
                   onChange={(e) =>
-                    setStatusFilter(e.target.value as AppointmentStatus | 'all')
+                    setStatusFilter(
+                      e.target.value as AppointmentStatus | 'all' | 'overdue'
+                    )
                   }
                 >
                   <option value="all">全部狀態</option>
@@ -482,6 +791,7 @@ export default function PetAppointmentsPage() {
                   <option value="approved">已確認</option>
                   <option value="completed">已完成</option>
                   <option value="cancelled">已取消</option>
+                  <option value="overdue">已逾期</option>
                 </Form.Select>
               </Form.Group>
             </Col>
@@ -523,10 +833,7 @@ export default function PetAppointmentsPage() {
               loading={loading}
               searchable={true}
               searchKeys={searchKeys}
-              onRowClick={(row) => {
-                setSelectedAppointment(row as Appointment)
-                setShowModal(true)
-              }}
+              onRowClick={(row) => handleOpenModal(row as Appointment)}
               selectable={true}
               batchActions={batchActions}
               itemsPerPage={10}
@@ -547,12 +854,7 @@ export default function PetAppointmentsPage() {
       </Card>
 
       {/* 詳情 Modal */}
-      <Modal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        size="lg"
-        centered
-      >
+      <Modal show={showModal} onHide={handleCloseModal} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>申請詳情</Modal.Title>
         </Modal.Header>
@@ -569,8 +871,12 @@ export default function PetAppointmentsPage() {
                 <Col md={6}>
                   <h5>寵物資訊</h5>
                   <p>名稱：{selectedAppointment.pet_name}</p>
-                  <p>預約日期：{selectedAppointment.appointment_date}</p>
-                  <p>預約時間：{selectedAppointment.appointment_time}</p>
+                  <p>
+                    預約日期：{formatDate(selectedAppointment.appointment_date)}
+                  </p>
+                  <p>
+                    預約時間：{formatTime(selectedAppointment.appointment_time)}
+                  </p>
                 </Col>
               </Row>
               <hr />
@@ -593,6 +899,29 @@ export default function PetAppointmentsPage() {
                 </Col>
               </Row>
 
+              <hr />
+              <Row>
+                <Col>
+                  <h5>系統資訊</h5>
+                  <p>
+                    預約建立時間：
+                    {formatDateTime(selectedAppointment.created_at)}
+                  </p>
+                  <p>
+                    最後更新時間：
+                    {formatDateTime(selectedAppointment.updated_at)}
+                  </p>
+                  <p>
+                    預約狀態：
+                    <Badge
+                      bg={getStatusBadgeVariant(selectedAppointment.status)}
+                    >
+                      {getStatusLabel(selectedAppointment.status)}
+                    </Badge>
+                  </p>
+                </Col>
+              </Row>
+
               {/* 狀態管理按鈕 */}
               {selectedAppointment.status === 'pending' && (
                 <div className="mt-3 d-flex justify-content-end gap-2">
@@ -600,7 +929,7 @@ export default function PetAppointmentsPage() {
                     variant="success"
                     onClick={() => {
                       handleStatusUpdate(selectedAppointment.id, 'approved')
-                      setShowModal(false)
+                      handleCloseModal()
                     }}
                   >
                     <FaCheck className="me-1" />
@@ -610,7 +939,7 @@ export default function PetAppointmentsPage() {
                     variant="danger"
                     onClick={() => {
                       handleStatusUpdate(selectedAppointment.id, 'cancelled')
-                      setShowModal(false)
+                      handleCloseModal()
                     }}
                   >
                     <FaTimes className="me-1" />
@@ -620,24 +949,42 @@ export default function PetAppointmentsPage() {
               )}
 
               {selectedAppointment.status === 'approved' && (
-                <div className="mt-3 d-flex justify-content-end">
+                <div className="mt-3 d-flex justify-content-end gap-2">
                   <Button
                     variant="info"
                     onClick={() => {
                       handleStatusUpdate(selectedAppointment.id, 'completed')
-                      setShowModal(false)
+                      handleCloseModal()
                     }}
                   >
                     <FaCheck className="me-1" />
                     標記為已完成
                   </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => {
+                      handleStatusUpdate(selectedAppointment.id, 'cancelled')
+                      handleCloseModal()
+                    }}
+                  >
+                    <FaTimes className="me-1" />
+                    取消預約
+                  </Button>
                 </div>
+              )}
+
+              {/* 在 Modal 中顯示逾期警告 */}
+              {isAppointmentOverdue(selectedAppointment) && (
+                <Alert variant="danger" className="mt-3 mb-3">
+                  <FaInfoCircle className="me-2" />
+                  此預約已過期但尚未完成或取消。請處理此預約的最終狀態。
+                </Alert>
               )}
             </div>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Button variant="secondary" onClick={handleCloseModal}>
             關閉
           </Button>
         </Modal.Footer>

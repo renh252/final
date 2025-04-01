@@ -7,10 +7,22 @@ import { Navbar, Nav, NavDropdown, Button, Container } from 'react-bootstrap'
 import { usePathname } from 'next/navigation'
 import NotificationBell from './NotificationBell'
 import { useAuth } from '@/app/context/AuthContext'
+import { LuShoppingCart } from 'react-icons/lu'
+import useSWR from 'swr'
+
+const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function Menubar() {
   const { user, loading } = useAuth()
   const pathname = usePathname()
+  const userId = user?.id
+
+  // 獲取購物車數據
+  const { data: cartData } = useSWR(
+    userId ? `/api/shop/cart?userId=${userId}` : null,
+    fetcher
+  )
+  const totalQuantity = cartData?.totalQuantity || 0
 
   useEffect(() => {
     // 確保這段程式碼只會在瀏覽器端執行
@@ -66,6 +78,7 @@ export default function Menubar() {
         className={`bg-body-tertiary fixed-top ${styles.menubar} ${
           visible ? '' : styles.hidden
         } ${solid ? styles.solid : ''}`}
+        data-theme="light"
       >
         <Container>
           <Link href="/" passHref legacyBehavior>
@@ -95,18 +108,15 @@ export default function Menubar() {
               <div className={styles.notificationWrapper}>
                 <NotificationBell />
               </div>
-              <NavDropdown title="下拉式" id="basic-nav-dropdown">
-                <Link href="/forum" passHref legacyBehavior>
-                  <NavDropdown.Item>論壇</NavDropdown.Item>
-                </Link>
-                <Link href="/donate" passHref legacyBehavior>
-                  <NavDropdown.Item>捐款</NavDropdown.Item>
-                </Link>
-                <NavDropdown.Divider />
-                <Link href="#action/3.4" passHref legacyBehavior>
-                  <NavDropdown.Item>Separated link</NavDropdown.Item>
-                </Link>
-              </NavDropdown>
+              {/* 購物車圖標 */}
+              <Link href="/shop/cart" passHref legacyBehavior>
+                <Nav.Link className={styles.cartIconLink}>
+                  <LuShoppingCart className={styles.cartIcon} />
+                  {totalQuantity > 0 && (
+                    <div className={styles.cartCount}>{totalQuantity}</div>
+                  )}
+                </Nav.Link>
+              </Link>
             </Nav>
           </Navbar.Collapse>
         </Container>

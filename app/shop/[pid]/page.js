@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useParams,useRouter } from 'next/navigation'
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown';
 
 // 驗證登入狀態
 import { useAuth } from '@/app/context/AuthContext'
@@ -377,7 +378,6 @@ const calculateDisplayPrice = () => {
           </div>
           <div className={styles.info}>
             <div>
-              <p className={styles.h3}>{product.product_name}</p>
               <div className={styles.iconGroup}>
                 <div className={styles.comment}>
                   庫存:{selectedVariant?.stock_quantity}
@@ -402,6 +402,7 @@ const calculateDisplayPrice = () => {
                   <FaShareNodes />
                 </div> */}
               </div>
+              <p className={styles.h3}>{product.product_name}</p>
             </div>
             <hr />
             <div>
@@ -524,15 +525,17 @@ const calculateDisplayPrice = () => {
           </div>
         </div>
         <IconLine_lg title="商品介紹" />
-        <div className={styles.row}>
-          <p>{product.product_description}</p>
+        <div className={styles.discription}>
+          <ReactMarkdown>{product.product_description}</ReactMarkdown>
         </div>
         <div ref={reviewRef} className={styles.iconLine}>
           <IconLine_lg title="評價" />
         </div>
         <div className={styles.contain}>
           <div className={styles.containTitle}>
-            <p>{reviewCount?.total_reviews}則評論</p>
+            <p>{reviewCount?.total_reviews
+            ?reviewCount?.total_reviews
+            :0}則評論</p>
           </div>
           <div className={styles.containBody}>
             {reviews.length > 0 ? (
@@ -576,7 +579,7 @@ const calculateDisplayPrice = () => {
                 )
               })
             ) : (
-              <p>目前無評論</p>
+              <p className={styles.noreview}>目前無評論</p>
             )}
           </div>
         </div>

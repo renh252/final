@@ -1,0 +1,15 @@
+file_list.txt
+wetFoodCat (1).jpg
+wetFoodCat (10).jpg
+wetFoodCat (11).jpg
+wetFoodCat (12).jpg
+wetFoodCat (13).jpg
+wetFoodCat (14).jpg
+wetFoodCat (2).jpg
+wetFoodCat (3).jpg
+wetFoodCat (4).jpg
+wetFoodCat (5).jpg
+wetFoodCat (6).jpg
+wetFoodCat (7).jpg
+wetFoodCat (8).jpg
+wetFoodCat (9).jpg

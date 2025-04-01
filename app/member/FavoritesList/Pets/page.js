@@ -17,6 +17,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import styles from './favorites.module.css'
 import { FaHeart, FaFilter, FaArrowLeft, FaTrash } from 'react-icons/fa'
+import { usePageTitle } from '@/app/context/TitleContext'
 
 export default function PetLikePage() {
   const { user } = useAuth()
@@ -24,6 +25,7 @@ export default function PetLikePage() {
   const [favoriteData, setFavoriteData] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  usePageTitle('收藏寵物')
 
   // 篩選狀態
   const [filters, setFilters] = useState({
