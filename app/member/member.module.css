@@ -59,7 +59,8 @@
 
 .gridContainer{
   width: 100%;
-  overflow: scroll;
+
+  overflow-x: auto;
 
   button a,button{
     white-space: nowrap;
