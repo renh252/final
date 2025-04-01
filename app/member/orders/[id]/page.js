@@ -166,7 +166,7 @@ export default function OrderIdPage(props) {
         訂單 {oid}
       </div>
       {/* 電腦 */}
-      <div  className={styles.container}>
+      <div className={styles.container}>
         <div className={styles.reviewContainer}>
           <div className={styles.containTitle}>
             <h1>資訊欄</h1>
@@ -290,15 +290,15 @@ export default function OrderIdPage(props) {
                           height={100}
                         />
                       </Link>
-                      {product.product_name}
+
+                      <Link href={`/shop/${product.product_id}`}>
+                        {product.product_name}
+                      </Link>
                     </div>
                     <div>{product.variant_name}</div>
-                    <div>
-                      ${product.price}
-                    </div>
+                    <div>${product.price}</div>
                     <div>{product.quantity}</div>
-                    <div>${product.price * product.quantity}
-                    </div>
+                    <div>${product.price * product.quantity}</div>
                   </div>
                   {/* 評價區塊 */}
                   {order?.order_status == '已完成' ? (
@@ -414,7 +414,6 @@ export default function OrderIdPage(props) {
           </div>
         </div>
       </div>
-      
 
       {/* 手機 */}
       <div className={styles.checkoutMobileContainer}>
@@ -539,143 +538,139 @@ export default function OrderIdPage(props) {
           <div className={styles.productList}>
             {products?.map((product, index) => (
               <div key={index} className={styles.productItem}>
-              <div className={styles.product}>
-                <Link href={`/shop/${product.product_id}`}>
-                <Image
-                  src={product.image_url || '/images/default_no_pet.jpg'}
-                  alt={product.product_name}
-                  width={80}
-                  height={80}
-                />
-
-                </Link>
-                <div className={styles.productInfo}>
-                  <p className={styles.productName}>{product.product_name}</p>
-                  <p>
-                    <strong>款式：</strong>
-                    {product.variant_name}
-                  </p>
-                  <p>
-                    <strong>單價：</strong>
-                    ${product.price}
-                    
-                  </p>
-                  <p>
-                    <strong>數量：</strong>
-                    {product.quantity}
-                  </p>
-                  <p>
-                    <strong>價格：</strong>
-                    ${product.price*product.quantity}
-                  </p>
+                <div className={styles.product}>
+                  <Link href={`/shop/${product.product_id}`}>
+                    <Image
+                      src={product.image_url || '/images/default_no_pet.jpg'}
+                      alt={product.product_name}
+                      width={80}
+                      height={80}
+                    />
+                  </Link>
+                  <div className={styles.productInfo}>
+                    <p className={styles.productName}>{product.product_name}</p>
+                    <p>
+                      <strong>款式：</strong>
+                      {product.variant_name}
+                    </p>
+                    <p>
+                      <strong>單價：</strong>${product.price}
+                    </p>
+                    <p>
+                      <strong>數量：</strong>
+                      {product.quantity}
+                    </p>
+                    <p>
+                      <strong>價格：</strong>${product.price * product.quantity}
+                    </p>
+                  </div>
                 </div>
-              </div>
                 {/* 評價區塊 */}
                 {order?.order_status == '已完成' ? (
-                    <div className={styles.reviewSection}>
-                      <div>
-                        <div className={styles.rating}>
-                          <div>
-                            <span>評分：</span>
-                            {product?.rating
-                              ? Array.from(
-                                  { length: Math.floor(product?.rating) },
-                                  (_, i) => (
-                                    <span key={i} style={{ color: '#ffcc00' }}>
-                                      ★
-                                    </span>
-                                  )
-                                )
-                              : [1, 2, 3, 4, 5].map((star) => (
-                                  <button
-                                    key={star}
-                                    className={styles.star}
-                                    style={{
-                                      color:
-                                        hoverRating[
-                                          `${product.product_id}-${product.variant_id}`
-                                        ] >= star ||
-                                        reviews[
-                                          `${product.product_id}-${product.variant_id}`
-                                        ]?.rating >= star
-                                          ? '#ffcc00'
-                                          : '#bebbb8',
-                                    }}
-                                    onClick={() =>
-                                      handleRating(
-                                        product.product_id,
-                                        product.variant_id,
-                                        star
-                                      )
-                                    }
-                                    onMouseEnter={() =>
-                                      handleHover(
-                                        product.product_id,
-                                        product.variant_id,
-                                        star
-                                      )
-                                    }
-                                    onMouseLeave={() =>
-                                      handleHover(
-                                        product.product_id,
-                                        product.variant_id,
-                                        0
-                                      )
-                                    }
-                                  >
+                  <div className={styles.reviewSection}>
+                    <div>
+                      <div className={styles.rating}>
+                        <div>
+                          <span>評分：</span>
+                          {product?.rating
+                            ? Array.from(
+                                { length: Math.floor(product?.rating) },
+                                (_, i) => (
+                                  <span key={i} style={{ color: '#ffcc00' }}>
                                     ★
-                                  </button>
-                                ))}
-                          </div>
-                          {product?.rating ? (
-                            <div
-                              className={styles.submitBtn}
-                              style={{
-                                backgroundColor: '#8FBC8F',
-                                cursor: 'text',
-                              }}
-                            >
-                              已評論
-                            </div>
-                          ) : (
-                            <button
-                              className={styles.submitBtn}
-                              onClick={() =>
-                                submitReview(
-                                  product.order_item_id,
-                                  product.product_id,
-                                  product.variant_id
+                                  </span>
                                 )
-                              }
-                            >
-                              提交
-                            </button>
-                          )}
+                              )
+                            : [1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  className={styles.star}
+                                  style={{
+                                    color:
+                                      hoverRating[
+                                        `${product.product_id}-${product.variant_id}`
+                                      ] >= star ||
+                                      reviews[
+                                        `${product.product_id}-${product.variant_id}`
+                                      ]?.rating >= star
+                                        ? '#ffcc00'
+                                        : '#bebbb8',
+                                  }}
+                                  onClick={() =>
+                                    handleRating(
+                                      product.product_id,
+                                      product.variant_id,
+                                      star
+                                    )
+                                  }
+                                  onMouseEnter={() =>
+                                    handleHover(
+                                      product.product_id,
+                                      product.variant_id,
+                                      star
+                                    )
+                                  }
+                                  onMouseLeave={() =>
+                                    handleHover(
+                                      product.product_id,
+                                      product.variant_id,
+                                      0
+                                    )
+                                  }
+                                >
+                                  ★
+                                </button>
+                              ))}
                         </div>
                         {product?.rating ? (
-                          product?.review_text ? (
-                            <textarea
-                              className={styles.reviewInput}
-                              value={product?.review_text}
-                              readOnly
-                            />
-                          ) : null
+                          <div
+                            className={styles.submitBtn}
+                            style={{
+                              backgroundColor: '#8FBC8F',
+                              cursor: 'text',
+                            }}
+                          >
+                            已評論
+                          </div>
                         ) : (
-                          <textarea
-                            className={styles.reviewInput}
-                            placeholder="請留下您的評論..."
-                            onChange={(e) =>
-                              handleReviewChange(
+                          <button
+                            className={styles.submitBtn}
+                            onClick={() =>
+                              submitReview(
+                                product.order_item_id,
                                 product.product_id,
-                                product.variant_id,
-                                e.target.value
+                                product.variant_id
                               )
                             }
-                          />
+                          >
+                            提交
+                          </button>
                         )}
                       </div>
+                      {product?.rating ? (
+                        product?.review_text ? (
+                          <textarea
+                            className={styles.reviewInput}
+                            value={product?.review_text}
+                            readOnly
+                          />
+                        ) : null
+                      ) : (
+                        <textarea
+                          className={styles.reviewInput}
+                          placeholder="請留下您的評論..."
+                          onChange={(e) =>
+                            handleReviewChange(
+                              product.product_id,
+                              product.variant_id,
+                              e.target.value
+                            )
+                          }
+                        />
+                      )}
                     </div>
-                  ) : null}
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>
