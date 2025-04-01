@@ -12,6 +12,8 @@ import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import { FaRegHeart, FaHeart,FaLongArrowAltRight } from 'react-icons/fa'
 // components
 import Carousel from '@/app/shop/_components/carousel'
+import Alert from '@/app/_components/alert'
+
 // auth
 import { useAuth } from '@/app/context/AuthContext'
 
@@ -63,10 +65,17 @@ export default function PetsPage() {
   const toggleLike = async (productId) => {
     // 如果用戶未登入，則提示登入
     if (!isAuthenticated || !user) {
-      alert('請先登入才能收藏商品')
-      // 儲存當前頁面路徑，以便登入後返回
-      sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
-      window.location.href = '/member/MemberLogin/login'
+      Alert({ 
+        icon: 'error',
+        title: '請先登入才能收藏商品',
+        showCancelBtn: true,
+        showconfirmBtn: true,
+        confirmBtnText: '登入',
+        cancelBtnText: '取消',
+        function: () => {
+          sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+          window.location.href = '/member/MemberLogin/login'},
+      })
       return
     }
 
