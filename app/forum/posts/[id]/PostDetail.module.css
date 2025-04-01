@@ -1,0 +1,66 @@
+.voteSection {
+  width: 40px;
+  background-color: #f8f9fa;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.voteButton {
+  padding: 0;
+  display: block;
+  margin: 0 auto;
+  transition: color 0.2s ease-in-out;
+}
+
+.voteButton.liked {
+  color: var(--primary-color);
+}
+
+.voteButton.disliked {
+  color: var(--danger, #dc3545);
+}
+
+.voteButton.default {
+  color: #878A8C;
+}
+
+.voteButton:hover {
+  color: var(--primary-dark);
+}
+
+.voteButton.disliked:hover {
+  color: var(--danger-dark, #bd2130);
+}
+
+.voteCount {
+  margin: 0.25rem 0;
+  font-weight: bold;
+}
+
+.voteCount.liked {
+  color: var(--primary-color);
+}
+
+.voteCount.disliked {
+  color: var(--danger, #dc3545);
+}
+
+.voteCount.default {
+  color: #1A1A1B;
+}
+
+.shareButton {
+  padding: 0;
+  margin-left: auto;
+  color: #878A8C;
+  transition: color 0.2s ease-in-out;
+}
+
+.shareButton:hover {
+  color: var(--primary-color);
+}
+
+.contentSection {
+  flex-grow: 1;
+  padding: 1rem;
+}

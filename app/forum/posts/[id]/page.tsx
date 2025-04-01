@@ -14,9 +14,10 @@ import { useParams } from 'next/navigation'
 import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-import { BsArrowUpCircle, BsArrowUpCircleFill, BsChat } from 'react-icons/bs'
+import { BsArrowUpCircle, BsArrowUpCircleFill, BsArrowDownCircle, BsArrowDownCircleFill, BsChat, BsShare } from 'react-icons/bs'
 import { FaTwitter, FaFacebook, FaInstagram } from 'react-icons/fa'
 import Link from 'next/link'
+import styles from './PostDetail.module.css'
 import '../../styles/custom-theme.css'
 
 interface Post {
@@ -27,6 +28,7 @@ interface Post {
   updated_at: string
   view_count: number
   like_count: number
+  dislike_count: number
   comment_count: number
   user_id: number
   category: {
@@ -97,7 +99,9 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isLiked, setIsLiked] = useState(false)
+  const [isDisliked, setIsDisliked] = useState(false)
   const [likesCount, setLikesCount] = useState(0)
+  const [dislikesCount, setDislikesCount] = useState(0)
 
   useEffect(() => {
     const fetchPostDetail = async () => {
@@ -107,6 +111,7 @@ export default function PostDetailPage() {
           setPost(response.data.data.post)
           setComments(response.data.data.post.forum_comments || [])
           setLikesCount(response.data.data.post.like_count)
+          setDislikesCount(response.data.data.post.dislike_count || 0)
           setLoading(false)
         } else {
           setError(response.data.message || '無法載入文章')
@@ -124,6 +129,10 @@ export default function PostDetailPage() {
   }, [params.id])
 
   const handleLike = async () => {
+    if (isDisliked) {
+      setIsDisliked(false)
+      setDislikesCount(prev => Math.max(0, prev - 1))
+    }
     try {
       const response = await axios.post(`/api/forum/posts/${params.id}`, {
         action: 'like'
@@ -135,6 +144,40 @@ export default function PostDetailPage() {
       }
     } catch (err) {
       console.error('Error liking post:', err)
+    }
+  }
+
+  const handleDislike = async () => {
+    if (isLiked) {
+      setIsLiked(false)
+      setLikesCount(prev => Math.max(0, prev - 1))
+    }
+    try {
+      const response = await axios.post(`/api/forum/posts/${params.id}`, {
+        action: 'dislike'
+      })
+      
+      if (response.data.status === 'success') {
+        setIsDisliked(response.data.data.isDisliked)
+        setDislikesCount(response.data.data.dislikesCount)
+      }
+    } catch (err) {
+      console.error('Error disliking post:', err)
+    }
+  }
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: post?.title,
+        text: `查看這篇寵物論壇文章：${post?.title}`,
+        url: window.location.href
+      }).catch(err => console.error('Error sharing:', err))
+    } else {
+      // 如果瀏覽器不支援原生分享，複製連結到剪貼簿
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => alert('連結已複製到剪貼簿'))
+        .catch(err => console.error('Error copying to clipboard:', err))
     }
   }
 
@@ -172,21 +215,33 @@ export default function PostDetailPage() {
                 {/* Vote and Content Section */}
                 <div className="d-flex">
                   {/* Vote Section */}
-                  <div className="bg-light p-2 text-center" style={{ width: '40px' }}>
+                  <div className={styles.voteSection}>
                     <button 
                       onClick={handleLike}
-                      className="btn btn-link p-0 d-block mx-auto"
-                      style={{ color: isLiked ? 'var(--primary-color)' : '#878A8C' }}
+                      className={`btn btn-link ${styles.voteButton} ${isLiked ? styles.liked : styles.default}`}
+                      title="讚同"
+                      aria-label="讚同這篇文章"
                     >
                       {isLiked ? <BsArrowUpCircleFill size={24} /> : <BsArrowUpCircle size={24} />}
                     </button>
-                    <div className="my-1 fw-bold" style={{ color: isLiked ? 'var(--primary-color)' : '#1A1A1B' }}>
+                    <div className={`${styles.voteCount} ${isLiked ? styles.liked : styles.default}`}>
                       {likesCount}
+                    </div>
+                    <button 
+                      onClick={handleDislike}
+                      className={`btn btn-link ${styles.voteButton} ${isDisliked ? styles.disliked : styles.default}`}
+                      title="不讚同"
+                      aria-label="不讚同這篇文章"
+                    >
+                      {isDisliked ? <BsArrowDownCircleFill size={24} /> : <BsArrowDownCircle size={24} />}
+                    </button>
+                    <div className={`${styles.voteCount} ${isDisliked ? styles.disliked : styles.default}`}>
+                      {dislikesCount}
                     </div>
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex-grow-1 p-3">
+                  <div className={styles.contentSection}>
                     {/* Post Header */}
                     <div className="mb-2">
                       <div className="d-flex align-items-center text-muted small mb-2">
@@ -197,6 +252,14 @@ export default function PostDetailPage() {
                         <span className="ms-1">
                           {formatDistanceToNow(new Date(post?.created_at || ''), { locale: zhTW, addSuffix: true })}
                         </span>
+                        <button 
+                          onClick={handleShare}
+                          className={`btn btn-link ${styles.shareButton}`}
+                          title="分享文章"
+                          aria-label="分享這篇文章"
+                        >
+                          <BsShare size={18} />
+                        </button>
                       </div>
                       <h2 className="h4 mb-3">{post?.title}</h2>
                     </div>
