@@ -425,4 +425,8 @@
     flex-direction: column;
     width: 100%;
   }
+  .imgContainer img{
+    width: 100% !important;
+    height: 100%;
+  }
 }

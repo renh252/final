@@ -598,6 +598,7 @@ const calculateDisplayPrice = () => {
                   href={`/shop/${product.product_id}`}
                 >
                   <Card
+                  className={shopStyles.card}
                     image={product.image_url || '/images/default_no_pet.jpg'}
                     title={product.product_name}
                   >

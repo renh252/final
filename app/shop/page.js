@@ -287,7 +287,7 @@ export default function PetsPage() {
           {parentsWithProducts?.map((parent) => (
             <div key={parent.category_id} className={styles.contain}>
               <div className={styles.contain_title}>
-                parent.category_name
+                {parent?.category_name}
               </div>
               <div className={styles.contain_body}>
                 {/* 子分類區 */}
