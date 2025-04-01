@@ -84,8 +84,20 @@ const columns: Column[] = [
     key: 'appointment_date',
     label: '預約時間',
     sortable: true,
-    render: (_, row) =>
-      formatDateTime(row.appointment_date, row.appointment_time),
+    render: (_, row) => {
+      // 記錄原始值以便調試
+      console.log(`Row ${row.id} 原始值:`, {
+        date: row.appointment_date,
+        time: row.appointment_time,
+      })
+
+      // 格式化日期和時間
+      const formattedDate = formatDate(row.appointment_date)
+      const formattedTime = formatTime(row.appointment_time)
+
+      // 返回組合後的值
+      return `${formattedDate} ${formattedTime}`.trim()
+    },
   },
   {
     key: 'status',
@@ -179,31 +191,49 @@ const formatTime = (timeStr: string) => {
   if (timeStr.includes(':') && !timeStr.includes('T')) {
     return timeStr.substring(0, 5) // 只取 HH:MM
   }
-  // 如果是完整的日期時間
-  const date = new Date(timeStr)
-  return date.toLocaleTimeString('zh-TW', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+
+  try {
+    // 如果是完整的日期時間
+    const date = new Date(timeStr)
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${hours}:${minutes}`
+  } catch (e) {
+    console.error('時間格式化錯誤:', e)
+    return timeStr.substring(0, 5) // 回退到直接取前 5 個字符
+  }
 }
 
 const formatDateTime = (dateStr: string, timeStr?: string) => {
   if (!dateStr) return ''
 
+  console.log('formatDateTime 原始值:', { dateStr, timeStr })
+
   // 處理完整的ISO日期時間
   if (dateStr.includes('T')) {
     const date = new Date(dateStr)
-    return date.toLocaleString('zh-TW', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const result = `${year}/${month}/${day} ${hours}:${minutes}`
+    console.log('格式化後 ISO 日期時間:', result)
+    return result
   }
 
-  // 處理分開的日期和時間
-  return `${formatDate(dateStr)} ${timeStr ? formatTime(timeStr) : ''}`.trim()
+  // 如果是分開的日期和時間，確保時間正確處理
+  const formattedDate = formatDate(dateStr)
+
+  // 使用 formatTime 處理時間部分
+  let formattedTime = ''
+  if (timeStr) {
+    formattedTime = formatTime(timeStr)
+  }
+
+  const result = `${formattedDate} ${formattedTime}`.trim()
+  console.log('格式化後日期時間:', result)
+  return result
 }
 
 // 判斷預約是否已逾期
@@ -245,23 +275,11 @@ const isAppointmentOverdue = (appointment) => {
         appointment.appointment_time.includes(':')
       ) {
         // 處理時間部分
-        const timePart = appointment.appointment_time
-          .replace(/[上下]午/, '')
-          .trim()
+        const timePart = appointment.appointment_time.trim()
         const timeParts = timePart.split(':').map((part) => part.trim())
 
         hours = parseInt(timeParts[0], 10) || 0
         minutes = parseInt(timeParts[1], 10) || 0
-
-        // 處理上午/下午
-        if (appointment.appointment_time.includes('下午') && hours < 12) {
-          hours += 12
-        } else if (
-          appointment.appointment_time.includes('上午') &&
-          hours === 12
-        ) {
-          hours = 0
-        }
       }
 
       // 建立日期物件
@@ -282,6 +300,22 @@ const isAppointmentOverdue = (appointment) => {
     })
     return false // 出錯時預設為非逾期
   }
+}
+
+// 轉換住宅類型的英文為中文
+const getHouseTypeLabel = (houseType: string | null): string => {
+  if (!houseType) return '未知'
+
+  const houseTypeMap: Record<string, string> = {
+    apartment: '公寓',
+    house: '獨棟房屋',
+    townhouse: '連棟房屋',
+    condo: '共有公寓',
+    studio: '小型公寓',
+    other: '其他',
+  }
+
+  return houseTypeMap[houseType] || houseType
 }
 
 export default function PetAppointmentsPage() {
@@ -413,9 +447,15 @@ export default function PetAppointmentsPage() {
 
   // 將預約轉換為行事曆事件格式
   const getCalendarEvents = () => {
-    return appointments.map((appointment) => {
+    return filteredAndSortedAppointments.map((appointment) => {
       try {
         let appointmentDate: Date
+
+        // 記錄原始時間值以便排錯
+        console.log(`行事曆事件 ID ${appointment.id} 原始值:`, {
+          date: appointment.appointment_date,
+          time: appointment.appointment_time,
+        })
 
         // 檢查是否是 ISO 日期時間格式 (2024-12-14T16:00:00.000Z)
         if (
@@ -448,47 +488,53 @@ export default function PetAppointmentsPage() {
             appointment.appointment_time.includes(':')
           ) {
             // 處理時間部分
-            const timePart = appointment.appointment_time
-              .replace(/[上下]午/, '')
-              .trim()
+            const timePart = appointment.appointment_time.trim()
             const timeParts = timePart.split(':').map((part) => part.trim())
-
-            if (
-              timeParts.length < 2 ||
-              timeParts.some((p) => isNaN(parseInt(p, 10)))
-            ) {
-              console.warn(
-                `時間格式可能不正確: ${appointment.appointment_time}`
-              )
-            }
 
             hours = parseInt(timeParts[0], 10) || 0
             minutes = parseInt(timeParts[1], 10) || 0
 
-            // 時間範圍檢查
-            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-              throw new Error(`時間值超出有效範圍: ${hours}:${minutes}`)
-            }
-
-            // 處理上午/下午
-            if (appointment.appointment_time.includes('下午') && hours < 12) {
-              hours += 12
-            } else if (
-              appointment.appointment_time.includes('上午') &&
-              hours === 12
-            ) {
-              hours = 0
-            }
+            console.log(`解析時間值:`, { hours, minutes, timePart, timeParts })
           }
 
           // 建立日期物件
           appointmentDate = new Date(year, month, day, hours, minutes)
         }
 
-        // 檢查日期是否有效
+        // 檢查日期是否有效，並確保至少有正確的小時數
         if (isNaN(appointmentDate.getTime())) {
           throw new Error(`建立的日期物件無效: ${appointmentDate}`)
         }
+
+        // 特別檢查是否日期正確但時間是 00:00，嘗試從 appointment_time 再次提取時間
+        if (
+          appointmentDate.getHours() === 0 &&
+          appointmentDate.getMinutes() === 0 &&
+          appointment.appointment_time
+        ) {
+          try {
+            const timeMatch = appointment.appointment_time.match(/(\d+):(\d+)/)
+            if (timeMatch) {
+              const hours = parseInt(timeMatch[1], 10) || 0
+              const minutes = parseInt(timeMatch[2], 10) || 0
+
+              if (hours > 0 || minutes > 0) {
+                console.log(`重新提取時間成功:`, { hours, minutes })
+                appointmentDate.setHours(hours, minutes)
+              }
+            }
+          } catch (e) {
+            console.error('重新提取時間失敗:', e)
+          }
+        }
+
+        // 記錄最終解析後的日期和時間
+        console.log(`最終行事曆日期時間:`, {
+          date: appointmentDate,
+          hours: appointmentDate.getHours(),
+          minutes: appointmentDate.getMinutes(),
+          iso: appointmentDate.toISOString(),
+        })
 
         // 安全地產生 ISO 字串
         let dateTimeISO
@@ -518,11 +564,17 @@ export default function PetAppointmentsPage() {
             break
         }
 
+        // 格式化時間顯示
+        const timeDisplay = `${String(appointmentDate.getHours()).padStart(
+          2,
+          '0'
+        )}:${String(appointmentDate.getMinutes()).padStart(2, '0')}`
+
         return {
           id: appointment.id.toString(),
-          title: `${appointment.pet_name} - ${appointment.user_name}${
-            isOverdue ? ' (已逾期)' : ''
-          }`,
+          title: `${timeDisplay} ${appointment.pet_name} - ${
+            appointment.user_name
+          }${isOverdue ? ' (已逾期)' : ''}`,
           start: dateTimeISO,
           end: new Date(
             appointmentDate.getTime() + 60 * 60 * 1000
@@ -592,31 +644,59 @@ export default function PetAppointmentsPage() {
     let result = [...appointments]
 
     // 搜尋過濾
-    if (searchTerm) {
+    if (searchTerm.trim()) {
+      const searchTermLower = searchTerm.toLowerCase().trim()
+      console.log('搜尋關鍵字:', searchTermLower)
+
       result = result.filter(
         (appointment) =>
-          appointment.user_name
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          appointment.pet_name.toLowerCase().includes(searchTerm.toLowerCase())
+          appointment.user_name?.toLowerCase().includes(searchTermLower) ||
+          appointment.pet_name?.toLowerCase().includes(searchTermLower) ||
+          appointment.id.toString().includes(searchTermLower)
       )
+
+      console.log('搜尋後結果數量:', result.length)
     }
 
     // 狀態過濾
     if (statusFilter === 'overdue') {
+      console.log('過濾逾期預約')
       result = result.filter((appointment) => isAppointmentOverdue(appointment))
+      console.log('過濾後逾期預約數量:', result.length)
     } else if (statusFilter !== 'all') {
+      console.log('過濾狀態:', statusFilter)
       result = result.filter(
         (appointment) => appointment.status === statusFilter
       )
+      console.log('過濾後狀態預約數量:', result.length)
     }
 
     // 排序
     if (sortConfig && sortConfig.key) {
+      console.log('執行排序:', sortConfig)
       result.sort((a, b) => {
-        const aValue = a[sortConfig.key as keyof Appointment] ?? ''
-        const bValue = b[sortConfig.key as keyof Appointment] ?? ''
+        let aValue: any = a[sortConfig.key as keyof Appointment]
+        let bValue: any = b[sortConfig.key as keyof Appointment]
 
+        // 特殊處理日期和時間欄位
+        if (sortConfig.key === 'appointment_date') {
+          // 組合日期和時間進行排序
+          const aDate = new Date(
+            `${a.appointment_date}T${a.appointment_time || '00:00:00'}`
+          )
+          const bDate = new Date(
+            `${b.appointment_date}T${b.appointment_time || '00:00:00'}`
+          )
+
+          aValue = aDate.getTime()
+          bValue = bDate.getTime()
+        }
+
+        // 處理可能的 null 或 undefined 值
+        if (aValue === null || aValue === undefined) aValue = ''
+        if (bValue === null || bValue === undefined) bValue = ''
+
+        // 執行比較
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1
         }
@@ -764,12 +844,27 @@ export default function PetAppointmentsPage() {
                   <FaSearch className="me-2" />
                   搜尋
                 </Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="搜尋申請者或寵物名稱"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                <div className="d-flex">
+                  <Form.Control
+                    type="text"
+                    placeholder="搜尋申請者或寵物名稱"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value)
+                      // 每次搜尋變更時重置頁碼
+                      setCurrentPage(1)
+                    }}
+                  />
+                  {searchTerm && (
+                    <Button
+                      variant="outline-secondary"
+                      className="ms-2"
+                      onClick={() => setSearchTerm('')}
+                    >
+                      <FaTimes />
+                    </Button>
+                  )}
+                </div>
               </Form.Group>
             </Col>
             <Col md={6}>
@@ -778,24 +873,54 @@ export default function PetAppointmentsPage() {
                   <FaFilter className="me-2" />
                   狀態篩選
                 </Form.Label>
-                <Form.Select
-                  value={statusFilter}
-                  onChange={(e) =>
-                    setStatusFilter(
-                      e.target.value as AppointmentStatus | 'all' | 'overdue'
-                    )
-                  }
-                >
-                  <option value="all">全部狀態</option>
-                  <option value="pending">待審核</option>
-                  <option value="approved">已確認</option>
-                  <option value="completed">已完成</option>
-                  <option value="cancelled">已取消</option>
-                  <option value="overdue">已逾期</option>
-                </Form.Select>
+                <div className="d-flex">
+                  <Form.Select
+                    value={statusFilter}
+                    onChange={(e) => {
+                      setStatusFilter(
+                        e.target.value as AppointmentStatus | 'all' | 'overdue'
+                      )
+                      // 每次篩選變更時重置頁碼
+                      setCurrentPage(1)
+                    }}
+                  >
+                    <option value="all">全部狀態</option>
+                    <option value="pending">待審核</option>
+                    <option value="approved">已確認</option>
+                    <option value="completed">已完成</option>
+                    <option value="cancelled">已取消</option>
+                    <option value="overdue">已逾期</option>
+                  </Form.Select>
+                  {statusFilter !== 'all' && (
+                    <Button
+                      variant="outline-secondary"
+                      className="ms-2"
+                      onClick={() => setStatusFilter('all')}
+                    >
+                      <FaTimes />
+                    </Button>
+                  )}
+                </div>
               </Form.Group>
             </Col>
           </Row>
+
+          {/* 清除所有篩選按鈕 */}
+          {(searchTerm || statusFilter !== 'all') && (
+            <div className="d-flex justify-content-end mb-3">
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm('')
+                  setStatusFilter('all')
+                  setCurrentPage(1)
+                }}
+              >
+                <FaTimes className="me-1" /> 清除所有篩選
+              </Button>
+            </div>
+          )}
 
           {/* 視圖切換控制 */}
           <div className="d-flex justify-content-end mb-3">
@@ -829,10 +954,9 @@ export default function PetAppointmentsPage() {
           {viewMode === 'table' && (
             <DataTable
               columns={columns}
-              data={appointments}
+              data={filteredAndSortedAppointments}
               loading={loading}
-              searchable={true}
-              searchKeys={searchKeys}
+              searchable={false}
               onRowClick={(row) => handleOpenModal(row as Appointment)}
               selectable={true}
               batchActions={batchActions}
@@ -883,7 +1007,10 @@ export default function PetAppointmentsPage() {
               <Row>
                 <Col>
                   <h5>居住環境</h5>
-                  <p>住宅類型：{selectedAppointment.house_type}</p>
+                  <p>
+                    住宅類型：
+                    {getHouseTypeLabel(selectedAppointment.house_type)}
+                  </p>
                   <p>其他寵物：{selectedAppointment.other_pets || '無'}</p>
                   <p>
                     養寵經驗：
