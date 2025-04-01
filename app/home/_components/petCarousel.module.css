@@ -102,6 +102,7 @@
   }
   .track {
     justify-content: center;
+    margin-left: -30px;
   }
   .navButton {
     font-size: 1.25rem;
