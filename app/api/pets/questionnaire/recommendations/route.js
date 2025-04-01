@@ -127,10 +127,11 @@ export async function GET(request) {
         p.story, 
         p.store_id,
         ps.name as store_name,
-        p.main_photo
+        MAX(pp.photo_url) as main_photo
       FROM pets p
       LEFT JOIN pet_store ps ON p.store_id = ps.id
       LEFT JOIN pet_trait pt ON p.id = pt.pet_id
+      LEFT JOIN pet_photos pp ON p.id = pp.pet_id AND pp.is_main = 1
     `
 
     if (conditions.length > 0) {
@@ -168,9 +169,10 @@ export async function GET(request) {
           p.story, 
           p.store_id,
           ps.name as store_name,
-          p.main_photo
+          MAX(pp.photo_url) as main_photo
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
+        LEFT JOIN pet_photos pp ON p.id = pp.pet_id AND pp.is_main = 1
         WHERE p.is_adopted = 0
         GROUP BY p.id
         ORDER BY p.id ASC
