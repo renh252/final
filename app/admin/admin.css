@@ -8,6 +8,19 @@
   flex-direction: column;
   min-height: 100vh;
   overflow-x: hidden;
+  height: 100vh;
+  overflow-y: hidden;
+}
+
+/* 確保html沒有多餘margin */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  min-height: 100%;
+  height: 100%;
+  overflow-y: hidden;
 }
 
 /* 確保後台路由下的html和body沒有padding-top */
@@ -144,9 +157,10 @@
   height: calc(100vh - 60px); /* 考慮header高度 */
   min-height: calc(100vh - 60px);
   display: flex;
-  overflow-y: auto; /* 允許內容滾動 */
+  overflow-y: auto; /* 保留內容區域的滾動功能 */
   flex-direction: column;
   position: relative; /* 提供定位上下文 */
+  width: 100%;
 }
 
 /* 內容包裝器 - 確保footer在最下方 */
@@ -156,6 +170,7 @@
   flex-direction: column;
   flex-grow: 1; /* 填充可用空間 */
   min-height: min-content; /* 最小高度基於內容 */
+  margin: 0;
 }
 
 /* 內容區域 */
@@ -163,6 +178,7 @@
   flex-grow: 1;
   padding: 1.5rem;
   width: 100%;
+  margin: 0;
 }
 
 /* AdminPageLayout內容區域 */
