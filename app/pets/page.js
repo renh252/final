@@ -466,9 +466,6 @@ export default function PetsPage() {
   // 處理篩選更新的統一函數
   const handleFilterUpdate = useCallback(
     (updateFn) => {
-      // 保存當前滾動位置
-      const currentScrollPosition = window.scrollY
-
       // 保存當前數據以避免閃爍
       if (petsData) {
         setPreviousPetsData(petsData)
@@ -479,13 +476,7 @@ export default function PetsPage() {
         // 執行實際的狀態更新
         updateFn()
 
-        // 延遲恢復滾動位置
-        requestAnimationFrame(() => {
-          window.scrollTo({
-            top: currentScrollPosition,
-            behavior: 'auto',
-          })
-        })
+        // 不再恢復滾動位置，避免影響menubar顯示
       })
     },
     [petsData]
@@ -828,9 +819,6 @@ export default function PetsPage() {
 
   // 獲取用戶位置
   const getUserLocation = useCallback(() => {
-    // 保存當前滾動位置
-    const currentScrollPosition = window.scrollY
-
     // 重置錯誤狀態
     setLocationError(null)
     setNearbyStores([]) // 重置附近商店
@@ -900,13 +888,7 @@ export default function PetsPage() {
           setMapMarkers(markersArray)
           setIsGettingLocation(false)
 
-          // 恢復滾動位置
-          requestAnimationFrame(() => {
-            window.scrollTo({
-              top: currentScrollPosition,
-              behavior: 'auto',
-            })
-          })
+          // 不再恢復滾動位置，避免影響menubar顯示
         }, 200)
       },
       (error) => {
@@ -1215,11 +1197,10 @@ export default function PetsPage() {
     </div>
   )
 
-  // 處理地圖位置選擇的統一函數
+  // 處理地圖位置選擇
   const handleMapLocationSelect = useCallback(
     (location) => {
-      // 保存當前滾動位置
-      const currentScrollPosition = window.scrollY
+      // 不再保存滾動位置
 
       // 使用 handleFilterUpdate 來管理狀態更新和防抖
       handleFilterUpdate(() => {
@@ -1270,13 +1251,7 @@ export default function PetsPage() {
         setMapCenter([location.lat, location.lng])
         setMapZoom(15)
 
-        // 恢復滾動位置
-        requestAnimationFrame(() => {
-          window.scrollTo({
-            top: currentScrollPosition,
-            behavior: 'auto',
-          })
-        })
+        // 不再恢復滾動位置，避免影響menubar顯示
       })
     },
     [
