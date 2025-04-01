@@ -22,9 +22,15 @@ export default function MenuRWD({ children }) {
   }
   // 監聽路由變化
   useEffect(() => {
-    // 當 pathname 變化時，關閉菜單
+    // 當 pathname 變化時，關閉主菜單
     setMenuOpen(false)
-    setCollectionOpen(false)
+
+    // 檢測是否是收藏相關頁面，如果是則展開收藏選單
+    if (pathname.startsWith('/member/FavoritesList/')) {
+      setCollectionOpen(true)
+    } else {
+      setCollectionOpen(false)
+    }
   }, [pathname])
 
   const isActive = useCallback(
@@ -46,8 +52,8 @@ export default function MenuRWD({ children }) {
   }, [pathname])
   const handleCollectionClick = (path) => {
     router.push(path)
-    // 保持菜單的折疊狀態 (不自動關閉)
-    setCollectionOpen(true)
+    // 點擊後不要立即關閉收藏子選單
+    // 但也不需要在這裡設置setCollectionOpen(true)，因為這可能會干擾其他路由變化
   }
 
   if (!user) {
@@ -76,7 +82,7 @@ export default function MenuRWD({ children }) {
           }`}
         >
           <button onClick={() => setCollectionOpen(!collectionOpen)}>
-            我的收藏
+            <span>我的收藏</span>
             {collectionOpen ? <MdExpandLess /> : <MdExpandMore />}
           </button>
           <div
