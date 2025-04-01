@@ -43,11 +43,20 @@
   .banner_title {
     padding: 0.3rem 0.8rem;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    font-size: clamp(1.8rem, 6vw, 2.8rem);
+    letter-spacing: 0.12em;
+    font-weight: 700;
   }
 }
 
 @media (max-width: 480px) {
   .banner {
     min-height: 150px;
+  }
+
+  .banner_title {
+    font-size: clamp(1.6rem, 8vw, 2.5rem);
+    padding: 0.4rem 0.6rem;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
   }
 }
