@@ -291,6 +291,14 @@
   padding: 0;
   background-color: #fdfbf9;
   width: 100%;
+  overflow: hidden; /* 確保不會溢出 */
+}
+
+/* 最新上架區塊的專用樣式 */
+.latestContainer .groupBody {
+  padding: 0;
+  overflow: visible; /* 允許滾動顯示 */
+  margin: 0 -15px; /* 負邊距補償padding */
 }
 
 .cardGroup {
@@ -1291,20 +1299,91 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   margin-right: auto;
 }
 
+/* 搜尋結果容器樣式 */
+.searchResultsContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 修復寵物搜尋結果的排版 - 新增 flexContainer 和 flexItem 樣式 */
+.flexContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  padding: 30px;
+  background-color: #fdfbf9;
+  border-radius: 0 0 12px 12px;
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  justify-content: center;
+}
+
+.flexItem {
+  width: 100%;
+  min-width: 280px;
+  margin-bottom: 30px;
+  transition: transform 0.3s ease;
+  justify-self: center; /* 確保卡片在網格項內水平居中 */
+}
+
+.flexItem:hover {
+  transform: translateY(-5px);
+}
+
+/* 搜尋結果網格中的卡片鏈接樣式 */
+.flexContainer .cardLink {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+  display: block;
+}
+
+/* 響應式調整 */
+@media (max-width: 1200px) {
+  .flexContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .flexContainer {
+    grid-template-columns: repeat(1, 1fr);
+    padding: 15px;
+    gap: 20px;
+  }
+
+  .flexItem {
+    margin-bottom: 20px;
+  }
+}
+
 .latestCardGroup {
   min-height: auto;
-  padding: 1rem 20px;
-  justify-content: center;
+  padding: 1rem 0;
+  padding-left: 30px; /* 增加左側距離 */
+  justify-content: flex-start;
   width: 100%;
   position: relative;
   display: flex;
   flex-wrap: nowrap;
   scroll-padding: 0 20px;
+  gap: 15px; /* 減少卡片間距 */
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.latestCardGroup::-webkit-scrollbar {
+  display: none;
 }
 
 .latestCardGroup:after {
   content: '';
   padding-right: 20px;
+  flex: 0 0 auto;
 }
 
 .latestCardLink {
@@ -1312,6 +1391,10 @@ body:has(.petsContainer.mapView) .leftSideDrawer:not(.open) {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  margin: 0;
+  width: 280px; /* 固定卡片寬度 */
+  flex-shrink: 0; /* 防止卡片被壓縮 */
 }
 
 .latestPetCard {

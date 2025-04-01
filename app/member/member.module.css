@@ -197,9 +197,10 @@
 .label_input {
   padding: 5px 10px; /* 增加一些內邊距，讓文字不會緊貼邊框 */
   border: 1px solid #8b6565; /* 設定淺灰色框線 */
-  border-radius: 20px; /* 設定圓角，數值越大越圓 */
+  border-radius: 5px; /* 設定圓角，數值從20px修改為5px */
   box-sizing: border-box; /* 確保內邊距和邊框不會增加元素的總寬度 */
   font-size: 16px; /* 可以根據需要調整字體大小 */
+  margin-top: 5px; /* 添加上方間距 */
 }
 
 .password_button {
