@@ -6,18 +6,12 @@ import {
   Card,
   Button,
   Form,
-  Row,
-  Col,
   Badge,
-  OverlayTrigger,
-  Tooltip,
 } from 'react-bootstrap'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-import Link from 'next/link'
-import Image from 'next/image'
 
 interface Post {
   id: number
@@ -28,11 +22,7 @@ interface Post {
   view_count: number
   like_count: number
   comment_count: number
-  user: {
-    id: number
-    name: string
-    avatar: string
-  }
+  user_id: number
   category: {
     id: number
     name: string
@@ -49,16 +39,11 @@ interface Comment {
   id: number
   content: string
   created_at: string
-  user: {
-    id: number
-    name: string
-    avatar: string
-  }
+  user_id: number
 }
 
 export default function PostDetailPage() {
   const params = useParams()
-  const router = useRouter()
   const [post, setPost] = useState<Post | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
@@ -101,8 +86,8 @@ export default function PostDetailPage() {
         setIsLiked(response.data.data.isLiked)
         setLikesCount(response.data.data.likesCount)
       }
-    } catch (error) {
-      console.error('點讚失敗:', error)
+    } catch (err) {
+      console.error('Error liking post:', err)
     }
   }
 
@@ -116,11 +101,7 @@ export default function PostDetailPage() {
         id: Date.now(),
         content: newComment,
         created_at: new Date().toISOString(),
-        user: {
-          id: 1,
-          name: 'Anonymous User',
-          avatar: '/images/default-avatar.png'
-        }
+        user_id: 1
       }
 
       setComments(prev => [newCommentData, ...prev])
@@ -130,94 +111,57 @@ export default function PostDetailPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <Container className="py-4">
-        <div className="text-center">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      </Container>
-    )
-  }
-
-  if (error || !post) {
-    return (
-      <Container className="py-4">
-        <div className="alert alert-danger" role="alert">
-          {error || '找不到此文章'}
-        </div>
-        <Button variant="link" onClick={() => router.back()}>
-          返回上一頁
-        </Button>
-      </Container>
-    )
-  }
+  if (loading) return <div>載入中...</div>
+  if (error) return <div>錯誤: {error}</div>
+  if (!post) return <div>找不到文章</div>
 
   return (
     <Container className="py-4">
-      <Card className="mb-4">
+      <Card>
         <Card.Body>
-          <div className="d-flex align-items-center mb-3">
-            <Image
-              src={post.user.avatar}
-              alt={post.user.name}
-              width={40}
-              height={40}
-              className="rounded-circle me-2"
-            />
+          <div className="d-flex justify-content-between align-items-start mb-3">
             <div>
-              <div className="fw-bold">{post.user.name}</div>
-              <small className="text-muted">
-                {formatDistanceToNow(new Date(post.created_at), {
-                  addSuffix: true,
-                  locale: zhTW
-                })}
-              </small>
+              <h1 className="h2 mb-3">{post.title}</h1>
+              <div className="text-muted mb-2">
+                <small>
+                  發布於 {formatDistanceToNow(new Date(post.created_at), { locale: zhTW, addSuffix: true })}
+                  {post.created_at !== post.updated_at && 
+                    ` • 編輯於 ${formatDistanceToNow(new Date(post.updated_at), { locale: zhTW, addSuffix: true })}`
+                  }
+                </small>
+              </div>
+              <div className="mb-2">
+                <Badge bg="primary" className="me-2">
+                  {post.category.name}
+                </Badge>
+                {post.tags.map(tag => (
+                  <Badge key={tag.id} bg="secondary" className="me-1">
+                    {tag.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div className="text-muted">
+              <small>觀看次數: {post.view_count}</small>
             </div>
           </div>
 
-          <h1 className="h3 mb-3">{post.title}</h1>
-          
-          <div className="mb-3">
-            <Badge bg="primary" className="me-2">
-              {post.category.name}
-            </Badge>
-            {post.tags.map(tag => (
-              <Badge key={tag.id} bg="secondary" className="me-2">
-                {tag.name}
-              </Badge>
-            ))}
-          </div>
-
-          <div className="mb-4" style={{ whiteSpace: 'pre-wrap' }}>
+          <Card.Text style={{ whiteSpace: 'pre-wrap' }}>
             {post.content}
-          </div>
+          </Card.Text>
 
-          <div className="d-flex align-items-center text-muted">
-            <Button
-              variant={isLiked ? 'primary' : 'outline-primary'}
-              size="sm"
+          <div className="d-flex justify-content-between align-items-center mt-4">
+            <Button 
+              variant={isLiked ? "primary" : "outline-primary"}
               onClick={handleLike}
-              className="me-3"
             >
-              <i className="bi bi-hand-thumbs-up me-1"></i>
-              {likesCount}
+              {isLiked ? '已讚' : '讚'} ({likesCount})
             </Button>
-            <span className="me-3">
-              <i className="bi bi-eye me-1"></i>
-              {post.view_count}
-            </span>
-            <span>
-              <i className="bi bi-chat-dots me-1"></i>
-              {comments.length}
-            </span>
           </div>
         </Card.Body>
       </Card>
 
-      <Card className="mb-4">
+      <Card className="mt-4">
         <Card.Body>
           <h5 className="mb-3">發表評論</h5>
           <Form onSubmit={handleSubmitComment}>
@@ -237,30 +181,22 @@ export default function PostDetailPage() {
         </Card.Body>
       </Card>
 
-      <div>
-        <h5 className="mb-3">評論 ({comments.length})</h5>
-        {comments.map((comment) => (
+      <div className="mt-4">
+        <h3>評論 ({comments.length})</h3>
+        {comments.map(comment => (
           <Card key={comment.id} className="mb-3">
             <Card.Body>
-              <div className="d-flex align-items-center mb-2">
-                <Image
-                  src={comment.user.avatar}
-                  alt={comment.user.name}
-                  width={32}
-                  height={32}
-                  className="rounded-circle me-2"
-                />
+              <div className="d-flex justify-content-between">
                 <div>
-                  <div className="fw-bold">{comment.user.name}</div>
-                  <small className="text-muted">
-                    {formatDistanceToNow(new Date(comment.created_at), {
-                      addSuffix: true,
-                      locale: zhTW
-                    })}
+                  <strong>用戶 {comment.user_id}</strong>
+                  <small className="text-muted ms-2">
+                    {formatDistanceToNow(new Date(comment.created_at), { locale: zhTW, addSuffix: true })}
                   </small>
                 </div>
               </div>
-              <div style={{ whiteSpace: 'pre-wrap' }}>{comment.content}</div>
+              <Card.Text className="mt-2">
+                {comment.content}
+              </Card.Text>
             </Card.Body>
           </Card>
         ))}

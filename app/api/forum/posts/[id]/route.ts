@@ -15,30 +15,17 @@ export async function GET(
       );
     }
 
-    // 獲取文章數據，包含分類、標籤和評論
+    // 獲取文章數據
     const post = await prisma.forum_posts.findUnique({
       where: { id: postId },
       include: {
-        forum_comments: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true
-              }
-            }
-          },
-          orderBy: {
-            created_at: 'desc'
-          }
-        },
+        forum_comments: true,
+        category: true,
         forum_post_tags: {
           include: {
             tag: true
           }
-        },
-        category: true
+        }
       }
     });
 
@@ -71,11 +58,7 @@ export async function GET(
         post: {
           ...post,
           like_count: likesCount,
-          user: {
-            id: post.user_id,
-            name: `User_${post.user_id}`,
-            avatar: '/images/default-avatar.png'
-          },
+          user_id: post.user_id,
           tags: post.forum_post_tags.map(pt => pt.tag)
         }
       }
@@ -98,6 +81,8 @@ export async function POST(
 ) {
   try {
     const postId = parseInt(params.id);
+    const userId = 1; // 暫時固定用戶ID為1，實際應從session獲取
+    
     if (isNaN(postId)) {
       return NextResponse.json(
         { error: '無效的文章ID' },
@@ -106,10 +91,9 @@ export async function POST(
     }
 
     const { action } = await request.json();
-    const userId = 1; // 暫時使用固定用戶ID
 
     if (action === 'like') {
-      // 檢查是否已經點讚
+      // 檢查是否已點讚
       const existingLike = await prisma.forum_likes.findFirst({
         where: {
           post_id: postId,
@@ -118,12 +102,14 @@ export async function POST(
       });
 
       if (existingLike) {
-        // 如果已經點讚，則取消點讚
+        // 取消點讚
         await prisma.forum_likes.delete({
-          where: { id: existingLike.id }
+          where: {
+            id: existingLike.id
+          }
         });
       } else {
-        // 如果還沒點讚，則新增點讚
+        // 新增點讚
         await prisma.forum_likes.create({
           data: {
             post_id: postId,
@@ -140,8 +126,8 @@ export async function POST(
       return NextResponse.json({
         status: 'success',
         data: {
-          likesCount,
-          isLiked: !existingLike
+          isLiked: !existingLike,
+          likesCount
         }
       });
     }
