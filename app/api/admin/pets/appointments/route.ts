@@ -20,7 +20,7 @@ export const GET = guard.api(async (request: NextRequest, authData) => {
       SELECT 
         pa.*, 
         p.name as pet_name, 
-        p.main_image as pet_image,
+        (SELECT pp.photo_url FROM pet_photos pp WHERE pp.pet_id = p.id AND pp.is_main = 1 LIMIT 1) as pet_image,
         u.user_name,
         u.user_email
       FROM pet_appointment pa
