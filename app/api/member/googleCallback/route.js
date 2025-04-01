@@ -35,7 +35,7 @@ if (!getApps().length) {
 }
 
 // 獲取 JWT 秘密金鑰
-const jwtSecret = process.env.JWT_SECRET_KEY;
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function POST(req) {
     try {
@@ -117,10 +117,10 @@ export async function POST(req) {
 }
 
 function generateAuthToken(uid) {
-    if (!jwtSecret) {
-        console.error('JWT_SECRET_KEY 環境變數未設定！');
+    if (!JWT_SECRET) {
+        console.error('JWT_SECRET 環境變數未設定！');
         return null;
     }
-    const token = jwt.sign({ uid: uid }, jwtSecret, { expiresIn: '1h' });
+    const token = jwt.sign({ uid: uid }, JWT_SECRET, { expiresIn: '1h' });
     return token;
 }
