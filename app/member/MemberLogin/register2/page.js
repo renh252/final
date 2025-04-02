@@ -1,51 +1,60 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react'; // 引入 useEffect
-import styles from './Register2.module.css';
-import { useSearchParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react'
+import styles from './Register2.module.css'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useAuth } from '@/app/context/AuthContext'
 
 export default function Register2Page() {
+  const router = useRouter()
+  const { user } = useAuth()
+  const searchParams = useSearchParams()
+  const isGoogleSignIn = searchParams.get('isGoogleSignIn') === 'true'
+  const googleEmail = searchParams.get('googleEmail')
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const tempToken = searchParams.get('token');
-  const password = searchParams.get('password');
-  const googleEmail = searchParams.get('googleEmail'); // 接收 googleEmail
-  const isGoogleSignIn = searchParams.get('isGoogleSignIn') === 'true'; // 接收 isGoogleSignIn
+  // 檢查是否為有效的 Google 登入使用者
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token || !user || !isGoogleSignIn) {
+      router.push('/member/MemberLogin/login')
+      return
+    }
+  }, [user, router, isGoogleSignIn])
 
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [birthday, setBirthday] = useState('');
-  const [address, setAddress] = useState('');
-  const [registrationError, setRegistrationError] = useState('');
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [birthday, setBirthday] = useState('')
+  const [address, setAddress] = useState('')
+  const [registrationError, setRegistrationError] = useState('')
+  const [registrationSuccess, setRegistrationSuccess] = useState(false)
 
   const validatePhoneNumber = (phoneNumber) => {
-    const phoneRegex = /^09\d{8}$/;
-    return phoneRegex.test(phoneNumber);
-  };
-
-  useEffect(() => {
-    // 在組件掛載時檢查 token 和 password 是否存在
-    if (!isGoogleSignIn && (!tempToken || !password)) {
-      router.push('/member/MemberLogin/register');
-    }
-  }, [isGoogleSignIn, tempToken, password, router]);
+    const phoneRegex = /^09\d{8}$/
+    return phoneRegex.test(phoneNumber)
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    let errors = [];
+    let errors = []
 
-    if (!name) errors.push('請填寫姓名欄位');
-    if (!phone) errors.push('請填寫電話欄位');
-    else if (!validatePhoneNumber(phone)) errors.push('電話號碼格式不正確，請輸入有效的台灣手機號碼');
-    if (!birthday) errors.push('請填寫生日欄位');
-    if (!address) errors.push('請填寫地址欄位');
+    if (!name) errors.push('請填寫姓名欄位')
+    if (!phone) errors.push('請填寫電話欄位')
+    else if (!validatePhoneNumber(phone))
+      errors.push('電話號碼格式不正確，請輸入有效的台灣手機號碼')
+    if (!birthday) errors.push('請填寫生日欄位')
+    if (!address) errors.push('請填寫地址欄位')
 
     if (errors.length > 0) {
-      alert(errors.join('\n'));
-      return;
+      alert(errors.join('\n'))
+      return
+    }
+
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setRegistrationError('驗證已過期，請重新登入')
+      router.push('/member/MemberLogin/login')
+      return
     }
 
     const requestBody = {
@@ -53,14 +62,8 @@ export default function Register2Page() {
       phone,
       birthday,
       address,
-      isGoogleSignIn: isGoogleSignIn,
-    };
-
-    if (isGoogleSignIn) {
-      requestBody.googleEmail = googleEmail;
-    } else {
-      requestBody.tempToken = tempToken;
-      requestBody.password = password;
+      isGoogleSignIn: true,
+      googleEmail: googleEmail || user?.email,
     }
 
     try {
@@ -68,31 +71,32 @@ export default function Register2Page() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(requestBody),
-      });
+      })
 
-      const data = await response.json();
-      console.log('伺服器返回資料:', data);
+      const data = await response.json()
+      console.log('伺服器返回資料:', data)
 
       if (response.ok) {
-        setRegistrationSuccess(true);
-        alert(data.message);
-        window.location.href = '/member/MemberLogin/login';
+        setRegistrationSuccess(true)
+        alert('註冊成功！')
+        router.push('/member')
       } else {
-        setRegistrationError(data.message);
-        alert(data.message);
+        setRegistrationError(data.message)
+        alert(data.message || '註冊失敗，請稍後重試')
       }
     } catch (error) {
-      console.error('註冊錯誤:', error);
-      setRegistrationError('註冊失敗，請稍後重試');
-      alert('註冊失敗，請稍後重試');
+      console.error('註冊錯誤:', error)
+      setRegistrationError('註冊失敗，請稍後重試')
+      alert('註冊失敗，請稍後重試')
     }
-  };
+  }
 
   const handleGoBack = () => {
-    router.push('/member/MemberLogin/register');
-  };
+    router.push('/member')
+  }
 
   if (registrationSuccess) {
     return (
@@ -106,7 +110,7 @@ export default function Register2Page() {
           </p>
         </section>
       </div>
-    );
+    )
   }
 
   return (
@@ -181,17 +185,14 @@ export default function Register2Page() {
           <button className="button" onClick={handleGoBack}>
             回上一步
           </button>
-          <button className="button" 
-          onClick={handleSubmit} 
-          disabled={!isGoogleSignIn && (!tempToken || !password)}>
+          <button className="button" onClick={handleSubmit}>
             完成
           </button>
-          {!isGoogleSignIn && (!tempToken || !password) && (
-            <p style={{ color: 'orange' }}>請先完成第一步驗證電子郵件和輸入密碼。</p>
+          {registrationError && (
+            <p style={{ color: 'red' }}>{registrationError}</p>
           )}
-          {registrationError && <p style={{ color: 'red' }}>{registrationError}</p>}
         </div>
       </div>
     </>
-  );
+  )
 }
