@@ -5,6 +5,7 @@ import styles from './Register2.module.css'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/app/context/AuthContext'
 
+
 export default function Register2Page() {
   const router = useRouter()
   const { user } = useAuth()
