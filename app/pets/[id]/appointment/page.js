@@ -711,22 +711,7 @@ export default function PetAppointmentPage() {
                           min={new Date().toISOString().split('T')[0]}
                           isInvalid={!!formErrors.appointment_date}
                           required
-                          className="pe-5"
                           id="appointment_date_input"
-                        />
-                        <FaCalendarAlt
-                          className="position-absolute text-muted"
-                          style={{
-                            right: '10px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            cursor: 'pointer',
-                          }}
-                          onClick={() => {
-                            document
-                              .getElementById('appointment_date_input')
-                              .showPicker()
-                          }}
                         />
                       </div>
                       <Form.Control.Feedback type="invalid">
