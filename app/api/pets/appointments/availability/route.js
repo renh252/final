@@ -11,6 +11,9 @@ export async function GET(request) {
       return NextResponse.json({ error: '缺少必要參數' }, { status: 400 })
     }
 
+    // 紀錄請求的原始日期
+    const requestDate = date
+
     const connection = await pool.getConnection()
 
     try {
@@ -28,23 +31,27 @@ export async function GET(request) {
         return NextResponse.json({ error: '此寵物已被領養' }, { status: 400 })
       }
 
-      // 獲取該日期已被預約的時段
+      // 查詢在該日期有預約的時段
       const [appointments] = await connection.execute(
         `
-        SELECT TIME_FORMAT(appointment_time, '%H:%i') as booked_time
+        SELECT 
+          TIME_FORMAT(appointment_time, '%H:%i') as booked_time,
+          DATE_FORMAT(appointment_date, '%Y-%m-%d') as formatted_date
         FROM pet_appointment
         WHERE pet_id = ? 
-        AND appointment_date = ?
+        AND DATE_FORMAT(appointment_date, '%Y-%m-%d') = ?
         AND status != 'cancelled'
         `,
-        [petId, date]
+        [petId, requestDate]
       )
 
+      // 只返回當天的預約時段
       const bookedTimes = appointments.map((app) => app.booked_time)
 
       return NextResponse.json({
         success: true,
-        bookedTimes,
+        bookedTimes: bookedTimes || [],
+        date: requestDate,
       })
     } finally {
       connection.release()
