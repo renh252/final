@@ -6,8 +6,9 @@ import Alert from '@/app/_components/alert'
 
 const handleClick = () => {
   Alert({ 
-    title:'標題(可用html標籤)',
-    text:'註解(可用html標籤)', 
+    title:'標題',
+    text:'註解', 
+    html: '<p>註解(可用html標籤)</p>',
     icon:'success / error / warning / info / question',
     // 右上關閉按鈕CloseButton:預設為false
     showCloseButton: true,
@@ -34,6 +35,7 @@ const handleClick = () => {
 const Alert = ({ 
   title, 
   text, 
+  html,  // 新增 html 屬性
   icon, 
   showCloseButton,
   showconfirmBtn,
@@ -43,10 +45,11 @@ const Alert = ({
   timer,
   function: customFunction = false  
 }) => {
-return(
+  return(
     Swal.fire({
       title: title || false,
       text: text || false,
+      html: html || false,  // 使用 html 屬性
       icon: icon || false,
       showCloseButton: showCloseButton || false,
       showConfirmButton: showconfirmBtn || false,
@@ -59,15 +62,13 @@ return(
         confirmButton: styles.customConfirm,
         cancelButton: styles.customCancel
       }
-
     }).then((result) => {
       if (result.isConfirmed && customFunction) {  
-        customFunction();
+        return customFunction(result);
       }
     })
-  
-)
-
+  )
 };
+
 
 export default Alert;

@@ -13,10 +13,12 @@ import cid_styles from '@/app/shop/search/search.module.css'
 // card
 import Card from '@/app/_components/ui/Card'
 import { FaArrowLeft, FaRegHeart, FaHeart } from 'react-icons/fa'
+import { FaCartShopping } from 'react-icons/fa6'
 
 // components
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import { usePageTitle } from '@/app/context/TitleContext'
+import Alert from '@/app/_components/alert'
 
 // 連接資料庫
 import useSWR from 'swr'
@@ -35,7 +37,15 @@ export default function CidPage(props) {
 
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error, mutate } = useSWR('/api/shop', fetcher)
-  usePageTitle(data?.categories?.find((category) => category.category_id == cid)?.category_name)
+  usePageTitle(
+    data?.categories?.find((category) => category.category_id == cid)
+      ?.category_name
+  )
+
+  const { mutate: cartMutate } = useSWR(
+    `/api/shop/cart?userId=${user?.id}`,
+    fetcher
+  )
 
   // 處理喜愛商品數據
   const toggleLike = async (productId) => {
@@ -48,7 +58,7 @@ export default function CidPage(props) {
       return
     }
 
-    const userId = user.id
+    const userId = user?.id
     const product_like = data.product_like || []
     const isLiked = product_like.some(
       (product) =>
@@ -96,7 +106,7 @@ export default function CidPage(props) {
   const isProductLiked = (productId) => {
     if (!isAuthenticated || !user) return false
     return product_like.some(
-      (item) => item.product_id === productId && item.user_id === user.id
+      (item) => item.product_id === productId && item.user_id === user?.id
     )
   }
 
@@ -131,6 +141,144 @@ export default function CidPage(props) {
       return 0
     })
 
+  const getVariant = async (productId) => {
+    if (!isAuthenticated || !user) {
+      Alert({
+        icon: 'error',
+        title: '請先登入才能加入購物車',
+        showCancelBtn: true,
+        showconfirmBtn: true,
+        confirmBtnText: '登入',
+        cancelBtnText: '取消',
+        function: () => {
+          sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+          window.location.href = '/member/MemberLogin/login'
+        },
+      })
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/shop/${productId}`)
+      if (!response.ok) throw new Error('獲取商品信息失敗')
+      const data = await response.json()
+      console.log(data.variants)
+
+      showVariantSelectionAlert(data.product, data.variants,data?.promotion)
+    } catch (error) {
+      console.error('Error fetching product info:', error)
+      Alert({
+        icon: 'error',
+        title: '獲取商品信息失敗',
+        text: '請稍後再試',
+      })
+    }
+  }
+
+  const showVariantSelectionAlert = (product, variants,promotion) => {
+    const calculateDiscountedPrice = (price) => {
+      if (promotion && promotion[0]?.discount_percentage) {
+        return Math.ceil(price * (100 - promotion[0]?.discount_percentage) / 100);
+      }
+      return price;
+    };
+    const variantOptions = variants.map(variant => {
+      const originalPrice = variant.price;
+      const discountedPrice = calculateDiscountedPrice(originalPrice);
+      
+      return `<div>
+      <input type="radio" id="variant-${variant.variant_id}" name="variant" value="${variant.variant_id}">
+      <label for="variant-${variant.variant_id}">
+        ${variant.variant_name} - ${discountedPrice !== originalPrice 
+            ? `$${discountedPrice} <span style="text-decoration: line-through;">$${originalPrice}</span> ` 
+            : `$${originalPrice}`
+          }
+      </label>
+    </div>`
+  })
+      .join('')
+
+    Alert({
+      title: `選擇 【${product.product_name}】 的規格`,
+      html: `
+      <div id="variant-selection">
+        ${variantOptions}
+      </div>
+      <div id="quantity-selection" style="margin-top: 15px;">
+        <label for="quantity">數量：</label>
+        <input type="number" id="quantity" name="quantity" min="1" value="1" style="width: 60px; padding: 5px;">
+      </div>
+    `,
+      showCancelBtn: true,
+      showconfirmBtn: true,
+      confirmBtnText: '加入購物車',
+      cancelBtnText: '取消',
+      function: (result) => {
+        if (result.isConfirmed) {
+          const quantityInput = Number(
+            document.getElementById('quantity').value
+          )
+          const selectedInput = document.querySelector(
+            'input[name="variant"]:checked'
+          )
+          if (selectedInput) {
+            const selectedVariantId = selectedInput.value
+            addToCart(product.product_id, selectedVariantId, quantityInput)
+          } else {
+            Alert({
+              icon: 'error',
+              title: '無選擇規格',
+              timer: 2000,
+            })
+            return
+          }
+        }
+      },
+    })
+  }
+
+  async function addToCart(productId, variantId, quantity) {
+    try {
+      const response = await fetch('/api/shop/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId,
+          variantId,
+          quantity,
+          userId: user?.id,
+        }),
+      })
+
+      const cartData = await response.json()
+
+      if (cartData.success) {
+        Alert({
+          icon: 'success',
+          title: '成功加入購物車',
+          timer: 1000,
+        })
+        // 如果使用了 SWR，可以在這裡調用 cartMutate 來刷新購物車數據
+        cartMutate(`/api/shop/cart/${user?.id}`)
+      } else {
+        Alert({
+          icon: 'error',
+          title: '加入購物車失敗',
+          timer: 2000,
+        })
+        console.error('加入購物車失敗:', cartData.message)
+      }
+    } catch (error) {
+      Alert({
+        icon: 'error',
+        title: '加入購物車時發生錯誤',
+        timer: 1000,
+      })
+      console.error('加入購物車時發生錯誤:', error)
+    }
+  }
   // -----------------
 
   return (
@@ -191,7 +339,7 @@ export default function CidPage(props) {
                       href={`/shop/${product.product_id}`}
                     >
                       <Card
-                      className={styles.card}
+                        className={styles.card}
                         image={
                           product.image_url || '/images/default_no_pet.jpg'
                         }
@@ -211,20 +359,35 @@ export default function CidPage(props) {
                           ) : (
                             <p>${product.price}</p>
                           )}
-                          <button
-                            className={styles.likeButton}
-                            onClick={(event) => {
-                              event.preventDefault()
-                              event.stopPropagation()
-                              toggleLike(product.product_id)
-                            }}
-                          >
-                            {isProductLiked(product.product_id) ? (
-                              <FaHeart />
-                            ) : (
-                              <FaRegHeart />
-                            )}
-                          </button>
+                          <div className={styles.cardBtns}>
+                            <button
+                              className={styles.likeButton}
+                              onClick={(event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                toggleLike(product.product_id)
+                              }}
+                            >
+                              {isProductLiked(product.product_id) ? (
+                                <FaHeart />
+                              ) : (
+                                <FaRegHeart />
+                              )}
+                            </button>
+                            <button
+                              className={styles.cartBtn}
+                              onClick={(event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                getVariant(
+                                  product.product_id,
+                                  product.product_name
+                                )
+                              }}
+                            >
+                              <FaCartShopping />
+                            </button>
+                          </div>
                         </div>
                       </Card>
                     </Link>
