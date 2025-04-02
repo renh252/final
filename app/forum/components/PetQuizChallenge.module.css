@@ -5,14 +5,14 @@
 }
 
 .quizHeader {
-  background-color: #f8f9fa;
+  background-color: var(--primary-color);
   font-weight: bold;
-  color: #495057;
+  color: #FFFFFF;
 }
 
 .quizHeader i {
   margin-right: 0.5rem;
-  color: #ffc107;
+  color: #FFFFFF;
 }
 
 .question {

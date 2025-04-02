@@ -130,9 +130,12 @@ export default function EventCalendar() {
   return (
     <Card className={styles.calendarCard}>
       <Card.Header className={styles.calendarHeader}>
-        <i className="bi bi-calendar-event"></i> 寵物活動行事曆
-        <Button 
-          variant="link" 
+        <div>
+          <i className="bi bi-calendar3"></i>
+          寵物活動行事曆
+        </div>
+        <Button
+          variant="link"
           className={styles.expandButton}
           onClick={() => setShowModal(true)}
         >
