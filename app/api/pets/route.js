@@ -132,7 +132,9 @@ export async function GET(request) {
       const [latestPets] = await connection.execute(`
         SELECT 
           p.id, p.name, p.species, p.variety, p.gender, 
-          p.store_id, p.birthday, ps.address as store_address
+          p.store_id, p.birthday, ps.address as store_address,
+          (SELECT photo_url FROM pet_photos WHERE pet_id = p.id AND is_main = 1 LIMIT 1) as main_photo,
+          (SELECT photo_url FROM pet_photos WHERE pet_id = p.id LIMIT 1) as photo_url
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
         WHERE p.is_adopted = 0
@@ -144,7 +146,9 @@ export async function GET(request) {
       const [popularPets] = await connection.execute(`
         SELECT p.id, p.name, p.species, p.variety, p.gender,
               p.store_id, p.birthday, ps.address as store_address,
-              COUNT(pl.pet_id) as like_count
+              COUNT(pl.pet_id) as like_count,
+              (SELECT photo_url FROM pet_photos WHERE pet_id = p.id AND is_main = 1 LIMIT 1) as main_photo,
+              (SELECT photo_url FROM pet_photos WHERE pet_id = p.id LIMIT 1) as photo_url
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
         LEFT JOIN pets_like pl ON p.id = pl.pet_id
@@ -369,7 +373,9 @@ export async function GET(request) {
           p.birthday, p.is_adopted,
           p.store_id, ps.name as store_name, ps.address as store_address,
           ps.lat as store_lat, ps.lng as store_lng, ps.phone as store_phone,
-          SUBSTRING(ps.address, 1, 3) as region
+          SUBSTRING(ps.address, 1, 3) as region,
+          (SELECT photo_url FROM pet_photos WHERE pet_id = p.id AND is_main = 1 LIMIT 1) as main_photo,
+          (SELECT photo_url FROM pet_photos WHERE pet_id = p.id LIMIT 1) as photo_url
         FROM pets p
         LEFT JOIN pet_store ps ON p.store_id = ps.id
         ${whereClause}

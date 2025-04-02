@@ -289,7 +289,6 @@
   
   }
   .card{
-    width: 150px !important; 
     border-radius: 8px;
     overflow: visible !important;
     padding-bottom: 0 !important;
@@ -307,10 +306,6 @@
         padding: 0;
         margin: 0;
       }
-    }
-    .cardBtns{
-      width: 100%;
-      justify-content: center;
     }
   }
   
