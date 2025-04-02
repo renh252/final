@@ -39,16 +39,16 @@ export default function MemberLayout({ children }) {
       <MenuRWD className={styles.menuRWD} />
       <div className={styles.gridContainer}>
         <div className={styles.logos_grid}>
-          <button className="button">
+          <button className={styles.memberLayoutBtn}>
             <Link href={user ? `/member/orders?=${user_id}` : '/member/orders'}>
               我的訂單
             </Link>
           </button>
-          <button className="button">
+          <button className={styles.memberLayoutBtn}>
             <Link href="/member/appointments">預約領養</Link>
           </button>
           <select
-            className="button"
+            className={styles.memberLayoutBtn}
             onChange={handleCollectionChange}
             value={selectedCollection}
           >
@@ -59,10 +59,10 @@ export default function MemberLayout({ children }) {
             <option value="products">商品</option>
             <option value="articles">文章</option>
           </select>
-          <button className="button">
+          <button className={styles.memberLayoutBtn}>
             <Link href="/forum">我的論壇</Link>
           </button>
-          <button className="button">
+          <button className={styles.memberLayoutBtn}>
             <Link
               href={
                 user ? `/member/donations?=${user_id}` : '/member/donations'
@@ -71,10 +71,10 @@ export default function MemberLayout({ children }) {
               我的捐款
             </Link>
           </button>
-          <button className="button">
+          <button className={styles.memberLayoutBtn}>
             <Link href="/">回首頁</Link>
           </button>
-          <button className="button" onClick={handleLogout}>
+          <button className={styles.memberLayoutBtn} onClick={handleLogout}>
             登出
           </button>
         </div>
