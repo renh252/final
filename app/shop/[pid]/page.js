@@ -13,8 +13,7 @@ import { useAuth } from '@/app/context/AuthContext'
 // styles
 import styles from './pid.module.css'
 import shopStyles from '@/app/shop/shop.module.css'
-// import { FaShareNodes } from 'react-icons/fa6'
-import { FaRegStar,FaCartShopping,FaPlus, FaMinus,FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
+import { FaShareNodes,FaRegStar,FaCartShopping,FaPlus, FaMinus,FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 import { IoChatboxEllipsesOutline,IoCheckmarkDoneSharp } from 'react-icons/io5'
 import { FaUser } from 'react-icons/fa' 
 import { MdOutlinePets } from "react-icons/md";
@@ -47,6 +46,7 @@ export default function PidPage() {
   if (count < 1) {
     setCount(1)
   }
+  const [showCopiedMessage, setShowCopiedMessage] = useState(false);
   
   // 從網址上得到動態路由參數
   const params = useParams()
@@ -56,7 +56,6 @@ export default function PidPage() {
   const { data, error } = useSWR(`/api/shop/${pid}`, fetcher)
   const { data:likeData, error:likeError, mutate:likeMutate } = useSWR('/api/shop', fetcher)
   const { data:cartData, error:cartError, mutate:cartMutate } = useSWR(`/api/shop/cart?userId=${userId}`,fetcher)
-  console.log(data);
   
 
   usePageTitle(data?.product?.product_name)
@@ -286,6 +285,34 @@ const calculateDisplayPrice = () => {
 
   }
 
+  // 分享商品資訊
+  const handleShare = async() => {
+    if (navigator.share) {
+      navigator.share({
+        title: product?.product_name,
+        text: `Check out this product: ${product?.product_name}`,
+        url: window.location.href,
+      })
+        .catch((error) => console.log('Error sharing', error));
+    } else {
+      // 备用方案：使用 Clipboard API 复制链接
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        Alert({ 
+          title: '連結已複製到剪貼板',
+          timer: 1000
+        });
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+        Alert({ 
+          icon: 'error',
+          title: '複製連結失敗',
+          timer: 1000
+        });
+      }
+    }
+  };
+
 
   return (
     <>
@@ -396,10 +423,13 @@ const calculateDisplayPrice = () => {
                         <FaRegHeart />
                       )}
                     </button>
+
                 </div>
-                {/* <div className={styles.comment}>
+                <div className={styles.comment}>
+                <button  onClick={handleShare} className={styles.shareBtn}>
                   <FaShareNodes />
-                </div> */}
+                </button>
+                </div>
               </div>
               <p className={styles.h3}>{product.product_name}</p>
             </div>
@@ -439,9 +469,9 @@ const calculateDisplayPrice = () => {
                   <FaRegStar />:
                   {reviewCount?.avg_rating 
                     ? Number(reviewCount.avg_rating).toFixed(1)
-                    : '暂无评分'}
+                    : '暫無評分'}
                 </div>
-                <div className={styles.comment}>
+                <div className={styles.comment} >
                   <IoChatboxEllipsesOutline  onClick={scrollToReviewRef}/>
                 </div>
               </div>

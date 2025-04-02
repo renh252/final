@@ -61,9 +61,9 @@
   width: 100%;
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   padding: 3px 0; /* 進一步減少上下間距 */
   margin: 0 auto;
-  overflow-x: auto; /* 當螢幕非常窄但仍大於768px時允許水平滾動 */
 
   button a,
   button,
@@ -72,6 +72,7 @@
     margin: 5px; /* 減少按鈕間距 */
   }
 }
+
 
 @media (max-width: 768px) {
   html {
@@ -89,22 +90,22 @@
 }
 
 .logos_grid {
+  width: 100%;
   display: flex;
   flex-wrap: nowrap; /* 預設不換行 */
   justify-content: center;
   align-items: center;
-  gap: 8px; /* 縮小間距 */
-  padding: 3px;
   min-width: min-content; /* 確保即使在較窄的螢幕上也能完整顯示所有按鈕 */
 }
 
 /* 修改按鈕和選單樣式 */
 .logos_grid button,
 .logos_grid select {
-  width: 138px !important; /* 調整為更窄一點 */
+  min-width: 138px !important; /* 調整為更窄一點 */
+  width: 20%; /* 調整寬度 */
   height: 42px !important; /* 調整高度 */
   font-size: 17px !important; /* 調整字體大小 */
-  margin: 3px !important; /* 減少外邊距 */
+  /* margin: 3px !important; 減少外邊距 */
   padding: 0 !important; /* 確保內邊距為0 */
   border-radius: 21px;
   background-color: #cda274;
@@ -123,19 +124,19 @@
 .logos_grid select {
   color: white;
   text-decoration: none;
-  display: block;
+  /* display: block;
   width: 100%;
-  height: 100%;
+  height: 100%; */
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
 }
 
 /* 在中等螢幕上自動換行 */
 @media (max-width: 1024px) and (min-width: 769px) {
   .logos_grid {
     flex-wrap: wrap; /* 當寬度低於1024px時自動換行 */
-    max-width: 750px; /* 控制寬度，讓每行最多顯示4個按鈕 */
   }
 
   .logos_grid button,
