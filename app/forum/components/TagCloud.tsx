@@ -40,8 +40,8 @@ export default function TagCloud({ tags, title = '熱門標籤' }: TagCloudProps
     <Card className="shadow-sm mb-4">
       <Card.Header
         style={{
-          backgroundColor: '#D9B77F',
-          borderBottom: '1px solid #C79650',
+          backgroundColor: 'var(--primary-color)',
+          borderBottom: '1px solid var(--primary-dark)',
         }}
       >
         <h5 className="mb-0" style={{ color: '#FFFFFF' }}>
@@ -61,8 +61,8 @@ export default function TagCloud({ tags, title = '熱門標籤' }: TagCloudProps
                 className="badge rounded-pill text-decoration-none"
                 style={{
                   fontSize: `${getTagSize(tag.post_count)}rem`,
-                  backgroundColor: '#C79650',
-                  color: 'white',
+                  backgroundColor: 'var(--primary-light)',
+                  color: 'var(--secondary-color)',
                   padding: '0.4em 0.8em',
                   transition: 'all 0.2s ease',
                 }}
