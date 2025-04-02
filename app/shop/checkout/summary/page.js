@@ -92,6 +92,7 @@ export default function SummaryPage() {
                 <th>電話</th>
                 <th>Email</th>
                 <th>備註</th>
+                <th>總額</th>
               </tr>
             </thead>
             <tbody>
@@ -100,29 +101,10 @@ export default function SummaryPage() {
                 <td>{orderData.recipientPhone}</td>
                 <td>{orderData.recipientEmail}</td>
                 <td>{orderData.remark || '無'}</td>
+                <td>${orderData.totalAmount || '無'}</td>
               </tr>
             </tbody>
           </table>
-        </div>
-
-        {/* 訂單金額明細（從 localStorage 取得） */}
-        <div className={styles.summaryContainer}>
-          <div className={styles.summaryRow}>
-            <span>小計</span>
-            <span>${productPrice.totalOriginalPrice}</span>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>優惠</span>
-            <span>- ${productPrice.totalDiscount}</span>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>運費</span>
-            <span>${productPrice.shippingFee}</span>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>合計</span>
-            <span>${orderData.totalAmount}</span>
-          </div>
         </div>
       </div>
 
@@ -180,22 +162,9 @@ export default function SummaryPage() {
 
         {/* 總計 */}
         <div className={styles.summaryContainer}>
-          <div className={styles.summaryRow}>
-            <span>小計：</span>
-            <span>$ {productPrice.totalOriginalPrice}</span>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>優惠：</span>
-            <span>$ {productPrice.totalDiscount}</span>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>運費：</span>
-            <span>$ {productPrice.shippingFee}</span>
-          </div>
-          <hr />
           <div className={styles.summaryTotal}>
             <span>合計：</span>
-            <span>${productPrice.totalAmount}</span>
+            <span>${orderData?.totalAmount}</span>
           </div>
         </div>
       </div>
