@@ -13,7 +13,7 @@ import { useAuth } from '@/app/context/AuthContext'
 // styles
 import styles from './pid.module.css'
 import shopStyles from '@/app/shop/shop.module.css'
-import { FaShareNodes,FaRegStar,FaCartShopping,FaPlus, FaMinus,FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
+import { FaShareNodes,FaStar ,FaCartShopping,FaPlus, FaMinus,FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 import { IoChatboxEllipsesOutline,IoCheckmarkDoneSharp } from 'react-icons/io5'
 import { FaUser } from 'react-icons/fa' 
 import { MdOutlinePets } from "react-icons/md";
@@ -290,7 +290,7 @@ const calculateDisplayPrice = () => {
     if (navigator.share) {
       navigator.share({
         title: product?.product_name,
-        text: `Check out this product: ${product?.product_name}`,
+        text: `前往查看【 ${product?.product_name}】`,
         url: window.location.href,
       })
         .catch((error) => console.log('Error sharing', error));
@@ -466,7 +466,7 @@ const calculateDisplayPrice = () => {
               </div>
               <div className={styles.iconGroup}>
                 <div className={styles.comment}>
-                  <FaRegStar />:
+                  <FaStar  className={styles.star}/>:
                   {reviewCount?.avg_rating 
                     ? Number(reviewCount.avg_rating).toFixed(1)
                     : '暫無評分'}
@@ -571,7 +571,7 @@ const calculateDisplayPrice = () => {
           </div>
           <div className={styles.containBody}>
             {reviews.length > 0 ? (
-              reviews.map((r) => {
+              reviews.map((r,index) => {
                 return (
                   <div key={r.review_id} className={styles.reviewItem}>
                     <div className={styles.reviewItemTitle}>
@@ -602,11 +602,12 @@ const calculateDisplayPrice = () => {
                         </div>
                       </div>
                       <div className={styles.rating}>
-                        <FaRegStar />
+                        <FaStar  />
                         {r.rating}
                       </div>
                     </div>
                     <p>{r.review_text}</p>
+                    {index < reviews.length - 1 && <hr />}
                   </div>
                 )
               })
