@@ -34,6 +34,7 @@
   transition: transform 0.3s ease, opacity 0.3s ease;
   opacity: 0.7;
   z-index: 1030;
+  padding-right: 0 !important;
 }
 
 /* 使用更具體的選擇器 */
