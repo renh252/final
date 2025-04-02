@@ -210,6 +210,49 @@
   left: 1000px; /* 調整左邊邊距 */
 }
 
+.crop_actions {
+  display: flex;
+  gap: 10px; /* 可選：按鈕之間的間距 */
+  margin-top: 20px; /* 按鈕容器與上方元素的間距 */
+}
+
+.crop_actions button {
+  flex: 1;
+    width: auto;
+    height: 40px;
+    font-size: 16px;
+}
+
+.crop_container {
+margin-bottom: 15px;
+    border: 1px solid #ccc; /* 可選：為裁切預覽添加邊框 */
+    padding: 10px;
+    border-radius: 5px;
+}
+/* 如果你希望裁切按鈕在其容器內也居中 */
+.crop_container button {
+  display: block; /* 讓裁切按鈕獨佔一行 */
+  width: 150px; /* 可以保留這個寬度，讓它在容器內居中 */
+  height: 40px;
+  font-size: 16px;
+  margin: 10px auto 0; /* 上下 margin，auto 左右 margin 居中 */
+}
+
+.react_crop_wrapper {
+  margin-bottom: 10px;
+}
+
+.upload_button_container {
+  display: flex;
+  justify-content: center; /* 讓上傳按鈕居中 */
+}
+
+.upload_button_container button {
+  width: 180px; /* 可以設定一個固定的寬度 */
+  height: 40px;
+  font-size: 16px;
+}
+
 /* 手機等小螢幕 (最大寬度 768px) */
 @media (max-width: 768px) {
   .member_container {

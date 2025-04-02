@@ -95,13 +95,8 @@ export default function PetAppointmentPage() {
         }
 
         setPet(data.pet)
-
-        // 獲取該日期的預約時段
-        if (formData.appointment_date) {
-          await checkTimeSlotAvailability(formData.appointment_date)
-        }
       } catch (err) {
-        console.error('Error fetching pet:', err)
+        console.error('獲取寵物資料時發生錯誤:', err)
         setError('獲取寵物資料時發生錯誤')
       } finally {
         setLoading(false)
@@ -109,35 +104,64 @@ export default function PetAppointmentPage() {
     }
 
     fetchPetAndAvailability()
-  }, [params.id, formData.appointment_date])
+  }, [params.id])
 
   // 檢查時段可用性
   const checkTimeSlotAvailability = async (date) => {
     try {
-      // 確保日期格式正確
-      const formattedDate = new Date(date + 'T00:00:00')
-        .toISOString()
-        .split('T')[0]
+      // 直接使用用戶選擇的日期，不進行時區轉換
+      // 避免 toISOString() 將日期轉為 UTC 時間導致日期變更
+      const formattedDate = date
+
+      // 清除之前的可用時段狀態，以防API請求失敗仍顯示之前狀態
+      setAvailableTimes((prevTimes) =>
+        prevTimes.map((time) => ({ ...time, available: true }))
+      )
 
       const response = await fetch(
         `/api/pets/appointments/availability?date=${formattedDate}&pet_id=${params.id}`
       )
-      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || '無法獲取可用時段')
+        throw new Error(`API 回應錯誤: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      // 確保 bookedTimes 存在，若不存在使用空陣列
+      const bookedTimes = data.bookedTimes || []
+
+      // 檢查 bookedTimes 的資料類型
+      if (!Array.isArray(bookedTimes)) {
+        throw new Error('API 回傳資料格式錯誤')
       }
 
       // 更新可用時段
       const updatedTimes = availableTimes.map((timeSlot) => ({
         ...timeSlot,
-        available: !data.bookedTimes.includes(timeSlot.time),
+        available: !bookedTimes.includes(timeSlot.time),
       }))
 
       setAvailableTimes(updatedTimes)
+
+      // 如果當前選擇的時段已被預約，清除選擇
+      if (
+        formData.appointment_time &&
+        !updatedTimes.find((t) => t.time === formData.appointment_time)
+          ?.available
+      ) {
+        setFormData((prev) => ({
+          ...prev,
+          appointment_time: '',
+        }))
+        setFormErrors((prev) => ({
+          ...prev,
+          appointment_time: '您選擇的時段已被預約，請重新選擇',
+        }))
+      }
     } catch (err) {
-      console.error('Error checking availability:', err)
-      setError('檢查可用時段時發生錯誤')
+      console.error('檢查時段可用性時發生錯誤:', err)
+      setError('檢查可用時段時發生錯誤，請重新選擇日期')
     }
   }
 
@@ -348,9 +372,11 @@ export default function PetAppointmentPage() {
   // 獲取可用時間標籤樣式
   const getTimeButtonClass = (time) => {
     const timeInfo = availableTimes.find((t) => t.time === time)
-    if (!timeInfo) return styles.timeUnavailable
-
-    if (!timeInfo.available) return styles.timeUnavailable
+    // 如果找不到時段資訊或時段不可用，返回不可用樣式
+    if (!timeInfo || !timeInfo.available) {
+      return styles.timeUnavailable
+    }
+    // 返回選中或可用樣式
     return formData.appointment_time === time
       ? styles.timeSelected
       : styles.timeAvailable
@@ -698,7 +724,7 @@ export default function PetAppointmentPage() {
                   </h5>
 
                   <Row className="mb-3">
-                    <Form.Group as={Col} md={6} controlId="appointment_date">
+                    <Form.Group as={Col} md={6}>
                       <Form.Label>
                         預約日期 <span className="text-danger">*</span>
                       </Form.Label>
@@ -706,12 +732,12 @@ export default function PetAppointmentPage() {
                         <Form.Control
                           type="date"
                           name="appointment_date"
+                          id="appointment_date"
                           value={formData.appointment_date}
                           onChange={handleChange}
                           min={new Date().toISOString().split('T')[0]}
                           isInvalid={!!formErrors.appointment_date}
                           required
-                          id="appointment_date_input"
                         />
                       </div>
                       <Form.Control.Feedback type="invalid">
@@ -731,23 +757,25 @@ export default function PetAppointmentPage() {
                     )}
 
                     <div className={styles.timeSlots}>
-                      {availableTimes.map((timeInfo) => (
+                      {availableTimes.map((timeInfo, index) => (
                         <button
                           key={timeInfo.time}
                           type="button"
                           className={getTimeButtonClass(timeInfo.time)}
                           onClick={() => handleTimeSelect(timeInfo.time)}
                           disabled={!timeInfo.available}
+                          aria-label={
+                            timeInfo.available
+                              ? `選擇 ${timeInfo.time} 時段`
+                              : `${timeInfo.time} 時段已滿`
+                          }
                         >
                           {timeInfo.time}
-                          {!timeInfo.available && (
-                            <span className={styles.unavailableText}>已滿</span>
-                          )}
                         </button>
                       ))}
                     </div>
                     <Form.Text className="text-muted">
-                      藍色時段表示可預約，灰色時段表示已滿
+                      藍色時段表示可預約，灰色時段表示已被預約
                     </Form.Text>
                   </Form.Group>
                 </div>
@@ -759,12 +787,13 @@ export default function PetAppointmentPage() {
                   </h5>
 
                   <Row className="mb-3">
-                    <Form.Group as={Col} md={6} controlId="house_type">
+                    <Form.Group as={Col} md={6}>
                       <Form.Label>
                         住宅類型 <span className="text-danger">*</span>
                       </Form.Label>
                       <Form.Select
                         name="house_type"
+                        id="house_type"
                         value={formData.house_type}
                         onChange={handleChange}
                         isInvalid={!!formErrors.house_type}
@@ -786,11 +815,12 @@ export default function PetAppointmentPage() {
                   </Row>
 
                   <Row className="mb-3">
-                    <Form.Group as={Col} md={6} controlId="adult_number">
+                    <Form.Group as={Col} md={6}>
                       <Form.Label>成人人數</Form.Label>
                       <Form.Control
                         type="number"
                         name="adult_number"
+                        id="adult_number"
                         value={formData.adult_number}
                         onChange={handleChange}
                         min="1"
@@ -801,11 +831,12 @@ export default function PetAppointmentPage() {
                       </Form.Control.Feedback>
                     </Form.Group>
 
-                    <Form.Group as={Col} md={6} controlId="child_number">
+                    <Form.Group as={Col} md={6}>
                       <Form.Label>兒童人數</Form.Label>
                       <Form.Control
                         type="number"
                         name="child_number"
+                        id="child_number"
                         value={formData.child_number}
                         onChange={handleChange}
                         min="0"
@@ -818,11 +849,12 @@ export default function PetAppointmentPage() {
                   </Row>
 
                   <Row className="mb-4">
-                    <Form.Group as={Col} md={6} controlId="adopted_experience">
+                    <Form.Group as={Col} md={6}>
                       <Form.Check
                         type="checkbox"
                         label="是否有養寵物經驗"
                         name="adopted_experience"
+                        id="adopted_experience"
                         checked={formData.adopted_experience}
                         onChange={handleChange}
                       />
@@ -832,12 +864,13 @@ export default function PetAppointmentPage() {
                     </Form.Group>
                   </Row>
 
-                  <Form.Group className="mb-3" controlId="other_pets">
+                  <Form.Group className="mb-3">
                     <Form.Label>家中是否有其他寵物？請說明</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={2}
                       name="other_pets"
+                      id="other_pets"
                       value={formData.other_pets}
                       onChange={handleChange}
                       placeholder="例如：有一隻3歲的柴犬"
@@ -847,12 +880,13 @@ export default function PetAppointmentPage() {
                     </Form.Text>
                   </Form.Group>
 
-                  <Form.Group className="mb-4" controlId="note">
+                  <Form.Group className="mb-4">
                     <Form.Label>備註</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={3}
                       name="note"
+                      id="note"
                       value={formData.note}
                       onChange={handleChange}
                       placeholder="有任何問題或特殊需求，請在此說明"
