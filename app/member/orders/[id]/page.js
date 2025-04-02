@@ -203,7 +203,10 @@ export default function OrderIdPage(props) {
               </div>
               <div className={styles.groupBody}>
                 <div>{order?.payment_method}</div>
-                <div>$ {order.total_price}</div>
+                <div>$ {order.total_price}<br/> 
+                {order?.shipping_fee || order?.shipping_fee!==0
+                ?`(含運費$ ${order?.shipping_fee })`
+                :null}</div>
                 <div>{order.payment_status}</div>
                 <div>
                   {order?.invoice_method == '紙本' && order?.invoice_method}
@@ -460,7 +463,9 @@ export default function OrderIdPage(props) {
               </p>
               <p>
                 <strong>金額：</strong>
-                {order.total_price}
+                $ {order.total_price} {order?.shipping_fee || order?.shipping_fee!==0
+                ?`(含運費$ ${order?.shipping_fee })`
+                :null}
               </p>
               <p>
                 <strong>付款狀態：</strong>
