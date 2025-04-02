@@ -85,7 +85,7 @@ export default function Menubar() {
         collapseOnSelect // 保留這個改進，有助於導航栏穩定性
         className={`bg-body-tertiary fixed-top ${styles.menubar} ${
           visible ? '' : styles.hidden
-        } ${solid ? styles.solid : ''}`}
+        } ${solid ? styles.solid : ''} ${styles.containerWrapper}`}
         data-theme="light"
       >
         <Container>
@@ -94,25 +94,37 @@ export default function Menubar() {
           </Link>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="ms-auto">
-              <Link href="/" passHref legacyBehavior>
-                <Nav.Link>首頁</Nav.Link>
-              </Link>
-              <Link href="/shop" passHref legacyBehavior>
-                <Nav.Link>商城</Nav.Link>
-              </Link>
-              <Link href="/pets" passHref legacyBehavior>
-                <Nav.Link>寵物列表</Nav.Link>
-              </Link>
-              <Link href="/forum" passHref legacyBehavior>
-                <Nav.Link>論壇</Nav.Link>
-              </Link>
-              <Link href="/donate" passHref legacyBehavior>
-                <Nav.Link>捐款</Nav.Link>
-              </Link>
-              <Link href="/member" passHref legacyBehavior>
-                <Nav.Link>會員</Nav.Link>
-              </Link>
+            <Nav className={`ms-auto ${styles.navbarNavContainer}`}>
+              <div className={styles.navLinkGlobal}>
+                <Link href="/" passHref legacyBehavior>
+                  <Nav.Link>首頁</Nav.Link>
+                </Link>
+              </div>
+              <div className={styles.navLinkGlobal}>
+                <Link href="/shop" passHref legacyBehavior>
+                  <Nav.Link>商城</Nav.Link>
+                </Link>
+              </div>
+              <div className={styles.navLinkGlobal}>
+                <Link href="/pets" passHref legacyBehavior>
+                  <Nav.Link>寵物列表</Nav.Link>
+                </Link>
+              </div>
+              <div className={styles.navLinkGlobal}>
+                <Link href="/forum" passHref legacyBehavior>
+                  <Nav.Link>論壇</Nav.Link>
+                </Link>
+              </div>
+              <div className={styles.navLinkGlobal}>
+                <Link href="/donate" passHref legacyBehavior>
+                  <Nav.Link>捐款</Nav.Link>
+                </Link>
+              </div>
+              <div className={styles.navLinkGlobal}>
+                <Link href="/member" passHref legacyBehavior>
+                  <Nav.Link>會員</Nav.Link>
+                </Link>
+              </div>
               <div className={styles.notificationWrapper}>
                 <NotificationBell />
               </div>

@@ -1,4 +1,4 @@
-body {
+:global(body) {
   padding-right: 0 !important;
   margin-right: 0 !important;
 }

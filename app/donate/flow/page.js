@@ -342,20 +342,20 @@ export default function FlowPage() {
           </div>
           <div className={styles.donate_info_container}>
             <div>
-              <label>姓名</label>
+              <label className={styles.formLabel}>姓名</label>
               <input
                 type="text"
-                className={styles.input}
+                className={`${styles.input} ${styles.formInput}`}
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
               />
             </div>
             {petName ? (
               <div>
-                <label>認養寵物</label>
+                <label className={styles.formLabel}>認養寵物</label>
                 <input
                   type="text"
-                  className={styles.readOnlyInput}
+                  className={`${styles.readOnlyInput} ${styles.formInput}`}
                   value={petName}
                   readOnly
                 />
@@ -364,19 +364,19 @@ export default function FlowPage() {
               ''
             )}
             <div>
-              <label>手機號碼</label>
+              <label className={styles.formLabel}>手機號碼</label>
               <input
                 type="text"
-                className={styles.input}
+                className={`${styles.input} ${styles.formInput}`}
                 value={donorPhone}
                 onChange={(e) => setDonorPhone(e.target.value)}
               />
             </div>
             <div>
-              <label>電子郵件</label>
+              <label className={styles.formLabel}>電子郵件</label>
               <input
                 type="email"
-                className={styles.input}
+                className={`${styles.input} ${styles.formInput}`}
                 value={donorEmail}
                 onChange={(e) => setDonorEmail(e.target.value)}
               />

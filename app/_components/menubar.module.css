@@ -68,16 +68,16 @@
 }
 
 /* 使用更具體的選擇器替代 !important */
-.menubar :global(.navbar-nav.ms-auto) {
+.navbarNavContainer :global(.navbar-nav.ms-auto) {
   margin-left: auto;
   display: flex;
   position: static;
 }
 
 /* 使用更具體的選擇器替代 container 相關的 !important */
-.menubar :global(.container),
-.menubar :global(.container-lg),
-.menubar :global(.container-fluid) {
+.containerWrapper :global(.container),
+.containerWrapper :global(.container-lg),
+.containerWrapper :global(.container-fluid) {
   transition: none;
   transform: translateZ(0);
   will-change: transform;
@@ -90,19 +90,19 @@
 }
 
 @media (min-width: 992px) {
-  .menubar :global(.container-lg) {
+  .containerWrapper :global(.container-lg) {
     max-width: var(--bs-container-lg, 960px);
   }
 }
 
 @media (min-width: 1200px) {
-  .menubar :global(.container-lg) {
+  .containerWrapper :global(.container-lg) {
     max-width: var(--bs-container-xl, 1140px);
   }
 }
 
 @media (min-width: 1400px) {
-  .menubar :global(.container-lg) {
+  .containerWrapper :global(.container-lg) {
     max-width: var(--bs-container-xxl, 1320px);
   }
 }
@@ -187,7 +187,7 @@
   }
 
   /* RWD環境下的導航項目置中 */
-  :global(.nav-link),
+  .navLinkGlobal :global(.nav-link),
   .cartIconLink,
   .notificationWrapper {
     display: flex !important;

@@ -49,9 +49,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  p {
-    color: #fff;
-  }
+}
+
+.contentText {
+  color: #fff;
 }
 
 .infoRow {
