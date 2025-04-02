@@ -24,3 +24,9 @@
   flex-direction: column;
   gap: 5px; /* 增加間距 */
 }
+
+@media (max-width: 768px) {
+  .footer_container{
+    flex-direction: column;
+  }
+}
