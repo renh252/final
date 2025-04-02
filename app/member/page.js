@@ -1,13 +1,13 @@
 //app\member\page.js
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import styles from "./member.module.css";
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import Image from 'next/image'; 
-
+import Swal from 'sweetalert2';
 
 export default function MemberPage() {
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function MemberPage() {
   const [editingField, setEditingField] = useState(null); // 目前正在編輯的欄位名稱
   const [draftValues, setDraftValues] = useState({}); // 儲存每個欄位編輯中的值
   const [profilePhoto, setProfilePhoto] = useState('/public/images/member/memberphoto.png'); // 儲存使用者上傳的圖片
+  const fileInputRef = useRef(null); // 創建一個 ref 用於觸發檔案輸入框
 
   const formatDate = (date) => {
     const formattedDate = new Date(date);
@@ -87,9 +88,7 @@ export default function MemberPage() {
   const handleInputChange = (e) => {
     setDraftValues({ ...draftValues, [e.target.name]: e.target.value });
   };
-
   
-
   const handleCancelEditClick = (fieldName) => {
   setEditingField(null);
   const newDraftValues = { ...draftValues };
@@ -105,27 +104,70 @@ export default function MemberPage() {
         return;
       }
       const file = e.target.files[0];
-      const formData = new FormData();
-      formData.append('profile_photo', file);
-  
-      const response = await fetch('/api/user/uploadPhoto', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      });
-  
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUserData(updatedUser);
-        setProfilePhoto(updatedUser.profile_picture);
-      } else {
-        console.error('上傳圖片失敗:', response.statusText);
-      }
-    } catch (error) {
-      console.error('上傳圖片時發生錯誤:', error);
+      if (!file) {
+        return; // 使用者未選擇檔案
     }
+    const allowedTypes = ['image/jpeg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: '上傳失敗',
+                    text: '請上傳 JPG 或 PNG 格式的圖片。',
+                });
+                return;
+            }
+
+            if (file.size > 2 * 1024 * 1024) { // 限制 2MB
+                await Swal.fire({
+                    icon: 'error',
+                    title: '上傳失敗',
+                    text: '圖片檔案大小請勿超過 2MB。',
+                });
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('profile_photo', file);
+
+            const response = await fetch('/api/user/uploadPhoto', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            if (response.ok) {
+                const updatedUser = await response.json();
+                setUserData(updatedUser);
+                setProfilePhoto(updatedUser.profile_picture || '/public/images/member/memberphoto.png');
+                await Swal.fire({
+                    icon: 'success',
+                    title: '上傳成功！',
+                    text: '大頭照已成功更新。',
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
+            } else {
+                console.error('上傳圖片失敗:', response.statusText);
+                await Swal.fire({
+                    icon: 'error',
+                    title: '上傳失敗',
+                    text: '圖片上傳失敗，請稍後再試。',
+                });
+            }
+        } catch (error) {
+            console.error('上傳圖片時發生錯誤:', error);
+            await Swal.fire({
+                icon: 'error',
+                title: '錯誤',
+                text: '上傳圖片時發生錯誤，請稍後再試。',
+            });
+        }
+    };
+
+    const triggerFileInput = () => {
+        fileInputRef.current.click();
   };
 
   return (
@@ -139,7 +181,7 @@ export default function MemberPage() {
             height={300}
     className={styles.profile_photo}  />              
             <div><br />
-            <label htmlFor="profile_photo" className="form_label">
+            <label className="form_label">
       上傳大頭照：
       <input 
         type="file" 
@@ -147,7 +189,14 @@ export default function MemberPage() {
         name="profile_photo" 
         onChange={handleUploadPhoto} 
         className={styles.label_input}
-      /></label>
+        ref={fileInputRef}
+        style={{ display: 'none' }} // 隱藏原始的 input
+        accept="image/jpeg, image/png" // 建議加上 accept 屬性
+      />
+      </label>
+      <button onClick={triggerFileInput} className="button" style={{ width: '150px', height: '40px', fontSize: '16px' }}>
+      選擇圖片
+      </button>
       <br /><br />
                 <p>
                   暱稱：
