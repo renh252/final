@@ -1,144 +1,187 @@
-
-'use client';
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/app/context/AuthContext'; // 引入 AuthContext
-import styles from './login.module.css';
-import Link from 'next/link';
-import Swal from 'sweetalert2';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { auth, googleProvider, signInWithPopup, onAuthStateChanged } from '@/lib/firebase'; // 引入 Firebase 相關函式
+'use client'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '@/app/context/AuthContext' // 引入 AuthContext
+import styles from './login.module.css'
+import Link from 'next/link'
+import Swal from 'sweetalert2'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import {
+  auth,
+  googleProvider,
+  signInWithPopup,
+  onAuthStateChanged,
+} from '@/lib/firebase' // 引入 Firebase 相關函式
 
 export default function MemberPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const { login, googleLogin } = useAuth(); // 獲取 login 和 googleLogin
-  const [rememberMe, setRememberMe] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [signInError, setSignInError] = useState('');
-  const router = useRouter();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const { login, googleLogin } = useAuth() // 獲取 login 和 googleLogin
+  const [rememberMe, setRememberMe] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [signInError, setSignInError] = useState('')
+  const router = useRouter()
 
   useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-          setLoading(false);
-      });
-      const rememberedEmail = localStorage.getItem('rememberedEmail');
-      if (rememberedEmail) {
-          setEmail(rememberedEmail);
-          setRememberMe(true);
-      }
-      return () => unsubscribe();
-  }, [login]);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(false)
+    })
+    const rememberedEmail = localStorage.getItem('rememberedEmail')
+    if (rememberedEmail) {
+      setEmail(rememberedEmail)
+      setRememberMe(true)
+    }
+    return () => unsubscribe()
+  }, [login])
 
   const handleGoogleSignIn = async () => {
-      setSignInError('');
-      try {
-          const result = await signInWithPopup(auth, googleProvider);
-          const user = result.user;
-          if (user && user.email) {
-              const idToken = await user.getIdToken();
-              await checkGoogleSignInStatus(user.email, user.displayName, idToken);
-          } else {
-              console.log('未獲取到 Google 登入的使用者資訊。');
-              await Swal.fire({
-                  title: '登入失敗',
-                  text: '無法獲取 Google 登入的使用者資訊，請稍後再試。',
-                  icon: 'error',
-                  confirmButtonText: '確定',
-              });
-          }
-      } catch (error) {
-          console.error('Google 登入失敗：', error);
-          setSignInError(error.message || '使用 Google 帳號登入失敗，請稍後再試。');
-          await Swal.fire({
-              title: '登入失敗',
-              text: error.message || '使用 Google 帳號登入失敗，請稍後再試。',
-              icon: 'error',
-              confirmButtonText: '確定',
-          });
+    setSignInError('')
+    try {
+      const result = await signInWithPopup(auth, googleProvider)
+      const user = result.user
+      if (user && user.email) {
+        const idToken = await user.getIdToken()
+        await checkGoogleSignInStatus(user.email, user.displayName, idToken)
+      } else {
+        console.log('未獲取到 Google 登入的使用者資訊。')
+        await Swal.fire({
+          title: '登入失敗',
+          text: '無法獲取 Google 登入的使用者資訊，請稍後再試。',
+          icon: 'error',
+          confirmButtonText: '確定',
+        })
       }
-  };
+    } catch (error) {
+      console.error('Google 登入失敗：', error)
+      setSignInError(error.message || '使用 Google 帳號登入失敗，請稍後再試。')
+      await Swal.fire({
+        title: '登入失敗',
+        text: error.message || '使用 Google 帳號登入失敗，請稍後再試。',
+        icon: 'error',
+        confirmButtonText: '確定',
+      })
+    }
+  }
 
   const checkGoogleSignInStatus = async (googleEmail, googleName, idToken) => {
-      try {
-          await googleLogin(googleEmail, idToken);
-          // googleLogin 內部會處理後續流程 (儲存 token, user 到 Context 和 localStorage, 導航)
-      } catch (error) {
-          console.error('Google 登入回調錯誤:', error);
-          await Swal.fire({
-              title: 'Google 登入失敗',
-              text: error.message || 'Google 登入驗證失敗，請稍後重試。',
-              icon: 'error',
-              confirmButtonText: '確定',
-          });
+    try {
+      // 呼叫 Google 登入的 API 端點
+      const response = await fetch('/api/member/googleCallback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          googleEmail,
+          googleName,
+          defaultPassword: 'Google@' + googleEmail.split('@')[0], // 創建預設密碼
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('登入驗證失敗')
       }
-  };
+
+      const data = await response.json()
+
+      // 儲存 token
+      if (data.authToken) {
+        localStorage.setItem('token', data.authToken)
+      }
+
+      // 如果需要填寫詳細資訊
+      if (data.needsAdditionalInfo) {
+        // 執行登入
+        await googleLogin(googleEmail, idToken)
+        // 導向到 register2 並帶入必要資訊
+        router.push(
+          `/member/MemberLogin/register2?isGoogleSignIn=true&googleEmail=${encodeURIComponent(
+            googleEmail
+          )}`
+        )
+        return
+      }
+
+      // 如果已有詳細資訊，進行正常登入流程
+      await googleLogin(googleEmail, idToken)
+      router.push('/member')
+    } catch (error) {
+      console.error('Google 登入回調錯誤:', error)
+      await Swal.fire({
+        title: 'Google 登入失敗',
+        text: error.message || 'Google 登入驗證失敗，請稍後重試。',
+        icon: 'error',
+        confirmButtonText: '確定',
+      })
+    }
+  }
 
   const handleSubmit = async (e) => {
-      e.preventDefault();
+    e.preventDefault()
 
-      if (!email || !password) {
-          await Swal.fire({
-              title: '錯誤',
-              text: '請填寫所有欄位',
-              icon: 'error',
-              confirmButtonText: '確定',
-          });
-          return;
+    if (!email || !password) {
+      await Swal.fire({
+        title: '錯誤',
+        text: '請填寫所有欄位',
+        icon: 'error',
+        confirmButtonText: '確定',
+      })
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await fetch('/api/member', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', email)
+        } else {
+          localStorage.removeItem('rememberedEmail')
+        }
+
+        await Swal.fire({
+          title: '登入成功！',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+        })
+
+        localStorage.setItem('token', data.data.token)
+        login(data.data)
+        router.push('/member')
+      } else {
+        await Swal.fire({
+          title: '登入失敗',
+          text: data.message || '請檢查您的電子郵件和密碼。',
+          icon: 'error',
+          confirmButtonText: '確定',
+        })
       }
-
-      setLoading(true);
-      try {
-          const response = await fetch('/api/member', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ email, password }),
-          });
-
-          const data = await response.json();
-
-          if (response.ok && data.success) {
-              if (rememberMe) {
-                  localStorage.setItem('rememberedEmail', email);
-              } else {
-                  localStorage.removeItem('rememberedEmail');
-              }
-
-              await Swal.fire({
-                  title: '登入成功！',
-                  icon: 'success',
-                  timer: 1500,
-                  showConfirmButton: false,
-              });
-
-              localStorage.setItem('token', data.data.token);
-              login(data.data);
-              router.push('/member');
-          } else {
-              await Swal.fire({
-                  title: '登入失敗',
-                  text: data.message || '請檢查您的電子郵件和密碼。',
-                  icon: 'error',
-                  confirmButtonText: '確定',
-              });
-          }
-      } catch (error) {
-          console.error('登入請求失敗:', error);
-          await Swal.fire({
-              title: '錯誤',
-              text: '登入時發生錯誤，請稍後再試。',
-              icon: 'error',
-              confirmButtonText: '確定',
-          });
-      } finally {
-          setLoading(false);
-      }
-  };
+    } catch (error) {
+      console.error('登入請求失敗:', error)
+      await Swal.fire({
+        title: '錯誤',
+        text: '登入時發生錯誤，請稍後再試。',
+        icon: 'error',
+        confirmButtonText: '確定',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (loading) {
-    return <div>載入中...</div>;
+    return <div>載入中...</div>
   }
 
   return (
@@ -149,7 +192,15 @@ export default function MemberPage() {
           <div className={styles.GFbutton}>
             <button
               className="button"
-              style={{ width: '350px', height: '60px', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+              style={{
+                width: '350px',
+                height: '60px',
+                fontSize: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+              }}
               onClick={handleGoogleSignIn}
             >
               <Image
@@ -238,5 +289,5 @@ export default function MemberPage() {
         </div>
       </div>
     </>
-  );
+  )
 }
