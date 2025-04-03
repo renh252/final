@@ -210,3 +210,246 @@
     transform: translateY(40px) rotate(-90deg);
   }
 }
+
+/* 隱藏按鈕 */
+.hidden {
+  display: none !important;
+}
+
+/* 標記收藏按鈕，用於定位扇形選單 */
+.favoriteToggle {
+  position: relative;
+}
+
+/* 收藏按鈕包裝器 */
+.favoriteWrapper {
+  position: relative;
+}
+
+/* 收藏按鈕激活狀態 */
+.favoriteToggle.active {
+  background-color: #c4a777;
+}
+
+/* 收藏選單 */
+.favoriteMenu {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  top: 50%;
+  left: -180px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 4;
+}
+
+.favoriteMenu.expanded {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* 收藏按鈕樣式 - 完全獨立於主選單按鈕樣式 */
+.favoriteButton {
+  all: initial; /* 重置所有CSS屬性 */
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  background-color: #d9bb92;
+  border: 2px solid #333;
+  cursor: pointer;
+  font-size: 20px;
+  text-decoration: none;
+  transform: scale(0);
+  opacity: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  /* 避免繼承任何動畫效果 */
+  transition: none !important;
+}
+
+/* 按鈕初始位置 - 都位於右側 */
+.favPets,
+.favProducts,
+.favArticles {
+  top: 50%;
+  right: 0;
+  margin-top: -21px;
+  transform-origin: right center;
+  /* 確保初始狀態 */
+  transform: scale(0);
+  opacity: 0;
+}
+
+/* 移除原來的動畫規則，改用直接在按鈕上設置 */
+.favoriteMenu.expanded .favPets {
+  animation: favPetsSpring 0.5s cubic-bezier(0.2, 1.5, 0.3, 1) 0.03s forwards;
+}
+
+.favoriteMenu.expanded .favProducts {
+  animation: favProductsSpring 0.5s cubic-bezier(0.2, 1.5, 0.3, 1) 0.08s
+    forwards;
+}
+
+.favoriteMenu.expanded .favArticles {
+  animation: favArticlesSpring 0.5s cubic-bezier(0.2, 1.5, 0.3, 1) 0.13s
+    forwards;
+}
+
+/* 定義彈性動畫效果 */
+@keyframes favPetsSpring {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-65px, 45px) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-60px, 40px) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes favProductsSpring {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-95px, 0) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-90px, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes favArticlesSpring {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-65px, -45px) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-60px, -40px) scale(1);
+    opacity: 1;
+  }
+}
+
+/* 收藏選單收回的動畫 */
+.favoriteMenu:not(.expanded) .favPets {
+  animation: favFadeOut 0.25s ease-in forwards;
+}
+
+.favoriteMenu:not(.expanded) .favProducts {
+  animation: favFadeOut 0.25s ease-in 0.03s forwards;
+}
+
+.favoriteMenu:not(.expanded) .favArticles {
+  animation: favFadeOut 0.25s ease-in 0.06s forwards;
+}
+
+@keyframes favFadeOut {
+  to {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* 單獨設置每個按鈕的hover效果 */
+.favoriteMenu.expanded .favPets:hover {
+  transform: translate(-60px, 40px) scale(1.1) !important;
+  transition: transform 0.2s ease !important;
+}
+
+.favoriteMenu.expanded .favProducts:hover {
+  transform: translate(-90px, 0) scale(1.1) !important;
+  transition: transform 0.2s ease !important;
+}
+
+.favoriteMenu.expanded .favArticles:hover {
+  transform: translate(-60px, -40px) scale(1.1) !important;
+  transition: transform 0.2s ease !important;
+}
+
+/* 按鈕標籤 */
+.buttonLabel {
+  position: absolute;
+  left: -85px;
+  white-space: nowrap;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateX(10px);
+  pointer-events: none;
+}
+
+.favoriteButton:hover .buttonLabel {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* RWD 調整 */
+@media (max-width: 768px) {
+  .favoriteMenu {
+    width: 150px;
+    height: 150px;
+  }
+
+  .favoriteButton {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .favPets,
+  .favProducts,
+  .favArticles {
+    margin-left: -18px;
+    margin-top: -18px;
+  }
+
+  .favoriteMenu.expanded .favPets {
+    transform: translate(-50px, 30px) scale(1);
+  }
+
+  .favoriteMenu.expanded .favProducts {
+    transform: translate(-65px, 0) scale(1);
+  }
+
+  .favoriteMenu.expanded .favArticles {
+    transform: translate(-50px, -30px) scale(1);
+  }
+
+  .favoriteMenu.expanded .favPets:hover {
+    transform: scale(1.1) translate(-45px, 27px);
+  }
+
+  .favoriteMenu.expanded .favProducts:hover {
+    transform: scale(1.1) translate(-59px, 0);
+  }
+
+  .favoriteMenu.expanded .favArticles:hover {
+    transform: scale(1.1) translate(-45px, -27px);
+  }
+
+  .buttonLabel {
+    left: -65px;
+    font-size: 10px;
+  }
+}
