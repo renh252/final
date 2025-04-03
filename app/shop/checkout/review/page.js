@@ -72,13 +72,13 @@ export default function ReviewPage() {
       return
     }
 
-    // 案提交後將localStorage清空
-    localStorage.removeItem('productPrice')
-    localStorage.removeItem('checkoutData')
+
 
     const orderData = {
       orderType: 'shop',
       amount: productPrice.totalAmount || 0, // ✅ 確保金額存在
+      shipping_fee : productPrice.shippingFee || 0, 
+      total_discount : productPrice.totalDiscount || 0, 
       items: '商城商品',
       userId: userId || 2, // ✅ 確保 userId 正確
       ChoosePayment: 'Credit', // ✅ 預設信用卡
@@ -140,6 +140,9 @@ export default function ReviewPage() {
     }
     console.log('🔍 送出商城付款請求:', orderData)
     console.log('🔍 checkoutData:', checkoutData)
+    // 案提交後將localStorage清空
+    localStorage.removeItem('productPrice')
+    localStorage.removeItem('checkoutData')
   }
 
   if (error) return <div>獲取購物車時發生錯誤</div>

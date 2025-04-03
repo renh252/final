@@ -7,6 +7,8 @@ export async function POST(req) {
     orderType, // 用來區分是 "shop" 還是 "donation"
     userId,
     amount,
+    total_discount,
+    shipping_fee,
     items,
     ChoosePayment,
     selectedPaymentMode,
@@ -88,12 +90,14 @@ export async function POST(req) {
     }
     // 新增訂單
     let tableInsertResult = await db.query(
-      `INSERT INTO orders (order_id, user_id, total_price, order_status, payment_method, payment_status, invoice_method, invoice, mobile_barcode, taxID_number, recipient_name, recipient_phone, recipient_email, remark, shipping_method, shipping_address, tracking_number, created_at, updated_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      `INSERT INTO orders (order_id, user_id, total_price,total_discount,shipping_fee , order_status, payment_method, payment_status, invoice_method, invoice, mobile_barcode, taxID_number, recipient_name, recipient_phone, recipient_email, remark, shipping_method, shipping_address, tracking_number, created_at, updated_at) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
         MerchantTradeNo,
         userId,
         amount,
+        total_discount,
+        shipping_fee,
         '未付款', // 初始狀態
         '信用卡',
         '未付款', // 尚未付款

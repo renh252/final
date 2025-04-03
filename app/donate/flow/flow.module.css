@@ -176,17 +176,18 @@
 
 .donate_info_container div {
   display: flex;
-  width: 100%;
   justify-content: space-between;
   align-items: center;
   font-size: 20px;
   gap: 15px;
-  label {
-    width: 20%;
-  }
-  input {
-    width: 70%;
-  }
+}
+
+.formLabel {
+  width: 20%;
+}
+
+.formInput {
+  width: 70%;
 }
 
 .donate_info_checkbox {
@@ -376,7 +377,6 @@
   .result div p {
     font-size: 18px;
   }
-
 
   .buttonGroup {
     display: flex;
