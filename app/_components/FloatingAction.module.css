@@ -96,6 +96,7 @@
 .actionButtons.visible .actionButton {
   transform: translateY(0) rotate(0);
   opacity: 1;
+  transition: all 0.3s ease;
 }
 
 .actionButton:hover {
@@ -106,16 +107,21 @@
   transform: scale(1.1) !important;
 }
 
-.actionButtons.visible .actionButton:nth-child(1) {
-  transition-delay: 0.05s;
+/* 主選單按鈕的動畫延遲 - 使用更精確的選擇器 */
+.actionButtons.visible button:first-of-type {
+  transition-delay: 0.2s;
 }
 
-.actionButtons.visible .actionButton:nth-child(2) {
+.actionButtons.visible .favoriteToggle {
+  transition-delay: 0.15s;
+}
+
+.actionButtons.visible a[href='/contact'] {
   transition-delay: 0.1s;
 }
 
-.actionButtons.visible .actionButton:nth-child(3) {
-  transition-delay: 0.15s;
+.actionButtons.visible a:last-child {
+  transition-delay: 0.05s;
 }
 
 .cart {

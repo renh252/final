@@ -1,0 +1,210 @@
+.container {
+  padding: 24px 16px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.readAllButton {
+  font-size: 0.85rem;
+}
+
+.tabs {
+  margin-bottom: 16px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  position: relative;
+}
+
+.tab {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  padding: 12px 16px;
+  cursor: pointer;
+  position: relative;
+  border: none;
+  background: transparent;
+  color: #666;
+}
+
+.tab:hover {
+  color: #333;
+}
+
+.tab.active {
+  color: #0066cc;
+  border-bottom: 2px solid #0066cc;
+}
+
+.tabBadge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.3rem;
+  min-width: 16px;
+  height: 16px;
+}
+
+.notificationList {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.loading,
+.empty {
+  padding: 40px 0;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.item {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.item:hover {
+  background-color: #f9f9f9;
+}
+
+.unread {
+  background-color: #f0f7ff;
+}
+
+.unread:hover {
+  background-color: #e8f2ff;
+}
+
+/* 不同類型通知的側邊標記顏色 */
+.shop {
+  border-left: 4px solid #f56565;
+}
+
+.pet {
+  border-left: 4px solid #48bb78;
+}
+
+.donation {
+  border-left: 4px solid #4299e1;
+}
+
+.forum {
+  border-left: 4px solid #ed8936;
+}
+
+.member {
+  border-left: 4px solid #9f7aea;
+}
+
+.system {
+  border-left: 4px solid #718096;
+}
+
+.content {
+  display: flex;
+  gap: 16px;
+  position: relative;
+}
+
+.imageWrapper {
+  flex-shrink: 0;
+}
+
+.image {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.text {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.typeLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #718096;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.itemTitle {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.message {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.time {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.actions {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.readButton {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #ddd;
+}
+
+/* RWD 調整 */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px 8px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .tab {
+    font-size: 0.8rem;
+    padding: 10px 12px;
+  }
+
+  .content {
+    gap: 12px;
+  }
+
+  .actions {
+    position: static;
+    transform: none;
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
