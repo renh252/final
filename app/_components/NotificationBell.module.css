@@ -1,3 +1,47 @@
+.notificationIconLink {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px !important;
+  text-decoration: none;
+  color: inherit;
+  background: none;
+  border: none;
+}
+
+.notificationIconLink::after {
+  display: none !important;
+}
+
+.notificationIcon {
+  font-size: 20px;
+}
+
+.notificationCount {
+  position: absolute;
+  top: -9px;
+  right: -5px;
+  background-color: #d75951;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  opacity: 1 !important;
+  z-index: 5;
+}
+
+/* 當通知數量為 0 時，隱藏徽章 */
+.notificationCount:empty {
+  display: none;
+}
+
 .bellButton {
   position: relative;
   padding: 8px;
@@ -26,23 +70,6 @@
   transform: rotate(15deg);
 }
 
-.badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  transform: translate(25%, -25%);
-  padding: 0.25rem 0.4rem;
-  font-size: 0.75rem;
-  border-radius: 10px;
-  min-width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 1 !important;
-  z-index: 5;
-}
-
 .menu {
   width: 360px;
   padding: 0;
@@ -50,6 +77,7 @@
   border: none;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 1 !important;
 }
 
 .header {
@@ -79,6 +107,53 @@
   text-decoration: underline;
 }
 
+/* 分類標籤樣式 */
+.categoryTabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  height: 100%;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-top: 15px;
+  justify-content: center;
+  overflow-y: hidden;
+}
+
+.categoryTab {
+  font-size: 0.85rem;
+  white-space: nowrap;
+  padding: 8px 12px;
+  color: #666;
+  text-decoration: none;
+  position: relative;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+}
+
+.categoryTab:hover {
+  color: #333;
+}
+
+.categoryTab.active {
+  color: #0066cc;
+  border-color: none;
+  transition: all 0.3s ease;
+}
+
+.tabBadge {
+  position: absolute;
+  top: 5px;
+  right: 0;
+  transform: translate(50%, -50%);
+  font-size: 0.7rem;
+  padding: 0.15rem 0.3rem;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
 .notificationList {
   max-height: 360px;
   overflow-y: auto;
@@ -104,6 +179,31 @@
   background-color: #f0f7ff;
 }
 
+/* 不同類型通知的側邊標記顏色 */
+.item.shop {
+  border-left: 3px solid #f56565;
+}
+
+.item.pet {
+  border-left: 3px solid #48bb78;
+}
+
+.item.donation {
+  border-left: 3px solid #4299e1;
+}
+
+.item.forum {
+  border-left: 3px solid #ed8936;
+}
+
+.item.member {
+  border-left: 3px solid #9f7aea;
+}
+
+.item.system {
+  border-left: 3px solid #718096;
+}
+
 .content {
   display: flex;
   gap: 12px;
@@ -121,6 +221,14 @@
 .text {
   flex-grow: 1;
   min-width: 0;
+}
+
+.typeLabel {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #718096;
+  margin-bottom: 2px;
+  font-weight: 600;
 }
 
 .itemTitle {
@@ -161,13 +269,29 @@
 
 /* RWD 樣式調整 */
 @media (max-width: 991px) {
-  .bellButton {
+  .notificationIconLink {
     width: 100%;
-    display: flex;
+    display: flex !important;
     justify-content: center;
   }
 
-  .badge {
-    right: calc(50% - 15px);
+  .notificationCount {
+    top: 0;
+    right: calc(50% - 25px); /* 根據實際按鈕寬度調整 */
+  }
+
+  .menu {
+    width: 300px;
+  }
+}
+
+@media (max-width: 576px) {
+  .menu {
+    width: 280px;
+  }
+
+  .categoryTab {
+    font-size: 0.75rem;
+    padding: 6px 8px;
   }
 }
