@@ -1,3 +1,7 @@
+.backButton {
+  font-size: 1.5rem;
+}
+
 .voteSection {
   width: 40px;
   background-color: #f8f9fa;
@@ -50,7 +54,8 @@
 }
 
 .shareButton,
-.reportButton {
+.reportButton,
+.favoriteButton {
   padding: 0.25rem 0.5rem;
   color: #878A8C;
   transition: color 0.2s ease-in-out;
@@ -65,6 +70,15 @@
 .reportButton:hover {
   color: var(--danger, #dc3545);
   text-decoration: none;
+}
+
+.favoriteButton:hover {
+  color: var(--danger, #dc3545);
+  text-decoration: none;
+}
+
+.favoriteButton.active {
+  color: var(--danger, #dc3545);
 }
 
 .contentSection {

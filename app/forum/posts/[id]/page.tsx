@@ -14,13 +14,13 @@ import { useParams } from 'next/navigation'
 import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-import { BsArrowUpCircle, BsArrowUpCircleFill, BsArrowDownCircle, BsArrowDownCircleFill, BsChat, BsShare, BsFlag } from 'react-icons/bs'
+import { BsArrowUpCircle, BsArrowUpCircleFill, BsArrowDownCircle, BsArrowDownCircleFill, BsChat, BsShare, BsFlag, BsHeart, BsHeartFill } from 'react-icons/bs'
 import { FaTwitter, FaFacebook, FaInstagram } from 'react-icons/fa'
 import Link from 'next/link'
 import styles from './PostDetail.module.css'
 import '../../styles/custom-theme.css'
 import ReportModal from '../../components/ReportModal'
-
+import SuccessAlert from '@/app/_components/successAlert'
 interface Post {
   id: number
   title: string
@@ -94,6 +94,7 @@ const sidebarLinks = [
 
 export default function PostDetailPage() {
   const params = useParams()
+
   const [post, setPost] = useState<Post | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
@@ -103,6 +104,12 @@ export default function PostDetailPage() {
   const [isDisliked, setIsDisliked] = useState(false)
   const [voteCount, setVoteCount] = useState(0)
   const [showReportModal, setShowReportModal] = useState(false)
+  const [isFavorited, setIsFavorited] = useState(false)
+
+  const handleFavorite = () => {
+    setIsFavorited(!isFavorited)
+    SuccessAlert()
+  }
 
   useEffect(() => {
     const fetchPostDetail = async () => {
@@ -212,9 +219,11 @@ export default function PostDetailPage() {
   return (
     <div className="forum-layout">
       <Container className="py-4">
+
         <Row>
           {/* 主要內容區 */}
           <Col lg={8}>
+
             <Card className="border-0 shadow-sm">
               <Card.Body className="p-0">
                 {/* Vote and Content Section */}
@@ -270,6 +279,15 @@ export default function PostDetailPage() {
                     {/* Post Actions */}
                     <div className="d-flex align-items-center justify-content-between mt-4 pt-3 border-top">
                       <div className="d-flex align-items-center gap-3">
+                        <button
+                          onClick={handleFavorite}
+                          className={`btn btn-link ${styles.favoriteButton}`}
+                          title={isFavorited ? "取消收藏" : "加入收藏"}
+                          aria-label={isFavorited ? "取消收藏這篇文章" : "收藏這篇文章"}
+                        >
+                          {isFavorited ? <BsHeartFill size={18} /> : <BsHeart size={18} />}
+                          <span className="ms-1">{isFavorited ? '已收藏' : '收藏'}</span>
+                        </button>
                         <button
                           onClick={() => setShowReportModal(true)}
                           className={`btn btn-link ${styles.reportButton}`}

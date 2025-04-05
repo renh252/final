@@ -1,0 +1,87 @@
+.inviteCard {
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.inviteCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.iconWrapper {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #D4A76A 0%, #A17941 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.icon {
+  color: white;
+}
+
+.linkInput {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.linkInput:focus {
+  box-shadow: none;
+  border-color: #D4A76A;
+}
+
+.copyButton, .shareButton {
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.copyButton {
+  background-color: #D4A76A;
+  border-color: #D4A76A;
+}
+
+.copyButton:hover {
+  background-color: #A17941;
+  border-color: #A17941;
+  transform: translateY(-1px);
+}
+
+.shareButton {
+  color: #D4A76A;
+  border-color: #D4A76A;
+}
+
+.shareButton:hover {
+  background-color: #D4A76A;
+  border-color: #D4A76A;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.copiedAlert {
+  bottom: 20px;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  animation: fadeInOut 2s ease;
+  z-index: 1000;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, 20px); }
+  15% { opacity: 1; transform: translate(-50%, 0); }
+  85% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -20px); }
+}

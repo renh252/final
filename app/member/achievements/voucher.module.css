@@ -1,0 +1,45 @@
+.voucherCard {
+  transform: translateY(0);
+  transition: all 0.3s ease;
+}
+
+.voucherCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.exchangeButton {
+  transform: scale(1);
+  transition: all 0.2s ease;
+}
+
+.exchangeButton:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.badge {
+  transition: all 0.3s ease;
+}
+
+.voucherCard:hover .badge {
+  transform: scale(1.05);
+}
+
+.decorativeCircle {
+  transition: all 0.5s ease;
+}
+
+.voucherCard:hover .decorativeCircle {
+  transform: scale(1.1) rotate(10deg);
+}
+
+.amount {
+  font-size: 2.5rem;
+  font-weight: bold;
+  line-height: 1;
+  transition: all 0.3s ease;
+}
+
+.voucherCard:hover .amount {
+  transform: scale(1.05);
+}

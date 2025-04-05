@@ -1,0 +1,110 @@
+.levelCard {
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.levelHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.levelBadge {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #D4A76A 0%, #A17941 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.levelIcon {
+  font-size: 1.5rem;
+}
+
+.levelNumber {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  background: #fff;
+  color: #A17941;
+  border: 2px solid #A17941;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.progressWrapper {
+  margin-bottom: 2rem;
+}
+
+.expProgress {
+  height: 1.5rem;
+  border-radius: 0.75rem;
+  background-color: #f0f0f0;
+}
+
+.expProgress :global(.progress-bar) {
+  background: linear-gradient(90deg, #D4A76A 0%, #A17941 100%);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.expActions {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.actionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.actionItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.actionIcon {
+  color: #A17941;
+}
+
+.expAmount {
+  color: #28a745;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.infoIcon {
+  color: #6c757d;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.infoIcon:hover {
+  color: #0d6efd;
+}
+
+.customTooltip :global(.tooltip-inner) {
+  background-color: #212529;
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  max-width: 300px;
+  padding: 0;
+}

@@ -60,7 +60,7 @@ export default function MemberLayout({ children }) {
             <option value="articles">文章</option>
           </select>
           <button className={styles.memberLayoutBtn}>
-            <Link href="/forum">我的論壇</Link>
+            <Link href="/member/achievements">論壇成就</Link>
           </button>
           <button className={styles.memberLayoutBtn}>
             <Link

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
+import ReportAlert from '@/app/_components/reportAlert';
 
 interface ReportModalProps {
   show: boolean;
@@ -24,36 +25,13 @@ export default function ReportModal({ show, onHide, contentType, contentId }: Re
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    try {
-      const response = await fetch('/api/forum/reports', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contentType,
-          contentId,
-          reason,
-          description,
-        }),
-      });
-
-      if (response.ok) {
-        alert('感謝您的回報，我們會盡快處理。');
-        onHide();
-        // 重置表單
-        setReason('');
-        setDescription('');
-      } else {
-        throw new Error('檢舉失敗');
-      }
-    } catch (error) {
-      console.error('檢舉錯誤:', error);
-      alert('檢舉失敗，請稍後再試');
-    }
+    ReportAlert();
+    onHide();
+    // 重置表單
+    setReason('');
+    setDescription('');
   };
 
   return (

@@ -11,6 +11,7 @@ import ProductMenu from '@/app/shop/_components/productMenu'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import FixedElements from '@/app/shop/_components/FixedElements'
 
+
 // card
 import ProductCard from '@/app/shop/_components/card'
 // 連接資料庫
@@ -33,6 +34,7 @@ export default function SearchPage() {
     data: shopData,
     searchError: shopError
   } = useSWR('/api/shop', fetcher)
+
 
 
   const products = searchData?.products

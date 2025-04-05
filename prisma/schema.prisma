@@ -26,6 +26,7 @@ model forum_posts {
   forum_comments forum_comments[]
   forum_likes   forum_likes[]
   forum_post_tags forum_post_tags[]
+  forum_favorites forum_favorites[]
 }
 
 model forum_categories {
@@ -87,4 +88,16 @@ model users {
   posts         forum_posts[]
   comments      forum_comments[]
   likes         forum_likes[]
+  favorites     forum_favorites[]
+}
+
+model forum_favorites {
+  id         Int        @id @default(autoincrement())
+  post_id    Int
+  user_id    Int
+  created_at DateTime   @default(now())
+  post       forum_posts @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user       users      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, post_id])
 }
