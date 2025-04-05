@@ -154,6 +154,8 @@ export default function EventCalendar() {
           variant="link"
           className={styles.expandButton}
           onClick={() => setShowModal(true)}
+          aria-label="展開行事曆"
+          title="展開行事曆"
         >
           <i className="bi bi-arrows-fullscreen"></i>
         </Button>
@@ -193,9 +195,10 @@ export default function EventCalendar() {
         onHide={() => setShowModal(false)}
         size="lg"
         centered
+        aria-labelledby="calendar-modal-title"
       >
         <Modal.Header closeButton>
-          <Modal.Title>寵物活動行事曆</Modal.Title>
+          <Modal.Title id="calendar-modal-title">寵物活動行事曆</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form.Select

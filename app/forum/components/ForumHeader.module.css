@@ -2,6 +2,145 @@
   background-color: #593e2f;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.forumHeader {
+  position: relative;
+  overflow: hidden;
+}
+
+.forumHeader::before,
+.forumHeader::after {
+  content: '';
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-image: url('/images/dog.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px rgba(255, 158, 205, 0.8));
+}
+
+.forumHeader::before {
+  top: 50%;
+  left: -100px;
+  transform: translateY(-50%) scale(0.8);
+  z-index: 1;
+}
+
+.forumHeader::after {
+  background-image: url('/images/cat.svg');
+}
+
+.forumHeader::after {
+  top: 50%;
+  left: -100px;
+  transform: translateY(-50%) scale(0.8);
+  z-index: 2;
+}
+
+.forumHeader:hover::before {
+  animation: petJumpFront 3s ease-in-out infinite;
+}
+
+.forumHeader:hover::after {
+  animation: petJumpBack 3s ease-in-out infinite;
+}
+
+@keyframes petJumpFront {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(0) scale(0.8) rotate(0deg);
+    filter: brightness(1);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(100px) scale(1) rotate(5deg);
+  }
+  30% {
+    transform: translateY(-90%) translateX(200px) scale(1.2) rotate(-5deg);
+    filter: brightness(1.2);
+  }
+  50% {
+    transform: translateY(-50%) translateX(300px) scale(1) rotate(5deg);
+    filter: brightness(1.4);
+  }
+  70% {
+    transform: translateY(-90%) translateX(400px) scale(1.2) rotate(-5deg);
+    filter: brightness(1.2);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(500px) scale(1) rotate(5deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(600px) scale(0.8) rotate(0deg);
+  }
+}
+
+@keyframes petJumpBack {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(0) scale(0.6) rotate(0deg);
+    filter: brightness(0.8);
+  }
+  10% {
+    opacity: 0.7;
+    transform: translateY(-30%) translateX(100px) scale(0.8) rotate(-5deg);
+  }
+  30% {
+    transform: translateY(-60%) translateX(200px) scale(1) rotate(5deg);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translateY(-30%) translateX(300px) scale(0.8) rotate(-5deg);
+    filter: brightness(0.8);
+  }
+  70% {
+    transform: translateY(-60%) translateX(400px) scale(1) rotate(5deg);
+    filter: brightness(1);
+  }
+  90% {
+    opacity: 0.7;
+    transform: translateY(-30%) translateX(500px) scale(0.8) rotate(-5deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(600px) scale(0.6) rotate(0deg);
+  }
+}
+
+/* 添加閃爍星星效果 */
+.forumHeader {
+  background: linear-gradient(135deg, #593e2f, #7a5c46);
+}
+
+.forumHeader::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 90%, rgba(255, 255, 255, 0.1) 100%);
+  animation: sparkle 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0.5;
+    background-position: 0% 0%;
+  }
+  50% {
+    opacity: 1;
+    background-position: 100% 100%;
+  }
 }
 
 .stats {

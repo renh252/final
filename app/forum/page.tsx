@@ -19,6 +19,7 @@ import Carousel from './components/Carousel'
 import PetQuizChallenge from './components/PetQuizChallenge'
 import EventCalendar from './components/EventCalendar'
 import InviteFriends from './components/InviteFriends'
+import AchievementFeed from './components/AchievementFeed'
 import { useForumData } from './hooks/useForumData'
 import styles from './styles/ForumPage.module.css'
 import './styles/custom-theme.css'
@@ -191,6 +192,7 @@ export default function ForumPage() {
 
           <Col md={4}>
             <PetQuizChallenge />
+            <AchievementFeed />
             <TagCloud tags={tags} />
             <EventCalendar />
             <InviteFriends />

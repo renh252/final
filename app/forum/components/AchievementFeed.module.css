@@ -1,0 +1,152 @@
+.achievementFeed {
+  max-height: 200px;
+  overflow: hidden;
+  position: relative;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+  animation: cardAppear 0.5s ease-out;
+}
+
+.feedHeader {
+  background: linear-gradient(135deg, var(--primary-color), #C9D6C5);
+  font-weight: bold;
+  color: #FFFFFF;
+  padding: 1rem 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.feedHeader::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: #FFFFFF;
+  font-size: 1.1rem;
+}
+
+.headerContent i {
+  margin-right: 0.5rem;
+  color: #FFFFFF;
+}
+
+.feedContainer {
+  height: 150px;
+  overflow: hidden;
+  position: relative;
+  padding: 1rem;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.feedItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+}
+
+.content {
+  flex: 1;
+}
+
+.username {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.achievement {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.badge {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+}
+
+.timestamp {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
+/* 漸變遮罩效果 */
+.feedContainer::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to top, #FFFFFF, transparent);
+  pointer-events: none;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+.feedItem.entering {
+  animation: slideIn 0.5s ease-out forwards;
+}
+
+.feedItem.exiting {
+  animation: slideOut 0.5s ease-out forwards;
+}

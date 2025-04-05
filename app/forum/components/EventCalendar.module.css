@@ -73,6 +73,29 @@
 .fullCalendar :global(.react-calendar) {
   width: 100%;
   border: 1px solid #e9ecef;
+  margin-bottom: 1rem;
+}
+
+.fullCalendar :global(.react-calendar__tile--active) {
+  background-color: var(--primary-color);
+  color: white;
+  animation: selectDate 0.3s ease-out;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fullCalendar :global(.react-calendar__tile--now) {
+  background-color: #e9ecef;
+}
+
+.fullCalendar :global(.react-calendar__navigation button:enabled:hover),
+.fullCalendar :global(.react-calendar__navigation button:enabled:focus) {
+  background-color: #e9ecef;
+}
+
+.fullCalendar :global(.react-calendar__tile:enabled:hover),
+.fullCalendar :global(.react-calendar__tile:enabled:focus) {
+  background-color: #e9ecef;
 }
 
 .eventDot {
