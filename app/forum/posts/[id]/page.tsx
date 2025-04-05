@@ -14,7 +14,7 @@ import { useParams } from 'next/navigation'
 import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-import { BsArrowUpCircle, BsArrowUpCircleFill, BsArrowDownCircle, BsArrowDownCircleFill, BsChat, BsShare, BsFlag } from 'react-icons/bs'
+import { BsArrowUpCircle, BsArrowUpCircleFill, BsArrowDownCircle, BsArrowDownCircleFill, BsChat, BsShare, BsFlag, BsHeart, BsHeartFill } from 'react-icons/bs'
 import { FaTwitter, FaFacebook, FaInstagram } from 'react-icons/fa'
 import Link from 'next/link'
 import styles from './PostDetail.module.css'
@@ -103,6 +103,49 @@ export default function PostDetailPage() {
   const [isDisliked, setIsDisliked] = useState(false)
   const [voteCount, setVoteCount] = useState(0)
   const [showReportModal, setShowReportModal] = useState(false)
+  const [isFavorited, setIsFavorited] = useState(false)
+
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      try {
+        const response = await fetch(`/api/forum/favorites/check/${params.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setIsFavorited(data.isFavorited)
+        }
+      } catch (error) {
+        console.error('Error checking favorite status:', error)
+      }
+    }
+
+    checkFavoriteStatus()
+  }, [params.id])
+
+  const handleFavorite = async () => {
+    try {
+      const response = await fetch('/api/forum/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postId: params.id,
+          action: isFavorited ? 'remove' : 'add'
+        }),
+      })
+
+      if (response.ok) {
+        setIsFavorited(!isFavorited)
+        // 顯示成功訊息
+        alert(isFavorited ? '已取消收藏' : '已加入收藏')
+      } else {
+        throw new Error('收藏操作失敗')
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+      alert('操作失敗，請稍後再試')
+    }
+  }
 
   useEffect(() => {
     const fetchPostDetail = async () => {
@@ -270,6 +313,15 @@ export default function PostDetailPage() {
                     {/* Post Actions */}
                     <div className="d-flex align-items-center justify-content-between mt-4 pt-3 border-top">
                       <div className="d-flex align-items-center gap-3">
+                        <button
+                          onClick={handleFavorite}
+                          className={`btn btn-link ${styles.favoriteButton}`}
+                          title={isFavorited ? "取消收藏" : "加入收藏"}
+                          aria-label={isFavorited ? "取消收藏這篇文章" : "收藏這篇文章"}
+                        >
+                          {isFavorited ? <BsHeartFill size={18} /> : <BsHeart size={18} />}
+                          <span className="ms-1">{isFavorited ? '已收藏' : '收藏'}</span>
+                        </button>
                         <button
                           onClick={() => setShowReportModal(true)}
                           className={`btn btn-link ${styles.reportButton}`}
