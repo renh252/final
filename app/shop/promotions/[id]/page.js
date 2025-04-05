@@ -9,7 +9,7 @@ import ProductMenu from '@/app/shop/_components/productMenu'
 import styles from '@/app/shop/shop.module.css'
 import cid_styles from '@/app/shop/search/search.module.css'
 // card
-import Card from '@/app/_components/ui/Card'
+import ProductCard from '@/app/shop/_components/card'
 import { FaArrowLeft, FaRegHeart, FaHeart } from 'react-icons/fa'
 import { FaCartShopping } from 'react-icons/fa6'
 
@@ -320,63 +320,10 @@ export default function CidPage(props) {
                 </div>
                 <div className={cid_styles.cardGroup}>
                   {filteredProducts.map((product) => (
-                    <Link
+                    <ProductCard
                       key={product.product_id}
-                      href={`/shop/${product.product_id}`}
-                    >
-                      <Card
-                        className={styles.card}
-                        image={
-                          product.image_url || '/images/default_no_pet.jpg'
-                        }
-                        title={product.product_name}
-                      >
-                        <div className={styles.cardText}>
-                          {product?.discount_percentage ? (
-                            <p>
-                              $
-                              {Math.ceil(
-                                (product.price *
-                                  (100 - product.discount_percentage)) /
-                                  100
-                              )}{' '}
-                              <del>${product.price}</del>
-                            </p>
-                          ) : (
-                            <p>${product.price}</p>
-                          )}
-                          <div className={styles.cardBtns}>
-                            <button
-                              className={styles.likeButton}
-                              onClick={(event) => {
-                                event.preventDefault()
-                                event.stopPropagation()
-                                toggleLike(product.product_id)
-                              }}
-                            >
-                              {isProductLiked(product.product_id) ? (
-                                <FaHeart />
-                              ) : (
-                                <FaRegHeart />
-                              )}
-                            </button>
-                            <button
-                              className={styles.cartBtn}
-                              onClick={(event) => {
-                                event.preventDefault()
-                                event.stopPropagation()
-                                getVariant(
-                                  product.product_id,
-                                  product.product_name
-                                )
-                              }}
-                            >
-                              <FaCartShopping />
-                            </button>
-                          </div>
-                        </div>
-                      </Card>
-                    </Link>
+                      product={product}
+                    />
                   ))}
                 </div>
               </div>
