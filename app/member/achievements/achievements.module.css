@@ -1,0 +1,43 @@
+.infoIcon {
+  color: #A17941 !important;
+}
+
+.exchangeButton {
+  color: white !important;
+  border: 2px solid #D4A76A !important;
+  background-color: #D4A76A !important;
+}
+
+.exchangeButton:hover {
+  background-color: #A17941 !important;
+  border-color: #A17941 !important;
+  color: white !important;
+}
+
+.modalHeader {
+  background-color: #D4A76A !important;
+  border-color: #D4A76A !important;
+}
+
+.modalTitle {
+  color: #000 !important;
+}
+
+.modalContent {
+  border-color: #F1D092 !important;
+}
+
+.custom-tooltip {
+  opacity: 1 !important;
+}
+
+.custom-tooltip .tooltip-inner {
+  background-color: white;
+  color: #333;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.custom-tooltip .tooltip-arrow::before {
+  border-right-color: #ddd;
+}
