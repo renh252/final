@@ -3,9 +3,10 @@
 import React, { useState } from 'react'
 import { usePageTitle } from '@/app/context/TitleContext'
 import { Card, Container, Row, Col, Badge, Modal, Button, OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { BsTrophy, BsCalendarCheck, BsPeople, BsPencilSquare, BsHeart, BsTicket, BsInfoCircle } from 'react-icons/bs'
+import { BsTrophy, BsCalendarCheck, BsPeople, BsPencilSquare, BsHeart, BsTicket, BsInfoCircle, BsCamera, BsLightbulb, BsEye, BsCup, BsLock, BsQuestionCircle } from 'react-icons/bs'
 import Swal from 'sweetalert2'
 import styles from './achievements.module.css'
+import LevelSystem from './LevelSystem'
 import voucherStyles from './voucher.module.css'
 
 export default function AchievementsPage() {
@@ -49,6 +50,7 @@ export default function AchievementsPage() {
   }
 
   const achievements = [
+    // 已解鎖成就
     {
       id: 1,
       title: '成功邀請一位好友',
@@ -56,7 +58,8 @@ export default function AchievementsPage() {
       points: 100,
       icon: BsPeople,
       date: '2025-03-15',
-      color: 'primary'
+      color: 'primary',
+      unlocked: true
     },
     {
       id: 2,
@@ -65,7 +68,8 @@ export default function AchievementsPage() {
       points: 500,
       icon: BsCalendarCheck,
       date: '2025-04-01',
-      color: 'success'
+      color: 'success',
+      unlocked: true
     },
     {
       id: 3,
@@ -74,7 +78,8 @@ export default function AchievementsPage() {
       points: 300,
       icon: BsPencilSquare,
       date: '2025-03-20',
-      color: 'danger'
+      color: 'danger',
+      unlocked: true
     },
     {
       id: 4,
@@ -83,7 +88,8 @@ export default function AchievementsPage() {
       points: 200,
       icon: BsTrophy,
       date: '2025-03-25',
-      color: 'warning'
+      color: 'warning',
+      unlocked: true
     },
     {
       id: 5,
@@ -92,12 +98,87 @@ export default function AchievementsPage() {
       points: 150,
       icon: BsHeart,
       date: '2025-04-05',
-      color: 'info'
+      color: 'info',
+      unlocked: true
+    },
+    // 未解鎖成就
+    {
+      id: 6,
+      title: '寵物攝影師',
+      description: '上傳超過30張寵物照片',
+      points: 200,
+      icon: BsCamera,
+      unlocked: false,
+      color: 'primary',
+      progress: 18
+    },
+    {
+      id: 7,
+      title: '社群之星',
+      description: '成功邀請10位好友加入',
+      points: 500,
+      icon: BsPeople,
+      unlocked: false,
+      color: 'success',
+      progress: 3
+    },
+    {
+      id: 8,
+      title: '寵物知識王',
+      description: '答對100題寵物問答',
+      points: 300,
+      icon: BsLightbulb,
+      unlocked: false,
+      color: 'warning',
+      progress: 45
+    },
+    {
+      id: 9,
+      title: '熱門部落客',
+      description: '發表的文章總觀看次數超過1000次',
+      points: 400,
+      icon: BsEye,
+      unlocked: false,
+      color: 'info',
+      progress: 658
+    },
+    {
+      id: 10,
+      title: '寵物美食家',
+      description: '分享30個寵物食譜',
+      points: 250,
+      icon: BsCup,
+      unlocked: false,
+      color: 'danger',
+      progress: 12
+    },
+    // 隱藏成就
+    {
+      id: 11,
+      title: '神秘成就',
+      description: '?????',
+      points: 1000,
+      icon: BsQuestionCircle,
+      unlocked: false,
+      color: 'dark',
+      hidden: true
+    },
+    {
+      id: 12,
+      title: '特殊成就',
+      description: '?????',
+      points: 800,
+      icon: BsQuestionCircle,
+      unlocked: false,
+      color: 'dark',
+      hidden: true
     }
   ]
 
   return (
     <Container className="py-4">
+      <LevelSystem />
+
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="d-flex align-items-center">
           <h1 className="h3 mb-0">論壇成就</h1>
@@ -236,8 +317,42 @@ export default function AchievementsPage() {
       <Row className="g-4">
         {achievements.map(achievement => (
           <Col key={achievement.id} xs={12}>
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm position-relative">
               <Card.Body className="d-flex align-items-center">
+                {!achievement.unlocked && (
+                  <div className={styles.achievementOverlay}>
+                    <div className={styles.lockIcon}>
+                      <BsLock size={24} />
+                    </div>
+                    {!achievement.hidden ? (
+                      <div className={styles.progressInfo}>
+                        <div className="text-white mb-1">
+                          進度: {achievement.progress}/
+                          {achievement.title === '熱門部落客' ? '1000' :
+                           achievement.title === '寵物知識王' ? '100' :
+                           achievement.title === '社群之星' ? '10' : '30'}
+                        </div>
+                        <div className={styles.progressBar}>
+                          <div 
+                            className={styles.progressFill} 
+                            style={{
+                              width: `${Math.min(100, (achievement.progress / (
+                                achievement.title === '熱門部落客' ? 1000 :
+                                achievement.title === '寵物知識王' ? 100 :
+                                achievement.title === '社群之星' ? 10 : 30
+                              )) * 100)}%`
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className={styles.progressInfo}>
+                        <div className="text-white mb-1">神秘彩蛋</div>
+                        <div className="text-white-50">快來解鎖隱藏成就吧！</div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div 
                   className={`d-flex align-items-center justify-content-center rounded-circle bg-${achievement.color} bg-opacity-10 p-3 me-3`}
                   style={{ width: '60px', height: '60px' }}
@@ -258,13 +373,15 @@ export default function AchievementsPage() {
                         +{achievement.points} 點
                       </div>
                       <Badge bg={achievement.color}>
-                        已達成
+                        {achievement.unlocked ? '已達成' : '未解鎖'}
                       </Badge>
                     </div>
                   </div>
-                  <small className="text-muted d-block mt-2">
-                    達成日期：{achievement.date}
-                  </small>
+                  {!achievement.hidden && (
+                    <small className="text-muted d-block mt-2">
+                      達成日期：{achievement.date}
+                    </small>
+                  )}
                 </div>
               </Card.Body>
             </Card>

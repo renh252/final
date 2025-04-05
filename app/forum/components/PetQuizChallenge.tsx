@@ -86,7 +86,7 @@ export default function PetQuizChallenge() {
           </>
         ) : (
           <Alert variant={isCorrect ? 'success' : 'danger'}>
-            {isCorrect ? '答對了！你真是寵物達人！' : '答錯了！再接再厲！'}
+            {isCorrect ? '答對了！參與更多問答來獲得成就勳章吧！' : '答錯了！再接再厲！'}
           </Alert>
         )}
       </Card.Body>

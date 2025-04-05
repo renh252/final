@@ -18,6 +18,7 @@ import TagCloud from './components/TagCloud'
 import Carousel from './components/Carousel'
 import PetQuizChallenge from './components/PetQuizChallenge'
 import EventCalendar from './components/EventCalendar'
+import InviteFriends from './components/InviteFriends'
 import { useForumData } from './hooks/useForumData'
 import styles from './styles/ForumPage.module.css'
 import './styles/custom-theme.css'
@@ -192,6 +193,7 @@ export default function ForumPage() {
             <PetQuizChallenge />
             <TagCloud tags={tags} />
             <EventCalendar />
+            <InviteFriends />
 
             <div className={`${styles.forumInfo} card shadow-sm mb-4`}>
               <div className={`${styles.forumInfoHeader} py-3`}>

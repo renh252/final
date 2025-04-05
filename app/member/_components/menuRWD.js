@@ -123,7 +123,7 @@ export default function MenuRWD({ children }) {
           </div>
         </div>
         <button className={isActive('/forum') ? styles.active : ''}>
-          <Link href="/forum">我的論壇</Link>
+          <Link href="/forum">論壇成就</Link>
         </button>
         <button className={isActive('/member/donations') ? styles.active : ''}>
           <Link
