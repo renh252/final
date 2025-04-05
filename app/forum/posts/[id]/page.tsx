@@ -21,8 +21,6 @@ import styles from './PostDetail.module.css'
 import '../../styles/custom-theme.css'
 import ReportModal from '../../components/ReportModal'
 import SuccessAlert from '@/app/_components/successAlert'
-
-
 interface Post {
   id: number
   title: string
@@ -96,6 +94,7 @@ const sidebarLinks = [
 
 export default function PostDetailPage() {
   const params = useParams()
+
   const [post, setPost] = useState<Post | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
@@ -220,9 +219,11 @@ export default function PostDetailPage() {
   return (
     <div className="forum-layout">
       <Container className="py-4">
+
         <Row>
           {/* 主要內容區 */}
           <Col lg={8}>
+
             <Card className="border-0 shadow-sm">
               <Card.Body className="p-0">
                 {/* Vote and Content Section */}

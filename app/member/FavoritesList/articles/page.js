@@ -7,29 +7,21 @@ import { BsHeartFill } from 'react-icons/bs'
 
 export default function ArticleLikePage(props) {
   usePageTitle('收藏文章')
-  const [favoriteArticles, setFavoriteArticles] = useState([])
+  const [favoriteArticles, setFavoriteArticles] = useState([
+    {
+      id: 10,
+      title: '如何訓練你的鸚鵡：建立良好互動關係的秘訣',
+      content: '鸚鵡是聰明又可愛的寵物，但訓練牠們需要耐心和技巧。這篇文章將分享鸚鵡訓練的方法，幫助你和你的鸚鵡建立良好的互動關係！ 1. 訓練前的準備：建立信任關係： 在訓練前，先和鸚鵡建立信任關係，讓牠們感到安心和舒適。',
+      username: '寵物專家',
+      created_at: '2025-04-05T11:05:58.000Z'
+    }
+  ])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const fetchFavorites = async () => {
-      try {
-        const response = await fetch('/api/forum/favorites')
-        if (response.ok) {
-          const data = await response.json()
-          setFavoriteArticles(data.favorites)
-        } else {
-          throw new Error('Failed to fetch favorites')
-        }
-      } catch (error) {
-        console.error('Error fetching favorites:', error)
-        setError('載入收藏失敗，請稍後再試')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchFavorites()
+    // 模擬 API 載入
+    setLoading(false)
   }, [])
 
   const handleRemoveFavorite = async (postId) => {
@@ -83,7 +75,10 @@ export default function ArticleLikePage(props) {
                         {article.username} • 
                         {new Date(article.created_at).toLocaleDateString('zh-TW')}
                       </p>
-                      <p className="card-text">{article.content.slice(0, 150)}...</p>
+                      <p className="card-text mb-3">{article.content.length > 100 ? `${article.content.slice(0, 100)}...` : article.content}</p>
+                      <Link href={`/forum/posts/${article.id}`} className="btn btn-outline-primary btn-sm">
+                        查看原文
+                      </Link>
                     </div>
                     <button
                       onClick={() => handleRemoveFavorite(article.id)}
