@@ -20,6 +20,8 @@ import Link from 'next/link'
 import styles from './PostDetail.module.css'
 import '../../styles/custom-theme.css'
 import ReportModal from '../../components/ReportModal'
+import SuccessAlert from '@/app/_components/successAlert'
+
 
 interface Post {
   id: number
@@ -105,46 +107,9 @@ export default function PostDetailPage() {
   const [showReportModal, setShowReportModal] = useState(false)
   const [isFavorited, setIsFavorited] = useState(false)
 
-  useEffect(() => {
-    const checkFavoriteStatus = async () => {
-      try {
-        const response = await fetch(`/api/forum/favorites/check/${params.id}`)
-        if (response.ok) {
-          const data = await response.json()
-          setIsFavorited(data.isFavorited)
-        }
-      } catch (error) {
-        console.error('Error checking favorite status:', error)
-      }
-    }
-
-    checkFavoriteStatus()
-  }, [params.id])
-
-  const handleFavorite = async () => {
-    try {
-      const response = await fetch('/api/forum/favorites', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          postId: params.id,
-          action: isFavorited ? 'remove' : 'add'
-        }),
-      })
-
-      if (response.ok) {
-        setIsFavorited(!isFavorited)
-        // 顯示成功訊息
-        alert(isFavorited ? '已取消收藏' : '已加入收藏')
-      } else {
-        throw new Error('收藏操作失敗')
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error)
-      alert('操作失敗，請稍後再試')
-    }
+  const handleFavorite = () => {
+    setIsFavorited(!isFavorited)
+    SuccessAlert()
   }
 
   useEffect(() => {

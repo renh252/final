@@ -13,6 +13,7 @@ import ProductMenu from '@/app/shop/_components/productMenu'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
 import FixedElements from '@/app/shop/_components/FixedElements'
 import Alert from '@/app/_components/alert'
+import ErrorAlert from '@/app/_components/errorAlert'
 
 // card
 import Card from '@/app/_components/ui/Card'
@@ -51,7 +52,7 @@ export default function SearchPage(props) {
   const toggleLike = async (productId) => {
     // 如果用戶未登入，則提示登入
     if (!isAuthenticated || !user) {
-      alert('請先登入才能收藏商品')
+      ErrorAlert()
       // 儲存當前頁面路徑，以便登入後返回
       sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
       window.location.href = '/member/MemberLogin/login'
