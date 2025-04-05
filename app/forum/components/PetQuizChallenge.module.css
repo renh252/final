@@ -1,13 +1,41 @@
 .quizCard {
   margin-bottom: 1rem;
   border: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  animation: cardAppear 0.5s ease-out;
 }
 
 .quizHeader {
-  background-color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), #C9D6C5);
   font-weight: bold;
   color: #FFFFFF;
+  padding: 1rem 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.quizHeader::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
 }
 
 .quizHeader i {
@@ -19,12 +47,14 @@
   font-size: 1.1rem;
   margin-bottom: 1rem;
   color: #343a40;
+  text-align: left;
 }
 
 .options {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
+  text-align: center;
 }
 
 .optionButton {
@@ -37,4 +67,66 @@
 
 .optionButton:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes resultSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(10%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes correctAnswer {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes wrongAnswer {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-5px);
+  }
+  40%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.resultAlert {
+  animation: resultSlideIn 0.5s ease-out;
+}
+
+.correctAlert {
+  animation: correctAnswer 0.5s ease-out;
+}
+
+.wrongAlert {
+  animation: wrongAnswer 0.5s ease-out;
 }

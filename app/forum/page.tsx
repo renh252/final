@@ -195,9 +195,9 @@ export default function ForumPage() {
             <EventCalendar />
             <InviteFriends />
 
-            <div className={`${styles.forumInfo} card shadow-sm mb-4`}>
-              <div className={`${styles.forumInfoHeader} py-3`}>
-                <h5 className="mb-0" style={{ color: '#FFFFFF' }}>
+            <div className={styles.forumInfo}>
+              <div className={styles.forumInfoHeader}>
+                <h5 className="mb-0">
                   <i className="bi bi-info-circle me-2"></i>
                   論壇資訊
                 </h5>
@@ -206,12 +206,12 @@ export default function ForumPage() {
                 <p className="mb-3">
                   歡迎光臨寵物論壇！！這裡是分享毛孩日常、交流飼養經驗的好地方，大家一起打造友善的社群氛圍。
                 </p>
-                <div className="forum-rules">
-                  <h6 className="fw-bold">論壇守則：</h6>
-                  <ul className="ps-3 mb-0">
+                <div className={styles.forumRules}>
+                  <h6>論壇守則：</h6>
+                  <ul>
                     <li>互相尊重，每個人都是毛孩的好家人</li>
                     <li>避免張貼廣告或無關內容</li>
-                    <li> 歡迎分享你家寶貝的大小事，越實用越好</li>
+                    <li>歡迎分享你家寶貝的大小事，越實用越好</li>
                     <li>發文時別忘了善用分類標籤，讓大家更容易找到</li>
                   </ul>
                 </div>

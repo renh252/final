@@ -93,12 +93,19 @@ export default function EventCalendar() {
           dayEvents.map(event => (
             <div key={event.id} className={styles.eventItem}>
               <Badge bg={getBadgeColor(event.type)} className="me-2">
+                {getEventIcon(event.type)}
                 {getEventTypeLabel(event.type)}
               </Badge>
               <div className={styles.eventDetails}>
                 <strong>{event.title}</strong>
-                <div>{event.time}</div>
-                <div>{event.location}</div>
+                <div>
+                  <i className="bi bi-clock me-2"></i>
+                  {event.time}
+                </div>
+                <div>
+                  <i className="bi bi-geo-alt me-2"></i>
+                  {event.location}
+                </div>
               </div>
             </div>
           ))
@@ -118,12 +125,21 @@ export default function EventCalendar() {
     }
   }
 
+  const getEventIcon = (type: string) => {
+    switch (type) {
+      case 'meetup': return <i className="bi bi-people-fill me-1"></i>
+      case 'adoption': return <i className="bi bi-heart-fill me-1"></i>
+      case 'training': return <i className="bi bi-mortarboard-fill me-1"></i>
+      default: return <i className="bi bi-calendar-event me-1"></i>
+    }
+  }
+
   const getEventTypeLabel = (type: string) => {
     switch (type) {
-      case 'meetup': return '聚會'
-      case 'adoption': return '認養'
-      case 'training': return '訓練'
-      default: return '其他'
+      case 'meetup': return '寵物聚會'
+      case 'adoption': return '認養活動'
+      case 'training': return '訓練課程'
+      default: return '其他活動'
     }
   }
 
@@ -131,7 +147,7 @@ export default function EventCalendar() {
     <Card className={styles.calendarCard}>
       <Card.Header className={styles.calendarHeader}>
         <div>
-          <i className="bi bi-calendar3"></i>
+          <i className="bi bi-calendar-heart"></i>
           寵物活動行事曆
         </div>
         <Button
@@ -149,6 +165,7 @@ export default function EventCalendar() {
           value={selectedType}
           onChange={handleTypeChange}
           aria-label="活動類型篩選"
+          title="活動類型篩選"
         >
           <option value="all">所有活動</option>
           <option value="meetup">寵物聚會</option>
@@ -186,6 +203,7 @@ export default function EventCalendar() {
             value={selectedType}
             onChange={handleTypeChange}
             aria-label="活動類型篩選"
+            title="活動類型篩選"
           >
             <option value="all">所有活動</option>
             <option value="meetup">寵物聚會</option>

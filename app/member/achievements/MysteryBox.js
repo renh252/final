@@ -60,15 +60,22 @@ export default function MysteryBox({ totalPoints, setTotalPoints }) {
     const colors = ['#ffd700', '#28a745', '#17a2b8', '#dc3545', '#6610f2']
     const confettiCount = 50
     const newConfetti = []
+    const shapes = ['', 'circle', 'square'] // 空字串代表預設的三角形
 
     for (let i = 0; i < confettiCount; i++) {
+      const shape = shapes[Math.floor(Math.random() * shapes.length)]
+      const size = Math.random() * 5 + 5 // 5-10px
       newConfetti.push({
         id: Date.now() + i,
         style: {
           left: Math.random() * 100 + '%',
           '--color': colors[Math.floor(Math.random() * colors.length)],
-          animationDelay: Math.random() * 2 + 's'
-        }
+          animationDelay: Math.random() * 2 + 's',
+          width: size + 'px',
+          height: size + 'px',
+          transform: `rotate(${Math.random() * 360}deg)`
+        },
+        className: shape
       })
     }
 
@@ -101,11 +108,13 @@ export default function MysteryBox({ totalPoints, setTotalPoints }) {
 
     // 動畫效果
     createConfetti()
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // 等待開箱動畫和文字顯示完成
+    await new Promise(resolve => setTimeout(resolve, 3200))
     
     // 逐個顯示獎勵
     for (let reward of selectedRewards) {
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise(resolve => setTimeout(resolve, 600))
       setRewards(prev => [...prev, reward])
     }
 
@@ -152,15 +161,28 @@ export default function MysteryBox({ totalPoints, setTotalPoints }) {
           {confetti.map(item => (
             <div
               key={item.id}
-              className={styles.confetti}
+              className={`${styles.confetti} ${item.className ? styles[item.className] : ''}`}
               style={item.style}
             />
           ))}
           
           {isOpening && rewards.length === 0 ? (
             <div className={styles.openingAnimation}>
-              <BsGift size={64} className="mb-3" />
-              <h4>正在開啟獎勵箱...</h4>
+              <div className={styles.boxContainer}>
+                <div className={`${styles.boxSide} ${styles.boxFront}`}>
+                  <BsGift size={64} />
+                </div>
+                <div className={`${styles.boxSide} ${styles.boxBack}`}>
+                  <BsGift size={64} />
+                </div>
+              </div>
+              <div className={styles.boxContent}>
+                <BsGift size={64} className="mb-3" />
+                <h4>正在開啟獎勵箱...</h4>
+                <div className="mt-3 text-muted">
+                  <small>神秘的寶物即將出現...</small>
+                </div>
+              </div>
             </div>
           ) : (
             <div className={styles.rewardList}>
@@ -182,8 +204,8 @@ export default function MysteryBox({ totalPoints, setTotalPoints }) {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            關閉
+          <Button variant="success" className="px-4" onClick={handleClose}>
+            太棒了！
           </Button>
         </Modal.Footer>
       </Modal>

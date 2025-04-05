@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Card } from 'react-bootstrap'
-import '../styles/custom-theme.css'
+import styles from './TagCloud.module.css'
 
 interface Tag {
   id: number
@@ -37,34 +37,25 @@ export default function TagCloud({ tags, title = '熱門標籤' }: TagCloudProps
   }
 
   return (
-    <Card className="shadow-sm mb-4">
-      <Card.Header
-        style={{
-          backgroundColor: 'var(--primary-color)',
-          borderBottom: '1px solid var(--primary-dark)',
-        }}
-      >
-        <h5 className="mb-0" style={{ color: '#FFFFFF' }}>
-          <i className="bi bi-tags me-2"></i>
+    <Card className={styles.tagCard}>
+      <Card.Header className={styles.tagHeader}>
+        <h5 className="mb-0">
+          <i className="bi bi-tags"></i>
           {title}
         </h5>
       </Card.Header>
-      <Card.Body className="tag-cloud">
+      <Card.Body className={styles.tagBody}>
         {tags.length === 0 ? (
           <p className="text-muted mb-0">尚無標籤</p>
         ) : (
-          <div className="d-flex flex-wrap gap-2">
+          <div className={styles.tagCloud}>
             {tags.map((tag) => (
               <Link
                 href={`/forum?tags=${tag.name}`}
                 key={tag.id}
-                className="badge rounded-pill text-decoration-none"
+                className={styles.tagLink}
                 style={{
                   fontSize: `${getTagSize(tag.post_count)}rem`,
-                  backgroundColor: 'var(--primary-light)',
-                  color: 'var(--secondary-color)',
-                  padding: '0.4em 0.8em',
-                  transition: 'all 0.2s ease',
                 }}
               >
                 #{tag.name} <span className="ms-1">{tag.post_count}</span>
