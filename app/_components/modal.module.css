@@ -1,0 +1,77 @@
+.modal_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal_content {
+  background-color: white;
+  padding: 24px 30px;
+  border-radius: 30px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 90%;
+  gap: 20px;
+  font-size: 18px;
+
+  h1{
+    font-size: 30px;
+    padding: 0;
+    margin: 0;
+  }
+  p{
+    font-size: 18px;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.modal_close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+.btns{
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+.customConfirm,.customCancel {
+  border-radius: 18px;
+  color: white;
+  padding: 10px 17.6px;
+  border: none;
+}
+.customConfirm {
+  background-color: rgba(205, 162, 116, 1);
+}
+.customCancel{
+  background-color: gray;
+}
+
+.warn {
+  background-color: rgba(255, 69, 58, 0.1); /* 淡紅色背景 */
+  color: rgba(255, 69, 58, 1); /* 鮮紅色文字 */
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 69, 58, 0.5); /* 紅色邊框 */
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  max-width: 100%;
+}
