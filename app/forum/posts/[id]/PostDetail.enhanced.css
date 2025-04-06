@@ -131,8 +131,7 @@
 
 /* 主要內容樣式 */
 .forum-layout {
-  background-color: #f8f9fa;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--navbar-height));
   padding: 2rem 0;
 }
 
