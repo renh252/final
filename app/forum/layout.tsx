@@ -1,4 +1,5 @@
 import './styles.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import React from 'react';
 
 export default function ForumLayout({

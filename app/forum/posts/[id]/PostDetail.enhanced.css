@@ -1,0 +1,816 @@
+/* 動畫效果 */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes pulse-soft {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(89, 62, 47, 0.1);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(89, 62, 47, 0.15);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(89, 62, 47, 0.1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 主要內容樣式 */
+.forum-layout {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding: 2rem 0;
+}
+
+.post-header {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.post-content {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #2C1810;
+}
+
+.post-content img {
+  max-width: 100%;
+  border-radius: 12px;
+  margin: 1rem 0;
+  transition: transform 0.3s ease;
+}
+
+.post-content img:hover {
+  transform: scale(1.02);
+}
+
+/* 投票區域樣式 */
+.vote-section {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(89, 62, 47, 0.1);
+  animation: slideIn 0.5s ease-out;
+}
+
+.vote-button {
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  cursor: pointer;
+}
+
+.vote-button:hover {
+  transform: scale(1.2);
+  background: rgba(199, 150, 80, 0.1);
+}
+
+.vote-count {
+  font-weight: bold;
+  font-size: 1.2rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(89, 62, 47, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* 標籤樣式 */
+.tag-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background-color: #F3E5D0;
+  color: #593E2F;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.tag-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(89, 62, 47, 0.15);
+}
+
+/* 留言區域樣式 */
+.comment-section {
+  margin-top: 2rem;
+}
+
+.comment-form {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(89, 62, 47, 0.08);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.comment-textarea {
+  resize: none;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 1rem;
+  border: none;
+  box-shadow: inset 0 2px 4px rgba(89, 62, 47, 0.05);
+}
+
+.comment-submit-button {
+  background-color: #C79650;
+  border: none;
+  border-radius: 20px;
+  padding: 0.5rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.comment-submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(199, 150, 80, 0.3);
+}
+
+/* 評論卡片樣式 */
+.comment-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.comment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(89, 62, 47, 0.12);
+}
+
+.comment-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #D9B77F;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+}
+
+.comment-content {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  color: #2C1810;
+  margin-top: 0.5rem;
+}
+
+/* 側邊欄樣式 */
+.sidebar-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.7s ease-out;
+}
+
+.sidebar-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(89, 62, 47, 0.12);
+}
+
+.sidebar-header {
+  background-color: #C79650;
+  color: white;
+  padding: 1rem;
+}
+
+.sidebar-link {
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.sidebar-link:hover {
+  background-color: #F3E5D0;
+}
+
+/* 空狀態樣式 */
+.comment-empty-state {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.comment-empty-state i {
+  font-size: 3rem;
+  color: #C79650;
+  margin-bottom: 1rem;
+}
+
+.comment-empty-state p {
+  color: #593E2F;
+  font-size: 1.1rem;
+}
+
+/* 按鈕樣式 */
+.action-button {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(89, 62, 47, 0.1);
+  background: transparent;
+  color: #593E2F;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-button:hover {
+  background: rgba(199, 150, 80, 0.1);
+  border-color: #C79650;
+  color: #C79650;
+  transform: translateY(-2px);
+}
+
+.action-button i {
+  font-size: 1.2rem;
+}
+
+/* 圖片樣式 */
+.post-image {
+  max-width: 100%;
+  border-radius: 12px;
+  margin: 1rem 0;
+  box-shadow: 0 4px 12px rgba(89, 62, 47, 0.1);
+  transition: all 0.3s ease;
+}
+
+.post-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(89, 62, 47, 0.15);
+}
+
+/* 社群統計樣式 */
+.community-stats {
+  padding: 1rem;
+  background: linear-gradient(to bottom right, #fff, #f8f9fa);
+  border-radius: 12px;
+}
+
+.stats-header {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #593E2F;
+}
+
+.stats-item {
+  padding: 0.5rem 0;
+}
+
+.stats-item .progress {
+  background-color: rgba(89, 62, 47, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+  height: 4px;
+}
+
+.stats-item .progress-bar {
+  background-color: #C79650;
+  transition: width 0.6s ease;
+}
+
+.stats-item .member-progress {
+  width: 15%;
+}
+
+.stats-item .online-progress {
+  width: 6.7%;
+}
+
+.stats-item .progress-bar.bg-success {
+  background-color: #28a745 !important;
+}
+
+.stat-value {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #593E2F;
+}
+
+.community-info {
+  font-size: 0.9rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(89, 62, 47, 0.1);
+}
+
+/* 論壇規則樣式 */
+.forum-rule {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.forum-rule:nth-child(odd) {
+  background-color: #f8f9fa;
+}
+
+.forum-rule:hover {
+  background-color: #F3E5D0;
+}
+
+.rule-number {
+  width: 24px;
+  height: 24px;
+  background-color: #C79650;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.rule-content {
+  flex-grow: 1;
+}
+
+.rule-title {
+  font-weight: bold;
+  color: #593E2F;
+  margin-bottom: 0.25rem;
+}
+
+.rule-description {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* 布局樣式 */
+.forum-layout {
+  background-color: var(--bg-color);
+  min-height: calc(100vh - var(--navbar-height));
+  display: flex;
+  flex-direction: column;
+}
+
+.forum-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 社群資訊樣式 */
+.community-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(199, 150, 80, 0.1);
+}
+
+.stats-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2C1810;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(199, 150, 80, 0.1);
+  margin-bottom: 0.5rem;
+}
+
+.stats-header i {
+  color: #C79650;
+  font-size: 1.25rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.625rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background-color: rgba(199, 150, 80, 0.03);
+  border: 1px solid rgba(199, 150, 80, 0.05);
+}
+
+.stat-item:hover {
+  background-color: rgba(199, 150, 80, 0.08);
+  transform: translateX(4px);
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 8px;
+  font-size: 1.125rem;
+  color: #C79650;
+  box-shadow: 0 2px 4px rgba(199, 150, 80, 0.1);
+  border: 1px solid rgba(199, 150, 80, 0.1);
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2C1810;
+  line-height: 1.2;
+}
+
+/* 社交連結樣式 */
+.social-link {
+  padding: 0.75rem 1rem;
+  color: #593E2F;
+  border-bottom: 1px solid rgba(89, 62, 47, 0.1);
+  transition: all 0.3s ease;
+}
+
+.social-link:last-child {
+  border-bottom: none;
+}
+
+.social-link:hover {
+  background-color: #F3E5D0;
+  color: #C79650;
+}
+
+.social-icon {
+  width: 32px;
+  height: 32px;
+  background-color: rgba(199, 150, 80, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.social-link:hover .social-icon {
+  background-color: #C79650;
+  color: white;
+}
+
+.social-title {
+  font-weight: 500;
+}
+
+/* 文章內容樣式 */
+.post-content {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  margin: 1rem 0;
+  transition: all 0.3s ease;
+}
+
+.post-content:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(89, 62, 47, 0.1);
+}
+
+.post-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.post-image-wrapper {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.post-image-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(89, 62, 47, 0.15);
+}
+
+.post-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.post-image-wrapper:hover .post-image {
+  transform: scale(1.05);
+}
+
+.post-content p {
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+  color: #2C1810;
+}
+
+.post-content h1, .post-content h2, .post-content h3 {
+  color: #593E2F;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.post-content blockquote {
+  border-left: 4px solid #C79650;
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.post-content pre {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.post-content code {
+  background-color: rgba(199, 150, 80, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  color: #C79650;
+}
+
+/* 動畫類 */
+.hover-float {
+  transition: transform 0.3s ease;
+}
+
+.hover-float:hover {
+  transform: translateY(-10px);
+}
+
+.hover-lift {
+  transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(89, 62, 47, 0.15);
+}
+
+/* 初始載入動畫 */
+.initial-fade-in {
+  animation: fadeInUp 0.6s ease-out forwards;
+  animation-play-state: paused;
+}
+
+.initial-fade-in.play {
+  animation-play-state: running;
+}
+
+.hover-slide {
+  position: relative;
+  overflow: hidden;
+}
+
+.hover-slide::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.hover-slide:hover::after {
+  left: 100%;
+}
+
+.animate-content {
+  opacity: 0;
+}
+
+.animate-content.play {
+  animation: fadeIn 0.3s ease-out forwards;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sidebar-card {
+  animation: slideInRight 0.5s ease-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sidebar-card:hover {
+  animation: pulse-soft 2s infinite;
+}
+
+.forum-rule {
+  position: relative;
+  overflow: hidden;
+}
+
+.forum-rule::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.8) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.forum-rule:hover::before {
+  transform: translateX(100%);
+}
+
+.social-icon {
+  transition: all 0.3s ease;
+}
+
+.social-link:hover .social-icon {
+  transform: rotate(360deg);
+}
+
+/* 移除背景框 */
+.forum-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.forum-layout {
+  background: none;
+  min-height: 0;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+  .forum-layout {
+    padding: 1rem 0;
+  }
+  
+  .post-content {
+    font-size: 1rem;
+  }
+  
+  .vote-section {
+    padding: 0.5rem;
+  }
+  
+  .comment-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .comment-content {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+  
+  .action-button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
+  
+  .tag-badge {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .stats-header {
+    font-size: 1rem;
+  }
+
+  .stat-value {
+    font-size: 1rem;
+  }
+
+  .rule-number {
+    width: 20px;
+    height: 20px;
+    font-size: 0.85rem;
+  }
+
+  .rule-title {
+    font-size: 0.95rem;
+  }
+
+  .rule-description {
+    font-size: 0.85rem;
+  }
+
+  .social-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .social-title {
+    font-size: 0.9rem;
+  }
+
+  .forum-container {
+    padding: 1rem;
+  }
+}
