@@ -77,7 +77,7 @@ const forumRules = [
 const sidebarLinks = [
   {
     url: 'https://twitter.com',
-    title: 'Twitter',
+    title: 'X',
     icon: FaTwitter
   },
   {
