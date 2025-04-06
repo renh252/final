@@ -20,6 +20,7 @@ import PetQuizChallenge from './components/PetQuizChallenge'
 import EventCalendar from './components/EventCalendar'
 import InviteFriends from './components/InviteFriends'
 import AchievementFeed from './components/AchievementFeed'
+import NewsMarquee from './components/NewsMarquee'
 import { useForumData } from './hooks/useForumData'
 import styles from './styles/ForumPage.module.css'
 import './styles/custom-theme.css'
@@ -137,8 +138,12 @@ export default function ForumPage() {
   }
 
   return (
-    <div className="forum-page py-4">
-      <Container>
+    <div className="forum-page">
+      <div className="news-marquee-wrapper">
+        <NewsMarquee />
+      </div>
+      <div className="forum-content py-4">
+        <Container>
         {/* 添加輪播元件 */}
         <Carousel />
 
@@ -221,7 +226,8 @@ export default function ForumPage() {
             </div>
           </Col>
         </Row>
-      </Container>
+        </Container>
+      </div>
 
       <CreatePostModal
         show={showCreateModal}

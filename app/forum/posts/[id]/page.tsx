@@ -231,10 +231,20 @@ export default function PostDetailPage() {
 
   return (
     <div className="forum-layout">
+      <Link 
+        href="/forum" 
+        className="back-button position-absolute text-decoration-none d-flex align-items-center"
+      >
+        <span className="icon-wrapper">
+          <i className="bi bi-arrow-left"></i>
+        </span>
+        <span className="button-text">返回論壇</span>
+      </Link>
+
       <Container>
         <Row>
           <Col lg={8}>
-            <Card className="border-0 shadow-sm rounded-0">
+            <Card className="border-0 rounded-0">
               <Card.Body className="p-0">
                 {/* Vote and Content Section */}
                 <div className="d-flex">
@@ -545,5 +555,5 @@ export default function PostDetailPage() {
         contentId={Number(params.id)}
       />
     </div>
-  )
+  );
 }

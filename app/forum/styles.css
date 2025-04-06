@@ -3,8 +3,13 @@
 /* General Styles */
 .forum-layout {
   min-height: calc(100vh - var(--navbar-height));
-  background-color: #f8f9fa;
-  padding: 1.5rem 0;
+  padding: 0;
+}
+
+/* 跑馬燈容器 */
+.news-marquee-wrapper {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(89, 62, 47, 0.1);
 }
 
 .forum-layout .hover-shadow-md:hover {

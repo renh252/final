@@ -20,6 +20,55 @@
   }
 }
 
+/* 返回按鈕樣式 */
+.back-button {
+  top: 1.5rem;
+  left: 1.5rem;
+  height: 44px;
+  padding: 0.5rem 1.25rem;
+  color: var(--primary-color);
+  background-color: white;
+  border-radius: 22px;
+  box-shadow: 0 2px 8px rgba(89, 62, 47, 0.1);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  border: 1px solid rgba(89, 62, 47, 0.1);
+}
+
+.back-button .icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+}
+
+.back-button i {
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+.back-button .button-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: transform 0.3s ease;
+}
+
+.back-button:hover {
+  color: var(--primary-dark);
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px rgba(89, 62, 47, 0.15);
+  transform: translateX(-5px);
+}
+
+.back-button:hover i {
+  transform: translateX(-3px);
+}
+
+.back-button:active {
+  transform: translateX(-2px) scale(0.98);
+  box-shadow: 0 2px 4px rgba(89, 62, 47, 0.1);
+}
+
 @keyframes pulse-soft {
   0% {
     transform: scale(1);
