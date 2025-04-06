@@ -1,4 +1,7 @@
 :root {
+  /* Layout */
+  --navbar-height: 60px;
+
   /* Primary brown color scheme */
   --primary-color: #8B5A2B; /* Main brown */
   --primary-light: #D2B48C; /* Tan/Light brown */

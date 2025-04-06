@@ -231,12 +231,9 @@ export default function PostDetailPage() {
 
   return (
     <div className="forum-layout">
-      <Container className="forum-container p-0">
-
+      <Container>
         <Row>
-          {/* 主要內容區 */}
           <Col lg={8}>
-
             <Card className="border-0 shadow-sm rounded-0">
               <Card.Body className="p-0">
                 {/* Vote and Content Section */}
