@@ -40,10 +40,11 @@ const ProductCard = ({ product, isLiked: initialIsLiked }) => {
       Alert({
         icon: 'warning',
         title: '請先登入',
-        text: '請先登入才能收藏商品',
-        showCancelButton: true,
-        confirmButtonText: '前往登入',
-        cancelButtonText: '取消',
+        text: '登入後才能收藏商品',
+        showCancelBtn: true,
+        showconfirmBtn: true,
+        confirmBtnText: '登入',
+        cancelBtnText: '取消',
         function: () => {
           sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
           window.location.href = '/member/MemberLogin/login'
@@ -91,8 +92,9 @@ const ProductCard = ({ product, isLiked: initialIsLiked }) => {
   const getVariant = async (productId, productName) => {
     if (!isAuthenticated || !user) {
           Alert({
-            icon: 'error',
-            title: '請先登入才能加入購物車',
+            icon: 'warning',
+            title: '請先登入',
+            text: '登入後才能將商品加入購物車',
             showCancelBtn: true,
             showconfirmBtn: true,
             confirmBtnText: '登入',
