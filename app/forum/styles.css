@@ -1,8 +1,15 @@
 /* Forum Styles */
 
 /* General Styles */
-.forum-layout .transition-all {
-  transition: all 0.2s ease-in-out;
+.forum-layout {
+  min-height: calc(100vh - var(--navbar-height));
+  padding: 0;
+}
+
+/* 跑馬燈容器 */
+.news-marquee-wrapper {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(89, 62, 47, 0.1);
 }
 
 .forum-layout .hover-shadow-md:hover {
@@ -144,6 +151,8 @@
 .forum-layout .forum-info {
   border: 1px solid rgba(89, 62, 47, 0.05);
 }
+
+
 
 .forum-layout .forum-info .forum-rules li {
   margin-bottom: 0.5rem;

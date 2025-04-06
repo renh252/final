@@ -1,16 +1,49 @@
 .calendarCard {
   margin-bottom: 1rem;
   border: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .calendarHeader {
-  background-color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), #C9D6C5);
   font-weight: bold;
   color: #FFFFFF;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1rem 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.calendarHeader::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
 }
 
 .calendarHeader i {
@@ -40,13 +73,48 @@
 .fullCalendar :global(.react-calendar) {
   width: 100%;
   border: 1px solid #e9ecef;
+  margin-bottom: 1rem;
+}
+
+.fullCalendar :global(.react-calendar__tile--active) {
+  background-color: var(--primary-color);
+  color: white;
+  animation: selectDate 0.3s ease-out;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fullCalendar :global(.react-calendar__tile--now) {
+  background-color: #e9ecef;
+}
+
+.fullCalendar :global(.react-calendar__navigation button:enabled:hover),
+.fullCalendar :global(.react-calendar__navigation button:enabled:focus) {
+  background-color: #e9ecef;
+}
+
+.fullCalendar :global(.react-calendar__tile:enabled:hover),
+.fullCalendar :global(.react-calendar__tile:enabled:focus) {
+  background-color: #e9ecef;
 }
 
 .eventDot {
   display: flex;
   justify-content: center;
-  gap: 2px;
-  margin-top: 2px;
+  gap: 3px;
+  margin-top: 4px;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .dot {
@@ -54,6 +122,13 @@
   height: 6px;
   border-radius: 50%;
   display: inline-block;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .dot.meetup {
@@ -80,20 +155,75 @@
 
 .eventItem {
   margin-bottom: 0.75rem;
-  padding: 0.5rem;
+  padding: 1rem;
   background-color: #f8f9fa;
-  border-radius: 4px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  animation: slideIn 0.5s ease-out;
+  border-left: 4px solid var(--primary-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.eventItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.eventItem::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.5), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.3s;
+}
+
+.eventItem:hover::after {
+  transform: translateX(100%);
 }
 
 .eventDetails {
-  margin-top: 0.25rem;
-  font-size: 0.9em;
+  margin-top: 0.75rem;
+  font-size: 0.95em;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.eventDetails strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+  font-size: 1.1em;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+}
+
+.eventItem:hover .eventDetails strong {
+  transform: translateX(5px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Calendar overrides */
 .miniCalendar :global(.react-calendar__tile--active) {
   background-color: var(--primary-color);
   color: white;
+  animation: selectDate 0.3s ease-out;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes selectDate {
+  0% { transform: scale(0.9); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 .miniCalendar :global(.react-calendar__tile--now) {

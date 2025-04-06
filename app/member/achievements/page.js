@@ -3,11 +3,12 @@
 import React, { useState } from 'react'
 import { usePageTitle } from '@/app/context/TitleContext'
 import { Card, Container, Row, Col, Badge, Modal, Button, OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { BsTrophy, BsCalendarCheck, BsPeople, BsPencilSquare, BsHeart, BsTicket, BsInfoCircle, BsCamera, BsLightbulb, BsEye, BsCup, BsLock, BsQuestionCircle } from 'react-icons/bs'
+import { BsTrophy, BsCalendarCheck, BsPeople, BsPencilSquare, BsHeart, BsTicket, BsInfoCircle, BsCamera, BsLightbulb, BsEye, BsCup, BsLock, BsQuestionCircle, BsGift } from 'react-icons/bs'
 import Swal from 'sweetalert2'
 import styles from './achievements.module.css'
 import LevelSystem from './LevelSystem'
 import voucherStyles from './voucher.module.css'
+import MysteryBox from './MysteryBox'
 
 export default function AchievementsPage() {
   usePageTitle('論壇成就')
@@ -216,8 +217,8 @@ export default function AchievementsPage() {
             className={`ms-3 btn ${styles.exchangeButton}`}
             onClick={() => setShowExchange(true)}
           >
-            <BsTicket className="me-2" />
-            兑換折價券
+            <BsGift className="me-2" />
+            特殊獎勵商店
           </Button>
         </div>
       </div>
@@ -231,11 +232,19 @@ export default function AchievementsPage() {
       >
         <Modal.Header closeButton className={styles.modalHeader}>
           <Modal.Title className={styles.modalTitle}>
-            <BsTicket className="me-2" />
-            兑換折價券
+            <BsGift className="me-2" />
+            特殊獎勵商店
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          <div className="text-center mb-4">
+            <MysteryBox totalPoints={totalPoints} setTotalPoints={setTotalPoints} />
+          </div>
+          <hr className="my-4" />
+          <h5 className="mb-3">
+            <BsTicket className="me-2" />
+            折價券列表
+          </h5>
           <Row className="g-4">
             {vouchers.map((voucher) => (
               <Col key={voucher.id} md={6}>
