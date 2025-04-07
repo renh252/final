@@ -1,79 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server'
-// 實際應用中需要引入資料庫連接和身份驗證
-// import { db } from '@/app/lib/db';
-// import { getServerSession } from 'next-auth';
+import { executeQuery } from '@/lib/db'
+import { getServerSession } from 'next-auth/next'
 
 export async function GET(request: NextRequest) {
   try {
-    // 獲取已登入用戶
-    // const session = await getServerSession();
-    // if (!session?.user) {
-    //   return NextResponse.json({ error: '未授權訪問' }, { status: 401 });
-    // }
-    // const userId = session.user.id;
+    // 獲取查詢參數
+    const searchParams = request.nextUrl.searchParams
+    const userId = searchParams.get('userId')
+    const type = searchParams.get('type')
+    const limit = parseInt(searchParams.get('limit') || '50')
+    const offset = parseInt(searchParams.get('offset') || '0')
 
-    // 模擬用戶ID，實際應用中應該從session獲取
-    const userId = '123'
+    // 如果沒有提供 userId，嘗試從 session 獲取
+    // 這裡我們不使用 getServerSession 因為我們的項目使用自定義認證
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: '需要使用者ID' },
+        { status: 400 }
+      )
+    }
 
-    // 模擬通知數據
-    // 在實際應用中，應該從資料庫查詢
-    // 例如: const notifications = await db.query(`SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC`, [userId]);
+    // 構建基本查詢
+    let query = `
+      SELECT * FROM notifications 
+      WHERE user_id = ?
+    `
+    let params: any[] = [userId]
 
-    const notifications = [
-      {
-        id: 1,
-        type: 'forum',
-        title: '新留言通知',
-        message: '有人在您的貼文「尋找愛貓新家」留言',
-        link: '/forum/post/1',
-        image: '/images/default-avatar.png',
-        isRead: false,
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 2,
-        type: 'pet',
-        title: '寵物領養通知',
-        message: '您申請的寵物「小花」領養申請已通過初審',
-        link: '/pets/2',
-        image: '/images/icons/pet.png',
-        isRead: false,
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-      },
-      {
-        id: 3,
-        type: 'system',
-        title: '系統通知',
-        message: '您的帳號已通過驗證',
-        image: '/images/icons/system.png',
-        isRead: true,
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-      },
-      {
-        id: 4,
-        type: 'shop',
-        title: '訂單已建立',
-        message: '您的訂單 #T12345 已建立成功，等待付款',
-        link: '/member/orders/T12345',
-        image: '/images/icons/shop.png',
-        isRead: false,
-        createdAt: new Date(Date.now() - 7200000).toISOString(),
-      },
-      {
-        id: 5,
-        type: 'donation',
-        title: '感謝您的捐款',
-        message: '感謝您捐款 $500 元，您的愛心將幫助更多流浪動物',
-        link: '/donate/history',
-        image: '/images/icons/donation.png',
-        isRead: false,
-        createdAt: new Date(Date.now() - 172800000).toISOString(),
-      },
-    ]
+    // 如果提供了類型過濾
+    if (type && type !== 'all') {
+      query += ` AND type = ?`
+      params.push(type)
+    }
+
+    // 添加排序和分頁
+    query += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`
+    params.push(limit, offset)
+
+    // 執行查詢
+    const notifications = await executeQuery(query, params)
+
+    // 計算未讀通知數量
+    const countQuery = `
+      SELECT COUNT(*) as count FROM notifications 
+      WHERE user_id = ? AND is_read = 0
+    `
+    const countResult = await executeQuery(countQuery, [userId])
+    const unreadCount = countResult[0]?.count || 0
 
     return NextResponse.json({
       success: true,
       notifications,
+      unreadCount,
     })
   } catch (error) {
     console.error('獲取通知失敗:', error)
