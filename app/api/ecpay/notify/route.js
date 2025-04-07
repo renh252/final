@@ -177,7 +177,7 @@ export async function POST(req) {
                     'Content-Type': 'application/json',
                   },
                   body: JSON.stringify({
-                    admin_id: 6, // 管理員ID
+                    admin_id: 6, // 超級管理員
                     type: 'shop',
                     title: '收到新訂單',
                     message: `收到一筆新訂單 ${tradeNo}，金額 NT$${order.total_price}，請盡快處理。`,
@@ -232,7 +232,7 @@ export async function POST(req) {
                     'Content-Type': 'application/json',
                   },
                   body: JSON.stringify({
-                    admin_id: 6, // 管理員ID
+                    admin_id: 6, // 超級管理員
                     type: 'donation',
                     title: '收到新的捐款',
                     message: `收到一筆${donation.donation_type}捐款 NT$${donation.amount}。`,

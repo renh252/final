@@ -11,6 +11,7 @@ import { useAuth } from '@/app/context/AuthContext'
 export default function ResultPage(props) {
   const searchParams = useSearchParams()
   const isSuccess = searchParams.get('status') === 'success'
+  const amount = searchParams.get('amount')
   const { user } = useAuth()
   const [notificationSent, setNotificationSent] = useState(false)
 
@@ -35,8 +36,7 @@ export default function ResultPage(props) {
               user_id: user.id,
               type: 'donation',
               title: '感謝您的愛心捐款',
-              message:
-                '您的捐款已成功處理。感謝您的愛心，讓更多浪浪有機會找到幸福的家。',
+              message: `您的捐款 NT$${amount} 已成功處理。感謝您的愛心，讓更多浪浪有機會找到幸福的家。`,
               link: '/member/donations',
             }),
           })
@@ -51,7 +51,9 @@ export default function ResultPage(props) {
               admin_id: 6, // 假設管理員ID為6
               type: 'donation',
               title: '收到新的捐款',
-              message: `用戶 ${user.name || user.id} 完成了一筆捐款`,
+              message: `用戶 ${
+                user.name || user.id
+              } 完成了一筆 NT$${amount} 的捐款`,
               link: '/admin/donations',
             }),
           })
@@ -75,7 +77,7 @@ export default function ResultPage(props) {
     if (isSuccess && user && !notificationSent) {
       sendNotification()
     }
-  }, [isSuccess, user, notificationSent])
+  }, [isSuccess, user, notificationSent, amount])
 
   return (
     <>
