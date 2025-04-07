@@ -131,7 +131,7 @@ export default function OrderIdPage(props) {
       if (response.ok) {
         Alert({
           title: '評價提交成功！',
-          timer: 2000,
+          timer: 1000,
           icon: 'success',
           showCloseButton: true,
         })
