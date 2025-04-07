@@ -57,24 +57,25 @@ export async function POST(req) {
 
           // 完成註冊時發送歡迎通知
           try {
-            await fetch(
-              `${
-                process.env.NEXT_PUBLIC_API_BASE_URL || ''
-              }/api/notifications/add`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  user_id: userIdToUpdate,
-                  type: 'system',
-                  title: '歡迎加入寵物之家',
-                  message: `親愛的 ${name}，歡迎您完成資料設定！您現在可以瀏覽我們的網站，探索可愛的寵物，參與各種活動，以及使用會員專屬服務。`,
-                  link: '/member',
-                }),
-              }
-            )
+            const [notifyResult, notifyError] =
+              await database.executeSecureQuery(
+                `INSERT INTO notifications 
+              (user_id, type, title, message, link, created_at) 
+              VALUES (?, ?, ?, ?, ?, NOW())`,
+                [
+                  userIdToUpdate,
+                  'system',
+                  '歡迎加入寵物之家',
+                  `親愛的 ${name}，歡迎您完成資料設定！您現在可以瀏覽我們的網站，探索可愛的寵物，參與各種活動，以及使用會員專屬服務。`,
+                  '/member',
+                ]
+              )
+
+            if (notifyError) {
+              throw new Error(`通知發送失敗: ${notifyError.message}`)
+            }
+
+            console.log('通知發送成功:', notifyResult)
           } catch (notifyError) {
             console.error('發送歡迎通知時發生錯誤:', notifyError)
             // 不阻礙主要流程
@@ -161,28 +162,29 @@ export async function POST(req) {
           const userId = result.insertId
 
           if (userId) {
-            await fetch(
-              `${
-                process.env.NEXT_PUBLIC_API_BASE_URL || ''
-              }/api/notifications/add`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  user_id: userId,
-                  type: 'system',
-                  title: '歡迎加入寵物之家',
-                  message: `親愛的 ${name}，感謝您註冊成為我們的會員！您現在可以瀏覽我們的網站，探索可愛的寵物，參與各種活動，以及使用會員專屬服務。`,
-                  link: '/member',
-                }),
-              }
-            )
+            const [notifyResult, notifyError] =
+              await database.executeSecureQuery(
+                `INSERT INTO notifications 
+              (user_id, type, title, message, link, created_at) 
+              VALUES (?, ?, ?, ?, ?, NOW())`,
+                [
+                  userId,
+                  'system',
+                  '歡迎加入寵物之家',
+                  `親愛的 ${name}，感謝您註冊成為我們的會員！您現在可以瀏覽我們的網站，探索可愛的寵物，參與各種活動，以及使用會員專屬服務。`,
+                  '/member',
+                ]
+              )
+
+            if (notifyError) {
+              throw new Error(`通知發送失敗: ${notifyError.message}`)
+            }
+
+            console.log('通知發送成功:', notifyResult)
           }
         } catch (notifyError) {
           console.error('發送歡迎通知時發生錯誤:', notifyError)
-          // 不阻礙主要流程
+          console.error('詳細錯誤:', notifyError.message)
         }
 
         return NextResponse.json({ message: '註冊成功' }, { status: 201 })
