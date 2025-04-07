@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Dropdown, Badge, Nav } from 'react-bootstrap'
+import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import { Badge, Nav } from 'react-bootstrap'
 import { Bell } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -43,9 +44,36 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [activeCategory, setActiveCategory] = useState<string>('all')
+  const [isOpen, setIsOpen] = useState(false)
+  const bellRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const [isMounted, setIsMounted] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   // 添加控制變數，設為 true 可顯示模擬通知
   const SHOW_MOCK_NOTIFICATIONS = true
+
+  // 檢測是否為手機版
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 992)
+    }
+
+    // 初始檢查
+    checkMobile()
+
+    // 監聽窗口大小變化
+    window.addEventListener('resize', checkMobile)
+
+    return () => {
+      window.removeEventListener('resize', checkMobile)
+    }
+  }, [])
+
+  useEffect(() => {
+    setIsMounted(true)
+    return () => setIsMounted(false)
+  }, [])
 
   useEffect(() => {
     if (!SHOW_MOCK_NOTIFICATIONS) return
@@ -57,7 +85,7 @@ export default function NotificationBell() {
           type: 'forum',
           title: '新留言通知',
           message: '有人在您的貼文「尋找愛貓新家」留言',
-          link: '/forum/post/1',
+          link: '/forum/posts/1',
           image: '/images/default-avatar.png',
           isRead: false,
           createdAt: new Date().toISOString(),
@@ -66,7 +94,7 @@ export default function NotificationBell() {
           id: 2,
           type: 'pet',
           title: '寵物領養通知',
-          message: '您申請的寵物「小花」領養申請已通過初審',
+          message: '您申請的寵物「多多」領養申請已通過初審',
           link: '/pets/2',
           image: notificationIcons.pet,
           isRead: false,
@@ -85,8 +113,8 @@ export default function NotificationBell() {
           id: 4,
           type: 'shop',
           title: '訂單已建立',
-          message: '您的訂單 #T12345 已建立成功，等待付款',
-          link: '/member/orders/T12345',
+          message: '您的訂單 #ORD00001 已建立成功，等待付款',
+          link: '/member/orders/ORD00001',
           image: notificationIcons.shop,
           isRead: false,
           createdAt: new Date(Date.now() - 7200000).toISOString(),
@@ -96,7 +124,7 @@ export default function NotificationBell() {
           type: 'donation',
           title: '感謝您的捐款',
           message: '感謝您捐款 $500 元，您的愛心將幫助更多流浪動物',
-          link: '/donate/history',
+          link: 'member/donations',
           image: notificationIcons.donation,
           isRead: false,
           createdAt: new Date(Date.now() - 172800000).toISOString(),
@@ -171,34 +199,169 @@ export default function NotificationBell() {
     return notifications.filter((n) => n.type === type && !n.isRead).length
   }
 
-  return (
-    <Dropdown align="end">
-      <Dropdown.Toggle
-        as="a"
-        href="#"
-        variant="link"
-        className={styles.notificationIconLink}
-      >
-        <Bell size={20} className={styles.notificationIcon} />
-        {unreadCount > 0 && (
-          <div className={styles.notificationCount}>{unreadCount}</div>
-        )}
-      </Dropdown.Toggle>
+  // 重新計算選單位置函數
+  const updateMenuPosition = () => {
+    if (!bellRef.current) return
 
-      <Dropdown.Menu className={styles.menu}>
+    if (isMobile) {
+      // 手機版：從頂部展開，寬度100%
+      setMenuPosition({
+        top: 0,
+        right: 0,
+      })
+    } else {
+      // 桌面版：從通知圖標下方展開
+      const rect = bellRef.current.getBoundingClientRect()
+      const windowWidth = window.innerWidth
+      let rightPosition = windowWidth - rect.right
+
+      setMenuPosition({
+        top: rect.bottom + window.scrollY + 5,
+        right: rightPosition,
+      })
+    }
+  }
+
+  // 點擊通知鈴鐺時重新計算位置
+  const toggleMenu = () => {
+    // 在手機版檢查並關閉漢堡選單
+    if (isMobile) {
+      // 獲取當前展開的漢堡選單
+      const expandedNavbar = document.querySelector('.navbar-collapse.show')
+
+      // 如果漢堡選單已展開，先關閉它
+      if (expandedNavbar) {
+        const navbarToggle = document.querySelector(
+          '.navbar-toggler'
+        ) as HTMLElement
+        if (navbarToggle) {
+          navbarToggle.click()
+
+          // 短暫延遲後再開啟通知選單
+          setTimeout(() => {
+            const newIsOpen = !isOpen
+            setIsOpen(newIsOpen)
+            if (newIsOpen) {
+              setTimeout(updateMenuPosition, 10)
+            }
+          }, 300) // 增加延遲以確保漢堡選單完全收起
+          return
+        }
+      }
+    }
+
+    // 正常開啟/關閉通知選單（非手機版或漢堡選單未展開）
+    const newIsOpen = !isOpen
+    setIsOpen(newIsOpen)
+    if (newIsOpen) {
+      setTimeout(updateMenuPosition, 0)
+    }
+  }
+
+  // 監聽視窗大小變化，更新選單位置
+  useEffect(() => {
+    if (isOpen) {
+      window.addEventListener('resize', updateMenuPosition)
+      return () => window.removeEventListener('resize', updateMenuPosition)
+    }
+  }, [isOpen])
+
+  // 點擊外部關閉選單
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isOpen &&
+        menuRef.current &&
+        bellRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        !bellRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
+
+  // 計算選單位置
+  const [menuPosition, setMenuPosition] = useState({
+    top: 0,
+    right: 0,
+  })
+
+  // 處理通知項目點擊
+  const handleItemClick = (notification: Notification) => {
+    handleRead(notification.id)
+    if (notification.link) {
+      window.location.href = notification.link
+    }
+  }
+
+  // 處理鍵盤事件
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLElement>,
+    callback: () => void
+  ) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      callback()
+    }
+  }
+
+  // 處理選單鍵盤事件
+  const handleMenuKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Escape') {
+      setIsOpen(false)
+    }
+  }
+
+  // 使用 Portal 渲染下拉選單
+  const renderMenu = () => {
+    if (!isOpen || !isMounted) return null
+
+    const menuStyle = {
+      position: 'fixed',
+      top: `${menuPosition.top}px`,
+      right: `${menuPosition.right}px`,
+      zIndex: 1050,
+    } as React.CSSProperties
+
+    // 如果是手機版，移除top和right樣式，讓CSS控制
+    if (isMobile) {
+      delete menuStyle.top
+      delete menuStyle.right
+    }
+
+    const menu = (
+      <div ref={menuRef} className={styles.menu} style={menuStyle}>
         <div className={styles.header}>
           <span className={styles.title}>通知中心</span>
-          {unreadCount > 0 && (
-            <button className={styles.readAllButton} onClick={handleReadAll}>
-              全部標為已讀
-            </button>
-          )}
+          <div>
+            {unreadCount > 0 && (
+              <button className={styles.readAllButton} onClick={handleReadAll}>
+                全部標為已讀
+              </button>
+            )}
+            {isMobile && (
+              <button
+                className={styles.closeButton}
+                onClick={() => setIsOpen(false)}
+                aria-label="關閉通知中心"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 通知分類標籤 */}
         <Nav variant="tabs" className={styles.categoryTabs}>
           <Nav.Item>
             <Nav.Link
+              as="button"
               className={`${styles.categoryTab} ${
                 activeCategory === 'all' ? styles.active : ''
               }`}
@@ -214,6 +377,7 @@ export default function NotificationBell() {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link
+              as="button"
               className={`${styles.categoryTab} ${
                 activeCategory === 'shop' ? styles.active : ''
               }`}
@@ -229,6 +393,7 @@ export default function NotificationBell() {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link
+              as="button"
               className={`${styles.categoryTab} ${
                 activeCategory === 'pet' ? styles.active : ''
               }`}
@@ -244,6 +409,7 @@ export default function NotificationBell() {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link
+              as="button"
               className={`${styles.categoryTab} ${
                 activeCategory === 'forum' ? styles.active : ''
               }`}
@@ -259,6 +425,7 @@ export default function NotificationBell() {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link
+              as="button"
               className={`${styles.categoryTab} ${
                 activeCategory === 'donation' ? styles.active : ''
               }`}
@@ -274,6 +441,7 @@ export default function NotificationBell() {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link
+              as="button"
               className={`${styles.categoryTab} ${
                 activeCategory === 'member' ? styles.active : ''
               }`}
@@ -289,6 +457,7 @@ export default function NotificationBell() {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link
+              as="button"
               className={`${styles.categoryTab} ${
                 activeCategory === 'system' ? styles.active : ''
               }`}
@@ -314,14 +483,15 @@ export default function NotificationBell() {
               通知
             </div>
           ) : (
-            filteredNotifications.map((notification) => (
-              <Dropdown.Item
+            filteredNotifications.map((notification, index) => (
+              <button
                 key={notification.id}
-                as="div"
                 className={`${styles.item} ${
                   !notification.isRead ? styles.unread : ''
                 } ${styles[notification.type]}`}
-                onClick={() => handleRead(notification.id)}
+                onClick={() => handleItemClick(notification)}
+                aria-label={`${notification.title}: ${notification.message}`}
+                style={{ '--item-index': index } as React.CSSProperties}
               >
                 <div className={styles.content}>
                   <div className={styles.imageWrapper}>
@@ -348,7 +518,7 @@ export default function NotificationBell() {
                     </div>
                   </div>
                 </div>
-              </Dropdown.Item>
+              </button>
             ))
           )}
         </div>
@@ -356,8 +526,30 @@ export default function NotificationBell() {
         <Link href="/notifications" className={styles.viewAll}>
           查看所有通知
         </Link>
-      </Dropdown.Menu>
-    </Dropdown>
+      </div>
+    )
+
+    return createPortal(menu, document.body)
+  }
+
+  return (
+    <>
+      <button
+        ref={bellRef as React.RefObject<HTMLButtonElement>}
+        onClick={(e) => {
+          e.preventDefault()
+          toggleMenu()
+        }}
+        className={styles.notificationIconLink}
+        aria-label="開啟通知中心"
+      >
+        <Bell size={20} className={styles.notificationIcon} />
+        {unreadCount > 0 && (
+          <div className={styles.notificationCount}>{unreadCount}</div>
+        )}
+      </button>
+      {renderMenu()}
+    </>
   )
 }
 

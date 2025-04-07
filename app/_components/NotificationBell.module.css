@@ -8,6 +8,7 @@
   color: inherit;
   background: none;
   border: none;
+  cursor: pointer;
 }
 
 .notificationIconLink::after {
@@ -16,12 +17,17 @@
 
 .notificationIcon {
   font-size: 20px;
+  transition: transform 0.2s ease;
+}
+
+.notificationIconLink:hover .notificationIcon {
+  transform: rotate(15deg);
 }
 
 .notificationCount {
   position: absolute;
-  top: -9px;
-  right: -5px;
+  top: -8px;
+  right: -3px;
   background-color: #d75951;
   color: white;
   font-size: 12px;
@@ -71,104 +77,178 @@
 }
 
 .menu {
-  width: 360px;
-  padding: 0;
-  margin-top: 0.5rem;
-  border: none;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   opacity: 1 !important;
+  backdrop-filter: none !important;
+  background-color: #fff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  z-index: 1031 !important;
+  max-height: 80vh !important;
+  width: 420px;
+  transform: translate3d(0, 0, 0) !important;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  overflow: hidden;
+  animation: fadeInMenu 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* 桌面版動畫：漸變上升 */
+@keyframes fadeInMenu {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* 手機版動畫：從頂部滑下 */
+@keyframes slideDownMenu {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0.5;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 10px 15px;
   border-bottom: 1px solid #eee;
+  animation: fadeIn 0.3s 0.05s both;
 }
 
 .title {
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: bold;
+  font-size: 1rem;
 }
 
 .readAllButton {
+  color: #0d6efd;
   background: none;
   border: none;
-  color: #666;
   font-size: 0.85rem;
-  padding: 4px 8px;
   cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 .readAllButton:hover {
-  color: #333;
-  text-decoration: underline;
+  background-color: #f0f7ff;
 }
 
 /* 分類標籤樣式 */
 .categoryTabs {
-  display: flex;
-  border-bottom: 1px solid #eee;
-  height: 100%;
-  overflow-x: auto;
-  flex-wrap: nowrap;
-  padding-top: 15px;
-  justify-content: center;
-  overflow-y: hidden;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  width: 100%;
+  overflow-x: hidden !important;
+  border-bottom: 1px solid #dee2e6;
+  padding: 0 10px !important;
+  justify-content: space-between !important;
+  background-color: #f8f9fa !important;
+  animation: fadeIn 0.3s 0.1s both;
 }
 
 .categoryTab {
-  font-size: 0.85rem;
   white-space: nowrap;
-  padding: 8px 12px;
-  color: #666;
-  text-decoration: none;
+  padding: 8px 4px !important;
   position: relative;
+  font-size: 14px !important;
+  color: #495057;
+  text-align: center;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   cursor: pointer;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
+  border: none !important;
+  background: transparent !important;
+  flex: 1;
+  min-width: 0;
+  margin: 0 6px !important;
+  outline: none !important;
 }
 
 .categoryTab:hover {
-  color: #333;
+  color: #1a1a1a !important;
 }
 
 .categoryTab.active {
-  color: #0066cc;
-  border-color: none;
-  transition: all 0.3s ease;
+  color: #0d6efd !important;
+  font-weight: bold;
+  border-bottom: 2px solid #0d6efd !important;
+  background-color: white !important;
 }
 
 .tabBadge {
-  position: absolute;
-  top: 5px;
-  right: 0;
-  transform: translate(50%, -50%);
-  font-size: 0.7rem;
-  padding: 0.15rem 0.3rem;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 50%;
+  position: absolute !important;
+  top: 0px !important;
+  right: -10px !important;
+  font-size: 10px !important;
+  padding: 0 !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: #d75951 !important;
+  color: white !important;
+  font-weight: bold !important;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) !important;
+  opacity: 1 !important;
+  z-index: 5 !important;
 }
 
 .notificationList {
-  max-height: 360px;
+  max-height: calc(80vh - 150px);
   overflow-y: auto;
+  padding: 0;
+  scrollbar-width: thin;
+  animation: fadeIn 0.3s 0.15s both;
 }
 
-.empty {
-  padding: 32px 16px;
-  text-align: center;
-  color: #666;
+/* 針對Webkit瀏覽器的滾動條樣式 */
+.notificationList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notificationList::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.notificationList::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
 }
 
 .item {
-  padding: 12px 16px;
+  padding: 12px 15px;
   border-bottom: 1px solid #eee;
   cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  display: block;
+  animation: slideIn 0.3s cubic-bezier(0.215, 0.61, 0.355, 1) both;
+  animation-delay: calc(0.05s * var(--item-index, 0));
 }
 
 .item:hover {
@@ -177,6 +257,10 @@
 
 .unread {
   background-color: #f0f7ff;
+}
+
+.unread:hover {
+  background-color: #e6f0ff;
 }
 
 /* 不同類型通知的側邊標記顏色 */
@@ -206,10 +290,11 @@
 
 .content {
   display: flex;
-  gap: 12px;
+  align-items: flex-start;
 }
 
 .imageWrapper {
+  margin-right: 12px;
   flex-shrink: 0;
 }
 
@@ -219,79 +304,182 @@
 }
 
 .text {
-  flex-grow: 1;
-  min-width: 0;
+  flex: 1;
 }
 
 .typeLabel {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  color: #718096;
+  font-size: 0.75rem;
+  color: #6c757d;
   margin-bottom: 2px;
-  font-weight: 600;
 }
 
 .itemTitle {
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 4px;
-  color: #333;
+  color: #212529;
 }
 
 .message {
   font-size: 0.875rem;
-  color: #666;
+  color: #495057;
   margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .time {
   font-size: 0.75rem;
-  color: #999;
+  color: #6c757d;
+}
+
+.empty {
+  padding: 30px 15px;
+  text-align: center;
+  color: #6c757d;
 }
 
 .viewAll {
   display: block;
   text-align: center;
-  padding: 12px;
-  color: #0066cc;
+  padding: 10px;
+  color: #0d6efd;
   text-decoration: none;
-  font-weight: 500;
   border-top: 1px solid #eee;
+  animation: fadeIn 0.3s 0.2s both;
 }
 
 .viewAll:hover {
   background-color: #f8f9fa;
-  color: #0052a3;
   text-decoration: none;
 }
 
 /* RWD 樣式調整 */
 @media (max-width: 991px) {
   .notificationIconLink {
-    width: 100%;
+    width: auto !important;
     display: flex !important;
     justify-content: center;
+    margin: 0 8px !important;
   }
 
   .notificationCount {
-    top: 0;
-    right: calc(50% - 25px); /* 根據實際按鈕寬度調整 */
+    top: -8px;
+    right: -3px;
   }
 
   .menu {
-    width: 300px;
+    width: 100% !important;
+    max-height: 80vh !important;
+    right: 0 !important;
+    left: 0 !important;
+    position: fixed !important;
+    top: 0 !important;
+    border-radius: 0 0 8px 8px !important;
+    border-top: none !important;
+    animation: slideDownMenu 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) !important;
+    transform-origin: top center !important;
+  }
+
+  .categoryTab {
+    padding: 8px 4px !important;
+    font-size: 12px !important;
+    margin: 0 4px !important;
+  }
+
+  .tabBadge {
+    top: -4px !important;
+    right: -4px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    font-size: 9px !important;
+  }
+
+  .header {
+    animation: slideInDown 0.4s 0.1s both;
+  }
+
+  .categoryTabs {
+    animation: slideInDown 0.4s 0.15s both;
+  }
+
+  .notificationList {
+    animation: slideInDown 0.4s 0.2s both;
+  }
+
+  .viewAll {
+    animation: slideInDown 0.4s 0.25s both;
+  }
+
+  @keyframes slideInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
 @media (max-width: 576px) {
   .menu {
-    width: 280px;
+    width: 100% !important;
+    max-width: none !important;
+    right: 0 !important;
+    left: 0 !important;
+  }
+
+  .header {
+    padding: 12px 15px;
   }
 
   .categoryTab {
-    font-size: 0.75rem;
-    padding: 6px 8px;
+    font-size: 11px !important;
+    padding: 6px 3px !important;
+    margin: 0 2px !important;
+  }
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.header div {
+  display: flex;
+  align-items: center;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
