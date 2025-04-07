@@ -72,7 +72,7 @@ const ProductCard = ({ product, isLiked: initialIsLiked }) => {
         Alert({
           icon: 'success',
           title: isLiked ? '已取消收藏' : '已加入收藏',
-          timer: 1500,
+          timer: 1000,
         })
       } else {
         throw new Error('收藏操作失敗')
@@ -83,7 +83,7 @@ const ProductCard = ({ product, isLiked: initialIsLiked }) => {
         icon: 'error',
         title: '操作失敗',
         text: '請稍後再試',
-        timer: 1500,
+        timer: 1000,
       })
     }
   }

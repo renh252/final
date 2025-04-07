@@ -2,21 +2,28 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { useParams,useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown'
 
 // 驗證登入狀態
 import { useAuth } from '@/app/context/AuthContext'
 
-
 // styles
 import styles from './pid.module.css'
 import shopStyles from '@/app/shop/shop.module.css'
-import { FaShareNodes,FaStar ,FaCartShopping,FaPlus, FaMinus,FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
-import { IoChatboxEllipsesOutline,IoCheckmarkDoneSharp } from 'react-icons/io5'
-import { FaUser } from 'react-icons/fa' 
-import { MdOutlinePets } from "react-icons/md";
+import {
+  FaShareNodes,
+  FaStar,
+  FaCartShopping,
+  FaPlus,
+  FaMinus,
+  FaAngleLeft,
+  FaAngleRight,
+} from 'react-icons/fa6'
+import { IoChatboxEllipsesOutline, IoCheckmarkDoneSharp } from 'react-icons/io5'
+import { FaUser } from 'react-icons/fa'
+import { MdOutlinePets } from 'react-icons/md'
 
 // components
 import { IconLine_lg } from '@/app/shop/_components/icon_line'
@@ -26,7 +33,7 @@ import { usePageTitle } from '@/app/context/TitleContext'
 import FixedElements from '@/app/shop/_components/FixedElements'
 
 // card
-import Card from '@/app/_components/ui/Card'
+import ProductCard from '@/app/shop/_components/card'
 import CardSwitchButton from '@/app/_components/ui/CardSwitchButton'
 import { FaRegHeart, FaHeart } from 'react-icons/fa'
 
@@ -35,63 +42,66 @@ import useSWR from 'swr'
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function PidPage() {
-
   const { user, isAuthenticated } = useAuth()
   const userId = user?.id
 
-  const router = useRouter()
-  
-  
+
   const [count, setCount] = useState(1)
   if (count < 1) {
     setCount(1)
   }
-  const [showCopiedMessage, setShowCopiedMessage] = useState(false);
-  
+
   // 從網址上得到動態路由參數
   const params = useParams()
   const pid = params?.pid
-  
+
   // 使用 SWR 獲取資料 - 使用整合的 API 路由
   const { data, error } = useSWR(`/api/shop/${pid}`, fetcher)
-  const { data:likeData, error:likeError, mutate:likeMutate } = useSWR('/api/shop', fetcher)
-  const { data:cartData, error:cartError, mutate:cartMutate } = useSWR(`/api/shop/cart?userId=${userId}`,fetcher)
-  
+  const {
+    data: likeData,
+    error: likeError,
+    mutate: likeMutate,
+  } = useSWR('/api/shop', fetcher)
+  const {
+    mutate: cartMutate,
+  } = useSWR(`/api/shop/cart?userId=${userId}`, fetcher)
 
   usePageTitle(data?.product?.product_name)
 
-// 卡片滑動-------------------------------
-const categoryRefs = useRef(null)
+  // 卡片滑動-------------------------------
+  const categoryRefs = useRef(null)
 
-const scroll = (direction, ref) => {
-  const container = ref.current
-  const cardWidth = 280 // 卡片寬度
-  const gap = 30 // gap 值轉換為像素
-  const scrollAmount = (cardWidth + gap) * 4 // 每次滾動四個卡片的寬度加上間距
+  const scroll = (direction, ref) => {
+    const container = ref.current
+    const cardWidth = 280 // 卡片寬度
+    const gap = 30 // gap 值轉換為像素
+    const scrollAmount = (cardWidth + gap) * 4 // 每次滾動四個卡片的寬度加上間距
 
-  const currentScroll = container.scrollLeft
-  const targetScroll = currentScroll + direction * scrollAmount
+    const currentScroll = container.scrollLeft
+    const targetScroll = currentScroll + direction * scrollAmount
 
-  container.scrollTo({
-    left: targetScroll,
-    behavior: 'smooth',
-  })
-}
+    container.scrollTo({
+      left: targetScroll,
+      behavior: 'smooth',
+    })
+  }
 
   // 處理喜愛商品數據
   const toggleLike = async (productId) => {
     // 如果用戶未登入，則提示登入
     if (!isAuthenticated || !user) {
-      Alert({ 
-        icon: 'error',
-        title: '請先登入才能收藏商品',
+      Alert({
+        icon: 'warning',
+        title: '請先登入',
+        text: '登入後才能收藏商品',
         showCancelBtn: true,
         showconfirmBtn: true,
         confirmBtnText: '登入',
         cancelBtnText: '取消',
         function: () => {
           sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
-          window.location.href = '/member/MemberLogin/login'},
+          window.location.href = '/member/MemberLogin/login'
+        },
       })
       return
     }
@@ -119,43 +129,56 @@ const scroll = (direction, ref) => {
       if (response.ok) {
         // 重新獲取商品數據
         likeMutate()
+        Alert({
+          icon: 'success',
+          title: isLiked ? '已取消收藏' : '已加入收藏',
+          timer: 1000,
+        })
       } else {
         console.error('收藏操作失敗')
       }
     } catch (error) {
       console.error('收藏操作錯誤:', error)
+      Alert({
+        icon: 'error',
+        title: '操作失敗',
+        text: '請稍後再試',
+        timer: 1000,
+      })
     }
   }
 
+  // 选择商品规格
+  const [selectedVariant, setSelectedVariant] = useState(null)
 
-// 选择商品规格
-const [selectedVariant, setSelectedVariant] = useState(null)
+  useEffect(() => {
+    if (data?.variants && data.variants.length > 0) {
+      setSelectedVariant(data.variants[0])
+    }
+  }, [data])
 
-useEffect(() => {
-  if (data?.variants && data.variants.length > 0) {
-    setSelectedVariant(data.variants[0])
-  }
-}, [data])
-
-const handleVariantClick = (variant) => {
-  setSelectedVariant(variant)}
-
-// 商品價格
-const calculateDisplayPrice = () => {
-  let basePrice = selectedVariant ? selectedVariant.price : product.price
-  let discountedPrice = basePrice
-
-  if (promotion && promotion.length > 0) {
-    discountedPrice = Math.ceil(basePrice * (1 - Number(promotion[0]?.discount_percentage) / 100))
+  const handleVariantClick = (variant) => {
+    setSelectedVariant(variant)
   }
 
-  return { 
-    basePrice: Math.floor(basePrice), 
-    discountedPrice: Math.floor(discountedPrice) 
-  }
-}
+  // 商品價格
+  const calculateDisplayPrice = () => {
+    let basePrice = selectedVariant ? selectedVariant.price : product.price
+    let discountedPrice = basePrice
 
-  // 新增一個 state 來存儲當前顯示的圖片 URL  
+    if (promotion && promotion.length > 0) {
+      discountedPrice = Math.ceil(
+        basePrice * (1 - Number(promotion[0]?.discount_percentage) / 100)
+      )
+    }
+
+    return {
+      basePrice: Math.floor(basePrice),
+      discountedPrice: Math.floor(discountedPrice),
+    }
+  }
+
+  // 新增一個 state 來存儲當前顯示的圖片 URL
   const [currentImage, setCurrentImage] = useState('/images/default_no_pet.jpg')
   useEffect(() => {
     if (data?.product?.image_url) {
@@ -166,7 +189,7 @@ const calculateDisplayPrice = () => {
     setCurrentImage(imageUrl)
   }
 
-  // 
+  //
   const reviewRef = useRef(null)
   const scrollToReviewRef = () => {
     reviewRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -190,10 +213,8 @@ const calculateDisplayPrice = () => {
     reviews,
     reviewCount,
     similarProducts,
-    categories
+    categories,
   } = data
-  
-  
 
   const product_like = likeData.product_like || []
   // 判斷商品是否被當前用戶收藏
@@ -203,9 +224,8 @@ const calculateDisplayPrice = () => {
       (item) => item.product_id === productId && item.user_id === user.id
     )
   }
-  
-  // ------------------------
 
+  // ------------------------
 
   // 检查是否有自定义图片
   const hasCustomImages = Boolean(
@@ -220,23 +240,24 @@ const calculateDisplayPrice = () => {
     product_imgs?.product_img1,
     product_imgs?.product_img2,
     product_imgs?.product_img3,
-    product_imgs?.product_img4
-  ].filter(Boolean); // 过滤掉 null, undefined 或空字符串
+    product_imgs?.product_img4,
+  ].filter(Boolean) // 过滤掉 null, undefined 或空字符串
 
   // 加入購物車
   async function handleAddToCart() {
-
     if (!userId) {
-      Alert({ 
-        icon: 'error',
-        title: '請先登入才能加入購物車',
+      Alert({
+        icon: 'warning',
+        title: '請先登入',
+        text: '登入後才能將商品加入購物車',
         showCancelBtn: true,
         showconfirmBtn: true,
         confirmBtnText: '登入',
         cancelBtnText: '取消',
         function: () => {
           sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
-          window.location.href = '/member/MemberLogin/login'},
+          window.location.href = '/member/MemberLogin/login'
+        },
       })
       return
     }
@@ -247,82 +268,86 @@ const calculateDisplayPrice = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          productId: pid, 
-          variantId: selectedVariant.variant_id, 
+        body: JSON.stringify({
+          productId: pid,
+          variantId: selectedVariant.variant_id,
           quantity: count,
-          userId: userId }),
-      });
-  
-      const data = await response.json();
-  
-      if (data.success) {
+          userId: userId,
+        }),
+      })
 
-        Alert({ 
-          icon:'success',
-          title:'成功加入購物車',
-          timer:1000
+      const data = await response.json()
+
+      if (data.success) {
+        Alert({
+          icon: 'success',
+          title: '成功加入購物車',
+          timer: 1000,
         })
         // 如果使用了 SWR，可以在這裡調用 cartMutate 來刷新購物車數據
-        cartMutate(`/api/shop/cart/${userId}`);
-        
+        cartMutate(`/api/shop/cart/${userId}`)
       } else {
-        Alert({ 
-          icon:'error',
-          title:'加入購物車失敗',
-          timer:2000
+        Alert({
+          icon: 'error',
+          title: '加入購物車失敗',
+          timer: 2000,
         })
-        console.error('加入購物車失敗:', data.message);
+        console.error('加入購物車失敗:', data.message)
       }
     } catch (error) {
-      Alert({ 
-        icon:'error',
-        title:'加入購物車時發生錯誤',
-        timer:1000
+      Alert({
+        icon: 'error',
+        title: '加入購物車時發生錯誤',
+        timer: 1000,
       })
-      console.error('加入購物車時發生錯誤:', error);
+      console.error('加入購物車時發生錯誤:', error)
     }
-
   }
 
   // 分享商品資訊
-  const handleShare = async() => {
+  const handleShare = async () => {
     if (navigator.share) {
-      navigator.share({
-        title: product?.product_name,
-        text: `前往查看【 ${product?.product_name}】`,
-        url: window.location.href,
-      })
-        .catch((error) => console.log('Error sharing', error));
+      navigator
+        .share({
+          title: product?.product_name,
+          text: `前往查看【 ${product?.product_name}】`,
+          url: window.location.href,
+        })
+        .catch((error) => console.log('Error sharing', error))
     } else {
       // 备用方案：使用 Clipboard API 复制链接
       try {
-        await navigator.clipboard.writeText(window.location.href);
-        Alert({ 
+        await navigator.clipboard.writeText(window.location.href)
+        Alert({
           title: '連結已複製到剪貼板',
-          timer: 1000
-        });
+          timer: 1000,
+        })
       } catch (err) {
-        console.error('Failed to copy: ', err);
-        Alert({ 
+        console.error('Failed to copy: ', err)
+        Alert({
           icon: 'error',
           title: '複製連結失敗',
-          timer: 1000
-        });
+          timer: 1000,
+        })
       }
     }
-  };
-
+  }
 
   return (
     <>
-      <FixedElements/>
+      <FixedElements />
       <Breadcrumbs
-        title=''
+        title=""
         items={[
           { label: '商城', href: `/shop` },
-          { label: categories.parent_category_name, href: `/shop/categories/${categories.parent_id}` },
-          { label: categories.category_name, href: `/shop/categories/${categories.parent_id}/${categories.category_id}` },
+          {
+            label: categories.parent_category_name,
+            href: `/shop/categories/${categories.parent_id}`,
+          },
+          {
+            label: categories.category_name,
+            href: `/shop/categories/${categories.parent_id}/${categories.category_id}`,
+          },
           { label: product.product_name, href: `/shop/${product.product_id}` },
         ]}
       />
@@ -332,7 +357,7 @@ const calculateDisplayPrice = () => {
             <div className={styles.imgContainer}>
               <Image
                 src={currentImage}
-                alt='Product Image'
+                alt="Product Image"
                 width={600}
                 height={600}
               />
@@ -341,40 +366,49 @@ const calculateDisplayPrice = () => {
 
             {hasCustomImages ? (
               <div className={styles.imgsBottom}>
-              <button>
-                <FaAngleLeft />
-              </button>
+                <button>
+                  <FaAngleLeft />
+                </button>
                 <div className={styles.img_group}>
-                {productImages.map((imgUrl, index) => (
-                  <button 
-                    className={styles.imgs_item} 
-                    key={`product-img-${index}`}
-                    onClick={() => handleImageClick(imgUrl)}
-                  >
-                    <Image
-                      src={imgUrl}
-                      alt={`Product image ${index + 1}`}
-                      width={100}
-                      height={100}
-                    />
-                  </button>
-                ))}
-                  {variants?.map((variant, index) => (variant.image_url && 
-                    (<button className={styles.imgs_item} key={variant.variant_id}
-                    onClick={() => handleImageClick(variant.image_url)}>
+                  {productImages.map((imgUrl, index) => (
+                    <button
+                      className={styles.imgs_item}
+                      key={`product-img-${index}`}
+                      onClick={() => handleImageClick(imgUrl)}
+                    >
                       <Image
-                        key={`v${index}`}
-                        src={variant.image_url}
-                        alt={variant.variant_name}
+                        src={imgUrl}
+                        alt={`Product image ${index + 1}`}
                         width={100}
                         height={100}
                       />
-                      {/* <p>{variant.variant_name}</p> */}
-                    </button>)
+                    </button>
                   ))}
+                  {variants?.map(
+                    (variant, index) =>
+                      variant.image_url && (
+                        <button
+                          className={styles.imgs_item}
+                          key={variant.variant_id}
+                          onClick={() => handleImageClick(variant.image_url)}
+                        >
+                          <Image
+                            key={`v${index}`}
+                            src={variant.image_url}
+                            alt={variant.variant_name}
+                            width={100}
+                            height={100}
+                          />
+                          {/* <p>{variant.variant_name}</p> */}
+                        </button>
+                      )
+                  )}
                   {product_imgs?.map((img, index) => (
-                    <button className={styles.imgs_item} key={index}
-                    onClick={() => handleImageClick(img.image_url)}>
+                    <button
+                      className={styles.imgs_item}
+                      key={index}
+                      onClick={() => handleImageClick(img.image_url)}
+                    >
                       <Image
                         key={`imgs${index}`}
                         src={img.image_url}
@@ -409,26 +443,25 @@ const calculateDisplayPrice = () => {
                   庫存:{selectedVariant?.stock_quantity}
                 </div>
                 <div className={styles.comment}>
-                    <button
-                      className={styles.thisLike}
-                      onClick={(event) => {
-                        event.preventDefault()
-                        event.stopPropagation()
-                        toggleLike(product.product_id)
-                      }}
-                    >
-                      {isProductLiked(product.product_id) ? (
-                        <FaHeart />
-                      ) : (
-                        <FaRegHeart />
-                      )}
-                    </button>
-
+                  <button
+                    className={styles.thisLike}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      toggleLike(product.product_id)
+                    }}
+                  >
+                    {isProductLiked(product.product_id) ? (
+                      <FaHeart />
+                    ) : (
+                      <FaRegHeart />
+                    )}
+                  </button>
                 </div>
                 <div className={styles.comment}>
-                <button  onClick={handleShare} className={styles.shareBtn}>
-                  <FaShareNodes />
-                </button>
+                  <button onClick={handleShare} className={styles.shareBtn}>
+                    <FaShareNodes />
+                  </button>
                 </div>
               </div>
               <p className={styles.h3}>{product.product_name}</p>
@@ -440,39 +473,47 @@ const calculateDisplayPrice = () => {
                   <>
                     {promotion && promotion.length > 0 ? (
                       <>
-                        <p className={styles.h3}>${calculateDisplayPrice().discountedPrice}</p>
+                        <p className={styles.h3}>
+                          ${calculateDisplayPrice().discountedPrice}
+                        </p>
                         <p className={styles.p2}>
                           <del>${calculateDisplayPrice().basePrice}</del>
                         </p>
                       </>
                     ) : (
-                      <p className={styles.h3}>${calculateDisplayPrice().basePrice}</p>
+                      <p className={styles.h3}>
+                        ${calculateDisplayPrice().basePrice}
+                      </p>
                     )}
                   </>
                 ) : (
                   <>
                     {promotion && promotion.length > 0 ? (
                       <>
-                        <p className={styles.h3}>${calculateDisplayPrice().discountedPrice}</p>
+                        <p className={styles.h3}>
+                          ${calculateDisplayPrice().discountedPrice}
+                        </p>
                         <p className={styles.p2}>
                           <del>${calculateDisplayPrice().basePrice}</del>
                         </p>
                       </>
                     ) : (
-                      <p className={styles.h3}>${calculateDisplayPrice().basePrice}</p>
+                      <p className={styles.h3}>
+                        ${calculateDisplayPrice().basePrice}
+                      </p>
                     )}
                   </>
                 )}
               </div>
               <div className={styles.iconGroup}>
                 <div className={styles.comment}>
-                  <FaStar  className={styles.star}/>:
-                  {reviewCount?.avg_rating 
+                  <FaStar className={styles.star} />:
+                  {reviewCount?.avg_rating
                     ? Number(reviewCount.avg_rating).toFixed(1)
                     : '暫無評分'}
                 </div>
-                <div className={styles.comment} >
-                  <IoChatboxEllipsesOutline  onClick={scrollToReviewRef}/>
+                <div className={styles.comment}>
+                  <IoChatboxEllipsesOutline onClick={scrollToReviewRef} />
                 </div>
               </div>
             </div>
@@ -528,20 +569,30 @@ const calculateDisplayPrice = () => {
                   <FaPlus />
                 </button>
               </div>
-              {selectedVariant?.stock_quantity <= 0
-              ?
-              <button  className={styles.noStock} disabled>補貨中</button>
-              :<>
-              
-              <button className={styles.addCartBtn} onClick={() => handleAddToCart(product.id, selectedVariant.variant_id)}>
-                <FaCartShopping />
-                加入購物車
-              </button>
-              </> }
+              {selectedVariant?.stock_quantity <= 0 ? (
+                <button className={styles.noStock} disabled>
+                  補貨中
+                </button>
+              ) : (
+                <>
+                  <button
+                    className={styles.addCartBtn}
+                    onClick={() =>
+                      handleAddToCart(product.id, selectedVariant.variant_id)
+                    }
+                  >
+                    <FaCartShopping />
+                    加入購物車
+                  </button>
+                </>
+              )}
             </div>
             {promotion.length > 0 ? (
               <div className={styles.promotions}>
-                <div key={promotion[0].promotion_id} className={styles.promotion}>
+                <div
+                  key={promotion[0].promotion_id}
+                  className={styles.promotion}
+                >
                   <IoCheckmarkDoneSharp />
                   {/* <Link href={'/'}> */}
                   {promotion[0].promotion_name}
@@ -555,9 +606,9 @@ const calculateDisplayPrice = () => {
         </div>
         <IconLine_lg title="商品介紹" />
         <div className={styles.discription}>
-          <MdOutlinePets className={styles.description_bg}/>
-          <MdOutlinePets className={styles.description_bg}/>
-          <MdOutlinePets className={styles.description_bg}/>
+          <MdOutlinePets className={styles.description_bg} />
+          <MdOutlinePets className={styles.description_bg} />
+          <MdOutlinePets className={styles.description_bg} />
           <ReactMarkdown>{product.product_description}</ReactMarkdown>
         </div>
         <div ref={reviewRef} className={styles.iconLine}>
@@ -565,13 +616,14 @@ const calculateDisplayPrice = () => {
         </div>
         <div className={styles.contain}>
           <div className={styles.containTitle}>
-            <p>{reviewCount?.total_reviews
-            ?reviewCount?.total_reviews
-            :0}則評論</p>
+            <p>
+              {reviewCount?.total_reviews ? reviewCount?.total_reviews : 0}
+              則評論
+            </p>
           </div>
           <div className={styles.containBody}>
             {reviews.length > 0 ? (
-              reviews.map((r,index) => {
+              reviews.map((r, index) => {
                 return (
                   <div key={r.review_id} className={styles.reviewItem}>
                     <div className={styles.reviewItemTitle}>
@@ -602,7 +654,7 @@ const calculateDisplayPrice = () => {
                         </div>
                       </div>
                       <div className={styles.rating}>
-                        <FaStar  />
+                        <FaStar />
                         {r.rating}
                       </div>
                     </div>
@@ -624,40 +676,9 @@ const calculateDisplayPrice = () => {
             aria-label="向左滑動"
           />
           <div className={shopStyles.cardGroup} ref={categoryRefs}>
-            {similarProducts.map((product) => {
-              return (
-                <Link
-                  key={product.product_id}
-                  href={`/shop/${product.product_id}`}
-                >
-                  <Card
-                  className={shopStyles.card}
-                    image={product.image_url || '/images/default_no_pet.jpg'}
-                    title={product.product_name}
-                  >
-                    <div className={shopStyles.cardText}>
-                      <p>
-                        ${product.price} <del>${product.price}</del>
-                      </p>
-                        <button
-                          className={shopStyles.likeButton}
-                          onClick={(event) => {
-                            event.preventDefault()
-                            event.stopPropagation()
-                            toggleLike(product.product_id)
-                          }}
-                        >
-                          {isProductLiked(product.product_id) ? (
-                            <FaHeart />
-                          ) : (
-                            <FaRegHeart />
-                          )}
-                        </button>
-                    </div>
-                  </Card>
-                </Link>
-              )
-            })}
+            {similarProducts.map((product) => (
+              <ProductCard key={product.product_id} product={product} />
+            ))}
           </div>
 
           <CardSwitchButton
