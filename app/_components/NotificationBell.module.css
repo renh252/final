@@ -89,6 +89,7 @@
   z-index: 1031 !important;
   max-height: 80vh !important;
   width: 420px;
+  position: fixed !important;
   transform: translate3d(0, 0, 0) !important;
   padding: 0;
   border-radius: 8px;
@@ -486,5 +487,48 @@
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+/* 通知菜單 */
+.notificationMenu {
+  position: fixed;
+  /* 其他屬性會被 JavaScript 動態設置 */
+  z-index: 9999;
+  min-width: 350px;
+  max-width: 400px;
+  max-height: 500px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  transform-origin: top right;
+  outline: none;
+}
+
+/* 媒體查詢 - 桌面版通知菜單 */
+@media (min-width: 992px) {
+  .notificationMenu {
+    /* 固定頂部距離為 56px */
+    top: 56px !important;
+    animation: fadeInMenu 0.3s ease-out, scaleIn 0.3s ease-out;
+  }
+}
+
+/* 媒體查詢 - 手機版通知菜單 */
+@media (max-width: 991px) {
+  .notificationMenu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    animation: slideDownMenu 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    /* 防止背景內容滾動 */
+    overscroll-behavior: contain;
   }
 }

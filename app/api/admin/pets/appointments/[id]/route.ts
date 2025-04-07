@@ -106,6 +106,30 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
       )
     }
 
+    // 先獲取預約資料，以便後續發送通知
+    const [appointmentData, appointmentError] = await db.query(
+      `
+      SELECT 
+        pa.*, 
+        p.name as pet_name,
+        u.user_id
+      FROM pet_appointment pa
+      LEFT JOIN pets p ON pa.pet_id = p.id
+      LEFT JOIN users u ON pa.user_id = u.user_id
+      WHERE pa.id = ?
+      `,
+      [id]
+    )
+
+    if (appointmentError || (appointmentData as any[]).length === 0) {
+      return NextResponse.json(
+        { success: false, message: '找不到該預約' },
+        { status: 404 }
+      )
+    }
+
+    const appointment = (appointmentData as any[])[0]
+
     // 更新預約狀態
     const [result, error] = await db.query(
       `UPDATE pet_appointment SET status = ?, updated_at = NOW() WHERE id = ?`,
@@ -129,23 +153,73 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
       )
     }
 
+    // 如果狀態更新為已批准，發送通知給用戶
+    if (data.status === 'approved') {
+      try {
+        const [notificationResult, notificationError] = await db.query(
+          `INSERT INTO notifications (
+            user_id,
+            type,
+            title,
+            message,
+            link,
+            is_read,
+            created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+          [
+            appointment.user_id,
+            'pet',
+            '寵物預約申請已通過',
+            `您申請的寵物「${appointment.pet_name}」預約已通過審核，請按照預約時間前往領養中心。`,
+            `/member/appointments`,
+            0,
+          ]
+        )
+
+        if (notificationError) {
+          console.error('新增通知失敗:', notificationError)
+          // 不影響主流程，僅記錄錯誤
+        }
+      } catch (notifyErr) {
+        console.error('發送通知時發生錯誤:', notifyErr)
+        // 不影響主流程，僅記錄錯誤
+      }
+    }
+
     // 如果狀態更新為已領養，同時更新寵物狀態
     if (data.status === 'completed') {
-      // 先獲取預約的寵物ID
-      const [appointments, appointmentError] = await db.query(
-        `SELECT pet_id FROM pet_appointment WHERE id = ?`,
-        [id]
-      )
+      // 更新寵物狀態為已領養
+      await db.query(`UPDATE pets SET is_adopted = 1 WHERE id = ?`, [
+        appointment.pet_id,
+      ])
 
-      if (
-        !appointmentError &&
-        appointments &&
-        (appointments as any[]).length > 0
-      ) {
-        const petId = (appointments as any[])[0].pet_id
+      // 發送領養成功通知
+      try {
+        const [notificationResult, notificationError] = await db.query(
+          `INSERT INTO notifications (
+            user_id,
+            type,
+            title,
+            message,
+            link,
+            is_read,
+            created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+          [
+            appointment.user_id,
+            'pet',
+            '恭喜您成功領養寵物',
+            `您已成功領養「${appointment.pet_name}」，感謝您給予這個小生命一個溫暖的家。`,
+            `/member/appointments`,
+            0,
+          ]
+        )
 
-        // 更新寵物狀態為已領養
-        await db.query(`UPDATE pets SET is_adopted = 1 WHERE id = ?`, [petId])
+        if (notificationError) {
+          console.error('新增領養成功通知失敗:', notificationError)
+        }
+      } catch (notifyErr) {
+        console.error('發送領養成功通知時發生錯誤:', notifyErr)
       }
     }
 

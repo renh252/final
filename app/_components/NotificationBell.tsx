@@ -39,6 +39,9 @@ interface Notification {
   image?: string
   isRead: boolean
   createdAt: string
+  // 資料庫可能返回的欄位
+  created_at?: string
+  is_read?: boolean
 }
 
 export default function NotificationBell() {
@@ -90,13 +93,13 @@ export default function NotificationBell() {
         right: 0,
       })
     } else {
-      // 桌面版：從通知圖標下方展開
+      // 桌面版：固定在頂部56px位置，通知圖標右對齊
       const rect = bellRef.current.getBoundingClientRect()
       const windowWidth = window.innerWidth
       let rightPosition = windowWidth - rect.right
 
       setMenuPosition({
-        top: rect.bottom + window.scrollY + 5,
+        top: 56 + window.scrollY, // 固定距離頂部56px
         right: rightPosition,
       })
     }
@@ -148,7 +151,15 @@ export default function NotificationBell() {
       const data = await response.json()
 
       if (data.success) {
-        setNotifications(data.notifications)
+        // 將 created_at 轉換為 createdAt（如果需要）
+        const formattedNotifications = data.notifications.map(
+          (notification) => ({
+            ...notification,
+            createdAt: notification.createdAt || notification.created_at,
+          })
+        )
+
+        setNotifications(formattedNotifications)
         setUnreadCount(data.unreadCount)
       }
     } catch (error) {
@@ -323,14 +334,69 @@ export default function NotificationBell() {
   }
 
   const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
+    // 檢查傳入的日期是否為有效字符串
+    if (!dateString) {
+      return '未知時間'
+    }
 
-    if (diff < 60000) return '剛剛'
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}分鐘前`
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}小時前`
-    return `${Math.floor(diff / 86400000)}天前`
+    try {
+      let parsedDate: Date
+
+      // 處理MySQL timestamp格式 (YYYY-MM-DD HH:MM:SS)
+      if (dateString.includes(' ') && !dateString.includes('T')) {
+        // 替換全部空格為T，確保格式正確
+        const formattedString = dateString.replace(/\s/, 'T')
+        parsedDate = new Date(formattedString)
+      } else {
+        parsedDate = new Date(dateString)
+      }
+
+      // 檢查日期是否有效
+      if (isNaN(parsedDate.getTime())) {
+        console.warn('無效的日期格式:', dateString)
+        return '未知時間'
+      }
+
+      const now = new Date()
+      const diff = now.getTime() - parsedDate.getTime()
+
+      // 處理時間顯示邏輯
+      if (diff < 0) {
+        // 處理未來時間
+        const absDiff = Math.abs(diff)
+
+        if (absDiff > 86400000) {
+          // 超過1天
+          return `${parsedDate.getFullYear()}-${String(
+            parsedDate.getMonth() + 1
+          ).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`
+        }
+        return '即將'
+      } else if (diff < 60000) {
+        // 小於1分鐘
+        return '剛剛'
+      } else if (diff < 3600000) {
+        // 小於1小時
+        const minutes = Math.floor(diff / 60000)
+        return `${minutes}分鐘前`
+      } else if (diff < 86400000) {
+        // 小於1天
+        const hours = Math.floor(diff / 3600000)
+        return `${hours}小時前`
+      } else if (diff < 2592000000) {
+        // 小於30天
+        const days = Math.floor(diff / 86400000)
+        return `${days}天前`
+      } else {
+        // 超過30天
+        return `${parsedDate.getFullYear()}-${String(
+          parsedDate.getMonth() + 1
+        ).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`
+      }
+    } catch (error) {
+      console.error('格式化日期時發生錯誤:', error)
+      return '未知時間'
+    }
   }
 
   // 根據選擇的分類過濾通知
@@ -586,46 +652,58 @@ export default function NotificationBell() {
               通知
             </div>
           ) : (
-            filteredNotifications.map((notification, index) => (
-              <button
-                key={notification.id}
-                className={`${styles.item} ${
-                  !notification.isRead ? styles.unread : ''
-                } ${styles[notification.type]}`}
-                onClick={() => handleItemClick(notification)}
-                onKeyDown={(e) =>
-                  handleKeyDown(e, () => handleItemClick(notification))
-                }
-                aria-label={`${notification.title}: ${notification.message}`}
-                style={{ '--item-index': index } as React.CSSProperties}
-              >
-                <div className={styles.content}>
-                  <div className={styles.imageWrapper}>
-                    <Image
-                      src={
-                        notification.image ||
-                        notificationIcons[notification.type] ||
-                        notificationIcons.default
-                      }
-                      alt=""
-                      width={40}
-                      height={40}
-                      className={styles.image}
-                    />
-                  </div>
-                  <div className={styles.text}>
-                    <div className={styles.typeLabel}>
-                      {getNotificationTypeName(notification.type)}
+            filteredNotifications.map((notification, index) => {
+              // 檢查時間屬性
+              const timeValue =
+                notification.createdAt || notification.created_at
+
+              return (
+                <button
+                  key={notification.id}
+                  className={`${styles.item} ${
+                    !notification.isRead && !notification.is_read
+                      ? styles.unread
+                      : ''
+                  } ${styles[notification.type]}`}
+                  onClick={() => handleItemClick(notification)}
+                  onKeyDown={(e) =>
+                    handleKeyDown(e, () => handleItemClick(notification))
+                  }
+                  aria-label={`${notification.title}: ${notification.message}`}
+                  style={{ '--item-index': index } as React.CSSProperties}
+                >
+                  <div className={styles.content}>
+                    <div className={styles.imageWrapper}>
+                      <Image
+                        src={
+                          notification.image ||
+                          notificationIcons[notification.type] ||
+                          notificationIcons.default
+                        }
+                        alt=""
+                        width={40}
+                        height={40}
+                        className={styles.image}
+                      />
                     </div>
-                    <div className={styles.itemTitle}>{notification.title}</div>
-                    <div className={styles.message}>{notification.message}</div>
-                    <div className={styles.time}>
-                      {formatTime(notification.createdAt)}
+                    <div className={styles.text}>
+                      <div className={styles.typeLabel}>
+                        {getNotificationTypeName(notification.type)}
+                      </div>
+                      <div className={styles.itemTitle}>
+                        {notification.title}
+                      </div>
+                      <div className={styles.message}>
+                        {notification.message}
+                      </div>
+                      <div className={styles.time}>
+                        {formatTime(timeValue || '')}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </button>
-            ))
+                </button>
+              )
+            })
           )}
         </div>
 
