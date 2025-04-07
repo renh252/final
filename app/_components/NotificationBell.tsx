@@ -93,13 +93,13 @@ export default function NotificationBell() {
         right: 0,
       })
     } else {
-      // 桌面版：固定在頂部56px位置，通知圖標右對齊
+      // 桌面版：固定在視口頂部56px位置，通知圖標右對齊
       const rect = bellRef.current.getBoundingClientRect()
       const windowWidth = window.innerWidth
       let rightPosition = windowWidth - rect.right
 
       setMenuPosition({
-        top: 56 + window.scrollY, // 固定距離頂部56px
+        top: 56, // 固定距離視口頂部56px，移除window.scrollY
         right: rightPosition,
       })
     }
@@ -414,10 +414,21 @@ export default function NotificationBell() {
   }
 
   // 處理通知項目點擊
-  const handleItemClick = (notification: Notification) => {
-    handleRead(notification.id)
-    if (notification.link) {
-      window.location.href = notification.link
+  const handleItemClick = async (notification: Notification) => {
+    try {
+      // 等待標記已讀完成
+      await handleRead(notification.id)
+
+      // 完成後再導航
+      if (notification.link) {
+        window.location.href = notification.link
+      }
+    } catch (error) {
+      console.error('處理通知點擊時發生錯誤:', error)
+      // 發生錯誤時仍然導航到目標頁面
+      if (notification.link) {
+        window.location.href = notification.link
+      }
     }
   }
 

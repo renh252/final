@@ -112,10 +112,10 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
       SELECT 
         pa.*, 
         p.name as pet_name,
-        u.user_id
+        p.id as pet_id,
+        pa.user_id
       FROM pet_appointment pa
       LEFT JOIN pets p ON pa.pet_id = p.id
-      LEFT JOIN users u ON pa.user_id = u.user_id
       WHERE pa.id = ?
       `,
       [id]
@@ -156,33 +156,49 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
     // 如果狀態更新為已批准，發送通知給用戶
     if (data.status === 'approved') {
       try {
-        const [notificationResult, notificationError] = await db.query(
-          `INSERT INTO notifications (
-            user_id,
-            type,
-            title,
-            message,
-            link,
-            is_read,
-            created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-          [
+        console.log('預約已批准，準備發送通知給用戶:', appointment.user_id)
+        console.log('管理員ID:', authData.id)
+
+        // 檢查user_id是否有效
+        if (!appointment.user_id) {
+          console.error('無法發送通知: 用戶ID為空')
+        } else {
+          // 插入通知記錄
+          const notificationParams = [
             appointment.user_id,
+            authData.id,
             'pet',
             '寵物預約申請已通過',
             `您申請的寵物「${appointment.pet_name}」預約已通過審核，請按照預約時間前往領養中心。`,
             `/member/appointments`,
             0,
           ]
-        )
 
-        if (notificationError) {
-          console.error('新增通知失敗:', notificationError)
-          // 不影響主流程，僅記錄錯誤
+          console.log('準備插入通知，參數:', JSON.stringify(notificationParams))
+
+          const [notificationResult, notificationError] = await db.query(
+            `INSERT INTO notifications (
+              user_id,
+              admin_id,
+              type,
+              title,
+              message,
+              link,
+              is_read,
+              created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+            notificationParams
+          )
+
+          if (notificationError) {
+            console.error('新增通知失敗:', notificationError)
+          } else {
+            const insertId = (notificationResult as any).insertId
+            console.log('通知已成功發送，通知ID:', insertId)
+          }
         }
       } catch (notifyErr) {
         console.error('發送通知時發生錯誤:', notifyErr)
-        // 不影響主流程，僅記錄錯誤
       }
     }
 
@@ -198,15 +214,17 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
         const [notificationResult, notificationError] = await db.query(
           `INSERT INTO notifications (
             user_id,
+            admin_id,
             type,
             title,
             message,
             link,
             is_read,
             created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
             appointment.user_id,
+            authData.id,
             'pet',
             '恭喜您成功領養寵物',
             `您已成功領養「${appointment.pet_name}」，感謝您給予這個小生命一個溫暖的家。`,
