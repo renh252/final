@@ -1,12 +1,13 @@
 'use client'
 
-import { Bell, User, Menu } from 'lucide-react'
+import { User, Menu } from 'lucide-react'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import ThemeToggle from './ThemeToggle'
 import { useTheme } from '../ThemeContext'
 import { useAdmin } from '../AdminContext'
 import { Spinner } from 'react-bootstrap'
+import AdminNotificationBell from './AdminNotificationBell'
 
 // 提供一個簡單的結構，保持與實際組件相同的 DOM 結構
 const HeaderSkeleton = () => (
@@ -66,50 +67,7 @@ export default function Header({
           <ThemeToggle />
         </div>
 
-        <div className="dropdown me-3">
-          <button
-            className={`btn btn-link position-relative ${
-              isDarkMode ? 'text-light' : 'text-dark'
-            }`}
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-            type="button"
-            aria-label="通知"
-          >
-            <Bell size={20} />
-            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-              3
-            </span>
-          </button>
-          <ul className="dropdown-menu dropdown-menu-end">
-            <li>
-              <h6 className="dropdown-header">通知中心</h6>
-            </li>
-            <li>
-              <a className="dropdown-item" href="#">
-                新訂單 #12345
-              </a>
-            </li>
-            <li>
-              <a className="dropdown-item" href="#">
-                新會員註冊
-              </a>
-            </li>
-            <li>
-              <a className="dropdown-item" href="#">
-                系統更新
-              </a>
-            </li>
-            <li>
-              <hr className="dropdown-divider" />
-            </li>
-            <li>
-              <a className="dropdown-item" href="#">
-                查看所有通知
-              </a>
-            </li>
-          </ul>
-        </div>
+        <AdminNotificationBell />
 
         <div className="dropdown">
           <button

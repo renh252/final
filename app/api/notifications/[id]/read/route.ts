@@ -25,22 +25,36 @@ export async function POST(
       )
     }
 
-    // 獲取用戶ID (從request body)
+    // 獲取用戶ID或管理員ID (從request body)
     const body = await request.json().catch(() => ({}))
     const userId = body.userId
+    const adminId = body.adminId
 
-    if (!userId) {
+    if (!userId && !adminId) {
       return NextResponse.json(
-        { success: false, message: '缺少用戶ID' },
+        { success: false, message: '缺少用戶ID或管理員ID' },
         { status: 400 }
       )
     }
 
+    // 根據請求類型更新不同的記錄
+    let queryString = ''
+    let queryParams: any[] = []
+
+    if (adminId) {
+      // 更新管理員通知，同時處理admin_id為NULL的通知
+      queryString = `UPDATE notifications SET is_read = 1 WHERE id = ? AND (admin_id = ? OR admin_id IS NULL)`
+      queryParams = [notificationId, adminId]
+    } else {
+      // 更新用戶通知
+      queryString = `UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?`
+      queryParams = [notificationId, userId]
+    }
+
+    console.log('執行標記已讀查詢:', queryString, queryParams)
+
     // 更新數據庫中的記錄
-    const [result, error] = await db.query(
-      `UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?`,
-      [notificationId, userId]
-    )
+    const [result, error] = await db.query(queryString, queryParams)
 
     if (error) {
       console.error('標記通知已讀失敗:', error)

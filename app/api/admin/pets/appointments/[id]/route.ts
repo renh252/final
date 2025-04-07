@@ -163,38 +163,43 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
         if (!appointment.user_id) {
           console.error('無法發送通知: 用戶ID為空')
         } else {
-          // 插入通知記錄
-          const notificationParams = [
-            appointment.user_id,
-            authData.id,
-            'pet',
-            '寵物預約申請已通過',
-            `您申請的寵物「${appointment.pet_name}」預約已通過審核，請按照預約時間前往領養中心。`,
-            `/member/appointments`,
-            0,
-          ]
+          // 使用通用通知API
+          const notificationData = {
+            user_id: appointment.user_id,
+            admin_id: authData.id,
+            type: 'pet',
+            title: '寵物預約申請已通過',
+            message: `您申請的寵物「${appointment.pet_name}」預約已通過審核，請按照預約時間前往領養中心。`,
+            link: `/member/appointments`,
+          }
 
-          console.log('準備插入通知，參數:', JSON.stringify(notificationParams))
+          console.log('準備發送通知，數據:', JSON.stringify(notificationData))
 
-          const [notificationResult, notificationError] = await db.query(
-            `INSERT INTO notifications (
-              user_id,
-              admin_id,
-              type,
-              title,
-              message,
-              link,
-              is_read,
-              created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-            notificationParams
+          // 調用通知API
+          const notificationResponse = await fetch(
+            `${
+              process.env.API_BASE_URL ||
+              process.env.NEXT_PUBLIC_API_BASE_URL ||
+              ''
+            }/api/notifications/add`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(notificationData),
+            }
           )
 
-          if (notificationError) {
-            console.error('新增通知失敗:', notificationError)
+          const notificationResult = await notificationResponse.json()
+
+          if (!notificationResult.success) {
+            console.error('新增通知失敗:', notificationResult.message)
           } else {
-            const insertId = (notificationResult as any).insertId
-            console.log('通知已成功發送，通知ID:', insertId)
+            console.log(
+              '通知已成功發送，通知ID:',
+              notificationResult.notification_id
+            )
           }
         }
       } catch (notifyErr) {
@@ -211,30 +216,41 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
 
       // 發送領養成功通知
       try {
-        const [notificationResult, notificationError] = await db.query(
-          `INSERT INTO notifications (
-            user_id,
-            admin_id,
-            type,
-            title,
-            message,
-            link,
-            is_read,
-            created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-          [
-            appointment.user_id,
-            authData.id,
-            'pet',
-            '恭喜您成功領養寵物',
-            `您已成功領養「${appointment.pet_name}」，感謝您給予這個小生命一個溫暖的家。`,
-            `/member/appointments`,
-            0,
-          ]
+        // 使用通用通知API發送領養成功通知
+        const notificationData = {
+          user_id: appointment.user_id,
+          admin_id: authData.id,
+          type: 'pet',
+          title: '恭喜您成功領養寵物',
+          message: `您已成功領養「${appointment.pet_name}」，感謝您給予這個小生命一個溫暖的家。`,
+          link: `/member/appointments`,
+        }
+
+        // 調用通知API
+        const notificationResponse = await fetch(
+          `${
+            process.env.API_BASE_URL ||
+            process.env.NEXT_PUBLIC_API_BASE_URL ||
+            ''
+          }/api/notifications/add`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(notificationData),
+          }
         )
 
-        if (notificationError) {
-          console.error('新增領養成功通知失敗:', notificationError)
+        const notificationResult = await notificationResponse.json()
+
+        if (!notificationResult.success) {
+          console.error('新增領養成功通知失敗:', notificationResult.message)
+        } else {
+          console.log(
+            '領養成功通知已發送，通知ID:',
+            notificationResult.notification_id
+          )
         }
       } catch (notifyErr) {
         console.error('發送領養成功通知時發生錯誤:', notifyErr)

@@ -1,0 +1,76 @@
+.notificationsTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.notificationsTable td {
+  vertical-align: middle;
+  padding: 1rem 0.75rem;
+}
+
+.notificationsTable tr {
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.notificationTitle {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.notificationMessage {
+  color: var(--bs-gray-600);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.typeColumn {
+  width: 15%;
+  min-width: 120px;
+}
+
+.contentColumn {
+  width: 45%;
+}
+
+.timeColumn {
+  width: 15%;
+  min-width: 100px;
+}
+
+.statusColumn {
+  width: 10%;
+  min-width: 80px;
+}
+
+.actionColumn {
+  width: 15%;
+  min-width: 120px;
+  text-align: right;
+}
+
+/* 響應式調整 */
+@media (max-width: 992px) {
+  .notificationsTable {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .notificationTitle,
+  .notificationMessage {
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .notificationTitle,
+  .notificationMessage {
+    max-width: 200px;
+  }
+}
