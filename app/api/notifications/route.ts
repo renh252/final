@@ -30,10 +30,10 @@ export async function GET(request: NextRequest) {
     let params: any[] = []
 
     if (adminId) {
-      // 優先查詢管理員通知，包括admin_id為特定ID和NULL的通知
+      // 僅查詢發給特定管理員的通知，移除 admin_id IS NULL 條件
       query = `
         SELECT * FROM notifications 
-        WHERE admin_id = ? OR admin_id IS NULL
+        WHERE admin_id = ?
       `
       params = [adminId]
     } else {
@@ -88,9 +88,10 @@ export async function GET(request: NextRequest) {
     let countParams: any[] = []
 
     if (adminId) {
+      // 移除 admin_id IS NULL 條件
       countQuery = `
         SELECT COUNT(*) as count FROM notifications 
-        WHERE (admin_id = ? OR admin_id IS NULL) AND is_read = 0
+        WHERE admin_id = ? AND is_read = 0
       `
       countParams = [adminId]
     } else {

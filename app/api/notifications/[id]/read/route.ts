@@ -42,8 +42,8 @@ export async function POST(
     let queryParams: any[] = []
 
     if (adminId) {
-      // 更新管理員通知，同時處理admin_id為NULL的通知
-      queryString = `UPDATE notifications SET is_read = 1 WHERE id = ? AND (admin_id = ? OR admin_id IS NULL)`
+      // 更新管理員通知，移除 admin_id IS NULL 條件
+      queryString = `UPDATE notifications SET is_read = 1 WHERE id = ? AND admin_id = ?`
       queryParams = [notificationId, adminId]
     } else {
       // 更新用戶通知
