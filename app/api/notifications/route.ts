@@ -12,25 +12,38 @@ export async function GET(request: NextRequest) {
     // 獲取查詢參數
     const searchParams = request.nextUrl.searchParams
     const userId = searchParams.get('userId')
+    const adminId = searchParams.get('adminId')
     const type = searchParams.get('type')
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // 如果沒有提供 userId，嘗試從 session 獲取
-    // 這裡我們不使用 getServerSession 因為我們的項目使用自定義認證
-    if (!userId) {
+    // 如果沒有提供 userId 或 adminId，返回錯誤
+    if (!userId && !adminId) {
       return NextResponse.json(
-        { success: false, message: '需要使用者ID' },
+        { success: false, message: '需要使用者ID或管理員ID' },
         { status: 400 }
       )
     }
 
     // 構建基本查詢
-    let query = `
-      SELECT * FROM notifications 
-      WHERE user_id = ?
-    `
-    let params: any[] = [userId]
+    let query = ''
+    let params: any[] = []
+
+    if (adminId) {
+      // 優先查詢管理員通知，包括admin_id為特定ID和NULL的通知
+      query = `
+        SELECT * FROM notifications 
+        WHERE admin_id = ? OR admin_id IS NULL
+      `
+      params = [adminId]
+    } else {
+      // 查詢用戶通知
+      query = `
+        SELECT * FROM notifications 
+        WHERE user_id = ?
+      `
+      params = [userId]
+    }
 
     // 如果提供了類型過濾
     if (type && type !== 'all') {
@@ -41,6 +54,8 @@ export async function GET(request: NextRequest) {
     // 添加排序和分頁
     query += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`
     params.push(limit, offset)
+
+    console.log('執行通知查詢:', query, params)
 
     // 執行查詢
     const [notifications, error] = await db.query(query, params)
@@ -69,13 +84,28 @@ export async function GET(request: NextRequest) {
     }
 
     // 計算未讀通知數量
-    const countQuery = `
-      SELECT COUNT(*) as count FROM notifications 
-      WHERE user_id = ? AND is_read = 0
-    `
+    let countQuery = ''
+    let countParams: any[] = []
+
+    if (adminId) {
+      countQuery = `
+        SELECT COUNT(*) as count FROM notifications 
+        WHERE (admin_id = ? OR admin_id IS NULL) AND is_read = 0
+      `
+      countParams = [adminId]
+    } else {
+      countQuery = `
+        SELECT COUNT(*) as count FROM notifications 
+        WHERE user_id = ? AND is_read = 0
+      `
+      countParams = [userId]
+    }
+
+    console.log('執行未讀統計查詢:', countQuery, countParams)
+
     const [countResult, countError] = await db.query<CountResult[]>(
       countQuery,
-      [userId]
+      countParams
     )
 
     let unreadCount = 0

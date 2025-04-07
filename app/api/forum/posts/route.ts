@@ -231,6 +231,82 @@ export async function POST(req: Request) {
       // 不阻止文章創建，即使標籤處理失敗
     }
 
+    // 發送新貼文通知給管理員
+    try {
+      // 通知管理員有新貼文發布
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL || ''}/api/notifications/add`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: 1, // 假設管理員ID為1
+            type: 'forum',
+            title: '論壇有新貼文發布',
+            message: `標題: "${
+              title.length > 30 ? title.substring(0, 30) + '...' : title
+            }"，請審核內容是否合適。`,
+            link: `/admin/forum/posts/${postId}`,
+          }),
+        }
+      )
+
+      // 查詢該分類的訂閱用戶（如果有訂閱功能的話）
+      try {
+        const subscribersQuery = `
+          SELECT user_id 
+          FROM forum_category_subscribers 
+          WHERE category_id = ? AND user_id != ?
+        `
+
+        const subscribers = await executeQuery(subscribersQuery, [
+          categoryId,
+          userId,
+        ])
+
+        if (Array.isArray(subscribers) && subscribers.length > 0) {
+          // 為每個訂閱該分類的用戶發送通知
+          const categoryQuery = `SELECT name FROM forum_categories WHERE id = ?`
+          const categoryResult = await executeQuery(categoryQuery, [categoryId])
+          const categoryName =
+            Array.isArray(categoryResult) && categoryResult.length > 0
+              ? categoryResult[0].name
+              : '分類'
+
+          for (const subscriber of subscribers) {
+            await fetch(
+              `${
+                process.env.NEXT_PUBLIC_API_BASE_URL || ''
+              }/api/notifications/add`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  user_id: subscriber.user_id,
+                  type: 'forum',
+                  title: `您關注的「${categoryName}」有新貼文`,
+                  message: `標題: "${
+                    title.length > 30 ? title.substring(0, 30) + '...' : title
+                  }"`,
+                  link: `/forum/posts/${postId}`,
+                }),
+              }
+            )
+          }
+        }
+      } catch (subError) {
+        console.error('查詢訂閱用戶時出錯:', subError)
+        // 不阻止主流程
+      }
+    } catch (notifyError) {
+      console.error('發送新貼文通知時出錯:', notifyError)
+      // 不阻止文章創建，即使通知失敗
+    }
+
     // 簡化：直接返回已知數據，不再查詢資料庫
     const newPost = {
       id: postId,

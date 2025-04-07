@@ -247,34 +247,33 @@ export async function POST(request: NextRequest) {
       const appointmentId = (result as any).insertId
       console.log('預約建立成功，ID:', appointmentId)
 
-      // 向用戶發送通知
+      // 使用通用通知API向用戶發送通知
       try {
         const petName = pet.name
-        const [notificationResult, notificationError] = await db.query(
-          `INSERT INTO notifications (
-            user_id,
-            type,
-            title,
-            message,
-            link,
-            is_read,
-            created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-          [
-            data.user_id,
-            'pet',
-            '寵物預約申請已提交',
-            `您已成功提交「${petName}」的預約申請，我們將盡快處理您的申請。`,
-            `/member/appointments`,
-            0,
-          ]
-        )
+        const notificationData = {
+          user_id: data.user_id,
+          type: 'pet',
+          title: '寵物預約申請已提交',
+          message: `您已成功提交「${petName}」的預約申請，我們將盡快處理您的申請。`,
+          link: `/member/appointments`,
+        }
 
-        if (notificationError) {
-          console.error('新增通知失敗:', notificationError)
+        // 調用通知API
+        const notificationResponse = await fetch('/api/notifications/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(notificationData),
+        })
+
+        const notificationResult = await notificationResponse.json()
+
+        if (!notificationResult.success) {
+          console.error('新增通知失敗:', notificationResult.message)
           // 不影響主流程，僅記錄錯誤
         } else {
-          console.log('通知創建成功')
+          console.log('通知創建成功，ID:', notificationResult.notification_id)
         }
       } catch (notifyErr) {
         console.error('發送通知時發生錯誤:', notifyErr)

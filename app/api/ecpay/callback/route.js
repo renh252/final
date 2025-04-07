@@ -34,6 +34,66 @@ export async function POST(req) {
            WHERE trade_no = ?`,
           [isSuccess ? '已付款' : '付款失敗', paymentMethod, tradeNo]
         )
+
+        // 捐款成功時發送通知
+        if (isSuccess) {
+          try {
+            // 查詢捐款相關資訊
+            const [donations] = await db.query(
+              `SELECT user_id, amount, donation_type FROM donations WHERE trade_no = ?`,
+              [tradeNo]
+            )
+
+            if (donations && donations.length > 0) {
+              const donation = donations[0]
+              const userId = donation.user_id
+
+              if (userId) {
+                // 發送通知給捐款人
+                await fetch(
+                  `${
+                    process.env.NEXT_PUBLIC_API_BASE_URL || ''
+                  }/api/notifications/add`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      user_id: userId,
+                      type: 'donation',
+                      title: '感謝您的愛心捐款',
+                      message: `您的${donation.donation_type}捐款 NT$${donation.amount} 已成功處理。感謝您的愛心，讓更多浪浪有機會找到幸福的家。`,
+                      link: `/member/donations`,
+                    }),
+                  }
+                )
+
+                // 發送通知給管理員(假設管理員ID為1)
+                await fetch(
+                  `${
+                    process.env.NEXT_PUBLIC_API_BASE_URL || ''
+                  }/api/notifications/add`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      user_id: 1, // 假設管理員ID為1
+                      type: 'donation_admin',
+                      title: '收到新的捐款',
+                      message: `收到一筆${donation.donation_type}捐款 NT$${donation.amount}。`,
+                      link: `/admin/donations`,
+                    }),
+                  }
+                )
+              }
+            }
+          } catch (notifyError) {
+            console.error('發送捐款通知時發生錯誤:', notifyError)
+          }
+        }
       } else if (orderType === 'shop') {
         await db.query(
           `UPDATE orders 
@@ -45,6 +105,66 @@ export async function POST(req) {
             tradeNo,
           ]
         )
+
+        // 訂單付款成功時發送通知
+        if (isSuccess) {
+          try {
+            // 查詢訂單相關資訊
+            const [orders] = await db.query(
+              `SELECT user_id, total_price FROM orders WHERE order_id = ?`,
+              [tradeNo]
+            )
+
+            if (orders && orders.length > 0) {
+              const order = orders[0]
+              const userId = order.user_id
+
+              if (userId) {
+                // 發送通知給訂購人
+                await fetch(
+                  `${
+                    process.env.NEXT_PUBLIC_API_BASE_URL || ''
+                  }/api/notifications/add`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      user_id: userId,
+                      type: 'order',
+                      title: '訂單付款成功',
+                      message: `您的訂單 ${tradeNo} 已付款成功，總金額 NT$${order.total_price}。我們將盡快為您安排出貨。`,
+                      link: `/member/orders/${tradeNo}`,
+                    }),
+                  }
+                )
+
+                // 發送通知給管理員(假設管理員ID為1)
+                await fetch(
+                  `${
+                    process.env.NEXT_PUBLIC_API_BASE_URL || ''
+                  }/api/notifications/add`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      user_id: 1, // 假設管理員ID為1
+                      type: 'order_admin',
+                      title: '收到新訂單',
+                      message: `收到一筆新訂單 ${tradeNo}，金額 NT$${order.total_price}，請盡快處理。`,
+                      link: `/admin/shop/orders/${tradeNo}`,
+                    }),
+                  }
+                )
+              }
+            }
+          } catch (notifyError) {
+            console.error('發送訂單通知時發生錯誤:', notifyError)
+          }
+        }
       }
     } catch (err) {
       console.error('❌ 更新資料庫時發生錯誤:', err)
