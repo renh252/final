@@ -3,6 +3,13 @@
 import React, { ReactNode } from 'react'
 import { Card } from 'react-bootstrap'
 import { useTheme } from '../ThemeContext'
+import Link from 'next/link'
+
+interface BreadcrumbItem {
+  label: string
+  href?: string
+  active?: boolean
+}
 
 interface AdminPageLayoutProps {
   title: string
@@ -14,6 +21,7 @@ interface AdminPageLayoutProps {
     icon: ReactNode
   }>
   actions?: ReactNode
+  breadcrumb?: BreadcrumbItem[]
 }
 
 /**
@@ -25,6 +33,7 @@ export default function AdminPageLayout({
   children,
   stats,
   actions,
+  breadcrumb,
 }: AdminPageLayoutProps) {
   const { isDarkMode } = useTheme()
 
@@ -35,6 +44,27 @@ export default function AdminPageLayout({
         <h2 className="admin-page-title">{title}</h2>
         <div className="page-actions">{actions}</div>
       </div>
+
+      {/* 麵包屑導航 */}
+      {breadcrumb && breadcrumb.length > 0 && (
+        <nav aria-label="breadcrumb" className="mb-4">
+          <ol className="breadcrumb">
+            {breadcrumb.map((item, index) => (
+              <li
+                key={index}
+                className={`breadcrumb-item${item.active ? ' active' : ''}`}
+                aria-current={item.active ? 'page' : undefined}
+              >
+                {item.active || !item.href ? (
+                  item.label
+                ) : (
+                  <Link href={item.href}>{item.label}</Link>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
 
       {/* 統計卡片區域 */}
       {stats && stats.length > 0 && (
