@@ -64,8 +64,8 @@ export default function AchievementsPage() {
     },
     {
       id: 2,
-      title: '連續登入100天',
-      description: '連續100天登入論壇',
+      title: '連續登入10天',
+      description: '連續10天登入論壇',
       points: 500,
       icon: BsCalendarCheck,
       date: '2025-04-01',
