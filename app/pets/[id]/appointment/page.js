@@ -49,6 +49,7 @@ export default function PetAppointmentPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [formErrors, setFormErrors] = useState({})
+  const [hasExistingAppointment, setHasExistingAppointment] = useState(false)
   const [availableTimes, setAvailableTimes] = useState([
     { time: '10:00', available: true },
     { time: '11:00', available: true },
@@ -77,7 +78,7 @@ export default function PetAppointmentPage() {
   const [readingProgress, setReadingProgress] = useState(0)
   const termsRef = useRef(null)
 
-  // 獲取寵物資料和可用時段
+  // 獲取寵物資料和可用時段，並檢查用戶是否已有預約
   useEffect(() => {
     const fetchPetAndAvailability = async () => {
       try {
@@ -95,6 +96,23 @@ export default function PetAppointmentPage() {
         }
 
         setPet(data.pet)
+
+        // 如果用戶已登入，檢查是否已經有預約
+        if (isAuthenticated && user && user.id) {
+          const appointmentResponse = await fetch(
+            `/api/pets/appointments/check?userId=${user.id}&petId=${params.id}`
+          )
+
+          if (appointmentResponse.ok) {
+            const appointmentData = await appointmentResponse.json()
+            if (appointmentData.hasAppointment) {
+              setHasExistingAppointment(true)
+              setError(
+                '您已經預約過這隻寵物，無法重複預約。請前往會員中心查看預約狀態。'
+              )
+            }
+          }
+        }
       } catch (err) {
         console.error('獲取寵物資料時發生錯誤:', err)
         setError('獲取寵物資料時發生錯誤')
@@ -104,7 +122,7 @@ export default function PetAppointmentPage() {
     }
 
     fetchPetAndAvailability()
-  }, [params.id])
+  }, [params.id, user, isAuthenticated])
 
   // 檢查時段可用性
   const checkTimeSlotAvailability = async (date) => {
@@ -405,6 +423,33 @@ export default function PetAppointmentPage() {
           <div className="d-flex justify-content-end">
             <Button variant="outline-danger" onClick={() => router.back()}>
               返回
+            </Button>
+          </div>
+        </Alert>
+      </Container>
+    )
+  }
+
+  // 如果已有預約，顯示錯誤
+  if (hasExistingAppointment) {
+    return (
+      <Container className="py-5">
+        <Alert variant="warning">
+          <Alert.Heading>您已經預約過此寵物</Alert.Heading>
+          <p>
+            您已經提交過此寵物的預約申請，無法重複申請。請前往會員中心查看預約狀態。
+          </p>
+          <hr />
+          <div className="d-flex justify-content-end gap-3">
+            <Button
+              variant="outline-primary"
+              as={Link}
+              href={`/pets/${params.id}`}
+            >
+              返回寵物頁面
+            </Button>
+            <Button variant="primary" as={Link} href="/member/appointments">
+              查看我的預約
             </Button>
           </div>
         </Alert>

@@ -28,17 +28,30 @@ import {
   FaCalendarAlt,
   FaClipboardList,
   FaStar,
+  FaLock,
+  FaCalendarCheck,
 } from 'react-icons/fa'
 import { Breadcrumbs } from '@/app/_components/breadcrumbs'
-import { Button, Badge, ProgressBar, Carousel } from 'react-bootstrap'
+import {
+  Button,
+  Badge,
+  ProgressBar,
+  Carousel,
+  Tooltip,
+  OverlayTrigger,
+} from 'react-bootstrap'
+import { useAuth } from '@/app/context/AuthContext'
 
 export default function PetDetailPage() {
   const { id } = useParams()
+  const { user, isAuthenticated } = useAuth()
   const [pet, setPet] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [activeTab, setActiveTab] = useState('description')
+  const [hasExistingAppointment, setHasExistingAppointment] = useState(false)
+  const [appointmentCheckLoading, setAppointmentCheckLoading] = useState(false)
 
   useEffect(() => {
     async function fetchPet() {
@@ -58,6 +71,36 @@ export default function PetDetailPage() {
 
     fetchPet()
   }, [id])
+
+  // 檢查用戶是否已經預約該寵物
+  useEffect(() => {
+    async function checkExistingAppointment() {
+      if (!isAuthenticated || !user || !user.id || !id) {
+        return
+      }
+
+      setAppointmentCheckLoading(true)
+      try {
+        const response = await fetch(
+          `/api/pets/appointments/check?userId=${user.id}&petId=${id}`
+        )
+
+        if (!response.ok) {
+          console.error('檢查預約狀態失敗')
+          return
+        }
+
+        const data = await response.json()
+        setHasExistingAppointment(data.hasAppointment)
+      } catch (err) {
+        console.error('檢查預約狀態時發生錯誤:', err)
+      } finally {
+        setAppointmentCheckLoading(false)
+      }
+    }
+
+    checkExistingAppointment()
+  }, [id, user, isAuthenticated])
 
   // 處理照片輪播
   const nextPhoto = () => {
@@ -467,12 +510,26 @@ export default function PetDetailPage() {
           </div>
 
           {!pet?.is_adopted && (
-            <Link
-              href={`/pets/${id}/appointment`}
-              className={styles.adoptButton}
-            >
-              <FaHeart /> 申請領養
-            </Link>
+            <>
+              {hasExistingAppointment ? (
+                <div className={styles.alreadyBookedMessage}>
+                  <FaCalendarCheck /> 您已申請預約此寵物
+                  <Link
+                    href="/member/appointments"
+                    className={styles.checkAppointmentLink}
+                  >
+                    查看預約狀態
+                  </Link>
+                </div>
+              ) : (
+                <Link
+                  href={`/pets/${id}/appointment`}
+                  className={styles.adoptButton}
+                >
+                  <FaHeart /> 申請領養
+                </Link>
+              )}
+            </>
           )}
         </div>
       </div>
