@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feFlood flood-color="#FFD1DC" flood-opacity="0.6"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+    <linearGradient id="furGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD1DC"/>
+      <stop offset="100%" style="stop-color:#FFF0F5"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#glow)">
+    <!-- 頭部 -->
+    <circle cx="256" cy="256" r="150" fill="url(#furGrad)"/>
+    <!-- 耳朵（三角形） -->
+    <path d="M160 140 L120 60 L200 100 Z" fill="#FFD1DC"/>
+    <path d="M352 140 L392 60 L312 100 Z" fill="#FFD1DC"/>
+    <!-- 內耳 -->
+    <path d="M160 125 L140 80 L180 100 Z" fill="#FFC0CB"/>
+    <path d="M352 125 L372 80 L332 100 Z" fill="#FFC0CB"/>
+    <!-- 眼睛（杏仁形狀） -->
+    <path d="M180 220 Q200 200 220 220 Q200 240 180 220 Z" fill="#4A4A4A"/>
+    <path d="M292 220 Q312 200 332 220 Q312 240 292 220 Z" fill="#4A4A4A"/>
+    <!-- 眼睛反光 -->
+    <circle cx="205" cy="215" r="5" fill="white"/>
+    <circle cx="317" cy="215" r="5" fill="white"/>
+    <!-- 鼻子（小三角形） -->
+    <path d="M256 260 L246 270 H266 Z" fill="#FFB6C1"/>
+    <!-- 鬍鬚 -->
+    <path d="M246 270 L166 250" stroke="#4A4A4A" stroke-width="2"/>
+    <path d="M246 275 L166 275" stroke="#4A4A4A" stroke-width="2"/>
+    <path d="M246 280 L166 300" stroke="#4A4A4A" stroke-width="2"/>
+    <path d="M266 270 L346 250" stroke="#4A4A4A" stroke-width="2"/>
+    <path d="M266 275 L346 275" stroke="#4A4A4A" stroke-width="2"/>
+    <path d="M266 280 L346 300" stroke="#4A4A4A" stroke-width="2"/>
+    <!-- 嘴巴 -->
+    <path d="M256 270 L256 285" stroke="#4A4A4A" stroke-width="2"/>
+    <path d="M256 285 Q246 295 236 285" stroke="#4A4A4A" stroke-width="2" fill="none"/>
+    <path d="M256 285 Q266 295 276 285" stroke="#4A4A4A" stroke-width="2" fill="none"/>
+  </g>
+</svg>

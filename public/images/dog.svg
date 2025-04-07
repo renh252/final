@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feFlood flood-color="#FFB98B" flood-opacity="0.6"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+    <linearGradient id="furGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB98B"/>
+      <stop offset="100%" style="stop-color:#FFDAB9"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#glow)">
+    <!-- 頭部 -->
+    <circle cx="256" cy="256" r="160" fill="url(#furGrad)"/>
+    <!-- 耳朵 -->
+    <path d="M150 150 L100 50 L180 80 Z" fill="#FFB98B"/>
+    <path d="M362 150 L412 50 L332 80 Z" fill="#FFB98B"/>
+    <!-- 眼睛 -->
+    <circle cx="200" cy="220" r="25" fill="#4A4A4A"/>
+    <circle cx="312" cy="220" r="25" fill="#4A4A4A"/>
+    <circle cx="210" cy="210" r="8" fill="white"/>
+    <circle cx="322" cy="210" r="8" fill="white"/>
+    <!-- 鼻子 -->
+    <ellipse cx="256" cy="270" rx="30" ry="20" fill="#4A4A4A"/>
+    <!-- 嘴巴 -->
+    <path d="M256 270 L256 320" stroke="#4A4A4A" stroke-width="4"/>
+    <path d="M256 320 Q226 340 196 320" stroke="#4A4A4A" stroke-width="4" fill="none"/>
+    <path d="M256 320 Q286 340 316 320" stroke="#4A4A4A" stroke-width="4" fill="none"/>
+    <!-- 舌頭 -->
+    <path d="M256 320 Q256 350 276 360" stroke="#FF9E9E" stroke-width="8" fill="none"/>
+  </g>
+</svg>

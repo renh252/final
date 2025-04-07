@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import { Card, Button, Alert } from 'react-bootstrap'
 import styles from './PetQuizChallenge.module.css'
+import 'bootstrap-icons/font/bootstrap-icons.css'
+import confetti from 'canvas-confetti'
 
 interface QuizQuestion {
   question: string
@@ -44,12 +46,40 @@ export default function PetQuizChallenge() {
     setCurrentQuestion(questions[randomIndex])
   }, [])
 
+  const fireConfetti = () => {
+    // 左側彩帶
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { x: 0.2, y: 0.8 },
+      colors: ['#FFD700', '#FFA500', '#FF69B4', '#87CEEB']
+    })
+
+    // 右側彩帶
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { x: 0.8, y: 0.8 },
+      colors: ['#FFD700', '#FFA500', '#FF69B4', '#87CEEB']
+    })
+  }
+
   const handleAnswer = (selectedIndex: number) => {
     if (!currentQuestion) return
     
     const correct = selectedIndex === currentQuestion.correctAnswer
     setIsCorrect(correct)
     setShowResult(true)
+
+    if (correct) {
+      // 觸發彩帶效果
+      fireConfetti()
+
+      // 0.5秒後再次觸發
+      setTimeout(() => {
+        fireConfetti()
+      }, 500)
+    }
 
     // 3秒後重置問題
     setTimeout(() => {
@@ -64,8 +94,9 @@ export default function PetQuizChallenge() {
   return (
     <Card className={styles.quizCard}>
       <Card.Header className={styles.quizHeader}>
-        
-        <i className="bi bi-lightbulb"></i> 寵物知識問答挑戰
+        <div className={styles.headerContent}>
+          <i className="bi bi-lightbulb"></i> 寵物知識問答挑戰
+        </div>
       </Card.Header>
       <Card.Body>
         {!showResult ? (
@@ -85,8 +116,21 @@ export default function PetQuizChallenge() {
             </div>
           </>
         ) : (
-          <Alert variant={isCorrect ? 'success' : 'danger'}>
-            {isCorrect ? '答對了！你真是寵物達人！' : '答錯了！再接再厲！'}
+          <Alert 
+            variant={isCorrect ? 'success' : 'danger'}
+            className={`${styles.resultAlert} ${isCorrect ? styles.correctAlert : styles.wrongAlert}`}
+          >
+            {isCorrect ? (
+              <>
+                <i className="bi bi-emoji-smile-fill me-2"></i>
+                答對了！參與更多問答來獲得成就勳章吧！
+              </>
+            ) : (
+              <>
+                <i className="bi bi-emoji-frown-fill me-2"></i>
+                答錯了！再接再厲！
+              </>
+            )}
           </Alert>
         )}
       </Card.Body>
