@@ -104,7 +104,9 @@ export async function GET(request: NextRequest) {
 // 提交預約申請
 export async function POST(request: NextRequest) {
   try {
+    console.log('接收到預約請求')
     const data = await request.json()
+    console.log('請求數據:', data)
 
     // 驗證必要欄位
     if (
@@ -114,6 +116,7 @@ export async function POST(request: NextRequest) {
       !data.appointment_time ||
       !data.house_type
     ) {
+      console.log('缺少必要欄位:', data)
       return NextResponse.json(
         { success: false, message: '缺少必要欄位' },
         { status: 400 }
@@ -121,93 +124,183 @@ export async function POST(request: NextRequest) {
     }
 
     // 檢查寵物是否存在且可領養
-    const [pets, petError] = await db.query(
-      `
-      SELECT id, is_adopted FROM pets WHERE id = ? AND is_adopted = 0
-    `,
-      [data.pet_id]
-    )
-
-    if (petError || !pets || (pets as any[]).length === 0) {
-      return NextResponse.json(
-        { success: false, message: '該寵物不存在或已不可領養' },
-        { status: 400 }
+    try {
+      const [pets, petError] = await db.query(
+        `
+        SELECT id, name, is_adopted FROM pets WHERE id = ? AND is_adopted = 0
+      `,
+        [data.pet_id]
       )
-    }
 
-    // 檢查是否已有相同的預約
-    const [existingAppointments, existingError] = await db.query(
-      `
-      SELECT id FROM pet_appointment 
-      WHERE pet_id = ? AND user_id = ? AND status IN ('pending', 'approved')
-    `,
-      [data.pet_id, data.user_id]
-    )
+      if (petError) {
+        console.error('查詢寵物信息失敗:', petError)
+        return NextResponse.json(
+          { success: false, message: '查詢寵物信息失敗' },
+          { status: 500 }
+        )
+      }
 
-    if (
-      !existingError &&
-      existingAppointments &&
-      (existingAppointments as any[]).length > 0
-    ) {
+      if (!pets || (pets as any[]).length === 0) {
+        console.log('寵物不存在或已被領養:', data.pet_id)
+        return NextResponse.json(
+          { success: false, message: '該寵物不存在或已不可領養' },
+          { status: 400 }
+        )
+      }
+
+      const pet = (pets as any[])[0]
+      console.log('找到寵物:', pet)
+
+      // 檢查是否已有相同的預約
+      const [existingAppointments, existingError] = await db.query(
+        `
+        SELECT id FROM pet_appointment 
+        WHERE pet_id = ? AND user_id = ? AND status IN ('pending', 'approved')
+      `,
+        [data.pet_id, data.user_id]
+      )
+
+      if (existingError) {
+        console.error('查詢已有預約失敗:', existingError)
+        return NextResponse.json(
+          { success: false, message: '查詢預約記錄失敗' },
+          { status: 500 }
+        )
+      }
+
+      if (existingAppointments && (existingAppointments as any[]).length > 0) {
+        console.log('用戶已預約該寵物:', data.user_id, data.pet_id)
+        return NextResponse.json(
+          {
+            success: false,
+            message: '您已經預約過這隻寵物，請等待審核或查看您的預約列表',
+          },
+          { status: 400 }
+        )
+      }
+
+      // 確保有 store_id，如果沒有提供則嘗試從寵物信息獲取
+      if (!data.store_id) {
+        // 嘗試查詢寵物所在的商店
+        const [petStores, storeError] = await db.query(
+          `SELECT store_id FROM pets WHERE id = ?`,
+          [data.pet_id]
+        )
+
+        if (!storeError && petStores && (petStores as any[]).length > 0) {
+          data.store_id = (petStores as any[])[0].store_id
+        } else {
+          // 如果找不到商店ID，使用默認值
+          data.store_id = 1 // 假設1是默認商店ID
+        }
+      }
+
+      console.log('準備插入預約數據:', {
+        pet_id: data.pet_id,
+        user_id: data.user_id,
+        store_id: data.store_id,
+        date: data.appointment_date,
+        time: data.appointment_time,
+      })
+
+      // 插入預約資料
+      const [result, error] = await db.query(
+        `INSERT INTO pet_appointment (
+          pet_id, 
+          user_id, 
+          store_id,
+          appointment_date, 
+          appointment_time, 
+          status, 
+          house_type, 
+          adult_number, 
+          child_number, 
+          adopted_experience, 
+          other_pets, 
+          note,
+          created_at,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        [
+          data.pet_id,
+          data.user_id,
+          data.store_id || null,
+          data.appointment_date,
+          data.appointment_time,
+          data.house_type,
+          data.adult_number || 1,
+          data.child_number || 0,
+          data.adopted_experience ? 1 : 0,
+          data.other_pets || '',
+          data.note || '',
+        ]
+      )
+
+      if (error) {
+        console.error('新增預約失敗:', error)
+        return NextResponse.json(
+          { success: false, message: '新增預約失敗', error: error.message },
+          { status: 500 }
+        )
+      }
+
+      const appointmentId = (result as any).insertId
+      console.log('預約建立成功，ID:', appointmentId)
+
+      // 向用戶發送通知
+      try {
+        const petName = pet.name
+        const [notificationResult, notificationError] = await db.query(
+          `INSERT INTO notifications (
+            user_id,
+            type,
+            title,
+            message,
+            link,
+            is_read,
+            created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+          [
+            data.user_id,
+            'pet',
+            '寵物預約申請已提交',
+            `您已成功提交「${petName}」的預約申請，我們將盡快處理您的申請。`,
+            `/member/appointments`,
+            0,
+          ]
+        )
+
+        if (notificationError) {
+          console.error('新增通知失敗:', notificationError)
+          // 不影響主流程，僅記錄錯誤
+        } else {
+          console.log('通知創建成功')
+        }
+      } catch (notifyErr) {
+        console.error('發送通知時發生錯誤:', notifyErr)
+        // 不影響主流程，僅記錄錯誤
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: '預約申請已成功提交，請等待審核',
+        data: { id: appointmentId },
+      })
+    } catch (queryError) {
+      console.error('資料庫查詢過程中發生錯誤:', queryError)
       return NextResponse.json(
         {
           success: false,
-          message: '您已經預約過這隻寵物，請等待審核或查看您的預約列表',
+          message: '處理預約時發生資料庫錯誤',
+          error: queryError.message,
         },
-        { status: 400 }
-      )
-    }
-
-    // 插入預約資料
-    const [result, error] = await db.query(
-      `INSERT INTO pet_appointment (
-        pet_id, 
-        user_id, 
-        store_id,
-        appointment_date, 
-        appointment_time, 
-        status, 
-        house_type, 
-        adult_number, 
-        child_number, 
-        adopted_experience, 
-        other_pets, 
-        note,
-        created_at,
-        updated_at
-      ) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-      [
-        data.pet_id,
-        data.user_id,
-        data.store_id,
-        data.appointment_date,
-        data.appointment_time,
-        data.house_type,
-        data.adult_number || 1,
-        data.child_number || 0,
-        data.adopted_experience ? 1 : 0,
-        data.other_pets || '',
-        data.note || '',
-      ]
-    )
-
-    if (error) {
-      console.error('新增預約失敗:', error)
-      return NextResponse.json(
-        { success: false, message: '新增預約失敗' },
         { status: 500 }
       )
     }
-
-    return NextResponse.json({
-      success: true,
-      message: '預約申請已成功提交，請等待審核',
-      data: { id: (result as any).insertId },
-    })
   } catch (err) {
     console.error('提交預約申請時發生錯誤:', err)
     return NextResponse.json(
-      { success: false, message: '提交預約申請時發生錯誤' },
+      { success: false, message: '提交預約申請時發生錯誤', error: err.message },
       { status: 500 }
     )
   }

@@ -85,11 +85,6 @@ const columns: Column[] = [
     label: '預約時間',
     sortable: true,
     render: (_, row) => {
-      // 記錄原始值以便調試
-      console.log(`Row ${row.id} 原始值:`, {
-        date: row.appointment_date,
-        time: row.appointment_time,
-      })
 
       // 格式化日期和時間
       const formattedDate = formatDate(row.appointment_date)
@@ -206,8 +201,6 @@ const formatTime = (timeStr: string) => {
 
 const formatDateTime = (dateStr: string, timeStr?: string) => {
   if (!dateStr) return ''
-
-  console.log('formatDateTime 原始值:', { dateStr, timeStr })
 
   // 處理完整的ISO日期時間
   if (dateStr.includes('T')) {

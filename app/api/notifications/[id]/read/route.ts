@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { executeQuery } from '@/lib/db'
+import { db } from '@/app/api/_lib/db'
 // 實際應用中需要引入資料庫連接和身份驗證
 // import { db } from '@/app/lib/db';
 // import { getServerSession } from 'next-auth';
@@ -37,10 +37,18 @@ export async function POST(
     }
 
     // 更新數據庫中的記錄
-    await executeQuery(
+    const [result, error] = await db.query(
       `UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?`,
       [notificationId, userId]
     )
+
+    if (error) {
+      console.error('標記通知已讀失敗:', error)
+      return NextResponse.json(
+        { success: false, message: '標記通知已讀失敗' },
+        { status: 500 }
+      )
+    }
 
     console.log(`標記通知 #${notificationId} 為已讀`)
 

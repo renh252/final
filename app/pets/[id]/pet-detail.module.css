@@ -320,26 +320,60 @@
 }
 
 .adoptButton {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
   width: 100%;
-  padding: 1rem;
-  background: #4a90e2;
+  padding: 16px;
+  margin-top: 24px;
+  background-color: #4a90e2;
   color: white;
-  text-decoration: none;
-  text-align: center;
   border: none;
   border-radius: 8px;
   font-size: 1.1rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
 }
 
 .adoptButton:hover {
-  background: #357abd;
+  background-color: #357abd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(242, 78, 30, 0.3);
+  color: white;
+}
+
+.alreadyBookedMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 16px;
+  margin-top: 24px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-left: 4px solid #3498db;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+.alreadyBookedMessage svg {
+  margin-right: 10px;
+  color: #3498db;
+}
+
+.checkAppointmentLink {
+  margin-left: 10px;
+  color: #3498db;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.checkAppointmentLink:hover {
+  text-decoration: underline;
 }
 
 /* 自定義輪播指示器樣式 */

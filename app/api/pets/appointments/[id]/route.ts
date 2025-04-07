@@ -4,6 +4,16 @@ import { auth } from '@/app/api/_lib/auth'
 import { verifyToken } from '@/app/api/_lib/jwt'
 import { ResultSetHeader } from 'mysql2'
 
+// 定義auth.fromRequest的返回類型
+interface AuthResult {
+  success: boolean
+  user?: {
+    user_id: number
+    [key: string]: any
+  }
+  message?: string
+}
+
 // 獲取單個預約詳情
 export async function GET(
   request: NextRequest,
@@ -11,10 +21,20 @@ export async function GET(
 ) {
   try {
     // 驗證用戶是否登入
-    const authResult = await auth.fromRequest(request)
+    const authResult = (await auth.fromRequest(
+      request
+    )) as unknown as AuthResult
     if (!authResult.success) {
       return NextResponse.json(
         { success: false, message: '請先登入' },
+        { status: 401 }
+      )
+    }
+
+    // 確保user存在
+    if (!authResult.user) {
+      return NextResponse.json(
+        { success: false, message: '無效的用戶信息' },
         { status: 401 }
       )
     }
