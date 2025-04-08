@@ -27,15 +27,20 @@ export default function SummaryPage() {
   // 確保組件已掛載
   useEffect(() => {
     setIsMounted(true)
+    
+    // 僅在客戶端執行 localStorage 相關操作
+    if (typeof window !== 'undefined') {
+      // 🔹 讀取 `localStorage` 內的金額資訊
+      const storedPrice = localStorage.getItem('productPrice')
+      if (storedPrice) {
+        setProductPrice(JSON.parse(storedPrice))
+      }
+    }
+    
     return () => setIsMounted(false)
   }, [])
 
   useEffect(() => {
-    // 🔹 讀取 `localStorage` 內的金額資訊
-    const storedPrice = localStorage.getItem('productPrice')
-    if (storedPrice) {
-      setProductPrice(JSON.parse(storedPrice))
-    }
 
     if (!orderId) {
       setError('找不到訂單編號')
@@ -83,11 +88,15 @@ export default function SummaryPage() {
       console.log('開始發送訂購完成通知')
 
       // 檢查用戶ID是否存在
-      const userId = orderInfo.userId || localStorage.getItem('userId')
+      let userId = orderInfo.userId
+      // 僅在客戶端環境中使用 localStorage
+      if (typeof window !== 'undefined' && !userId) {
+        userId = localStorage.getItem('userId')
+      }
       console.log('用戶ID:', userId)
 
-      if (!userId) {
-        console.error('無法發送用戶通知: 找不到用戶ID')
+      if (!userId || typeof window === 'undefined') {
+        console.error('無法發送用戶通知: 找不到用戶ID或非客戶端環境')
         return
       }
 
