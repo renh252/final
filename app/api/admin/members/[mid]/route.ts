@@ -72,7 +72,7 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
 
     // 檢查會員是否存在
     const [members] = await db.query(
-      'SELECT user_id FROM users WHERE user_id = ?',
+      'SELECT user_id, user_level FROM users WHERE user_id = ?',
       [mid]
     )
 
@@ -83,8 +83,36 @@ export const PUT = guard.api(async (request: NextRequest, authData) => {
       )
     }
 
+    const oldLevel = members[0].user_level
+
     // 更新會員資料
     await db.query('UPDATE users SET ? WHERE user_id = ?', [body, mid])
+
+    // 如果會員等級有變更，發送通知
+    if (body.user_level && body.user_level !== oldLevel) {
+      await db.query(
+        `INSERT INTO notifications 
+        (user_id, type, title, message, link, created_at) 
+        VALUES (?, ?, ?, ?, ?, NOW())`,
+        [
+          mid,
+          'member',
+          '會員等級變更通知',
+          `您的會員等級已更新為 ${body.user_level}`,
+          '/member',
+        ]
+      )
+    }
+
+    // 如果基本資料有更新，發送通知
+    if (body.user_name || body.user_number || body.user_address) {
+      await db.query(
+        `INSERT INTO notifications 
+        (user_id, type, title, message, link, created_at) 
+        VALUES (?, ?, ?, ?, ?, NOW())`,
+        [mid, 'member', '會員資料更新通知', '您的會員資料已更新成功', '/member']
+      )
+    }
 
     return NextResponse.json({
       success: true,

@@ -8,11 +8,8 @@ async function sendSystemNotificationToAllUsers(
   link?: string
 ) {
   try {
-    // 獲取所有活躍用戶
-    const [users] = await db.query(
-      'SELECT user_id FROM users WHERE user_status = ?',
-      ['正常']
-    )
+    // 獲取所有用戶，不論狀態
+    const [users] = await db.query('SELECT user_id FROM users')
 
     if (!Array.isArray(users)) {
       throw new Error('無法獲取用戶列表')
@@ -24,7 +21,7 @@ async function sendSystemNotificationToAllUsers(
         `INSERT INTO notifications 
         (user_id, type, title, message, link, created_at) 
         VALUES (?, ?, ?, ?, ?, NOW())`,
-        [user.user_id, 'system', title, message, link || null]
+        [(user as any).user_id, 'system', title, message, link || null]
       )
     }
 
@@ -43,22 +40,19 @@ async function sendSystemNotificationToAllAdmins(
 ) {
   try {
     // 獲取所有管理員
-    const [admins] = await db.query(
-      'SELECT admin_id FROM admins WHERE status = ?',
-      ['正常']
-    )
+    const [managers] = await db.query('SELECT id FROM manager')
 
-    if (!Array.isArray(admins)) {
+    if (!Array.isArray(managers)) {
       throw new Error('無法獲取管理員列表')
     }
 
     // 為每個管理員創建通知
-    for (const admin of admins) {
+    for (const manager of managers) {
       await db.query(
         `INSERT INTO notifications 
         (admin_id, type, title, message, link, created_at) 
         VALUES (?, ?, ?, ?, ?, NOW())`,
-        [admin.admin_id, 'system', title, message, link || null]
+        [(manager as any).id, 'system', title, message, link || null]
       )
     }
 
@@ -83,53 +77,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    let success = false
+    let userSuccess = true
+    let adminSuccess = true
 
     // 根據通知類型發送不同的系統通知
     switch (notifyType) {
       case 'maintenance':
-        // 系統維護通知
-        if (!adminOnly) {
-          success = await sendSystemNotificationToAllUsers(
-            title || '系統維護通知',
-            message,
-            link
-          )
-        }
-        success = await sendSystemNotificationToAllAdmins(
-          title || '系統維護通知',
-          message,
-          link
-        )
-        break
-
       case 'update':
-        // 功能更新通知
-        if (!adminOnly) {
-          success = await sendSystemNotificationToAllUsers(
-            title || '功能更新通知',
-            message,
-            link
-          )
-        }
-        success = await sendSystemNotificationToAllAdmins(
-          title || '功能更新通知',
-          message,
-          link
-        )
-        break
-
       case 'announcement':
-        // 重要公告
+        // 系統維護通知、功能更新通知、重要公告
         if (!adminOnly) {
-          success = await sendSystemNotificationToAllUsers(
-            title || '重要公告',
+          userSuccess = await sendSystemNotificationToAllUsers(
+            title,
             message,
             link
           )
         }
-        success = await sendSystemNotificationToAllAdmins(
-          title || '重要公告',
+        // 無論是否僅管理員可見，都發送給管理員
+        adminSuccess = await sendSystemNotificationToAllAdmins(
+          title,
           message,
           link
         )
@@ -145,8 +111,18 @@ export async function POST(request: NextRequest) {
         )
     }
 
-    if (!success) {
-      throw new Error('發送系統通知失敗')
+    if (!userSuccess || !adminSuccess) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '部分或全部通知發送失敗',
+          details: {
+            userSuccess,
+            adminSuccess,
+          },
+        },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({
