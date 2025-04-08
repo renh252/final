@@ -310,111 +310,113 @@ export default function NotificationsPage() {
           </div>
 
           <Nav variant="tabs" className={styles.tabs}>
-            <Nav.Item>
-              <Nav.Link
-                className={`${styles.tab} ${
-                  activeCategory === 'all' ? styles.active : ''
-                }`}
-                onClick={() => setActiveCategory('all')}
-              >
-                全部
-                {getUnreadCount() > 0 && (
-                  <Badge bg="danger" className={styles.tabBadge}>
-                    {getUnreadCount()}
-                  </Badge>
-                )}
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link
-                className={`${styles.tab} ${
-                  activeCategory === 'shop' ? styles.active : ''
-                }`}
-                onClick={() => setActiveCategory('shop')}
-              >
-                商城
-                {getUnreadCount('shop') > 0 && (
-                  <Badge bg="danger" className={styles.tabBadge}>
-                    {getUnreadCount('shop')}
-                  </Badge>
-                )}
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link
-                className={`${styles.tab} ${
-                  activeCategory === 'pet' ? styles.active : ''
-                }`}
-                onClick={() => setActiveCategory('pet')}
-              >
-                寵物
-                {getUnreadCount('pet') > 0 && (
-                  <Badge bg="danger" className={styles.tabBadge}>
-                    {getUnreadCount('pet')}
-                  </Badge>
-                )}
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link
-                className={`${styles.tab} ${
-                  activeCategory === 'forum' ? styles.active : ''
-                }`}
-                onClick={() => setActiveCategory('forum')}
-              >
-                論壇
-                {getUnreadCount('forum') > 0 && (
-                  <Badge bg="danger" className={styles.tabBadge}>
-                    {getUnreadCount('forum')}
-                  </Badge>
-                )}
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link
-                className={`${styles.tab} ${
-                  activeCategory === 'donation' ? styles.active : ''
-                }`}
-                onClick={() => setActiveCategory('donation')}
-              >
-                捐款
-                {getUnreadCount('donation') > 0 && (
-                  <Badge bg="danger" className={styles.tabBadge}>
-                    {getUnreadCount('donation')}
-                  </Badge>
-                )}
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link
-                className={`${styles.tab} ${
-                  activeCategory === 'member' ? styles.active : ''
-                }`}
-                onClick={() => setActiveCategory('member')}
-              >
-                會員
-                {getUnreadCount('member') > 0 && (
-                  <Badge bg="danger" className={styles.tabBadge}>
-                    {getUnreadCount('member')}
-                  </Badge>
-                )}
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link
-                className={`${styles.tab} ${
-                  activeCategory === 'system' ? styles.active : ''
-                }`}
-                onClick={() => setActiveCategory('system')}
-              >
-                系統
-                {getUnreadCount('system') > 0 && (
-                  <Badge bg="danger" className={styles.tabBadge}>
-                    {getUnreadCount('system')}
-                  </Badge>
-                )}
-              </Nav.Link>
-            </Nav.Item>
+            <div style={{ display: 'flex', minWidth: 'max-content' }}>
+              <Nav.Item>
+                <Nav.Link
+                  className={`${styles.tab} ${
+                    activeCategory === 'all' ? styles.active : ''
+                  }`}
+                  onClick={() => setActiveCategory('all')}
+                >
+                  全部
+                  {getUnreadCount() > 0 && (
+                    <Badge bg="danger" className={styles.tabBadge}>
+                      {getUnreadCount()}
+                    </Badge>
+                  )}
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link
+                  className={`${styles.tab} ${
+                    activeCategory === 'shop' ? styles.active : ''
+                  }`}
+                  onClick={() => setActiveCategory('shop')}
+                >
+                  商城
+                  {getUnreadCount('shop') > 0 && (
+                    <Badge bg="danger" className={styles.tabBadge}>
+                      {getUnreadCount('shop')}
+                    </Badge>
+                  )}
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link
+                  className={`${styles.tab} ${
+                    activeCategory === 'pet' ? styles.active : ''
+                  }`}
+                  onClick={() => setActiveCategory('pet')}
+                >
+                  寵物
+                  {getUnreadCount('pet') > 0 && (
+                    <Badge bg="danger" className={styles.tabBadge}>
+                      {getUnreadCount('pet')}
+                    </Badge>
+                  )}
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link
+                  className={`${styles.tab} ${
+                    activeCategory === 'forum' ? styles.active : ''
+                  }`}
+                  onClick={() => setActiveCategory('forum')}
+                >
+                  論壇
+                  {getUnreadCount('forum') > 0 && (
+                    <Badge bg="danger" className={styles.tabBadge}>
+                      {getUnreadCount('forum')}
+                    </Badge>
+                  )}
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link
+                  className={`${styles.tab} ${
+                    activeCategory === 'donation' ? styles.active : ''
+                  }`}
+                  onClick={() => setActiveCategory('donation')}
+                >
+                  捐款
+                  {getUnreadCount('donation') > 0 && (
+                    <Badge bg="danger" className={styles.tabBadge}>
+                      {getUnreadCount('donation')}
+                    </Badge>
+                  )}
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link
+                  className={`${styles.tab} ${
+                    activeCategory === 'member' ? styles.active : ''
+                  }`}
+                  onClick={() => setActiveCategory('member')}
+                >
+                  會員
+                  {getUnreadCount('member') > 0 && (
+                    <Badge bg="danger" className={styles.tabBadge}>
+                      {getUnreadCount('member')}
+                    </Badge>
+                  )}
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link
+                  className={`${styles.tab} ${
+                    activeCategory === 'system' ? styles.active : ''
+                  }`}
+                  onClick={() => setActiveCategory('system')}
+                >
+                  系統
+                  {getUnreadCount('system') > 0 && (
+                    <Badge bg="danger" className={styles.tabBadge}>
+                      {getUnreadCount('system')}
+                    </Badge>
+                  )}
+                </Nav.Link>
+              </Nav.Item>
+            </div>
           </Nav>
 
           <div className={styles.notificationList}>

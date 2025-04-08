@@ -242,6 +242,11 @@ export default function Sidebar({ collapsed = false, onToggle }) {
         subItems: [
           { label: '一般設定', path: '/admin/settings' },
           {
+            label: '通知管理',
+            path: '/admin/notifications',
+            requiredPrivilege: 'settings:notifications:read',
+          },
+          {
             label: '角色管理',
             path: '/admin/settings/roles',
             requiredPrivilege: 'settings:roles:read',

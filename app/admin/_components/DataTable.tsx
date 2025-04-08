@@ -319,114 +319,124 @@ const DataTable = ({
     )
   }
 
-  const renderTableHeader = () => (
-    <thead>
-      <tr>
-        {selectable && (
-          <th style={{ width: '40px' }}>
-            <div
-              className="d-flex align-items-center justify-content-center cursor-pointer"
-              onClick={handleSelectAll}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  handleSelectAll()
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label={selectAll ? '取消全選' : '全選'}
-            >
-              {selectAll ? (
-                <CheckSquare size={18} className="text-primary" />
-              ) : (
-                <Square size={18} />
-              )}
-            </div>
-          </th>
-        )}
-        {columns.map((column) => (
-          <th
-            key={column.key}
-            className={`${column.sortable ? 'sortable' : ''} ${
-              isDarkMode ? 'text-light' : ''
-            }`}
-            onClick={() => column.sortable && handleSort(column.key)}
-          >
-            <div className="d-flex align-items-center">
-              {column.label}
-              {column.sortable && (
-                <div className="ms-1 d-flex flex-column">
-                  <ChevronUp
-                    size={12}
-                    className={
-                      sortKey === column.key && sortDirection === 'asc'
-                        ? 'text-primary'
-                        : isDarkMode
-                        ? 'text-light opacity-50'
-                        : 'text-muted'
-                    }
-                  />
-                  <ChevronDown
-                    size={12}
-                    className={
-                      sortKey === column.key && sortDirection === 'desc'
-                        ? 'text-primary'
-                        : isDarkMode
-                        ? 'text-light opacity-50'
-                        : 'text-muted'
-                    }
-                    style={{ marginTop: '-4px' }}
-                  />
-                </div>
-              )}
-            </div>
-          </th>
-        ))}
-        {actions && (
-          <th className={`text-end ${isDarkMode ? 'text-light' : ''}`}>操作</th>
-        )}
-      </tr>
-      {showFilters && (
-        <tr className="filter-row">
-          {selectable && <th></th>}
+  const renderTableHeader = () => {
+    const hasActionsColumn = columns.some((col) => col.key === 'actions')
+
+    return (
+      <thead>
+        <tr>
+          {selectable && (
+            <th style={{ width: '40px' }}>
+              <div
+                className="d-flex align-items-center justify-content-center cursor-pointer"
+                onClick={handleSelectAll}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    handleSelectAll()
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={selectAll ? '取消全選' : '全選'}
+              >
+                {selectAll ? (
+                  <CheckSquare size={18} className="text-primary" />
+                ) : (
+                  <Square size={18} />
+                )}
+              </div>
+            </th>
+          )}
           {columns.map((column) => (
-            <th key={`filter-${column.key}`}>
-              {column.filterable && column.filterOptions ? (
-                <Form.Select
-                  size="sm"
-                  value={filters[column.key] || ''}
-                  onChange={(e) =>
-                    handleFilterChange(column.key, e.target.value)
-                  }
-                  className={
-                    isDarkMode ? 'bg-dark border-secondary text-light' : ''
-                  }
-                >
-                  <option value="">全部</option>
-                  {column.filterOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Form.Select>
-              ) : null}
+            <th
+              key={column.key}
+              className={`${column.sortable ? 'sortable' : ''} ${
+                isDarkMode ? 'text-light' : ''
+              }`}
+              onClick={() => column.sortable && handleSort(column.key)}
+            >
+              <div className="d-flex align-items-center">
+                {column.label}
+                {column.sortable && (
+                  <div className="ms-1 d-flex flex-column">
+                    <ChevronUp
+                      size={12}
+                      className={
+                        sortKey === column.key && sortDirection === 'asc'
+                          ? 'text-primary'
+                          : isDarkMode
+                          ? 'text-light opacity-50'
+                          : 'text-muted'
+                      }
+                    />
+                    <ChevronDown
+                      size={12}
+                      className={
+                        sortKey === column.key && sortDirection === 'desc'
+                          ? 'text-primary'
+                          : isDarkMode
+                          ? 'text-light opacity-50'
+                          : 'text-muted'
+                      }
+                      style={{ marginTop: '-4px' }}
+                    />
+                  </div>
+                )}
+              </div>
             </th>
           ))}
-          {actions && <th></th>}
+          {actions && !hasActionsColumn && (
+            <th className={`text-end ${isDarkMode ? 'text-light' : ''}`}>
+              操作
+            </th>
+          )}
         </tr>
-      )}
-    </thead>
-  )
+        {showFilters && (
+          <tr className="filter-row">
+            {selectable && <th></th>}
+            {columns.map((column) => (
+              <th key={`filter-${column.key}`}>
+                {column.filterable && column.filterOptions ? (
+                  <Form.Select
+                    size="sm"
+                    value={filters[column.key] || ''}
+                    onChange={(e) =>
+                      handleFilterChange(column.key, e.target.value)
+                    }
+                    className={
+                      isDarkMode ? 'bg-dark border-secondary text-light' : ''
+                    }
+                  >
+                    <option value="">全部</option>
+                    {column.filterOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Form.Select>
+                ) : null}
+              </th>
+            ))}
+            {actions && !hasActionsColumn && <th></th>}
+          </tr>
+        )}
+      </thead>
+    )
+  }
 
   const renderTableBody = () => {
+    const hasActionsColumn = columns.some((col) => col.key === 'actions')
+
     if (loading) {
       return (
         <tbody>
           <tr>
             <td
               colSpan={
-                columns.length + (actions ? 1 : 0) + (selectable ? 1 : 0)
+                columns.length +
+                (actions && !hasActionsColumn ? 1 : 0) +
+                (selectable ? 1 : 0)
               }
               className="text-center py-4"
             >
@@ -444,7 +454,9 @@ const DataTable = ({
           <tr>
             <td
               colSpan={
-                columns.length + (actions ? 1 : 0) + (selectable ? 1 : 0)
+                columns.length +
+                (actions && !hasActionsColumn ? 1 : 0) +
+                (selectable ? 1 : 0)
               }
               className="text-center py-4"
             >
@@ -486,7 +498,7 @@ const DataTable = ({
                   : row[column.key]}
               </td>
             ))}
-            {actions && (
+            {actions && !hasActionsColumn && (
               <td className={`text-end ${isDarkMode ? 'text-light' : ''}`}>
                 <div
                   onClick={(e) => e.stopPropagation()}

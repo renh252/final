@@ -55,6 +55,7 @@ export default function NotificationBell() {
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
   const bellRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const pollInterval = useRef<NodeJS.Timeout | null>(null)
   const { user, isAuthenticated } = useAuth()
 
   // 添加控制變數，設為 true 可顯示模擬通知，設為 false 則使用實際 API
@@ -79,8 +80,42 @@ export default function NotificationBell() {
 
   useEffect(() => {
     setIsMounted(true)
-    return () => setIsMounted(false)
-  }, [])
+
+    // 設置輪詢機制
+    if (isAuthenticated && !SHOW_MOCK_NOTIFICATIONS) {
+      // 初次載入時立即獲取通知
+      fetchNotifications()
+
+      // 每15秒更新一次
+      pollInterval.current = setInterval(fetchNotifications, 15000)
+
+      // 添加自定義事件監聽器
+      const handleUpdate = () => {
+        console.log('收到通知更新事件')
+        fetchNotifications()
+      }
+
+      // 使用 document 而不是 bellRef 來監聽事件
+      document.addEventListener('updateNotifications', handleUpdate)
+
+      return () => {
+        setIsMounted(false)
+        // 清理輪詢定時器和事件監聽器
+        if (pollInterval.current) {
+          clearInterval(pollInterval.current)
+        }
+        document.removeEventListener('updateNotifications', handleUpdate)
+      }
+    }
+
+    return () => {
+      setIsMounted(false)
+      // 清理輪詢定時器
+      if (pollInterval.current) {
+        clearInterval(pollInterval.current)
+      }
+    }
+  }, [isAuthenticated])
 
   // 重新計算選單位置函數
   const updateMenuPosition = () => {
@@ -735,6 +770,7 @@ export default function NotificationBell() {
     <>
       <button
         ref={bellRef}
+        data-notification-bell
         onClick={(e) => {
           e.preventDefault()
           toggleMenu()

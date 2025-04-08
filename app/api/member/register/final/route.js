@@ -25,11 +25,11 @@ export async function POST(req) {
     ) {
       // 處理 Google 登入的註冊情況
       try {
-        // 查詢具有此 googleEmail 但尚未填寫詳細資料的使用者 (假設在 /api/member/googleCallback 中創建)
+        // 查詢具有此 googleEmail 但尚未填寫詳細資料的使用者
         const [existingUserRows, errorCheck] =
           await database.executeSecureQuery(
-            'SELECT user_id FROM users WHERE google_email = ? AND has_additional_info = 0',
-            [googleEmail]
+            'SELECT user_id FROM users WHERE (user_email = ? OR google_email = ?) AND has_additional_info = 0',
+            [googleEmail, googleEmail]
           )
 
         if (errorCheck) {
@@ -86,8 +86,35 @@ export async function POST(req) {
             { status: 200 }
           )
         } else {
+          // 嘗試查找具有此 googleEmail 的任何帳戶（無論詳細資料狀態如何）
+          const [allUserRows] = await database.executeSecureQuery(
+            'SELECT user_id, has_additional_info FROM users WHERE user_email = ? OR google_email = ?',
+            [googleEmail, googleEmail]
+          )
+
+          if (allUserRows && allUserRows.length > 0) {
+            const existingUser = allUserRows[0]
+            if (existingUser.has_additional_info) {
+              return NextResponse.json(
+                { message: '您的 Google 帳號已經完成設定' },
+                { status: 200 }
+              )
+            } else {
+              // 找到帳戶但詳細資料狀態不符合預期，嘗試強制更新
+              const [forceUpdate] = await database.executeSecureQuery(
+                'UPDATE users SET user_name = ?, user_number = ?, user_birthday = ?, user_address = ?, has_additional_info = ? WHERE user_id = ?',
+                [name, phone, birthday, address, true, existingUser.user_id]
+              )
+
+              return NextResponse.json(
+                { message: '詳細資料已更新' },
+                { status: 200 }
+              )
+            }
+          }
+
           return NextResponse.json(
-            { message: 'Google 帳號驗證失敗或詳細資料已存在，請重新登入' },
+            { message: 'Google 帳號驗證失敗，請重新登入再嘗試填寫詳細資料' },
             { status: 400 }
           )
         }

@@ -21,21 +21,71 @@ export default function SummaryPage() {
     totalAmount: 0,
   })
   const [notificationSent, setNotificationSent] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   usePageTitle('結帳')
+
+  // 確保組件已掛載
+  useEffect(() => {
+    setIsMounted(true)
+    return () => setIsMounted(false)
+  }, [])
+
+  useEffect(() => {
+    // 🔹 讀取 `localStorage` 內的金額資訊
+    const storedPrice = localStorage.getItem('productPrice')
+    if (storedPrice) {
+      setProductPrice(JSON.parse(storedPrice))
+    }
+
+    if (!orderId) {
+      setError('找不到訂單編號')
+      setIsLoading(false)
+      return
+    }
+
+    const fetchOrderData = async () => {
+      try {
+        const response = await fetch(`/api/shop/checkout/summary/${orderId}`)
+        if (!response.ok) {
+          throw new Error('無法獲取訂單資料')
+        }
+        const data = await response.json()
+        console.log('訂單資料:', data)
+        setOrderData(data)
+
+        // 確保組件已掛載且通知未發送過才發送通知
+        if (isMounted && !notificationSent) {
+          // 等待一小段時間確保 NotificationBell 已掛載
+          setTimeout(async () => {
+            await sendPaymentNotification(data)
+          }, 500)
+        }
+      } catch (err) {
+        console.error('獲取或處理訂單資料時發生錯誤:', err)
+        setError(err.message)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchOrderData()
+  }, [orderId, isMounted])
 
   // 發送付款成功通知
   const sendPaymentNotification = async (orderInfo) => {
     try {
       // 避免重複發送通知
-      if (notificationSent) return
+      if (notificationSent) {
+        console.log('通知已發送過，跳過')
+        return
+      }
 
-      // 檢查付款狀態為"已付款"才發送通知
-      if (orderInfo.paymentStatus !== '已付款') return
-
-      console.log('開始發送付款成功通知')
+      console.log('開始發送訂購完成通知')
 
       // 檢查用戶ID是否存在
       const userId = orderInfo.userId || localStorage.getItem('userId')
+      console.log('用戶ID:', userId)
+
       if (!userId) {
         console.error('無法發送用戶通知: 找不到用戶ID')
         return
@@ -43,6 +93,14 @@ export default function SummaryPage() {
 
       try {
         // 發送給訂購人的通知
+        console.log('準備發送用戶通知，參數:', {
+          user_id: userId,
+          type: 'shop',
+          title: '訂單已成立',
+          message: `您的訂單 ${orderId} 已成立，總金額 NT$${orderInfo.totalAmount}。`,
+          link: `/member/orders/${orderId}`,
+        })
+
         const userResponse = await fetch('/api/notifications/add', {
           method: 'POST',
           headers: {
@@ -51,8 +109,8 @@ export default function SummaryPage() {
           body: JSON.stringify({
             user_id: userId,
             type: 'shop',
-            title: '訂單付款成功',
-            message: `您的訂單 ${orderId} 已付款成功，總金額 NT$${orderInfo.totalAmount}。我們將盡快為您安排出貨。`,
+            title: '訂單已成立',
+            message: `您的訂單 ${orderId} 已成立，總金額 NT$${orderInfo.totalAmount}。`,
             link: `/member/orders/${orderId}`,
           }),
         })
@@ -77,7 +135,7 @@ export default function SummaryPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            admin_id: 6, // 管理員ID
+            admin_id: 6, // 超級管理員
             type: 'shop',
             title: '收到新訂單',
             message: `收到一筆新訂單 ${orderId}，金額 NT$${orderInfo.totalAmount}，請盡快處理。`,
@@ -95,6 +153,11 @@ export default function SummaryPage() {
         }
 
         console.log('管理員通知發送成功')
+
+        // 立即更新通知鈴鐺
+        const updateEvent = new CustomEvent('updateNotifications')
+        document.dispatchEvent(updateEvent)
+        console.log('已觸發通知更新事件')
       } catch (adminError) {
         console.error('發送管理員通知出錯:', adminError)
       }
@@ -102,45 +165,9 @@ export default function SummaryPage() {
       setNotificationSent(true)
       console.log('通知處理完畢')
     } catch (err) {
-      console.error('發送付款成功通知時發生錯誤:', err)
+      console.error('發送訂購完成通知時發生錯誤:', err)
     }
   }
-
-  useEffect(() => {
-    // 🔹 讀取 `localStorage` 內的金額資訊
-    const storedPrice = localStorage.getItem('productPrice')
-    if (storedPrice) {
-      setProductPrice(JSON.parse(storedPrice))
-    }
-
-    if (!orderId) {
-      setError('找不到訂單編號')
-      setIsLoading(false)
-      return
-    }
-
-    const fetchOrderData = async () => {
-      try {
-        const response = await fetch(`/api/shop/checkout/summary/${orderId}`)
-        if (!response.ok) {
-          throw new Error('無法獲取訂單資料')
-        }
-        const data = await response.json()
-        setOrderData(data)
-
-        // 發送付款成功通知
-        if (data && data.paymentStatus === '已付款') {
-          await sendPaymentNotification(data)
-        }
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchOrderData()
-  }, [orderId])
 
   if (isLoading) return <div>載入中...</div>
   if (error) return <div>錯誤: {error}</div>
