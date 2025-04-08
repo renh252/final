@@ -29,6 +29,73 @@
   border-top-right-radius: 1rem;
 }
 
+/* 收藏按鈕樣式 */
+.favoriteButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.favoriteButton:hover {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 1);
+}
+
+.heartIcon {
+  font-size: 18px;
+  color: #d75951;
+}
+
+/* 愛心飛行動畫 */
+.flyingHeart {
+  --start-x: 0px;
+  --start-y: 0px;
+  --end-x: 100vw;
+  --end-y: 100vh;
+
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translate(var(--start-x), var(--start-y));
+  font-size: 20px;
+  color: #d75951;
+  z-index: 1000;
+  animation: flyToFloatingButton 1s cubic-bezier(0.17, 0.89, 0.32, 1.49)
+    forwards;
+  pointer-events: none;
+}
+
+@keyframes flyToFloatingButton {
+  0% {
+    transform: translate(var(--start-x), var(--start-y)) scale(1);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(
+        calc(var(--start-x) + 20px),
+        calc(var(--start-y) - 20px)
+      )
+      scale(1.5);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(var(--end-x), var(--end-y)) scale(0.5);
+    opacity: 0;
+  }
+}
+
 .info {
   padding: 1rem;
   color: #5a4b3c;
@@ -56,5 +123,14 @@
     justify-content: center;
     align-items: center;
     height: 100%;
+  }
+
+  .favoriteButton {
+    width: 36px;
+    height: 36px;
+  }
+
+  .heartIcon {
+    font-size: 16px;
   }
 }

@@ -947,6 +947,52 @@ export default function PetsPage() {
       const userId = user.id
       const newFavoriteStatus = !favorites[petId]
 
+      // 如果是加入收藏，才觸發動畫
+      if (newFavoriteStatus) {
+        // 獲取點擊的按鈕元素
+        const heartButton = event.currentTarget
+        if (heartButton) {
+          // 獲取按鈕位置
+          const heartRect = heartButton.getBoundingClientRect()
+          const startX = heartRect.left + heartRect.width / 2
+          const startY = heartRect.top + heartRect.height / 2
+
+          // 計算視窗尺寸
+          const windowWidth = window.innerWidth
+          const windowHeight = window.innerHeight
+
+          // 計算終點位置（右下角懸浮按鈕）
+          const endX = windowWidth - 60
+          const endY = windowHeight - 60
+
+          // 創建飛行愛心元素
+          const flyingHeart = document.createElement('div')
+          flyingHeart.className = styles.flyingHeart
+
+          // 設置 CSS 變量
+          flyingHeart.style.setProperty('--start-x', `${startX}px`)
+          flyingHeart.style.setProperty('--start-y', `${startY}px`)
+          flyingHeart.style.setProperty('--end-x', `${endX}px`)
+          flyingHeart.style.setProperty('--end-y', `${endY}px`)
+
+          // 添加愛心圖標
+          flyingHeart.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%" fill="#d75951"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path></svg>`
+
+          // 添加動畫樣式
+          flyingHeart.style.animation = `${styles.flyToFloatingButton} 1s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards`
+
+          // 添加到DOM
+          document.body.appendChild(flyingHeart)
+
+          // 添加動畫結束事件監聽
+          flyingHeart.addEventListener('animationend', () => {
+            if (document.body.contains(flyingHeart)) {
+              document.body.removeChild(flyingHeart)
+            }
+          })
+        }
+      }
+
       try {
         const response = await fetch('/api/pets', {
           method: 'POST',

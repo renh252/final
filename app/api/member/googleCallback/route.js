@@ -101,7 +101,7 @@ export async function POST(request) {
         const insertSql = `
           INSERT INTO users 
           (user_email, google_email, user_password, user_name, user_number, user_address, user_status, has_additional_info, created_at) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
         `
 
         const [insertResult, insertError] = await database.executeSecureQuery(

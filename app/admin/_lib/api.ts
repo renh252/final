@@ -120,22 +120,98 @@ export async function fetchApi(
       fetchOptions.keepalive = options.keepalive
     if (options.signal) fetchOptions.signal = options.signal
 
+    // 調試信息 - 發送請求前
+    console.log(`[fetchApi] 發送請求到: ${url}`, {
+      method: fetchOptions.method || 'GET',
+      headers: fetchOptions.headers,
+      bodyType: options.body
+        ? options.body instanceof FormData
+          ? 'FormData'
+          : typeof options.body
+        : 'undefined',
+    })
+
     // 發送請求
     const response = await fetch(url, fetchOptions)
 
+    // 調試信息 - 收到響應
+    console.log(`[fetchApi] 收到響應: ${url}`, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+    })
+
     // 處理響應
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(
-        errorData.message || `HTTP error! status: ${response.status}`
-      )
+      // 嘗試解析錯誤響應
+      let errorData = {}
+      let errorMessage = `HTTP error! status: ${response.status}`
+
+      try {
+        // 嘗試獲取JSON錯誤信息
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json()
+          if (errorData.message) {
+            errorMessage = errorData.message
+          } else if (errorData.error) {
+            errorMessage =
+              typeof errorData.error === 'string'
+                ? errorData.error
+                : JSON.stringify(errorData.error)
+          }
+        } else {
+          // 非JSON響應，嘗試獲取文本
+          const textError = await response.text()
+          if (textError) {
+            errorMessage = textError
+            errorData = { text: textError }
+          }
+        }
+      } catch (parseError) {
+        console.error('[fetchApi] 解析錯誤響應失敗:', parseError)
+      }
+
+      // 詳細記錄錯誤
+      console.error(`[fetchApi] 請求失敗: ${url}`, {
+        status: response.status,
+        message: errorMessage,
+        data: errorData,
+      })
+
+      throw new Error(errorMessage)
     }
 
     // 解析響應數據
-    const data = await response.json()
-    return data
+    try {
+      // 檢查內容類型
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json()
+        return data
+      } else {
+        // 非JSON響應，先嘗試獲取文本
+        const text = await response.text()
+
+        // 如果文本看起來像JSON，嘗試解析
+        if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
+          try {
+            return JSON.parse(text)
+          } catch (jsonError) {
+            console.warn('[fetchApi] 文本看起來像JSON但解析失敗:', jsonError)
+          }
+        }
+
+        // 返回文本響應
+        console.warn(`[fetchApi] 收到非JSON響應: ${contentType}`)
+        return { success: true, text, _nonJson: true }
+      }
+    } catch (parseError) {
+      console.error('[fetchApi] 解析響應數據失敗:', parseError)
+      throw new Error(`解析響應數據失敗: ${parseError.message}`)
+    }
   } catch (error) {
-    console.error('API 請求失敗:', error)
+    console.error('[fetchApi] 請求失敗:', error)
     throw error
   }
 }
