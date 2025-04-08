@@ -9,6 +9,7 @@ import NotificationBell from './NotificationBell'
 import { useAuth } from '@/app/context/AuthContext'
 import { LuShoppingCart } from 'react-icons/lu'
 import useSWR from 'swr'
+import Image from 'next/image'
 
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
@@ -90,7 +91,16 @@ export default function Menubar() {
       >
         <Container>
           <Link href="/" passHref legacyBehavior>
-            <Navbar.Brand>毛孩之家</Navbar.Brand>
+            <Navbar.Brand>
+              <Image
+                src="/images/logo2.png"
+                alt="圖片描述"
+                width={120}
+                height={30}
+                priority={true}
+                style={{ objectFit: 'contain' }}
+              />
+            </Navbar.Brand>
           </Link>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
