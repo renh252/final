@@ -43,11 +43,27 @@ const demoEvents: Event[] = [
   }
 ]
 
+interface NewEventForm {
+  title: string
+  date: Date
+  time: string
+  location: string
+  type: 'meetup' | 'adoption' | 'training' | 'other'
+}
+
 export default function EventCalendar() {
   const [showModal, setShowModal] = useState(false)
+  const [showNewEventModal, setShowNewEventModal] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedType, setSelectedType] = useState<string>('all')
   const [events] = useState<Event[]>(demoEvents)
+  const [newEvent, setNewEvent] = useState<NewEventForm>(() => ({
+    title: '',
+    date: new Date(),
+    time: '',
+    location: '',
+    type: 'meetup'
+  }))
 
   const filteredEvents = events.filter(event => 
     selectedType === 'all' || event.type === selectedType
@@ -150,15 +166,26 @@ export default function EventCalendar() {
           <i className="bi bi-calendar-heart"></i>
           寵物活動行事曆
         </div>
-        <Button
-          variant="link"
-          className={styles.expandButton}
-          onClick={() => setShowModal(true)}
-          aria-label="展開行事曆"
-          title="展開行事曆"
-        >
-          <i className="bi bi-arrows-fullscreen"></i>
-        </Button>
+        <div className={styles.headerButtons}>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            className={styles.addButton}
+            onClick={() => setShowNewEventModal(true)}
+          >
+            <i className="bi bi-plus-lg me-1"></i>
+            新增活動
+          </Button>
+          <Button
+            variant="link"
+            className={styles.expandButton}
+            onClick={() => setShowModal(true)}
+            aria-label="展開行事曆"
+            title="展開行事曆"
+          >
+            <i className="bi bi-arrows-fullscreen"></i>
+          </Button>
+        </div>
       </Card.Header>
       <Card.Body>
         <Form.Select
@@ -228,6 +255,90 @@ export default function EventCalendar() {
             <EventList date={selectedDate} />
           )}
         </Modal.Body>
+      </Modal>
+
+      {/* 新增活動 Modal */}
+      <Modal 
+        show={showNewEventModal} 
+        onHide={() => setShowNewEventModal(false)}
+        size="lg"
+        centered
+        aria-labelledby="new-event-modal-title"
+      >
+        <Modal.Header closeButton className={styles.newEventHeader}>
+          <Modal.Title id="new-event-modal-title">
+            <i className="bi bi-calendar-plus me-2"></i>
+            新增活動
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>活動名稱</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="請輸入活動名稱"
+                value={newEvent.title}
+                onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>活動日期</Form.Label>
+              <Form.Control
+                type="date"
+                value={newEvent.date.toISOString().split('T')[0]}
+                onChange={(e) => setNewEvent({...newEvent, date: new Date(e.target.value)})}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>活動時間</Form.Label>
+              <Form.Control
+                type="time"
+                value={newEvent.time}
+                onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>活動地點</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="請輸入活動地點"
+                value={newEvent.location}
+                onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>活動類型</Form.Label>
+              <Form.Select
+                value={newEvent.type}
+                onChange={(e) => setNewEvent({...newEvent, type: e.target.value as Event['type']})}
+              >
+                <option value="meetup">寵物聚會</option>
+                <option value="adoption">認養活動</option>
+                <option value="training">訓練課程</option>
+                <option value="other">其他活動</option>
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowNewEventModal(false)}>
+            取消
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={() => {
+              alert('此為展示用功能，新活動不會被實際儲存');
+              setShowNewEventModal(false);
+            }}
+          >
+            新增活動
+          </Button>
+        </Modal.Footer>
       </Modal>
     </Card>
   )
