@@ -158,18 +158,26 @@
 
 .stats {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
+  align-items: center;
 }
 
 .statItem {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  color: #6c757d;
+  gap: 0.5rem;
+  color: var(--primary-color);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.statItem:hover {
+  transform: translateY(-2px);
 }
 
 .statIcon {
   font-size: 1rem;
+  color: var(--primary-color);
 }
 
 @keyframes pulseGlow {
@@ -284,4 +292,24 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.readMore {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+  background-color: var(--primary-color);
+}
+
+.readMore:hover {
+  color: white;
+  background-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
