@@ -1,126 +1,251 @@
 // app/api/member/googleCallback/route.js
-import { NextResponse } from 'next/server';
-import { database } from '@/app/api/_lib/db';
-import jwt from 'jsonwebtoken';
-import { getApps, initializeApp, cert } from 'firebase-admin/app';
-import * as admin from 'firebase-admin';
-
-// 初始化 Firebase Admin SDK (確保只初始化一次)
-console.log(process.env.FIREBASE_ADMIN_SDK_KEY);
-if (!getApps().length) {
-    try {
-        const serviceAccountString = process.env.FIREBASE_ADMIN_SDK_KEY;
-        if (!serviceAccountString) {
-            console.error('錯誤：FIREBASE_ADMIN_SDK_KEY 環境變數未設定。');
-            return NextResponse.json({ message: 'Firebase Admin SDK 金鑰未設定' }, { status: 500 });
-        }
-        let serviceAccount;
-        try {
-            serviceAccount = JSON.parse(serviceAccountString);
-            console.log('Firebase Admin SDK 金鑰解析成功:', serviceAccount ? '已解析' : '解析失敗');
-        } catch (parseError) {
-            console.error('Firebase Admin SDK 金鑰 JSON 解析失敗:', parseError);
-            return NextResponse.json({ message: 'Firebase Admin SDK 金鑰 JSON 解析失敗', error: parseError.message }, { status: 500 });
-        }
-        initializeApp({
-            credential: cert(serviceAccount),
-        });
-        console.log('Firebase Admin SDK 初始化成功');
-    } catch (error) {
-        console.error('Firebase Admin SDK 初始化失敗:', error, JSON.stringify(error));
-        return NextResponse.json({ message: 'Firebase Admin SDK 初始化失敗', error: error.message }, { status: 500 });
-    }
-} else {
-    console.log('Firebase Admin SDK 已被初始化');
-}
+import { NextResponse } from 'next/server'
+import { database } from '@/app/api/_lib/db'
+import jwt from 'jsonwebtoken'
 
 // 獲取 JWT 秘密金鑰
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 
-export async function POST(req) {
+export async function POST(request) {
+  try {
+    const { googleEmail, googleName, defaultPassword } = await request.json()
+
+    if (!googleEmail) {
+      return NextResponse.json(
+        { success: false, message: '未提供 Google 電子郵件' },
+        { status: 400 }
+      )
+    }
+
+    console.log('處理 Google 登入:', googleEmail)
+
+    // 先檢查 users 表結構，確保欄位存在
     try {
-        const { googleEmail, googleName } = await req.json();
-        const authHeader = req.headers.get('Authorization');
+      const [columns, columnsError] = await database.executeSecureQuery(
+        'SHOW COLUMNS FROM users'
+      )
+      if (columnsError) {
+        console.error('檢查資料表結構錯誤:', columnsError)
+        return NextResponse.json(
+          {
+            success: false,
+            message: '資料庫結構檢查錯誤',
+            error: columnsError.message,
+          },
+          { status: 500 }
+        )
+      }
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return NextResponse.json({ message: '未提供 Firebase ID Token' }, { status: 401 });
+      console.log('資料表欄位:', columns.map((c) => c.Field).join(', '))
+
+      // 檢查必要的欄位是否存在
+      const requiredFields = [
+        'user_id',
+        'user_email',
+        'google_email',
+        'has_additional_info',
+      ]
+      const missingFields = requiredFields.filter(
+        (field) => !columns.some((c) => c.Field === field)
+      )
+
+      if (missingFields.length > 0) {
+        console.error('缺少必要欄位:', missingFields)
+        return NextResponse.json(
+          {
+            success: false,
+            message: `資料表缺少必要欄位: ${missingFields.join(', ')}`,
+          },
+          { status: 500 }
+        )
+      }
+    } catch (schemaError) {
+      console.error('檢查資料表結構時發生錯誤:', schemaError)
+    }
+
+    // 檢查用戶是否已存在
+    let [existingUsers, queryError] = await database.executeSecureQuery(
+      'SELECT * FROM users WHERE user_email = ? OR google_email = ?',
+      [googleEmail, googleEmail]
+    )
+
+    if (queryError) {
+      console.error('查詢用戶錯誤:', queryError)
+      return NextResponse.json(
+        {
+          success: false,
+          message: '資料庫查詢錯誤',
+          error: queryError.message,
+        },
+        { status: 500 }
+      )
+    }
+
+    let user
+    let needsAdditionalInfo = false
+
+    if (existingUsers && existingUsers.length > 0) {
+      user = existingUsers[0]
+      console.log('找到現有用戶:', user.user_id)
+      // 檢查用戶是否已填寫詳細資料
+      needsAdditionalInfo =
+        user.has_additional_info === 0 || !user.has_additional_info
+    } else {
+      console.log('未找到用戶，創建新用戶')
+      // 用戶不存在，創建新的用戶記錄
+      try {
+        const password =
+          defaultPassword || `Google@${googleEmail.split('@')[0]}`
+
+        // 完善插入語句，確保所有必要欄位都有預設值
+        const insertSql = `
+          INSERT INTO users 
+          (user_email, google_email, user_password, user_name, user_number, user_address, user_level, has_additional_info, created_at) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        `
+
+        const [insertResult, insertError] = await database.executeSecureQuery(
+          insertSql,
+          [
+            googleEmail,
+            googleEmail,
+            password,
+            googleName || googleEmail.split('@')[0],
+            '', // 為 user_number 提供空字串預設值
+            '', // 為 user_address 提供空字串預設值
+            1, // 為 user_level 提供預設值 1 (普通會員)
+            0, // has_additional_info 設為 0，表示仍需填寫詳細資料
+          ]
+        )
+
+        if (insertError) {
+          console.error('新增 Google 用戶錯誤:', insertError)
+          return NextResponse.json(
+            {
+              success: false,
+              message: '註冊 Google 用戶失敗',
+              error: insertError.message,
+            },
+            { status: 500 }
+          )
         }
 
-        const idToken = authHeader.split('Bearer ')[1];
-
-        try {
-            // 驗證 Firebase ID Token
-            const auth = admin.auth();
-            const decodedToken = await auth.verifyIdToken(idToken);
-            const uid = decodedToken.uid;
-            const tokenEmail = decodedToken.email;
-
-            if (tokenEmail !== googleEmail) {
-                return NextResponse.json({ message: 'Firebase ID Token 的電子郵件與提供的電子郵件不符' }, { status: 401 });
-            }
-
-            // 1. 檢查資料庫中是否存在具有此 Firebase UID 的使用者
-            const [existingUserRows, error1] = await database.executeSecureQuery(
-                'SELECT user_id, user_name, user_number, user_birthday, user_address, has_additional_info, firebase_uid, google_email FROM users WHERE firebase_uid = ?',
-                [uid]
-            );
-
-            if (error1) {
-                console.error('查詢 Firebase UID 錯誤:', error1);
-                return NextResponse.json({ message: '資料庫查詢錯誤', error: error1.message }, { status: 500 });
-            }
-
-            const userExists = existingUserRows && existingUserRows.length > 0;
-            const existingUser = existingUserRows ? existingUserRows[0] : null;
-            const hasAdditionalInfo = existingUser?.has_additional_info === 1; // 假設 1 代表已填寫
-
-            let needsAdditionalInfo = false;
-
-            if (!userExists) {
-                // 第一次使用 Google 登入，需要填寫額外資訊
-                const defaultName = ''; // 使用 Google Name 或空字串
-                const defaultNumber = '';
-                const defaultBirthday = null; // 或您希望的預設日期
-                const defaultAddress = '';
-
-                const [insertResult, errorInsert] = await database.executeSecureQuery(
-                    'INSERT INTO users (firebase_uid, google_email, user_email, user_password, user_name, user_number, user_birthday, user_address, has_additional_info) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [uid, googleEmail, googleEmail, 'google_login', defaultName, '', null, '', 0]
-                );
-                if (errorInsert) {
-                    console.error('創建新使用者失敗:', errorInsert);
-                    return NextResponse.json({ message: '創建新使用者失敗', error: errorInsert.message }, { status: 500 });
-                }
-                console.log(`新使用者已創建，firebase_uid: ${uid}, google_email: ${googleEmail}, user_email: ${googleEmail}, user_password: 'google_login', user_name: ${defaultName}, user_number: ${defaultNumber}, user_birthday: ${defaultBirthday}, user_address: ${defaultAddress}, has_additional_info: 0`);
-                needsAdditionalInfo = true;
-            } else if (!hasAdditionalInfo) {
-                needsAdditionalInfo = true;
-            }
-
-            // 在成功驗證和處理使用者後，生成並返回 authToken (JWT) 和是否需要額外資訊的標誌
-            const authToken = generateAuthToken(uid);
-            const user = existingUser || { firebase_uid: uid, google_email: googleEmail };
-            console.log('生成的 authToken:', authToken);
-            console.log('使用者資訊:', user);
-
-            return NextResponse.json({ userExists, hasAdditionalInfo, needsAdditionalInfo, authToken, user });
-
-        } catch (error) {
-            console.error('驗證 Firebase ID Token 失敗:', error);
-            return NextResponse.json({ message: '驗證 Firebase ID Token 失敗', error: error.message }, { status: 401 });
+        if (!insertResult || !insertResult.insertId) {
+          console.error('插入結果無效:', insertResult)
+          return NextResponse.json(
+            {
+              success: false,
+              message: '插入用戶失敗，未獲得有效的用戶 ID',
+            },
+            { status: 500 }
+          )
         }
 
-    } catch (error) {
-        console.error('Google 登入回調處理錯誤:', error);
-        return NextResponse.json({ message: 'Google 登入回調處理失敗', error: error.message }, { status: 500 });
-    }
-}
+        console.log('用戶創建成功，ID:', insertResult.insertId)
 
-function generateAuthToken(uid) {
-    if (!JWT_SECRET) {
-        console.error('JWT_SECRET 環境變數未設定！');
-        return null;
+        // 獲取新創建的用戶 ID
+        const userId = insertResult.insertId
+
+        // 查詢新插入的用戶資料
+        const [newUserResult, newUserError] = await database.executeSecureQuery(
+          'SELECT * FROM users WHERE user_id = ? LIMIT 1',
+          [userId]
+        )
+
+        if (newUserError) {
+          console.error('查詢新用戶錯誤:', newUserError)
+          return NextResponse.json(
+            {
+              success: false,
+              message: '查詢新用戶失敗',
+              error: newUserError.message,
+            },
+            { status: 500 }
+          )
+        }
+
+        if (newUserResult && newUserResult.length > 0) {
+          user = newUserResult[0]
+          console.log('獲取新用戶資料成功')
+        } else {
+          console.error('未找到新插入的用戶')
+          return NextResponse.json(
+            {
+              success: false,
+              message: '創建用戶後無法獲取用戶資料',
+            },
+            { status: 500 }
+          )
+        }
+
+        needsAdditionalInfo = true
+      } catch (createError) {
+        console.error('創建用戶過程發生錯誤:', createError)
+        return NextResponse.json(
+          {
+            success: false,
+            message: '註冊 Google 用戶失敗',
+            error: createError.message,
+          },
+          { status: 500 }
+        )
+      }
     }
-    const token = jwt.sign({ uid: uid }, JWT_SECRET, { expiresIn: '1h' });
-    return token;
+
+    // 確保有 userId，即使沒有 user 對象
+    const userId = user?.user_id || null
+    console.log('準備生成 token，userId:', userId)
+
+    // 生成 token (使用 jsonwebtoken)
+    const token = jwt.sign(
+      {
+        userId: userId ? Number(userId) : null,
+        email: googleEmail,
+        isGoogle: true,
+        // 增加時間戳記確保 token 相容性
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 天過期
+      },
+      JWT_SECRET
+    )
+
+    if (!token) {
+      console.error('生成 token 失敗')
+      return NextResponse.json(
+        { success: false, message: '無法生成授權令牌' },
+        { status: 500 }
+      )
+    }
+
+    console.log(
+      'Google 登入/註冊成功，needsAdditionalInfo:',
+      needsAdditionalInfo
+    )
+
+    return NextResponse.json({
+      success: true,
+      message: needsAdditionalInfo ? '需要填寫詳細資訊' : '登入成功',
+      needsAdditionalInfo,
+      authToken: token,
+      user: user
+        ? {
+            id: user.user_id,
+            name: user.user_name,
+            email: user.user_email,
+            number: user.user_number,
+            address: user.user_address,
+          }
+        : null,
+    })
+  } catch (error) {
+    console.error('Google 登入回調錯誤:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        message: '處理 Google 登入時發生錯誤',
+        error: error.message,
+      },
+      { status: 500 }
+    )
+  }
 }
