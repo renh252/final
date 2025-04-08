@@ -7,7 +7,7 @@ const JWT_SECRET = new TextEncoder().encode(
 const TOKEN_EXPIRE = '7d' // 7天過期
 
 // 用於生成 JWT token
-export function generateToken(payload: any): string {
+export function generateToken(payload: any): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
