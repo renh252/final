@@ -236,7 +236,7 @@ export async function POST(req) {
                     type: 'donation',
                     title: '收到新的捐款',
                     message: `收到一筆${donation.donation_type}捐款 NT$${donation.amount}。`,
-                    link: `/admin/donations`,
+                    link: `/admin/finance/transactions/donations`,
                   }),
                 }
               )

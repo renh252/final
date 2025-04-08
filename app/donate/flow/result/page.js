@@ -55,7 +55,7 @@ export default function ResultPage(props) {
               message: `用戶 ${
                 user.name || user.id
               } 完成了一筆 NT$${amount} 的捐款`,
-              link: '/admin/donations',
+              link: '/admin/finance/transactions/donations',
             }),
           })
 
