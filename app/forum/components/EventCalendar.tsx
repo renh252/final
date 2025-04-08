@@ -331,6 +331,7 @@ export default function EventCalendar() {
           </Button>
           <Button 
             variant="primary" 
+            className={styles.newEventButton}
             onClick={() => {
               alert('此為展示用功能，新活動不會被實際儲存');
               setShowNewEventModal(false);
