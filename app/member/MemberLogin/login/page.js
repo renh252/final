@@ -20,6 +20,8 @@ export default function MemberPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(true)
   const [signInError, setSignInError] = useState('')
+  const [loadingSubText, setLoadingSubText] = useState('')
+  const [googleSignInError, setGoogleSignInError] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -37,6 +39,15 @@ export default function MemberPage() {
   const handleGoogleSignIn = async () => {
     setSignInError('')
     try {
+      // 檢查現有 redirectAfterLogin，預防之後的問題
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin')
+      if (redirectPath === '/member') {
+        console.log('清除不必要的 redirectAfterLogin: /member')
+        sessionStorage.removeItem('redirectAfterLogin')
+      } else if (redirectPath) {
+        console.log('保留有效的重定向路徑:', redirectPath)
+      }
+
       const result = await signInWithPopup(auth, googleProvider)
       const user = result.user
       if (user && user.email) {
@@ -64,56 +75,43 @@ export default function MemberPage() {
   }
 
   const checkGoogleSignInStatus = async (googleEmail, googleName, idToken) => {
+    setLoadingSubText('正在驗證 Google 登入...')
+
     try {
-      // 呼叫 Google 登入的 API 端點
-      const response = await fetch('/api/member/googleCallback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({
-          googleEmail,
-          googleName,
-          defaultPassword: 'Google@' + googleEmail.split('@')[0], // 創建預設密碼
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('登入驗證失敗')
+      // 檢查必要參數
+      if (!googleEmail) {
+        throw new Error('未獲取到 Google 電子郵件地址')
       }
 
-      const data = await response.json()
-
-      // 儲存 token
-      if (data.authToken) {
-        localStorage.setItem('token', data.authToken)
+      // 再次檢查 redirectAfterLogin，確保在 Google 登入過程中沒有被意外設置
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin')
+      if (redirectPath === '/member') {
+        console.log('清除指向會員中心的重定向:', redirectPath)
+        sessionStorage.removeItem('redirectAfterLogin')
       }
 
-      // 如果需要填寫詳細資訊
-      if (data.needsAdditionalInfo) {
-        // 執行登入
-        await googleLogin(googleEmail, idToken)
-        // 導向到 register2 並帶入必要資訊
-        router.push(
-          `/member/MemberLogin/register2?isGoogleSignIn=true&googleEmail=${encodeURIComponent(
-            googleEmail
-          )}`
-        )
-        return
-      }
+      console.log('準備調用 googleLogin 方法:', { googleEmail, googleName })
 
-      // 如果已有詳細資訊，進行正常登入流程
-      await googleLogin(googleEmail, idToken)
-      router.push('/member')
+      // 調用 AuthContext 中的 googleLogin 方法
+      await googleLogin(googleEmail, idToken, googleName)
+
+      // googleLogin 方法內部已處理頁面跳轉，這裡只需提供成功狀態
+      setLoadingSubText('登入成功，準備跳轉...')
+
+      return { success: true }
     } catch (error) {
-      console.error('Google 登入回調錯誤:', error)
+      console.error('Google 登入處理錯誤:', error)
+      setGoogleSignInError(error.message)
+      setLoadingSubText(null)
+
+      // 顯示錯誤訊息
       await Swal.fire({
-        title: 'Google 登入失敗',
-        text: error.message || 'Google 登入驗證失敗，請稍後重試。',
+        title: '登入失敗',
+        text: error.message || '使用 Google 帳號登入失敗，請稍後再試。',
         icon: 'error',
         confirmButtonText: '確定',
       })
+      return null
     }
   }
 
@@ -157,8 +155,20 @@ export default function MemberPage() {
         })
 
         localStorage.setItem('token', data.data.token)
-        login(data.data)
-        router.push('/member')
+
+        // 檢查是否需要重定向到特定頁面
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin')
+        if (redirectPath && redirectPath !== '/member') {
+          console.log('登入後轉導到重定向路徑:', redirectPath)
+          sessionStorage.removeItem('redirectAfterLogin')
+          login(data.data)
+          router.push(redirectPath)
+        } else {
+          // 標準登入流程
+          sessionStorage.removeItem('redirectAfterLogin') // 確保清除
+          login(data.data)
+          router.push('/member')
+        }
       } else {
         await Swal.fire({
           title: '登入失敗',

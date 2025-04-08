@@ -827,7 +827,6 @@ function MembersPage({ auth, can }: MembersPageProps) {
           searchKeys={['user_name', 'user_email', 'user_number']}
           batchActions={batchActions}
           selectable={true}
-          actions={renderActions}
           itemsPerPage={10}
         />
       </AdminSection>

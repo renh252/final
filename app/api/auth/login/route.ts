@@ -81,14 +81,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 生成 JWT token
+    // 生成令牌
     const token = await generateToken({
-      id: user.user_id,
+      userId: user.user_id,
       email: user.user_email,
-      name: user.user_name,
-      role: user.user_level || '一般會員',
-      status: user.user_status || '正常',
     })
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: '生成授權令牌失敗' },
+        { status: 500 }
+      )
+    }
 
     // 設置 Cookie
     cookies().set({

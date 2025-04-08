@@ -42,47 +42,96 @@ export const AuthProvider = ({ children }) => {
       router.push(redirectPath)
     } else {
       router.push('/member')
-      }
     }
+  }
 
-      // Google 登入方法
-  const googleLogin = async (googleEmail, idToken) => {
+  // Google 登入方法
+  const googleLogin = async (googleEmail, idToken, googleName = '') => {
     try {
+      console.log('Google 登入開始:', googleEmail, googleName)
+
+      // 請求 Google 登入 API
       const response = await fetch('/api/member/googleCallback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
         },
-        body: JSON.stringify({ googleEmail })
-      });
+        body: JSON.stringify({
+          googleEmail,
+          googleName: googleName || '',
+          defaultPassword: 'Google@' + googleEmail.split('@')[0],
+        }),
+      })
 
-      if (!response.ok) {
-        throw new Error('Google 登入失敗');
+      // 獲取完整回應文本
+      const responseText = await response.text()
+      console.log('API 回應文本:', responseText.substring(0, 100) + '...')
+
+      // 嘗試解析 JSON
+      let userData
+      try {
+        userData = JSON.parse(responseText)
+      } catch (error) {
+        console.error('解析 API 回應失敗:', error)
+        throw new Error('無法解析 API 回應')
       }
 
-      const userData = await response.json();
-      console.log('AuthContext googleLogin 接收到的 userData:', userData);
-      
-      // 使用與普通登入相同的邏輯處理登入成功
-      localStorage.setItem('token', userData.authToken);
-      localStorage.setItem('user', JSON.stringify(userData.user));
-      setUser(userData.user);
-      setToken(userData.token);
+      console.log('google 登入回應:', userData)
 
-      // 檢查是否存在登入前的頁面路徑
-    const redirectPath = sessionStorage.getItem('redirectAfterLogin')
-    if (redirectPath) {
-      sessionStorage.removeItem('redirectAfterLogin')
-      router.push(redirectPath)
-    } else {
-      router.push('/member')
+      // 檢查登入結果
+      if (!userData.success) {
+        throw new Error(userData.message || '登入失敗')
       }
-  }catch (error) {
-    console.error('Google 登入錯誤:', error);
-    // 處理錯誤，例如顯示錯誤消息給用戶
+
+      // 存儲 token 和用戶資料
+      localStorage.setItem('token', userData.authToken)
+
+      // 只在用戶存在時存儲用戶資料
+      if (userData.user) {
+        localStorage.setItem('user', JSON.stringify(userData.user))
+        setUser(userData.user)
+      }
+
+      setToken(userData.authToken)
+
+      // 檢查是否需要填寫詳細資料 (最高優先級)
+      if (userData.needsAdditionalInfo === true) {
+        // 清除可能存在的重定向路徑，防止干擾
+        sessionStorage.removeItem('redirectAfterLogin')
+
+        console.log(
+          '需要填寫詳細資料 [needsAdditionalInfo=true]，優先轉導到註冊第二步頁面'
+        )
+
+        // 使用 window.location.href 強制導向
+        const redirectUrl = `/member/MemberLogin/register2?isGoogleSignIn=true&googleEmail=${encodeURIComponent(
+          googleEmail
+        )}&googleName=${encodeURIComponent(googleName || '')}`
+        console.log('準備轉導到:', redirectUrl)
+
+        // 立即轉導，不使用 setTimeout
+        window.location.href = redirectUrl
+
+        // 阻止後續執行
+        return userData
+      }
+
+      // 其次檢查是否存在登入前的頁面路徑
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin')
+      if (redirectPath) {
+        console.log('存在登入前路徑，轉導到:', redirectPath)
+        sessionStorage.removeItem('redirectAfterLogin')
+        router.push(redirectPath)
+      } else {
+        // 如果不需要填寫詳細資料且沒有重定向路徑，則轉到會員中心
+        console.log('不需要填寫詳細資料且無重定向路徑，轉導到會員中心')
+        router.push('/member')
+      }
+    } catch (error) {
+      console.error('Google 登入錯誤:', error)
+      throw error // 將錯誤向上傳遞
+    }
   }
-}
 
   // 登出方法
   const logout = () => {

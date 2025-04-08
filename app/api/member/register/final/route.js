@@ -25,11 +25,11 @@ export async function POST(req) {
     ) {
       // 處理 Google 登入的註冊情況
       try {
-        // 查詢具有此 googleEmail 但尚未填寫詳細資料的使用者 (假設在 /api/member/googleCallback 中創建)
+        // 查詢具有此 googleEmail 但尚未填寫詳細資料的使用者
         const [existingUserRows, errorCheck] =
           await database.executeSecureQuery(
-            'SELECT user_id FROM users WHERE google_email = ? AND has_additional_info = 0',
-            [googleEmail]
+            'SELECT user_id FROM users WHERE (user_email = ? OR google_email = ?) AND has_additional_info = 0',
+            [googleEmail, googleEmail]
           )
 
         if (errorCheck) {
@@ -57,24 +57,25 @@ export async function POST(req) {
 
           // 完成註冊時發送歡迎通知
           try {
-            await fetch(
-              `${
-                process.env.NEXT_PUBLIC_API_BASE_URL || ''
-              }/api/notifications/add`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  user_id: userIdToUpdate,
-                  type: 'system',
-                  title: '歡迎加入寵物之家',
-                  message: `親愛的 ${name}，歡迎您完成資料設定！您現在可以瀏覽我們的網站，探索可愛的寵物，參與各種活動，以及使用會員專屬服務。`,
-                  link: '/member',
-                }),
-              }
-            )
+            const [notifyResult, notifyError] =
+              await database.executeSecureQuery(
+                `INSERT INTO notifications 
+              (user_id, type, title, message, link, created_at) 
+              VALUES (?, ?, ?, ?, ?, NOW())`,
+                [
+                  userIdToUpdate,
+                  'system',
+                  '歡迎加入寵物之家',
+                  `親愛的 ${name}，歡迎您完成資料設定！您現在可以瀏覽我們的網站，探索可愛的寵物，參與各種活動，以及使用會員專屬服務。`,
+                  '/member',
+                ]
+              )
+
+            if (notifyError) {
+              throw new Error(`通知發送失敗: ${notifyError.message}`)
+            }
+
+            console.log('通知發送成功:', notifyResult)
           } catch (notifyError) {
             console.error('發送歡迎通知時發生錯誤:', notifyError)
             // 不阻礙主要流程
@@ -85,8 +86,35 @@ export async function POST(req) {
             { status: 200 }
           )
         } else {
+          // 嘗試查找具有此 googleEmail 的任何帳戶（無論詳細資料狀態如何）
+          const [allUserRows] = await database.executeSecureQuery(
+            'SELECT user_id, has_additional_info FROM users WHERE user_email = ? OR google_email = ?',
+            [googleEmail, googleEmail]
+          )
+
+          if (allUserRows && allUserRows.length > 0) {
+            const existingUser = allUserRows[0]
+            if (existingUser.has_additional_info) {
+              return NextResponse.json(
+                { message: '您的 Google 帳號已經完成設定' },
+                { status: 200 }
+              )
+            } else {
+              // 找到帳戶但詳細資料狀態不符合預期，嘗試強制更新
+              const [forceUpdate] = await database.executeSecureQuery(
+                'UPDATE users SET user_name = ?, user_number = ?, user_birthday = ?, user_address = ?, has_additional_info = ? WHERE user_id = ?',
+                [name, phone, birthday, address, true, existingUser.user_id]
+              )
+
+              return NextResponse.json(
+                { message: '詳細資料已更新' },
+                { status: 200 }
+              )
+            }
+          }
+
           return NextResponse.json(
-            { message: 'Google 帳號驗證失敗或詳細資料已存在，請重新登入' },
+            { message: 'Google 帳號驗證失敗，請重新登入再嘗試填寫詳細資料' },
             { status: 400 }
           )
         }
@@ -161,28 +189,29 @@ export async function POST(req) {
           const userId = result.insertId
 
           if (userId) {
-            await fetch(
-              `${
-                process.env.NEXT_PUBLIC_API_BASE_URL || ''
-              }/api/notifications/add`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  user_id: userId,
-                  type: 'system',
-                  title: '歡迎加入寵物之家',
-                  message: `親愛的 ${name}，感謝您註冊成為我們的會員！您現在可以瀏覽我們的網站，探索可愛的寵物，參與各種活動，以及使用會員專屬服務。`,
-                  link: '/member',
-                }),
-              }
-            )
+            const [notifyResult, notifyError] =
+              await database.executeSecureQuery(
+                `INSERT INTO notifications 
+              (user_id, type, title, message, link, created_at) 
+              VALUES (?, ?, ?, ?, ?, NOW())`,
+                [
+                  userId,
+                  'system',
+                  '歡迎加入寵物之家',
+                  `親愛的 ${name}，感謝您註冊成為我們的會員！您現在可以瀏覽我們的網站，探索可愛的寵物，參與各種活動，以及使用會員專屬服務。`,
+                  '/member',
+                ]
+              )
+
+            if (notifyError) {
+              throw new Error(`通知發送失敗: ${notifyError.message}`)
+            }
+
+            console.log('通知發送成功:', notifyResult)
           }
         } catch (notifyError) {
           console.error('發送歡迎通知時發生錯誤:', notifyError)
-          // 不阻礙主要流程
+          console.error('詳細錯誤:', notifyError.message)
         }
 
         return NextResponse.json({ message: '註冊成功' }, { status: 201 })

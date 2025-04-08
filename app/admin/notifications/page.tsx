@@ -6,7 +6,7 @@ import { useAdmin } from '@/app/admin/AdminContext'
 import { withAuth } from '@/app/admin/_hooks/useAuth'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Clock, Filter, CheckSquare, RefreshCw } from 'lucide-react'
+import { Clock, Filter, CheckSquare, RefreshCw, Bell } from 'lucide-react'
 import AdminPageLayout from '@/app/admin/_components/AdminPageLayout'
 import styles from './notifications.module.css'
 
@@ -258,6 +258,16 @@ function AdminNotificationsPage() {
         { label: '通知管理', active: true },
       ]}
     >
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h1 className="h3">通知管理</h1>
+        <Link href="/admin/notifications/send" passHref>
+          <Button variant="primary">
+            <Bell size={16} className="me-2" />
+            發送系統通知
+          </Button>
+        </Link>
+      </div>
+
       <Card>
         <Card.Header className="d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center">

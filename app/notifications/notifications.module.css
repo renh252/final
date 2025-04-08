@@ -24,8 +24,24 @@
   border-bottom: 1px solid #ddd;
   display: flex;
   overflow-x: auto;
+  overflow-y: hidden;
   flex-wrap: nowrap;
   position: relative;
+  min-height: 48px;
+  scrollbar-width: thin;
+}
+
+.tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tabs::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.tabs::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
 }
 
 .tab {
@@ -37,6 +53,9 @@
   border: none;
   background: transparent;
   color: #666;
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .tab:hover {
@@ -46,6 +65,8 @@
 .tab.active {
   color: #0066cc;
   border-bottom: 2px solid #0066cc;
+  box-sizing: border-box;
+  margin-bottom: -1px;
 }
 
 .tabBadge {
@@ -56,6 +77,11 @@
   padding: 0.15rem 0.3rem;
   min-width: 16px;
   height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  z-index: 1;
 }
 
 .notificationList {
@@ -193,7 +219,15 @@
 
   .tab {
     font-size: 0.8rem;
-    padding: 10px 12px;
+    padding: 10px 8px;
+  }
+
+  .tabBadge {
+    top: 2px;
+    right: 2px;
+    font-size: 0.65rem;
+    min-width: 14px;
+    height: 14px;
   }
 
   .content {

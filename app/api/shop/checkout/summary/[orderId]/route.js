@@ -16,6 +16,7 @@ export async function GET(req, { params }) {
     const query = `
       SELECT 
         order_id AS "orderId",
+        user_id AS "userId",
         total_price AS "totalAmount",
         payment_method AS "paymentMethod",
         shipping_method AS "shippingMethod",
