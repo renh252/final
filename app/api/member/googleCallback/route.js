@@ -100,8 +100,8 @@ export async function POST(request) {
         // 完善插入語句，確保所有必要欄位都有預設值
         const insertSql = `
           INSERT INTO users 
-          (user_email, google_email, user_password, user_name, user_number, user_address, user_level, has_additional_info, created_at) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+          (user_email, google_email, user_password, user_name, user_number, user_address, user_status, has_additional_info, created_at) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         `
 
         const [insertResult, insertError] = await database.executeSecureQuery(
@@ -113,7 +113,7 @@ export async function POST(request) {
             googleName || googleEmail.split('@')[0],
             '', // 為 user_number 提供空字串預設值
             '', // 為 user_address 提供空字串預設值
-            1, // 為 user_level 提供預設值 1 (普通會員)
+            '正常', // 為 user_status 提供預設值 "正常"
             0, // has_additional_info 設為 0，表示仍需填寫詳細資料
           ]
         )
