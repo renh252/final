@@ -21,38 +21,38 @@ const AchievementFeed: React.FC = () => {
     },
     {
       id: 2,
-      username: "烏薩奇",
-      badgeName: "連續登入10天",
+      username: "宋德鶴",
+      badgeName: "寵物達人",
       badgeIcon: "bi-heart-fill",
-      timestamp: "5天前"
+      timestamp: "7天前"
     },
     {
       id: 3,
       username: "烏薩奇",
-      badgeName: "熱心助人",
+      badgeName: "成功邀請一位好友",
       badgeIcon: "bi-trophy-fill",
-      timestamp: "7天前"
+      timestamp: "10天前"
     },
     {
       id: 4,
-      username: "烏薩奇",
-      badgeName: "成功邀請一位好友",
+      username: "宋德鶴",
+      badgeName: "寵物知識王",
       badgeIcon: "bi-calendar-event",
-      timestamp: "9天前"
+      timestamp: "8天前"
     },
     {
       id: 5,
-      username: "烏薩奇",
-      badgeName: "寵物達人",
+      username: "宋德鶴",
+      badgeName: "攝影達人",
       badgeIcon: "bi-camera-fill",
-      timestamp: "4天前"
+      timestamp: "15天前"
     },
     {
       id: 6,
-      username: "烏薩奇",
+      username: "宋德鶴",
       badgeName: "知識分享者",
       badgeIcon: "bi-book-fill",
-      timestamp: "8天前"
+      timestamp: "20天前"
     }
   ], [])
 

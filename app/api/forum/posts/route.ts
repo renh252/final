@@ -76,8 +76,10 @@ export async function GET(request: Request) {
         p.like_count,
         p.comment_count,
         p.user_id,
-        p.category_id
+        p.category_id,
+        c.name as category_name
       FROM forum_posts p
+      LEFT JOIN forum_categories c ON p.category_id = c.id
       ${whereClause}
       ${orderClause}
       LIMIT ${offset}, ${limit}
@@ -91,7 +93,7 @@ export async function GET(request: Request) {
       ...post,
       author_name: '烏薩奇',
       author_avatar: '',
-      category_name: '熱門標籤',
+      category_name: post.category_name || '其他',
       tags: '',
       // 如果資料表沒有 image_url 欄位，添加默認值
       ...(hasImageUrlColumn ? {} : { image_url: null }),
@@ -113,7 +115,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(responseData)
   } catch (error) {
-    console.error('Error fetching posts:', error)
+    console.error('Error in GET /api/forum/posts:', error)
     return NextResponse.json(
       {
         status: 'error',
