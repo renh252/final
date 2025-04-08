@@ -60,6 +60,14 @@ export default function NotificationBell() {
 
   // 添加控制變數，設為 true 可顯示模擬通知，設為 false 則使用實際 API
   const SHOW_MOCK_NOTIFICATIONS = false
+  
+  // 客戶端與伺服器端渲染匹配
+  const [isBrowser, setIsBrowser] = useState(false)
+  
+  // 確保只在客戶端渲染影像
+  useEffect(() => {
+    setIsBrowser(true)
+  }, [])
 
   // 檢測是否為手機版
   useEffect(() => {
@@ -720,17 +728,22 @@ export default function NotificationBell() {
                 >
                   <div className={styles.content}>
                     <div className={styles.imageWrapper}>
-                      <Image
-                        src={
-                          notification.image ||
-                          notificationIcons[notification.type] ||
-                          notificationIcons.default
-                        }
-                        alt=""
-                        width={40}
-                        height={40}
-                        className={styles.image}
-                      />
+                      {isBrowser && (
+                        <Image
+                          src={
+                            notification.image ||
+                            notificationIcons[notification.type] ||
+                            notificationIcons.default
+                          }
+                          alt=""
+                          width={40}
+                          height={40}
+                          className={styles.image}
+                        />
+                      )}
+                      {!isBrowser && (
+                        <div className={styles.image} style={{ width: '40px', height: '40px' }}></div>
+                      )}
                     </div>
                     <div className={styles.text}>
                       <div className={styles.typeLabel}>

@@ -18,6 +18,14 @@ export default function Menubar() {
   const pathname = usePathname()
   const [currentPath, setCurrentPath] = useState('/')
   const userId = user?.id
+  
+  // 客戶端與伺服器端渲染匹配
+  const [isBrowser, setIsBrowser] = useState(false)
+  
+  // 確保只在客戶端渲染影像
+  useEffect(() => {
+    setIsBrowser(true)
+  }, [])
 
   // 確保路徑在客戶端可用
   useEffect(() => {
@@ -92,14 +100,18 @@ export default function Menubar() {
         <Container>
           <Link href="/" passHref legacyBehavior>
             <Navbar.Brand>
-              <Image
-                src="/images/logo2.png"
-                alt="圖片描述"
-                width={120}
-                height={30}
-                priority={true}
-                style={{ objectFit: 'contain' }}
-              />
+              {isBrowser ? (
+                <Image
+                  src="/images/logo2.png"
+                  alt="圖片描述"
+                  width={120}
+                  height={30}
+                  priority={true}
+                  style={{ objectFit: 'contain' }}
+                />
+              ) : (
+                <div style={{ width: '120px', height: '30px' }}></div>
+              )}
             </Navbar.Brand>
           </Link>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />

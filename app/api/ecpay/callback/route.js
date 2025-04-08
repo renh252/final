@@ -51,6 +51,7 @@ export async function POST(req) {
       console.error('❌ 更新資料庫時發生錯誤:', err)
     }
 
+    // 將通知更新事件附加到重定向 URL
     // 設定導回頁面
     let redirectUrl
 
@@ -58,10 +59,18 @@ export async function POST(req) {
       // 商城付款完成，導回 `summary` 並帶上 `MerchantTradeNo`**
       redirectUrl = `http://localhost:3000/shop/checkout/summary?order=${params.MerchantTradeNo}`
     } else if (orderType === 'donation') {
-      // 捐款付款完成，導回捐款結果頁面
+      // 查詢捐款金額
+      const [donations] = await db.query(
+        `SELECT amount FROM donations WHERE trade_no = ?`,
+        [tradeNo]
+      )
+      const amount =
+        donations && donations.length > 0 ? donations[0].amount : ''
+
+      // 捐款付款完成，導回捐款結果頁面並附帶金額
       redirectUrl = `http://localhost:3000/donate/flow/result?status=${
         isSuccess ? 'success' : 'fail'
-      }`
+      }&amount=${amount}`
     } else {
       // 未知的交易類型，導回錯誤頁面
       console.error(`❌ 無效的交易類型: ${orderType}`)

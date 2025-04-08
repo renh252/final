@@ -12,6 +12,7 @@ export default function ResultPage(props) {
   const searchParams = useSearchParams()
   const isSuccess = searchParams.get('status') === 'success'
   const amount = searchParams.get('amount')
+  console.log('捐款金額: ', amount) // 記錄獲取到的金額，用於調試
   const { user } = useAuth()
   const [notificationSent, setNotificationSent] = useState(false)
 
@@ -48,7 +49,7 @@ export default function ResultPage(props) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              admin_id: 6, // 假設管理員ID為6
+              admin_id: 6, // 管理員ID
               type: 'donation',
               title: '收到新的捐款',
               message: `用戶 ${
@@ -61,6 +62,10 @@ export default function ResultPage(props) {
           if (userResponse.ok && adminResponse.ok) {
             console.log('捐款成功通知已發送')
             setNotificationSent(true)
+            
+            // 發射通知更新事件，使通知鈴鐺更新
+            const updateEvent = new Event('updateNotifications')
+            document.dispatchEvent(updateEvent)
           } else {
             console.error(
               '發送通知失敗:',
