@@ -219,13 +219,18 @@ export async function POST(request) {
 
     console.log(
       'Google 登入/註冊成功，needsAdditionalInfo:',
-      needsAdditionalInfo
+      needsAdditionalInfo,
+      '用戶 ID:',
+      user?.user_id,
+      '資料完整性:',
+      user?.has_additional_info === 1 ? '完整' : '不完整'
     )
 
-    return NextResponse.json({
+    // 增加明確的回應格式記錄
+    const response = {
       success: true,
       message: needsAdditionalInfo ? '需要填寫詳細資訊' : '登入成功',
-      needsAdditionalInfo,
+      needsAdditionalInfo: needsAdditionalInfo === true, // 確保是布爾值 true
       authToken: token,
       user: user
         ? {
@@ -234,9 +239,17 @@ export async function POST(request) {
             email: user.user_email,
             number: user.user_number,
             address: user.user_address,
+            has_additional_info: user.has_additional_info === 1, // 添加到回應中
           }
         : null,
-    })
+    }
+
+    console.log(
+      '完整回應結構:',
+      JSON.stringify(response, null, 2).substring(0, 200) + '...'
+    )
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Google 登入回調錯誤:', error)
     return NextResponse.json(
