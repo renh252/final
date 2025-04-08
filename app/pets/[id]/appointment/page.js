@@ -365,6 +365,9 @@ export default function PetAppointmentPage() {
 
       // 預約成功
       setSuccess(true)
+      // 觸發通知更新事件
+      const updateEvent = new Event('updateNotifications')
+      document.dispatchEvent(updateEvent)
     } catch (err) {
       console.error('Error submitting appointment:', err)
       setError(err.message || '預約過程中發生錯誤，請稍後再試')

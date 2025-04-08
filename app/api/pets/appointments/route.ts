@@ -250,6 +250,7 @@ export async function POST(request: NextRequest) {
       // 使用通用通知API向用戶發送通知
       try {
         const petName = pet.name
+        // 發送通知給用戶
         const notificationData = {
           user_id: data.user_id,
           type: 'pet',
@@ -258,22 +259,56 @@ export async function POST(request: NextRequest) {
           link: `/member/appointments`,
         }
 
-        // 調用通知API
-        const notificationResponse = await fetch('/api/notifications/add', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(notificationData),
-        })
+        // 直接插入通知到資料庫
+        const [userNotificationResult, userNotificationError] = await db.query(
+          `INSERT INTO notifications (user_id, type, title, message, link, created_at) VALUES (?, ?, ?, ?, ?, NOW())`,
+          [
+            notificationData.user_id,
+            notificationData.type,
+            notificationData.title,
+            notificationData.message,
+            notificationData.link,
+          ]
+        )
 
-        const notificationResult = await notificationResponse.json()
-
-        if (!notificationResult.success) {
-          console.error('新增通知失敗:', notificationResult.message)
-          // 不影響主流程，僅記錄錯誤
+        if (userNotificationError) {
+          console.error('新增用戶通知失敗:', userNotificationError)
         } else {
-          console.log('通知創建成功，ID:', notificationResult.notification_id)
+          console.log(
+            '用戶通知創建成功，ID:',
+            (userNotificationResult as any).insertId
+          )
+        }
+
+        // 發送通知給管理員
+        const adminNotificationData = {
+          admin_id: 6, // 超級管理員
+          type: 'pet',
+          title: '收到新的領養申請',
+          message: `收到用戶 ${data.user_id} 對「${petName}」的領養申請，請盡快審核。`,
+          link: `/admin/pets/appointments`,
+        }
+
+        // 直接插入管理員通知到資料庫
+        const [adminNotificationResult, adminNotificationError] =
+          await db.query(
+            `INSERT INTO notifications (admin_id, type, title, message, link, created_at) VALUES (?, ?, ?, ?, ?, NOW())`,
+            [
+              adminNotificationData.admin_id,
+              adminNotificationData.type,
+              adminNotificationData.title,
+              adminNotificationData.message,
+              adminNotificationData.link,
+            ]
+          )
+
+        if (adminNotificationError) {
+          console.error('新增管理員通知失敗:', adminNotificationError)
+        } else {
+          console.log(
+            '管理員通知創建成功，ID:',
+            (adminNotificationResult as any).insertId
+          )
         }
       } catch (notifyErr) {
         console.error('發送通知時發生錯誤:', notifyErr)
