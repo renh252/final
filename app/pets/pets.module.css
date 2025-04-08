@@ -1925,6 +1925,47 @@ body:has(.leftSideDrawer:not(.open)) .drawerToggleContainer {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* 飛行愛心樣式 */
+.flyingHeart {
+  --start-x: 0px;
+  --start-y: 0px;
+  --end-x: 100vw;
+  --end-y: 100vh;
+
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translate(var(--start-x), var(--start-y));
+  font-size: 24px;
+  color: #d75951;
+  z-index: 99999;
+  pointer-events: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes flyToFloatingButton {
+  0% {
+    transform: translate(var(--start-x), var(--start-y)) scale(1);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(
+        calc(var(--start-x) + 20px),
+        calc(var(--start-y) - 30px)
+      )
+      scale(1.8);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(var(--end-x), var(--end-y)) scale(0.5);
+    opacity: 0;
+  }
+}
+
 /* 載入更多按鈕容器 */
 .loadMoreButtonContainer {
   display: flex;

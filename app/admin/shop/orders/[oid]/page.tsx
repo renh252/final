@@ -115,10 +115,20 @@ export default function OrderDetailPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetchApi(`/api/admin/shop/orders/${oid}`)
+      console.log(`正在獲取訂單詳情，訂單編號: ${oid}`)
+
+      // 添加調試信息，請求URL
+      const requestUrl = `/api/admin/shop/orders/${oid}`
+      console.log(`請求URL: ${requestUrl}`)
+
+      const response = await fetchApi(requestUrl)
+
+      // 調試信息，輸出API響應
+      console.log(`API響應:`, response)
 
       // 處理多種可能的響應格式
       if (response.success && response.order) {
+        console.log(`找到訂單資料，格式1: success + order`)
         // 格式 1: { success: true, order: {...} }
         setOrder(response.order)
         setOrderItems(response.order.items || [])
@@ -127,6 +137,7 @@ export default function OrderDetailPage() {
         setTimeline(response.order.timeline || [])
         setTrackingInput(response.order.shipping?.tracking_number || '')
       } else if (response.order) {
+        console.log(`找到訂單資料，格式2: order`)
         // 格式 2: { order: {...} }
         setOrder(response.order)
         setOrderItems(response.order.items || [])
@@ -135,6 +146,7 @@ export default function OrderDetailPage() {
         setTimeline(response.order.timeline || [])
         setTrackingInput(response.order.shipping?.tracking_number || '')
       } else if (response.success && response.data) {
+        console.log(`找到訂單資料，格式3: success + data`)
         // 格式 3: { success: true, data: {...} }
         const orderData = response.data
         setOrder(orderData)
@@ -144,6 +156,7 @@ export default function OrderDetailPage() {
         setTimeline(orderData.timeline || [])
         setTrackingInput(orderData.shipping?.tracking_number || '')
       } else if (response.data) {
+        console.log(`找到訂單資料，格式4: data`)
         // 格式 4: { data: {...} }
         const orderData = response.data
         setOrder(orderData)
@@ -153,6 +166,7 @@ export default function OrderDetailPage() {
         setTimeline(orderData.timeline || [])
         setTrackingInput(orderData.shipping?.tracking_number || '')
       } else if (response.id || response.order_id) {
+        console.log(`找到訂單資料，格式5: 直接返回訂單對象`)
         // 格式 5: 直接返回訂單對象
         setOrder(response)
         setOrderItems(response.items || [])
@@ -161,13 +175,46 @@ export default function OrderDetailPage() {
         setTimeline(response.timeline || [])
         setTrackingInput(response.shipping?.tracking_number || '')
       } else {
-        console.error('返回的訂單數據格式不正確:', response)
-        throw new Error(response.message || '獲取訂單詳情失敗，數據格式不正確')
+        // 詳細記錄錯誤情況
+        console.error(
+          '返回的訂單數據格式不正確:',
+          JSON.stringify(response, null, 2)
+        )
+
+        // 檢查是否有可能的錯誤訊息
+        let errorMessage = '獲取訂單詳情失敗，數據格式不正確'
+
+        if (response.message) {
+          errorMessage = response.message
+        } else if (response.error) {
+          errorMessage =
+            typeof response.error === 'string'
+              ? response.error
+              : JSON.stringify(response.error)
+        } else if (response.success === false) {
+          errorMessage = '操作失敗，請檢查訂單ID是否正確'
+        }
+
+        throw new Error(errorMessage)
       }
     } catch (err: any) {
+      // 詳細記錄錯誤
       console.error('獲取訂單詳情失敗:', err)
-      setError(err instanceof Error ? err.message : '獲取訂單詳情失敗')
-      showToast('error', '錯誤', '獲取訂單詳情失敗，請稍後再試')
+
+      // 提取錯誤訊息
+      let errorMessage = '獲取訂單詳情失敗'
+
+      if (err instanceof Error) {
+        errorMessage = err.message
+        console.error('錯誤詳情:', err.stack)
+      } else if (typeof err === 'string') {
+        errorMessage = err
+      } else if (err && typeof err === 'object') {
+        errorMessage = JSON.stringify(err)
+      }
+
+      setError(errorMessage)
+      showToast('error', '錯誤', `獲取訂單詳情失敗: ${errorMessage}`)
     } finally {
       setLoading(false)
     }
@@ -193,7 +240,7 @@ export default function OrderDetailPage() {
 
       setLoading(true)
 
-      const response = await fetchApi(`/api/admin/orders/${oid}`, {
+      const response = await fetchApi(`/api/admin/shop/orders/${oid}`, {
         method: 'PUT',
         body: JSON.stringify({ status: newStatus }),
       })
@@ -226,7 +273,7 @@ export default function OrderDetailPage() {
         estimated_delivery: shipping?.estimated_delivery || '',
       }
 
-      const response = await fetchApi(`/api/admin/orders/${oid}`, {
+      const response = await fetchApi(`/api/admin/shop/orders/${oid}`, {
         method: 'PATCH',
         body: JSON.stringify(shippingData),
       })
@@ -253,7 +300,7 @@ export default function OrderDetailPage() {
     try {
       setLoading(true)
 
-      const response = await fetchApi(`/api/admin/orders/${oid}`, {
+      const response = await fetchApi(`/api/admin/shop/orders/${oid}`, {
         method: 'POST',
         body: JSON.stringify({ content: commentInput }),
       })
@@ -304,7 +351,7 @@ export default function OrderDetailPage() {
 
       setLoading(true)
 
-      const response = await fetchApi(`/api/admin/orders/${oid}/notify`, {
+      const response = await fetchApi(`/api/admin/shop/orders/${oid}/notify`, {
         method: 'POST',
       })
 

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2025-04-08 03:59:51
+-- 產生時間： 2025-04-07 15:25:23
 -- 伺服器版本： 8.0.40
 -- PHP 版本： 8.2.12
 
@@ -3200,8 +3200,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `user_email`, `user_password`, `user_name`, `user_number`, `user_address`, `user_birthday`, `user_level`, `profile_picture`, `user_status`, `user_nickname`, `created_at`, `firebase_uid`, `has_additional_info`, `google_email`) VALUES
-(1, 'song1@gmail.com', 'a12345', '宋會喬', '0911222333', '台南市永康區南台街一號', '2005-01-24', '愛心小天使', NULL, '正常', NULL, '2024-12-31 16:00:00', NULL, 0, NULL),
-(2, 'chin2@gmail.com', 'a12345', '金城', '0987123456', '台南市永康區南台街123號', '2004-12-17', '乾爹乾媽', NULL, '正常', NULL, '2025-01-01 16:00:00', NULL, 0, NULL),
+(1, 'song1@gmail.com', 'a12345', '宋會喬', '0911222333', '台南市永康區南台街一號', '2005-01-24', '愛心小天使', NULL, '禁言', NULL, '2024-12-31 16:00:00', NULL, 0, NULL),
+(2, 'chin2@gmail.com', 'a12345', '金城', '0987123456', '台南市永康區南台街123號', '2004-12-17', '乾爹乾媽', NULL, '禁言', NULL, '2025-01-01 16:00:00', NULL, 0, NULL),
 (3, 'chang3@example.com', 'a12345', '張三', '0933123456', '台北市中正區忠孝東路一段1號', '2004-05-10', '乾爹乾媽', NULL, '正常', NULL, '2025-01-02 16:00:00', NULL, 0, NULL),
 (4, 'lee4@example.com', 'a12345', '李四', '0966987654', '台中市西屯區台灣大道三段301號', '2003-07-20', '愛心小天使', NULL, '正常', NULL, '2025-01-03 16:00:00', NULL, 0, NULL),
 (5, 'wang5@example.com', 'a12345', '王五', '0955567890', '高雄市苓雅區中正一路1號', '2002-11-01', '愛心小天使', NULL, '正常', NULL, '2025-01-04 16:00:00', NULL, 0, NULL),

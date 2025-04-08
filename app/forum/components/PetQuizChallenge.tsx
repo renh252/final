@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, Button, Alert } from 'react-bootstrap'
 import styles from './PetQuizChallenge.module.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
@@ -36,15 +36,11 @@ const questions: QuizQuestion[] = [
 ]
 
 export default function PetQuizChallenge() {
-  const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null)
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [showResult, setShowResult] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
 
-  useEffect(() => {
-    // 隨機選擇一個問題
-    const randomIndex = Math.floor(Math.random() * questions.length)
-    setCurrentQuestion(questions[randomIndex])
-  }, [])
+  const currentQuestion = questions[currentQuestionIndex]
 
   const fireConfetti = () => {
     // 左側彩帶
@@ -65,8 +61,6 @@ export default function PetQuizChallenge() {
   }
 
   const handleAnswer = (selectedIndex: number) => {
-    if (!currentQuestion) return
-    
     const correct = selectedIndex === currentQuestion.correctAnswer
     setIsCorrect(correct)
     setShowResult(true)
@@ -81,15 +75,15 @@ export default function PetQuizChallenge() {
       }, 500)
     }
 
-    // 3秒後重置問題
+    // 3秒後顯示下一題
     setTimeout(() => {
       setShowResult(false)
-      const newIndex = Math.floor(Math.random() * questions.length)
-      setCurrentQuestion(questions[newIndex])
+      // 如果是最後一題，回到第一題
+      setCurrentQuestionIndex((prevIndex) => 
+        prevIndex === questions.length - 1 ? 0 : prevIndex + 1
+      )
     }, 3000)
   }
-
-  if (!currentQuestion) return null
 
   return (
     <Card className={styles.quizCard}>
@@ -99,23 +93,7 @@ export default function PetQuizChallenge() {
         </div>
       </Card.Header>
       <Card.Body>
-        {!showResult ? (
-          <>
-            <Card.Title className={styles.question}>{currentQuestion.question}</Card.Title>
-            <div className={styles.options}>
-              {currentQuestion.options.map((option, index) => (
-                <Button
-                  key={index}
-                  variant="outline-primary"
-                  className={styles.optionButton}
-                  onClick={() => handleAnswer(index)}
-                >
-                  {option}
-                </Button>
-              ))}
-            </div>
-          </>
-        ) : (
+        {showResult ? (
           <Alert 
             variant={isCorrect ? 'success' : 'danger'}
             className={`${styles.resultAlert} ${isCorrect ? styles.correctAlert : styles.wrongAlert}`}
@@ -132,6 +110,22 @@ export default function PetQuizChallenge() {
               </>
             )}
           </Alert>
+        ) : (
+          <>
+            <Card.Title className={styles.question}>{currentQuestion.question}</Card.Title>
+            <div className={styles.options}>
+              {currentQuestion.options.map((option, index) => (
+                <Button
+                  key={index}
+                  variant="outline-primary"
+                  className={styles.optionButton}
+                  onClick={() => handleAnswer(index)}
+                >
+                  {option}
+                </Button>
+              ))}
+            </div>
+          </>
         )}
       </Card.Body>
     </Card>

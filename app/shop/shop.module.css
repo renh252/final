@@ -1,10 +1,10 @@
-.header_space{
+.header_space {
   width: 100%;
   height: 3.5rem;
 }
 
 /* main */
-.main{
+.main {
   margin: 50px auto;
   padding: 0;
   width: 100%;
@@ -14,15 +14,14 @@
   align-items: center;
   gap: 50px;
 
-  p{
+  p {
     margin: 0;
     padding: 0;
   }
 }
 
-
 /* contains */
-.contains{
+.contains {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -30,7 +29,7 @@
   align-items: center;
   gap: 50px;
 
-  .title{
+  .title {
     color: #6b4f37;
     display: flex;
     flex-direction: column;
@@ -38,15 +37,15 @@
     align-items: center;
     gap: 10px;
 
-    >p{
+    > p {
       font-size: 2rem;
     }
-    >span{
+    > span {
       font-size: 1.2rem;
     }
   }
 }
-.contain{
+.contain {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -54,9 +53,8 @@
   align-items: center;
   border-radius: 8px;
   overflow: hidden;
-
 }
-.contain_title{
+.contain_title {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -64,41 +62,39 @@
   color: #fff;
   position: relative;
   font-size: 30px;
-  
-  .title{
+
+  .title {
     font-size: 30px;
     display: flex;
     justify-content: center;
     align-items: center;
   }
-  .viewMore{
+  .viewMore {
     position: absolute;
     right: 20px;
   }
-  
-
 }
-.contain_body{
+.contain_body {
   max-width: 100%;
   padding: 20px;
   background-color: #fff;
 }
-.group{
+.group {
   width: 100%;
   margin: 50px 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
 
-  .groupTitle{
-    padding: 0 10px ;
+  .groupTitle {
+    padding: 0 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
     border-left: #000 1px solid;
 
-    >p{
+    > p {
       font-size: 30px;
       color: #593e2f;
       text-shadow: #000 1px 0px;
@@ -109,32 +105,31 @@
       color: #593e2f;
       text-shadow: none;
     }
-    
+
     .groupTitle::before {
-      content: "";
+      content: '';
       width: 5px;
       height: 24px;
       background-color: #d3a87c; /* 咖啡金色 */
       border-radius: 3px;
     }
-    
+
     .groupTitle p {
       font-size: 30px;
       font-weight: bold;
       color: #593e2f;
       letter-spacing: 1px;
     }
-
   }
-  .groupBody{
+  .groupBody {
     display: flex;
     align-items: center;
     gap: 1rem;
     position: relative;
     padding: 0 1rem;
-    };
+  }
 }
-.cardGroup{
+.cardGroup {
   display: flex;
   gap: 30px;
   overflow-x: auto;
@@ -146,18 +141,18 @@
   min-height: 320px;
 }
 
-
 .cardGroup::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari, Opera */
+  display: none; /* Chrome, Safari, Opera */
 }
-.cardBtns{
+.cardBtns {
   display: flex;
   flex-direction: row;
   justify-content: end;
   align-items: center;
   gap: 10px;
 }
-.likeButton,.cartBtn{
+.likeButton,
+.cartBtn {
   width: 35px;
   aspect-ratio: 1/1;
   padding: 8px;
@@ -177,16 +172,17 @@
   transition: all 0.2s ease-in-out;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-.likeButton:hover,.cartBtn:hover{
+.likeButton:hover,
+.cartBtn:hover {
   transform: scale(1.1);
   background-color: rgba(255, 255, 255, 1);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
-.likeButton{
+.likeButton {
   color: #d75951;
 }
-.cartBtn{
-  color: #609e57; 
+.cartBtn {
+  color: #609e57;
 }
 /* .angle{
   display: flex;
@@ -259,30 +255,27 @@
   transform: translateX(5px);
 }
 
-
-
-.contain{
+.contain {
   background-color: #fff;
 }
-.contain_title{
+.contain_title {
   background-color: rgba(89, 62, 47, 1);
 }
 
-.cartVariant label{
+.cartVariant label {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   gap: 10px;
 
-
-  span{
+  span {
     color: gray;
     text-decoration: line-through;
   }
 }
-.cartquantity{
-  input{
+.cartquantity {
+  input {
     width: 50px;
     border-radius: 8px;
   }
@@ -290,52 +283,88 @@
 
 /* mobile */
 @media screen and (max-width: 768px) {
-    
   .contain_title {
     background-color: rgba(89, 62, 47, 0.8);
   }
-  .cardGroup{
+  .cardGroup {
     flex-wrap: nowrap;
   }
-  .angle{
+  .angle {
     display: none;
   }
-  
+
   .cardGroup {
     display: flex;
     grid-template-columns: repeat(2, 1fr); /* 兩列 */
     gap: 15px;
     flex-wrap: nowrap;
-  
   }
-  .card{
+  .card {
     border-radius: 8px;
     overflow: visible !important;
     padding-bottom: 0 !important;
 
-    >:last-child{
+    > :last-child {
       padding: 0 !important;
     }
 
-    .cardText{
+    .cardText {
       display: flex;
       flex-direction: column;
       gap: 5px;
 
-      p{
+      p {
         padding: 0;
         margin: 0;
       }
     }
   }
-  
-  .productMenu{
+
+  .productMenu {
     display: none;
   }
-  .search button{
+  .search button {
     padding: 10px 10px;
     width: auto;
   }
 }
 
+/* 產品卡外層包裝 */
+.productCardWrapper {
+  position: relative;
+}
 
+/* 愛心飛行動畫 */
+.flyingHeart {
+  --start-x: 0px;
+  --start-y: 0px;
+  --end-x: 0px;
+  --end-y: 0px;
+
+  position: fixed;
+  font-size: 24px;
+  color: #d75951;
+  z-index: 99999;
+  pointer-events: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes flyToFloatingButton {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(calc(-50% + 20px), calc(-50% - 30px)) scale(1.8);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--end-x)), calc(-50% + var(--end-y)))
+      scale(0.5);
+    opacity: 0;
+  }
+}
