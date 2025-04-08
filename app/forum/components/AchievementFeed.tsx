@@ -14,45 +14,45 @@ const AchievementFeed: React.FC = () => {
   const mockData = React.useMemo<Achievement[]>(() => [
     {
       id: 1,
-      username: "寵物愛好者",
-      badgeName: "發文達人",
+      username: "烏薩奇",
+      badgeName: "熱門文章作者",
       badgeIcon: "bi-pencil-square",
-      timestamp: "剛剛"
+      timestamp: "2天前"
     },
     {
       id: 2,
-      username: "貓咪控",
-      badgeName: "熱心助人",
+      username: "宋德鶴",
+      badgeName: "寵物達人",
       badgeIcon: "bi-heart-fill",
-      timestamp: "2分鐘前"
+      timestamp: "7天前"
     },
     {
       id: 3,
-      username: "狗狗愛好者",
-      badgeName: "測驗高手",
+      username: "烏薩奇",
+      badgeName: "成功邀請一位好友",
       badgeIcon: "bi-trophy-fill",
-      timestamp: "5分鐘前"
+      timestamp: "10天前"
     },
     {
       id: 4,
-      username: "倉鼠媽媽",
-      badgeName: "活動策劃者",
+      username: "宋德鶴",
+      badgeName: "寵物知識王",
       badgeIcon: "bi-calendar-event",
-      timestamp: "10分鐘前"
+      timestamp: "8天前"
     },
     {
       id: 5,
-      username: "兔兔爸爸",
+      username: "宋德鶴",
       badgeName: "攝影達人",
       badgeIcon: "bi-camera-fill",
-      timestamp: "15分鐘前"
+      timestamp: "15天前"
     },
     {
       id: 6,
-      username: "鸚鵡專家",
+      username: "宋德鶴",
       badgeName: "知識分享者",
       badgeIcon: "bi-book-fill",
-      timestamp: "20分鐘前"
+      timestamp: "20天前"
     }
   ], [])
 

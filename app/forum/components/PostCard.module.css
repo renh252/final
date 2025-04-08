@@ -17,15 +17,16 @@
 }
 
 .postCard {
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(89, 62, 47, 0.1);
-  overflow: hidden;
-  margin-bottom: 1.5rem;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(89, 62, 47, 0.1);
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
   position: relative;
-  animation: cardFloat 6s ease-in-out infinite;
+}
+
+.postCard:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .postCard::before {
@@ -40,19 +41,10 @@
   animation: shimmer 3s linear infinite;
 }
 
-.postCard:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 12px 24px rgba(89, 62, 47, 0.15);
-}
-
-.cardContent {
-  padding: 1.5rem;
-}
-
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 1rem;
 }
 
@@ -60,6 +52,124 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.avatarContainer {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarPlaceholder {
+  color: var(--primary-color);
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.authorName {
+  font-weight: 500;
+  color: var(--secondary-color);
+}
+
+.postTime {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.categoryBadge {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.postTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+  color: var(--secondary-color);
+  transition: color 0.2s ease;
+}
+
+.postTitle:hover {
+  color: var(--primary-color);
+}
+
+.imageContainer {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  margin: 1rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.postImage {
+  object-fit: cover;
+}
+
+.postContent {
+  color: #495057;
+  margin: 1rem 0;
+  line-height: 1.6;
+}
+
+.tagContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.tagBadge {
+  background-color: var(--primary-light);
+  color: var(--secondary-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.tagBadge:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #6c757d;
+}
+
+.statIcon {
+  font-size: 1rem;
 }
 
 @keyframes pulseGlow {
@@ -80,58 +190,6 @@
   }
 }
 
-.avatarContainer {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid transparent;
-  background: linear-gradient(white, white) padding-box,
-              linear-gradient(45deg, #C79650, #EDB25F) border-box;
-  animation: pulseGlow 3s ease-in-out infinite;
-}
-
-.avatarContainer::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 50%;
-  padding: 2px;
-  background: linear-gradient(45deg, #C79650, #EDB25F, #C79650);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box,
-                linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box,
-         linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: rotate 8s linear infinite;
-}
-
-.avatarPlaceholder {
-  width: 48px;
-  height: 48px;
-  background-color: #593E2F;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.authorName {
-  font-weight: 600;
-  color: #593E2F;
-  margin-bottom: 0.25rem;
-}
-
-.postTime {
-  color: #666;
-  font-size: 0.875rem;
-}
-
 @keyframes badgePulse {
   0% {
     transform: scale(1);
@@ -145,35 +203,6 @@
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(199, 150, 80, 0);
   }
-}
-
-.categoryBadge {
-  background: linear-gradient(45deg, #C79650, #EDB25F);
-  color: white;
-  padding: 0.25rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  animation: badgePulse 2s infinite;
-  transition: all 0.3s ease;
-}
-
-.categoryBadge:hover {
-  transform: scale(1.1);
-  background: linear-gradient(45deg, #EDB25F, #C79650);
-}
-
-.postTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #2C1810;
-  margin-bottom: 1rem;
-  transition: color 0.2s ease;
-  line-height: 1.4;
-}
-
-.postTitle:hover {
-  color: #C79650;
 }
 
 @keyframes imagePop {
@@ -191,44 +220,6 @@
   }
 }
 
-.imageContainer {
-  position: relative;
-  height: 220px;
-  overflow: hidden;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.postImage {
-  object-fit: cover;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: imagePop 5s ease-in-out infinite;
-}
-
-.imageContainer:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
-
-.imageContainer:hover .postImage {
-  transform: scale(1.1) rotate(1deg);
-  filter: brightness(1.1) contrast(1.1);
-}
-
-.postContent {
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-.tagContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
 @keyframes tagFloat {
   0%, 100% {
     transform: translateY(0);
@@ -236,56 +227,6 @@
   50% {
     transform: translateY(-3px);
   }
-}
-
-.tagBadge {
-  background-color: #D9B77F;
-  color: #593E2F;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  animation: tagFloat 3s ease-in-out infinite;
-  animation-delay: calc(var(--tag-index) * 0.1s);
-}
-
-.tagBadge::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-  transform: scale(0);
-  transition: transform 0.3s ease-out;
-}
-
-.tagBadge:hover {
-  background-color: #C79650;
-  color: white;
-  transform: translateY(-3px) scale(1.1);
-  box-shadow: 0 4px 12px rgba(199, 150, 80, 0.3);
-}
-
-.tagBadge:hover::before {
-  transform: scale(1) rotate(180deg);
-}
-
-.footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(89, 62, 47, 0.1);
-}
-
-.stats {
-  display: flex;
-  gap: 1rem;
 }
 
 @keyframes iconPop {
@@ -316,33 +257,6 @@
   }
 }
 
-.statItem {
-  display: flex;
-  align-items: center;
-  color: #666;
-  gap: 0.35rem;
-  transition: all 0.3s ease;
-}
-
-.statItem:hover {
-  color: #C79650;
-  transform: translateY(-2px);
-}
-
-.statItem:hover .statIcon {
-  animation: iconPop 0.5s ease-in-out;
-}
-
-.statItem:hover span {
-  animation: countIncrease 0.5s ease-in-out;
-}
-
-.statIcon {
-  color: #EDB25F;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-}
-
 @keyframes arrowBounce {
   0%, 100% {
     transform: translateX(0);
@@ -361,36 +275,6 @@
   }
 }
 
-.readMore {
-  color: #C79650;
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  background: linear-gradient(to right, transparent 50%, rgba(199, 150, 80, 0.1) 50%);
-  background-size: 200% 100%;
-  background-position: 0 0;
-}
-
-.readMore:hover {
-  color: #593E2F;
-  background-position: -100% 0;
-}
-
-.readMore:hover i {
-  animation: arrowBounce 1s ease-in-out infinite;
-}
-
-.readMore span {
-  animation: textGlow 2s ease-in-out infinite;
-}
-
-/* 動畫效果 */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -400,8 +284,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.postCard {
-  animation: fadeIn 0.5s ease-out;
 }
