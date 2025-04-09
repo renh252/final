@@ -290,6 +290,14 @@ export default function AppointmentsPage() {
       return
     }
 
+    // 檢查是否是從預約成功頁面跳轉來的
+    const fromAppointment = sessionStorage.getItem('fromAppointmentSuccess')
+    if (fromAppointment) {
+      // 清除標記
+      sessionStorage.removeItem('fromAppointmentSuccess')
+      console.log('從預約成功頁面跳轉')
+    }
+
     // 直接獲取預約資料，不嘗試刷新token
     fetchAppointments()
   }, [isAuthenticated, router])
@@ -320,6 +328,19 @@ export default function AppointmentsPage() {
       if (!response.ok) {
         if (response.status === 401) {
           console.error('驗證失敗，請重新登入')
+
+          // 檢查是否是從預約成功頁面跳轉來的，如果是則提供較溫和的處理
+          const fromAppointment = sessionStorage.getItem(
+            'fromAppointmentSuccess'
+          )
+          if (fromAppointment) {
+            // 只顯示錯誤，但不強制登出
+            sessionStorage.removeItem('fromAppointmentSuccess')
+            setError('登入信息已過期，請重新整理頁面後再嘗試查看預約')
+            return
+          }
+
+          // 如果不是從預約成功頁面來的，執行原有的登出邏輯
           // 清除本地存儲的登入信息
           localStorage.removeItem('token')
           localStorage.removeItem('user')
