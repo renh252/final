@@ -34,6 +34,19 @@ const ORDER_STATUS_OPTIONS = [
   { value: '已取消', label: '已取消', color: 'danger' },
 ]
 
+// 格式化日期函數
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  })
+}
+
 // 付款狀態選項
 const PAYMENT_STATUS_OPTIONS = [
   { value: '未付款', label: '未付款', color: 'warning' },
@@ -141,7 +154,12 @@ export default function OrdersPage() {
     () => [
       { key: 'order_id', label: '訂單編號', sortable: true },
       { key: 'recipient_name', label: '收件人姓名', sortable: true },
-      { key: 'created_at', label: '訂單日期', sortable: true },
+      { 
+        key: 'created_at', 
+        label: '訂單日期', 
+        sortable: true,
+        render: (value: string) => formatDate(value)
+      },
       {
         key: 'total_price',
         label: '訂單金額',

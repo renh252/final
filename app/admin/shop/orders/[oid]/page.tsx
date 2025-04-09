@@ -54,6 +54,20 @@ const ORDER_STATUS = {
   CANCELLED: { value: '已取消', color: 'danger', icon: <Clock size={16} /> },
 }
 
+// 格式化日期函數
+const formatDate = (dateString: string) => {
+  if (!dateString) return '未設定'
+  const date = new Date(dateString)
+  return date.toLocaleString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  })
+}
+
 // 訂單狀態流程
 const ORDER_WORKFLOW = {
   待出貨: ['已出貨', '已取消'],
@@ -483,7 +497,7 @@ export default function OrderDetailPage() {
                         <strong>訂單編號:</strong> {order?.order_id}
                       </p>
                       <p className="mb-0">
-                        <strong>訂單日期:</strong> {order?.created_at}
+                        <strong>訂單日期:</strong> {formatDate(order?.created_at)}
                       </p>
                       <p className="mb-0">
                         <strong>訂單狀態:</strong>{' '}
@@ -653,11 +667,11 @@ export default function OrderDetailPage() {
                           <strong>追蹤號碼:</strong> {shipping.tracking_number}
                         </p>
                         <p className="mb-1">
-                          <strong>出貨日期:</strong> {shipping.shipped_date}
+                          <strong>出貨日期:</strong> {formatDate(shipping.shipped_date)}
                         </p>
                         <p className="mb-0">
                           <strong>預計到貨:</strong>{' '}
-                          {shipping.estimated_delivery}
+                          {formatDate(shipping.estimated_delivery)}
                         </p>
                       </div>
 
@@ -690,7 +704,7 @@ export default function OrderDetailPage() {
                   timeline.map((event: any) => (
                     <div key={event.id} className="timeline-item">
                       <div className="timeline-date">
-                        {new Date(event.created_at).toLocaleString()}
+                        {formatDate(event.created_at)}
                       </div>
                       <div className="timeline-content">
                         <div className="d-flex align-items-center mb-1">
