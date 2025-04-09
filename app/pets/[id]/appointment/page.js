@@ -490,8 +490,28 @@ export default function PetAppointmentPage() {
               </Button>
               <Button
                 variant="outline-primary"
-                as={Link}
-                href="/member/appointments"
+                onClick={() => {
+                  // 在跳轉前先刷新登入狀態或處理token
+                  const currentToken = localStorage.getItem('token')
+                  if (currentToken) {
+                    // 預先設置一個標記，表示是從預約成功頁面跳轉的
+                    sessionStorage.setItem('fromAppointmentSuccess', 'true')
+                    // 強制重新確認登入令牌有效性
+                    try {
+                      // 使用可靠路徑跳轉而非直接使用Link
+                      router.push('/member/appointments')
+                    } catch (error) {
+                      console.error('跳轉到預約列表頁面時發生錯誤:', error)
+                      // 如果失敗，使用直接導航
+                      window.location.href = '/member/appointments'
+                    }
+                  } else {
+                    // 如果沒有token，引導用戶登入
+                    router.push(
+                      '/member/MemberLogin/login?redirect=/member/appointments'
+                    )
+                  }
+                }}
               >
                 查看我的預約
               </Button>
