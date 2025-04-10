@@ -445,8 +445,12 @@ export default function DonatePage() {
                           >
                             <Card
                               image={
-                                pet.image_url ||
                                 pet.main_photo ||
+                                pet.photo_url ||
+                                (pet.photos && pet.photos.length > 0
+                                  ? pet.photos[0].photo_url
+                                  : null) ||
+                                pet.image_url ||
                                 '/images/default_no_pet.jpg'
                               }
                               title={pet.name}
