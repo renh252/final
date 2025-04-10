@@ -6,6 +6,7 @@ import styles from './card.module.css'
 import { useState, useRef, useEffect } from 'react'
 import { FaHeart, FaRegHeart } from 'react-icons/fa'
 import { useAuth } from '@/app/context/AuthContext'
+import Link from 'next/link'
 
 export default function PetCard({ pet, onToggleFavorite }) {
   const [isFavorite, setIsFavorite] = useState(pet.isFavorite || false)
@@ -97,6 +98,11 @@ export default function PetCard({ pet, onToggleFavorite }) {
   }
 
   return (
+    <Link
+                        href={`/pets/${pet.id}`}
+                        key={pet.id}
+                        className={`${styles.cardLink} ${styles.flexItem}`}
+                      >
     <div className={styles.card}>
       <div className={styles.imageWrap}>
         <Image
@@ -138,5 +144,6 @@ export default function PetCard({ pet, onToggleFavorite }) {
         <p className={styles.detail}>地點：{pet.location}</p>
       </div>
     </div>
+    </Link>
   )
 }
